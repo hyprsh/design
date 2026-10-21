@@ -1,0 +1,26 @@
+<!-- @dsCard group="Media" height=440 subtitle="Device frame with browser toolbar; placeholder and drawn screen" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Phone</title></head>
+<body>
+<div id="root" class="hy-row" style="justify-content:center;align-items:flex-start;gap:48px;flex-wrap:nowrap"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Row(p) { return h('div', { style: { height: p.h || 10, width: p.w, borderRadius: 4, background: p.c || 'var(--gray-300)' } }); }
+function Screen() {
+  return h('div', { role: 'img', 'aria-label': 'Deployment list on a phone', style: { position: 'absolute', inset: 0, background: 'var(--background-100)', padding: '56px 16px 16px', display: 'flex', flexDirection: 'column', gap: 10 } },
+    h(Row, { w: '55%', h: 14, c: 'var(--gray-1000)' }),
+    [0, 1, 2, 3].map(function (i) {
+      return h('div', { key: i, style: { borderRadius: 6, boxShadow: 'var(--shadow-border)', padding: 10, display: 'flex', flexDirection: 'column', gap: 6 } },
+        h(Row, { w: '60%', c: 'var(--gray-400)' }), h(Row, { w: '35%', h: 8, c: i ? 'var(--gray-200)' : 'var(--green-700)' }));
+    }));
+}
+function Demo() {
+  return h(F, null,
+    h('div', { style: { width: 180 } }, h(H.Phone, { address: 'https://acme-docs.dev' })),
+    h('div', { style: { width: 180 } }, h(H.Phone, null, h(Screen))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

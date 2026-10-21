@@ -1,0 +1,20 @@
+<!-- @dsCard group="Navigation" height=168 subtitle="Previous and next links that name the neighbouring pages" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pagination</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.Pagination, {
+      previous: { title: 'Build Settings', href: '#build-settings' },
+      next: { title: 'Environment Variables', href: '#environment-variables' }
+    }),
+    h(H.Pagination, { next: { title: 'Getting Started', href: '#getting-started' } }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

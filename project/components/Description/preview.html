@@ -1,0 +1,21 @@
+<!-- @dsCard group="Content" height=150 subtitle="Default with tooltip, right-aligned, ellipsis" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Description</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h('div', { style: { display: 'flex', justifyContent: 'space-between', gap: 24 } },
+      h(H.Description, { title: 'Last Deployed', content: '2h ago by ci-bot', tooltip: 'When the latest production deployment finished.' }),
+      h(H.Description, { title: 'Region', content: 'Frankfurt (fra1)' }),
+      h(H.Description, { right: true, title: 'Build Duration', content: '42s', tooltip: 'Time from queue to ready for the latest build.' })),
+    h('div', { style: { maxWidth: 360 } },
+      h(H.Description, { ellipsis: true, title: 'Deployment URL', content: 'docs-site-git-feat-edge-config-preview-4c5d6e7.hyprsh.app' })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

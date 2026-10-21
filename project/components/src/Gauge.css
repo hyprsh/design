@@ -1,0 +1,11 @@
+/* ---------- Gauge ---------- */
+.hy-gauge { position: relative; display: inline-flex; flex: none; }
+.hy-gauge__svg { display: block; overflow: visible; }
+.hy-gauge__centre {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  color: var(--gray-1000); font-variant-numeric: tabular-nums; pointer-events: none;
+}
+.hy-gauge--small .hy-gauge__number { font-size: 11px; line-height: 1; font-weight: 500; }
+.hy-gauge--medium .hy-gauge__number { font-size: 18px; line-height: 1; font-weight: 500; }
+.hy-gauge--large .hy-gauge__number { font-size: 32px; line-height: 1; font-weight: 600; letter-spacing: -.02em; }
+.hy-gauge.is-indeterminate .hy-gauge__centre { color: var(--gray-900); }

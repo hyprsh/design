@@ -1,0 +1,22 @@
+<!-- @dsCard group="Forms" height=470 subtitle="Label, hint, error, 3 sizes, disabled, read-only" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Textarea</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Row(kids) { return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12 } }, kids); }
+function Demo() {
+  return h(F, null,
+    h(H.Textarea, { label: 'Description', name: 'description', placeholder: 'Marketing site for the spring launch.', hint: 'Shown on the project overview.' }),
+    h(H.Textarea, { label: 'Commit Message', name: 'message', rows: 2, defaultValue: 'fix', error: 'Commit Message must be at least 10 characters.' }),
+    Row([
+      h(H.Textarea, { key: 1, 'aria-label': 'Small Notes', size: 'small', rows: 3, placeholder: 'Small' }),
+      h(H.Textarea, { key: 2, 'aria-label': 'Disabled Notes', rows: 3, disabled: true, defaultValue: 'Locked by the team owner.' }),
+      h(H.Textarea, { key: 3, 'aria-label': 'Build Output', size: 'large', rows: 3, readOnly: true, defaultValue: 'Build completed in 42s.' })]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

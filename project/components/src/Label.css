@@ -1,0 +1,5 @@
+/* ---------- Label ---------- */
+.hy-label { display: flex; flex-direction: column; min-width: 0; font-size: 13px; line-height: 20px; color: var(--gray-900); }
+.hy-label__text { display: block; text-transform: capitalize; }
+.hy-label--bypass-casing .hy-label__text { text-transform: none; }
+.hy-label--with-input { gap: 8px; }

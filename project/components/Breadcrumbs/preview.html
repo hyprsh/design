@@ -1,0 +1,28 @@
+<!-- @dsCard group="Navigation" height=172 subtitle="Path to the current page, as text with chevrons or as compact chips" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Breadcrumbs</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.Breadcrumbs, null,
+      h(H.BreadcrumbItem, { href: '#team' }, 'Acme'),
+      h(H.BreadcrumbItem, { href: '#project' }, 'acme-web'),
+      h(H.BreadcrumbItem, { href: '#deployments' }, 'Deployments'),
+      h(H.BreadcrumbItem, { active: true }, 'dpl_8Fh2kQ')),
+    h(H.Breadcrumbs, null,
+      h(H.BreadcrumbItem, { href: '#team', prefix: h(H.Icon, { name: 'folder' }) }, 'Acme'),
+      h(H.BreadcrumbItem, { disabled: true }, 'Billing'),
+      h(H.BreadcrumbItem, { active: true }, 'Invoices')),
+    h(H.Breadcrumb, { type: 'menu' },
+      h(H.BreadcrumbItem, { href: '#team' }, 'Acme'),
+      h(H.BreadcrumbItem, { href: '#project' }, 'acme-web'),
+      h(H.BreadcrumbItem, { active: true }, 'Settings')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

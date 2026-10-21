@@ -1,0 +1,28 @@
+<!-- @dsCard group="Layout" height=284 subtitle="Expanding a list, collapsed and expanded states, no border" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ShowMore</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:520px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var items = ['hyprsh-web', 'hyprsh-api', 'docs', 'dashboard', 'marketing', 'status-page', 'cli', 'edge-config'];
+function Demo() {
+  var s = React.useState(false), open = s[0];
+  var listRef = React.useRef(null);
+  var shown = open ? items : items.slice(0, 3);
+  function toggle() {
+    s[1](!open);
+    if (!open) setTimeout(function () { var el = listRef.current && listRef.current.children[3]; if (el) el.focus(); });
+  }
+  return h(F, null,
+    h('ul', { id: 'projects', ref: listRef, className: 'copy-14', style: { listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 'var(--space-2)' } },
+      shown.map(function (n) { return h('li', { key: n, tabIndex: -1 }, n); })),
+    h(H.ShowMore, { expanded: open, onClick: toggle, count: open ? undefined : items.length - 3, 'aria-controls': 'projects' }),
+    h(H.ShowMore, { defaultExpanded: true }),
+    h(H.ShowMore, { noBorder: true }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+<!-- @dsCard group="Data" height=264 subtitle="Sizes with value, thresholds, equal arcs, custom colours, icon, indeterminate" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Gauge</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24, alignItems: 'center' } },
+      h(H.Gauge, { size: 'tiny', value: 72, 'aria-label': 'Performance' }),
+      h(H.Gauge, { size: 'small', value: 72, showValue: true, 'aria-label': 'Performance' }),
+      h(H.Gauge, { size: 'medium', value: 72, showValue: true, 'aria-label': 'Performance' }),
+      h(H.Gauge, { size: 'large', value: 72, showValue: true, 'aria-label': 'Performance' })),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24, alignItems: 'center' } },
+      h(H.Gauge, { value: 18, showValue: true, 'aria-label': 'Accessibility' }),
+      h(H.Gauge, { value: 52, showValue: true, 'aria-label': 'Best Practices' }),
+      h(H.Gauge, { value: 52, showValue: true, arcPriority: 'equal', 'aria-label': 'Best Practices' }),
+      h(H.Gauge, { value: 40, showValue: true, colors: { primary: 'var(--blue-700)', secondary: 'var(--blue-300)' }, 'aria-label': 'Cache Hit Rate' }),
+      h(H.Gauge, { value: 100, 'aria-label': 'Uptime' }, h(H.Icon, { name: 'shield-check', size: 24 })),
+      h(H.Gauge, { indeterminate: true, 'aria-label': 'Performance' })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!-- @dsCard group="Forms" height=360 subtitle="Inline pill and an open popover with reactions, text and Send" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Feedback</title></head>
+<body>
+<div id="root" style="display:flex;flex-direction:column;gap:24px;padding:24px;max-width:560px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function send(payload) { return new Promise(function (resolve) { setTimeout(resolve, 600); }); }
+function Demo() {
+  return h(F, null,
+    h('div', null, h(H.Feedback, { type: 'inline', onSubmit: send, metadata: { page: '/docs/deployments' } })),
+    h('div', { style: { display: 'flex', justifyContent: 'center' } },
+      h(H.Feedback, { defaultOpen: true, onSubmit: send, metadata: { page: '/docs/deployments' }, prefix: h(H.Icon, { name: 'message-square', size: 16 }) })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

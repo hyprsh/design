@@ -1,0 +1,33 @@
+<!-- @dsCard group="Overlays" height=320 subtitle="Three-dot icon button that opens a menu of row actions" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DotsMenu</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:480px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var row = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, padding: '8px 8px 8px 12px', borderRadius: 'var(--radius-lg)', border: '1px solid var(--gray-alpha-400)' };
+function Row(name, meta, menu) {
+  return h('div', { style: row },
+    h('div', null,
+      h('div', { style: { fontSize: 14, fontWeight: 500, color: 'var(--gray-1000)' } }, name),
+      h('div', { style: { fontSize: 13, color: 'var(--gray-900)' } }, meta)),
+    menu);
+}
+function Demo() {
+  return h(F, null,
+    Row('acme-web', 'Production · 2m ago',
+      h(H.DotsMenu, { 'aria-label': 'Deployment Actions', defaultOpen: true, width: 200 },
+        h(H.MenuItem, { prefix: h(H.Icon, { name: 'external-link' }) }, 'Visit'),
+        h(H.MenuItem, { prefix: h(H.Icon, { name: 'refresh-cw' }) }, 'Redeploy'),
+        h(H.MenuItem, { prefix: h(H.Icon, { name: 'copy' }) }, 'Copy URL'),
+        h(H.MenuDivider),
+        h(H.MenuItem, { type: 'error' }, 'Delete Deployment…'))),
+    Row('acme-docs', 'Preview · 1h ago',
+      h(H.DotsMenu, { 'aria-label': 'Deployment Actions', iconSize: 12, disabled: true },
+        h(H.MenuItem, null, 'Visit'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

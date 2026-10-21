@@ -1,0 +1,18 @@
+<!-- @dsCard group="Media" height=208 subtitle="Delta starship mark; lockup, mark, wordmark; nebula and mono" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Logo</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var row = function (kids) { return h('div', { className: 'hy-row', style: { padding: 0, gap: 32, alignItems: 'center' } }, kids); };
+  return h(F, null,
+    row([h(H.Logo, { key: 1, size: 48 }), h(H.Logo, { key: 2, variant: 'mark', size: 48 }), h(H.Logo, { key: 3, variant: 'mark', size: 24 }), h(H.Logo, { key: 4, variant: 'mark', size: 16 })]),
+    row([h(H.Logo, { key: 1, size: 24, tone: 'mono' }), h(H.Logo, { key: 2, variant: 'mark', size: 24, tone: 'mono' }), h(H.Logo, { key: 3, variant: 'mark', size: 16, tone: 'mono' }), h(H.Logo, { key: 4, variant: 'wordmark', size: 24 })]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

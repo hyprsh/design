@@ -1,0 +1,10 @@
+/* ---------- Spinner ---------- */
+.hy-spinner { position: relative; display: inline-block; flex: none; color: var(--gray-700); }
+.hy-spinner > span {
+  position: absolute; left: 50%; top: 50%;
+  border-radius: var(--radius-full); background: currentColor;
+  animation: hy-spin-fade 1s linear infinite;
+}
+@keyframes hy-spin-fade { 0% { opacity: 1; } 100% { opacity: .15; } }
+/* Inside a button it takes the button's text colour. */
+.hy-btn .hy-spinner { color: inherit; }

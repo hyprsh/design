@@ -1,0 +1,28 @@
+<!-- @dsCard group="Layout" height=520 subtitle="Accordion group, multiple open, small size" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Collapse</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:560px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var C = H.Collapse;
+function Demo() {
+  return h(F, null,
+    h(C.Group, null,
+      h(C, { title: 'What Is a Preview Deployment?', defaultExpanded: true },
+        h('p', null, 'Every push to a branch other than main gets its own URL, so reviewers see the change before it ships.')),
+      h(C, { title: 'Can I Use My Own Domain?' },
+        h('p', null, 'Yes. Add the domain in project settings and point its DNS records at hyprsh.'))),
+    h(C.Group, { multiple: true },
+      h(C, { title: 'Build Settings', size: 'small', defaultExpanded: true },
+        h('p', null, 'Framework, build command and output directory are detected on the first deploy.')),
+      h(C, { title: 'Environment Variables', size: 'small', defaultExpanded: true },
+        h('p', null, 'Values are encrypted at rest and only exposed to the environments you pick.')),
+      h(C, { title: 'Regions', size: 'small' },
+        h('p', null, 'Functions run in fra1 unless you choose another region.'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

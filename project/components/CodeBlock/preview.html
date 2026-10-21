@@ -1,0 +1,30 @@
+<!-- @dsCard group="Content" height=1000 subtitle="Filename, highlighted and diff lines, language switcher and tabs, no header" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CodeBlock</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var jsx = "// Rendered on every request\nexport default function Page({ params }) {\n  const project = getProject(params.slug);\n  return (\n    <main className=\"page\">\n      <h1>{project.name}</h1>\n      <Status ready={true} count={3} />\n    </main>\n  );\n}";
+var config = "{\n  \"framework\": \"nextjs\",\n  \"buildCommand\": \"pnpm build\",\n  \"regions\": [\"fra1\", \"iad1\"],\n  \"cleanUrls\": true,\n  \"trailingSlash\": false\n}";
+var codes = {
+  ts: "export async function deploy(project: string): Promise<Deployment> {\n  const res = await fetch(`/v1/projects/${project}/deploy`, { method: 'POST' });\n  return res.json();\n}",
+  bash: "# Link the folder, then ship a production build\nhyprsh link --yes\nHYPRSH_ENV=production hyprsh deploy --prebuilt --token \"$TOKEN\"",
+  css: ".status:hover {\n  color: var(--gray-1000);\n  padding: 0 12px;\n  border-radius: 6px !important;\n}"
+};
+var langs = [{ label: 'TypeScript', value: 'ts' }, { label: 'Bash', value: 'bash' }, { label: 'CSS', value: 'css' }];
+var files = { ts: 'deploy.ts', bash: 'deploy.sh', css: 'status.css' };
+function Demo() {
+  var a = React.useState('ts'), b = React.useState('bash');
+  return h(F, null,
+    h(H.CodeBlock, { filename: 'app/[slug]/page.jsx', language: 'jsx', highlightedLinesNumbers: [3, 6] }, jsx),
+    h(H.CodeBlock, { filename: 'hyprsh.json', language: 'json', addedLinesNumbers: [5], removedLinesNumbers: [4] }, config),
+    h(H.CodeBlock, { filename: files[a[0]], language: a[0], switcher: { options: langs, value: a[0], onChange: a[1] } }, codes[a[0]]),
+    h(H.CodeBlock, { filename: files[b[0]], language: b[0], tabs: { options: langs, value: b[0], onChange: b[1] } }, codes[b[0]]),
+    h(H.CodeBlock, { language: 'bash', hideLineNumbers: true, 'aria-label': 'Install' }, 'npm i -g hyprsh\nhyprsh login'));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

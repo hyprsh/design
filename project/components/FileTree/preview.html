@@ -1,0 +1,28 @@
+<!-- @dsCard group="Data" height=368 subtitle="Nested folders, links, function types and a closed folder" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FileTree</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:320px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var T = H.FileTree, Folder = T.Folder, File = T.File;
+function Demo() {
+  return h(T, { 'aria-label': 'Build output' },
+    h(Folder, { name: 'app', defaultOpen: true },
+      h(Folder, { name: 'api', defaultOpen: true },
+        h(Folder, { name: 'deploy', defaultOpen: true },
+          h(File, { name: 'route.ts', type: 'lambda', href: '#route' })),
+        h(File, { name: 'health.ts', type: 'edge-function', href: '#health' })),
+      h(File, { name: 'layout.tsx', href: '#layout' }),
+      h(File, { name: 'page.tsx', href: '#page', active: true })),
+    h(Folder, { name: 'public' },
+      h(File, { name: 'favicon.ico' })),
+    h(File, { name: 'middleware.ts', type: 'middleware', href: '#middleware' }),
+    h(File, { name: 'package.json' }),
+    h(File, { name: 'hyprsh.json' }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

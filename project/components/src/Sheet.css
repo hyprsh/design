@@ -1,0 +1,44 @@
+/* ---------- Sheet ---------- */
+.hy-sheet { position: fixed; inset: 0; z-index: var(--z-drawer); pointer-events: none; }
+.hy-sheet__overlay {
+  position: absolute; inset: 0; background: var(--backdrop); pointer-events: auto;
+  animation: hy-sheet-fade .2s cubic-bezier(.4,0,.2,1);
+}
+.hy-sheet__panel {
+  position: absolute; display: flex; flex-direction: column; gap: 16px; box-sizing: border-box;
+  padding: 24px; background: var(--background-100); box-shadow: var(--shadow-modal);
+  color: var(--gray-1000); font-size: 14px; line-height: 20px; outline: none; pointer-events: auto;
+  overflow-y: auto; overscroll-behavior: contain;
+  animation: .2s cubic-bezier(.32,.72,0,1) both;
+}
+.hy-sheet__panel--right { top: 0; right: 0; bottom: 0; width: 75%; max-width: 384px; animation-name: hy-sheet-right; }
+.hy-sheet__panel--left { top: 0; left: 0; bottom: 0; width: 75%; max-width: 384px; animation-name: hy-sheet-left; }
+.hy-sheet__panel--top { top: 0; left: 0; right: 0; max-height: 90%; animation-name: hy-sheet-top; }
+.hy-sheet__panel--bottom { bottom: 0; left: 0; right: 0; max-height: 90%; padding-bottom: max(24px, env(safe-area-inset-bottom)); animation-name: hy-sheet-bottom; }
+
+/* floating: inset from the edges with fullscreen material */
+.hy-sheet__panel--floating { margin: 12px; padding: 0; gap: 0; border-radius: var(--radius-2xl); box-shadow: var(--shadow-fullscreen); }
+.hy-sheet__panel--floating.hy-sheet__panel--right, .hy-sheet__panel--floating.hy-sheet__panel--left { width: calc(100% - 24px); max-width: 512px; }
+.hy-sheet__panel--floating.hy-sheet__panel--top, .hy-sheet__panel--floating.hy-sheet__panel--bottom { max-height: calc(90% - 24px); }
+.hy-sheet__panel--floating .hy-sheet__header { padding: 24px 24px 0; }
+.hy-sheet__panel--floating .hy-sheet__desc { padding: 16px 24px; }
+.hy-sheet__panel--floating .hy-sheet__footer { padding: 24px; }
+
+.hy-sheet__header { display: flex; flex-direction: column; gap: 4px; }
+.hy-sheet__header p { margin: 0; color: var(--gray-900); }
+.hy-sheet__title { margin: 0; font-size: 18px; line-height: 28px; font-weight: 600; letter-spacing: -0.27px; color: var(--gray-1000); text-wrap: balance; }
+.hy-sheet__desc { font-size: 14px; line-height: 20px; color: var(--gray-900); }
+.hy-sheet__footer { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: auto; }
+
+.hy-sheet.is-closing { pointer-events: none; }
+.hy-sheet.is-closing .hy-sheet__overlay { opacity: 0; transition: opacity .15s cubic-bezier(.4,0,.2,1); }
+.hy-sheet.is-closing .hy-sheet__panel { animation: hy-sheet-out .15s cubic-bezier(.4,0,.2,1) both; }
+@keyframes hy-sheet-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes hy-sheet-out { to { opacity: 0; } }
+@keyframes hy-sheet-right { from { transform: translateX(100%); } to { transform: none; } }
+@keyframes hy-sheet-left { from { transform: translateX(-100%); } to { transform: none; } }
+@keyframes hy-sheet-top { from { transform: translateY(-100%); } to { transform: none; } }
+@keyframes hy-sheet-bottom { from { transform: translateY(100%); } to { transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .hy-sheet__panel { animation-name: hy-sheet-fade !important; }
+}

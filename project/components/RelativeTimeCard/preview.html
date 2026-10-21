@@ -1,0 +1,20 @@
+<!-- @dsCard group="Overlays" height=220 subtitle="Relative timestamp; card shows UTC and local time" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>RelativeTimeCard</title></head>
+<body>
+<div id="root" style="display:flex;align-items:flex-end;gap:48px;padding:132px 24px 24px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var now = Date.now();
+  return h(F, null,
+    h('span', { className: 'label-14', style: { color: 'var(--gray-900)' } }, 'Last deploy ', h(H.RelativeTimeCard, { date: now - 2 * 60 * 1000, side: 'top', align: 'start', defaultOpen: true })),
+    h('span', { className: 'label-14', style: { color: 'var(--gray-900)' } }, 'Created ', h(H.RelativeTimeCard, { date: now - 5 * 3600 * 1000 })),
+    h('span', { className: 'label-14', style: { color: 'var(--gray-900)' } }, 'Domain added ', h(H.RelativeTimeCard, { date: now - 30 * 3600 * 1000 })),
+    h(H.RelativeTimeCard, { date: now }, h(H.Button, { size: 'small' }, 'Hover Me')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

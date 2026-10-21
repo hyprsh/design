@@ -1,0 +1,74 @@
+/* hyprsh components — loaded after tokens.css. Every value is a token or a Geist-exact constant. */
+:root { color-scheme: light; }
+[data-theme="dark"] { color-scheme: dark; }
+body {
+  margin: 0;
+  background: var(--background-100);
+  color: var(--gray-1000);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 20px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
+}
+::selection { background: var(--selection); color: var(--gray-1000); }
+.hy-sr { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.hy-glyph { flex: none; display: block; }
+.hy-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); padding: var(--space-6); }
+.hy-col { display: flex; flex-direction: column; gap: var(--space-4); padding: var(--space-6); max-width: 420px; }
+.hy-num { font-variant-numeric: tabular-nums; text-align: right; }
+.hy-right { text-align: right; }
+.hy-mono { font-family: var(--font-mono); font-size: 13px; }
+
+/* focus: one ring everywhere */
+.hy-btn:focus-visible, .hy-tabs__tab:focus-visible, .hy-tabs__panel:focus-visible,
+.hy-snippet__copy:focus-visible, .hy-toast__close:focus-visible, .hy-menu__item:focus-visible, .hy-modal:focus-visible,
+.hy-check__input:focus-visible + .hy-check__box {
+  outline: 2px solid var(--focus-color);
+  outline-offset: 2px;
+}
+.hy-modal:focus:not(:focus-visible), .hy-menu__item:focus:not(:focus-visible) { outline: none; }
+
+/* ---------- Fields ---------- */
+.hy-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.hy-field__label { font-size: 13px; line-height: 16px; color: var(--gray-900); }
+.hy-field__hint { margin: 0; font-size: 13px; line-height: 18px; color: var(--gray-900); }
+.hy-field__error { margin: 0; display: flex; gap: 6px; align-items: flex-start; font-size: 13px; line-height: 18px; color: var(--red-900); }
+.hy-field__error .hy-glyph { margin-top: 2px; }
+.hy-input, .hy-select {
+  position: relative; display: flex; align-items: center; min-width: 0;
+  height: 40px; border-radius: var(--radius-md);
+  background: var(--background-100);
+  box-shadow: 0 0 0 1px var(--gray-alpha-400);
+  transition: box-shadow .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-input:hover, .hy-select:hover { box-shadow: 0 0 0 1px var(--gray-alpha-500); }
+.hy-input:focus-within, .hy-select:focus-within {
+  box-shadow: 0 0 0 1px var(--gray-alpha-600);
+  outline: 2px solid var(--focus-color); outline-offset: 2px;
+}
+.hy-input--small { height: 32px; }
+.hy-input--large { height: 48px; border-radius: var(--radius-lg); }
+.hy-input--error, .hy-input--error:hover { box-shadow: 0 0 0 1px var(--red-800); }
+.hy-input--disabled { background: var(--background-200); cursor: not-allowed; }
+.hy-input input, .hy-select select {
+  flex: 1; min-width: 0; height: 100%; padding: 0 12px;
+  font: inherit; font-size: 14px; color: var(--gray-1000);
+  background: transparent; border: 0; outline: none; border-radius: inherit;
+}
+.hy-input--large input, .hy-select.hy-input--large select { font-size: 16px; }
+.hy-input input::placeholder { color: var(--gray-700); opacity: 1; }
+.hy-input input:disabled { color: var(--gray-700); cursor: not-allowed; }
+.hy-input__affix {
+  display: flex; align-items: center; height: 100%; padding: 0 12px; flex: none;
+  color: var(--gray-900); font-size: 14px;
+}
+.hy-input__affix:first-child { border-right: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.hy-input__affix:last-child { border-left: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.hy-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-color: var(--background-100); color: var(--gray-1000); }
+.hy-select__chevron { position: absolute; right: 12px; pointer-events: none; color: var(--gray-900); }
+@media (pointer: coarse) {
+  .hy-input input, .hy-select select { font-size: 16px; }
+}

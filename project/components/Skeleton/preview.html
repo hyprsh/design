@@ -1,0 +1,25 @@
+<!-- @dsCard group="Feedback" height=232 subtitle="Lines, pill avatar, card; wrapping children; button; static; toggle show" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Skeleton</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:520px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState(true), loading = s[0], set = s[1];
+  return h(F, null,
+    h('div', { style: { display: 'flex', gap: 16, alignItems: 'flex-start' } },
+      h(H.Skeleton, { width: 40, height: 40, pill: true }),
+      h('div', { style: { flex: 1, display: 'flex', flexDirection: 'column', gap: 8 } },
+        h(H.Skeleton, { width: '40%', height: 20 }), h(H.Skeleton, { width: '90%', height: 16 }), h(H.Skeleton, { width: '75%', height: 16, animated: false }),
+        h(H.Skeleton, { height: 48, style: { marginTop: 8 } }))),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 12, alignItems: 'center' } },
+      h(H.Skeleton, { show: loading, button: true }, h(H.Button, { size: 'small' }, 'Redeploy')),
+      h(H.Skeleton, { show: loading }, h('span', { className: 'copy-14' }, 'api-gateway · Production')),
+      h(H.Button, { size: 'small', variant: 'tertiary', onClick: function () { set(!loading); } }, loading ? 'Show Content' : 'Show Skeleton')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

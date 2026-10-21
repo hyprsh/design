@@ -1,0 +1,28 @@
+<!-- @dsCard group="Overlays" height=420 subtitle="Type-to-confirm gate, irreversibility band, loading and error" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>DestructiveActionModal</title></head>
+<body>
+<div id="root" class="hy-row"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState(true), open = s[0], setOpen = s[1];
+  var l = React.useState(false), loading = l[0], setLoading = l[1];
+  function confirm() { setLoading(true); setTimeout(function () { setLoading(false); setOpen(false); }, 1500); }
+  return h(F, null,
+    h(H.Button, { size: 'small', variant: 'error', onClick: function () { setOpen(true); } }, 'Delete Project'),
+    h(H.DestructiveActionModal, {
+      open: open, inline: true, loading: loading,
+      onCancel: function () { setOpen(false); }, onConfirm: confirm,
+      title: 'Delete Project',
+      description: h(F, null, h('b', { style: { fontWeight: 500, color: 'var(--gray-1000)' } }, 'hyprsh-web'), ' and all its deployments, domains and environment variables will be permanently deleted.'),
+      irreversibleDescription: 'Deleting hyprsh-web cannot be undone.',
+      verificationLabel: 'project name', verificationPhrase: 'hyprsh-web',
+      confirmLabel: 'Delete Project'
+    }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

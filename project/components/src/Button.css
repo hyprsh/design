@@ -1,0 +1,52 @@
+/* ---------- Button ---------- */
+.hy-btn {
+  position: relative; box-sizing: border-box;
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px;
+  min-width: 0; max-width: 100%; height: 36px; padding: 0 10px; margin: 0;
+  font: inherit; font-size: 14px; line-height: 20px; font-weight: 500;
+  text-decoration: none; border: 0; border-radius: var(--radius-md);
+  cursor: pointer; white-space: nowrap; user-select: none; touch-action: manipulation;
+  transition: background-color .15s cubic-bezier(.4,0,.2,1), box-shadow .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-btn__label { overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
+.hy-btn__affix { display: inline-flex; flex: none; }
+.hy-btn svg { flex: none; }
+
+/* sizes: tiny 24 (icon only), small 32, medium 36, large 40 */
+.hy-btn--tiny { height: 24px; padding: 0 4px; font-size: 12px; line-height: 16px; border-radius: var(--radius-sm); }
+.hy-btn--tiny .hy-btn__label { padding: 0 2px; }
+.hy-btn--small { height: 32px; padding: 0 6px; }
+.hy-btn--large { height: 40px; padding: 0 14px; font-size: 16px; line-height: 24px; border-radius: var(--radius-lg); }
+
+/* shapes */
+.hy-btn--rounded { border-radius: var(--radius-full); padding-left: 12px; padding-right: 12px; }
+.hy-btn--circle { border-radius: var(--radius-full); }
+.hy-btn--icon { width: 36px; padding: 0; }
+.hy-btn--icon.hy-btn--tiny { width: 24px; }
+.hy-btn--icon.hy-btn--small { width: 32px; }
+.hy-btn--icon.hy-btn--large { width: 40px; }
+
+/* variants. `default` maps to primary. */
+.hy-btn--primary { background: var(--gray-1000); color: var(--background-100); }
+.hy-btn--primary:hover { background: color-mix(in srgb, var(--gray-1000) 82%, var(--background-100)); }
+.hy-btn--secondary { background: var(--background-100); color: var(--gray-1000); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-btn--secondary:hover { background: var(--gray-100); }
+[data-theme="dark"] .hy-btn--secondary:hover { background: var(--gray-200); }
+.hy-btn--secondary:active { background: var(--gray-alpha-200); }
+.hy-btn--tertiary { background: transparent; color: var(--gray-1000); }
+.hy-btn--tertiary:hover { background: var(--gray-alpha-200); }
+.hy-btn--tertiary:active { background: var(--gray-alpha-300); }
+.hy-btn--error { background: var(--red-800); color: var(--white); }
+.hy-btn--error:hover { background: var(--red-900); }
+.hy-btn--warning { background: var(--amber-800); color: var(--black); }
+.hy-btn--warning:hover { background: var(--amber-700); }
+
+/* `shadow`: the raised marketing look, usually with shape="rounded" */
+.hy-btn--shadow { box-shadow: var(--shadow-small); }
+
+/* disabled and loading */
+.hy-btn:disabled, .hy-btn:disabled:hover, .hy-btn[aria-disabled="true"], .hy-btn[aria-disabled="true"]:hover {
+  background: var(--gray-100); color: var(--gray-700); box-shadow: 0 0 0 1px var(--gray-alpha-400); cursor: not-allowed;
+}
+.hy-btn--tertiary:disabled, .hy-btn--tertiary:disabled:hover, .hy-btn--tertiary[aria-disabled="true"] { background: transparent; box-shadow: none; }
+.hy-btn[aria-busy="true"] { cursor: wait; }

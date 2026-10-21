@@ -1,0 +1,35 @@
+/* ---------- Note ---------- */
+.hy-note {
+  --note-fg: var(--gray-900); --note-ring: var(--gray-alpha-400); --note-fill: var(--gray-100); --note-fill-ring: var(--gray-alpha-300);
+  display: flex; align-items: flex-start; gap: 12px; min-width: 0;
+  padding: 7px 12px; border-radius: var(--radius-md);
+  font-size: 14px; line-height: 20px; color: var(--note-fg);
+  box-shadow: inset 0 0 0 1px var(--note-ring);
+}
+.hy-note--small { padding: 7px 8px; gap: 8px; font-size: 13px; line-height: 18px; }
+.hy-note--large { padding: 11px 16px; font-size: 16px; line-height: 24px; }
+.hy-note__icon { flex: none; display: inline-flex; margin-top: 2px; }
+.hy-note--small .hy-note__icon { margin-top: 1px; }
+.hy-note--large .hy-note__icon { margin-top: 4px; }
+.hy-note__icon svg { width: 16px; height: 16px; }
+.hy-note__body { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.hy-note__label { margin-right: 4px; font-weight: 600; white-space: nowrap; }
+.hy-note__body a { color: var(--gray-1000); font-weight: 500; text-decoration: underline; text-decoration-color: var(--gray-alpha-500); text-underline-offset: 3px; }
+.hy-note__body a:hover { text-decoration-color: currentColor; }
+.hy-note__body a:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; border-radius: 2px; }
+.hy-note__action { flex: none; display: flex; align-items: center; gap: 8px; margin: -1px 0; }
+/* With an action the note is as tall as a small button plus its padding. */
+.hy-note--has-action { align-items: center; padding: 6px 8px 6px 12px; }
+.hy-note--has-action .hy-note__icon { margin-top: 0; align-self: center; }
+.hy-note--has-action .hy-note__body { align-self: center; }
+
+.hy-note--secondary { --note-fg: var(--gray-900); --note-ring: var(--gray-alpha-400); --note-fill: var(--gray-alpha-100); }
+.hy-note--success { --note-fg: var(--blue-900); --note-ring: var(--blue-400); --note-fill: var(--blue-100); --note-fill-ring: var(--blue-300); }
+.hy-note--error { --note-fg: var(--red-900); --note-ring: var(--red-400); --note-fill: var(--red-100); --note-fill-ring: var(--red-300); }
+.hy-note--warning { --note-fg: var(--amber-900); --note-ring: var(--amber-400); --note-fill: var(--amber-100); --note-fill-ring: var(--amber-300); }
+.hy-note--violet { --note-fg: var(--purple-900); --note-ring: var(--purple-400); --note-fill: var(--purple-100); --note-fill-ring: var(--purple-300); }
+.hy-note--cyan { --note-fg: var(--teal-900); --note-ring: var(--teal-400); --note-fill: var(--teal-100); --note-fill-ring: var(--teal-300); }
+.hy-note--fill { background: var(--note-fill); box-shadow: inset 0 0 0 1px var(--note-fill-ring); }
+
+.hy-note.is-disabled { --note-fg: var(--gray-700); --note-ring: var(--gray-alpha-400); --note-fill: var(--gray-100); --note-fill-ring: var(--gray-alpha-300); }
+.hy-note.is-disabled .hy-note__body a { color: inherit; }

@@ -1,0 +1,25 @@
+<!-- @dsCard group="Forms" height=220 subtitle="RadioGroup with items, disabled option, disabled group, standalone Radio" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Radio</title></head>
+<body>
+<div id="root" class="hy-row" style="align-items:flex-start;gap:48px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState('production'), env = s[0], setEnv = s[1];
+  var t = React.useState(true), on = t[0], setOn = t[1];
+  return h(F, null,
+    h(H.RadioGroup, { label: 'Target Environment', value: env, onChange: setEnv, name: 'target' },
+      h(H.RadioGroupItem, { value: 'production' }, 'Production'),
+      h(H.RadioGroupItem, { value: 'preview' }, 'Preview'),
+      h(H.RadioGroupItem, { value: 'development', disabled: true }, 'Development')),
+    h(H.RadioGroup, { label: 'Build Machine', defaultValue: 'standard', disabled: true },
+      h(H.RadioGroupItem, { value: 'standard' }, 'Standard'),
+      h(H.RadioGroupItem, { value: 'enhanced' }, 'Enhanced')),
+    h(H.Radio, { 'aria-label': 'Use as Default', value: 'default', checked: on, onChange: function () { setOn(true); } }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

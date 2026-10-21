@@ -1,0 +1,14 @@
+/* ---------- DestructiveActionModal ---------- */
+.hy-dam__form { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
+.hy-dam__content { display: flex; flex-direction: column; gap: 16px; }
+.hy-dam__band {
+  display: flex; align-items: flex-start; gap: 8px; min-height: 36px; padding: 8px 12px; box-sizing: border-box;
+  border-radius: var(--radius-md); background: var(--red-200); box-shadow: inset 0 0 0 1px var(--red-300);
+  font-size: 14px; line-height: 20px; color: var(--red-900); overflow-wrap: anywhere;
+}
+.hy-dam__band-glyph { margin-top: 2px; }
+.hy-dam__field { display: flex; flex-direction: column; gap: 8px; }
+.hy-dam__prompt { font-size: 14px; line-height: 20px; color: var(--gray-900); }
+.hy-dam__prompt b { font-weight: 600; color: var(--gray-1000); }
+.hy-dam .hy-input input { font-size: 14px; }
+@media (pointer: coarse) { .hy-dam .hy-input input { font-size: 16px; } }

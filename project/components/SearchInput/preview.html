@@ -1,0 +1,26 @@
+<!-- @dsCard group="Forms" height=240 subtitle="Search icon, loading spinner, Esc to clear, ⌘K hint, custom prefix" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SearchInput</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState('api'), q = s[0], setQ = s[1];
+  var l = React.useState(false), loading = l[0], setLoading = l[1];
+  React.useEffect(function () {
+    if (!q) { setLoading(false); return; }
+    setLoading(true);
+    var t = setTimeout(function () { setLoading(false); }, 900);
+    return function () { clearTimeout(t); };
+  }, [q]);
+  return h(F, null,
+    h(H.SearchInput, { 'aria-label': 'Search Deployments', placeholder: 'Search deployments…', value: q, loading: loading, onChange: function (e) { setQ(e.target.value); } }),
+    h(H.SearchInput, { 'aria-label': 'Search Projects', placeholder: 'Search projects…', cmdk: true }),
+    h(H.SearchInput, { 'aria-label': 'Ask About Logs', placeholder: 'Ask about your logs…', prefix: h(H.Icon, { name: 'sparkles' }) }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

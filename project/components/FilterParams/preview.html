@@ -1,0 +1,36 @@
+<!-- @dsCard group="Data" height=380 subtitle="Add Filter picker, active pills, dashed suggestions, URL-shaped state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>FilterParams</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:760px;gap:16px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var day = 864e5;
+var params = [
+  { key: 'Environment', param: 'env', type: 'select', options: [{ value: 'production', label: 'Production' }, { value: 'preview', label: 'Preview' }, { value: 'development', label: 'Development' }],
+    label: function (v) { return v ? { production: 'Production', preview: 'Preview', development: 'Development' }[v] : 'All Environments'; },
+    suggestion: function () { return 'production'; } },
+  { key: 'Status', param: 'status', type: 'multi-select', options: [{ value: 'ready', label: 'Ready' }, { value: 'building', label: 'Building' }, { value: 'error', label: 'Error' }, { value: 'canceled', label: 'Canceled' }] },
+  { key: 'Branch', param: 'branch', type: 'select', options: ['main', 'release/2.4', 'docs/search'] },
+  { key: 'Date Range', param: 'range', type: 'date-range', presets: [
+    { value: '24h', label: 'Last 24 Hours', range: function () { return { start: new Date(Date.now() - day), end: new Date() }; } },
+    { value: '7d', label: 'Last 7 Days', range: function () { return { start: new Date(Date.now() - 7 * day), end: new Date() }; } },
+    { value: '30d', label: 'Last 30 Days', range: function () { return { start: new Date(Date.now() - 30 * day), end: new Date() }; } }],
+    suggestion: function () { return { kind: 'preset', preset: '7d' }; } }
+];
+function Bar(props) {
+  var st = React.useState(new URLSearchParams(props.initial));
+  return h(F, null,
+    h(H.FilterParams, { params: params, searchParams: st[0], onSearchParamsChange: st[1], defaultOpen: props.open }),
+    h('code', { className: 'hy-mono', style: { fontSize: 13, color: 'var(--gray-900)' } }, '?' + decodeURIComponent(st[0].toString())));
+}
+function Demo() {
+  return h(F, null,
+    h(Bar, { initial: 'status=ready,error' }),
+    h(Bar, { initial: 'env=production&range=7d', open: true }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

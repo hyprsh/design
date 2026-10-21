@@ -1,0 +1,18 @@
+<!-- @dsCard group="Feedback" height=330 subtitle="Title and message, with a recovery action" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ErrorCard</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:520px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.ErrorCard, { role: 'status', title: 'No Build Minutes Left', message: 'This team has used all 6,000 build minutes for the month. Builds resume on Nov 1.' }),
+    h(H.ErrorCard, { role: 'status', title: 'Couldn’t Load Usage', message: 'The usage service didn’t respond.' },
+      h(H.Button, { size: 'small' }, 'Try Again')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

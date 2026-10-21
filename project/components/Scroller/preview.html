@@ -1,0 +1,29 @@
+<!-- @dsCard group="Layout" height=300 subtitle="Vertical and horizontal, with step buttons and edge fades" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Scroller</title></head>
+<body>
+<div id="root" class="hy-row" style="align-items:flex-start;flex-wrap:nowrap;gap:32px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var deploys = [
+  ['Production', 'main · 4f2a91c'], ['Preview', 'feat/billing · 9c01d7e'], ['Preview', 'fix/edge-cache · 1b77e02'],
+  ['Preview', 'docs/cli · e3a5f18'], ['Production', 'main · 7d4c3b0'], ['Preview', 'feat/teams · 02bd9aa']
+];
+function Tile(p) {
+  return h('div', { style: { width: p.w || 176, height: 80, flex: 'none', boxSizing: 'border-box', padding: 12, borderRadius: 6, background: 'var(--background-100)', boxShadow: 'var(--shadow-border)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' } },
+    h('span', { className: 'label-14', style: { fontWeight: 500 } }, p.d[0]),
+    h('span', { className: 'hy-mono', style: { color: 'var(--gray-900)', fontSize: 12, whiteSpace: 'nowrap' } }, p.d[1]));
+}
+function Demo() {
+  return h(F, null,
+    h(H.Scroller, { overflow: 'y', height: 236, width: 216, withButtons: true, 'aria-label': 'Deployments' },
+      deploys.map(function (d, i) { return h('div', { key: i, style: { padding: (i ? 0 : 4) + 'px 4px 8px' } }, h(Tile, { d: d, w: 200 })); })),
+    h('div', { style: { flex: 1, minWidth: 0, paddingTop: 44 } },
+      h(H.Scroller, { overflow: 'x', width: '100%', withButtons: true, 'aria-label': 'Branches' },
+        deploys.map(function (d, i) { return h('div', { key: i, style: { padding: '4px 8px 4px ' + (i ? 0 : 4) + 'px' } }, h(Tile, { d: d })); }))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

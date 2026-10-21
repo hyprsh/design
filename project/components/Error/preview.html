@@ -1,0 +1,21 @@
+<!-- @dsCard group="Feedback" height=236 subtitle="Default, custom label, no label, sizes, with a recovery link" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Error</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.Error, null, 'This domain is already in use. Remove it from the other project or use a subdomain.'),
+    h(H.Error, { label: 'Domain Error' }, 'This domain is already in use.'),
+    h(H.Error, { label: false }, 'This domain is already in use.'),
+    h('div', { style: { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 24 } },
+      h(H.Error, { size: 'small' }, 'Domain in use.'), h(H.Error, null, 'Domain in use.'), h(H.Error, { size: 'large' }, 'Domain in use.')),
+    h(H.Error, { error: { message: 'Couldn’t load deployments.', action: 'Contact Support', link: '#support' } }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

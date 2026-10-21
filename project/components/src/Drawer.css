@@ -1,0 +1,26 @@
+/* ---------- Drawer ---------- */
+.hy-drawer { position: fixed; inset: 0; z-index: var(--z-drawer); display: flex; align-items: flex-end; }
+.hy-drawer__backdrop {
+  position: absolute; inset: 0; background: var(--backdrop);
+  animation: hy-drawer-fade .2s cubic-bezier(.32,.72,0,1);
+}
+.hy-drawer__panel {
+  position: relative; width: 100%; max-height: 90dvh; box-sizing: border-box;
+  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0; background: var(--background-100); box-shadow: var(--shadow-modal);
+  color: var(--gray-1000); font-size: 14px; line-height: 20px; outline: none;
+  overscroll-behavior: contain; touch-action: pan-y;
+  transition: transform .2s cubic-bezier(.32,.72,0,1);
+  animation: hy-drawer-up .2s cubic-bezier(.32,.72,0,1);
+}
+.hy-drawer__panel--scroll { overflow-y: auto; }
+.hy-drawer__title { margin: 0; font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -0.27px; color: var(--gray-1000); text-wrap: balance; }
+.hy-drawer.is-closing { pointer-events: none; }
+.hy-drawer.is-closing .hy-drawer__backdrop { opacity: 0; transition: opacity .15s cubic-bezier(.4,0,.2,1); }
+.hy-drawer.is-closing .hy-drawer__panel { transform: translateY(100%); transition: transform .15s cubic-bezier(.4,0,.2,1); }
+@keyframes hy-drawer-up { from { transform: translateY(100%); } to { transform: none; } }
+@keyframes hy-drawer-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .hy-drawer__panel { animation-name: hy-drawer-fade; transition: none; }
+  .hy-drawer.is-closing .hy-drawer__panel { transform: none; opacity: 0; transition: opacity .15s linear; }
+}

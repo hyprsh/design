@@ -1,0 +1,28 @@
+/* ---------- ProjectBanner ---------- */
+.hy-pbanner {
+  --pb-bg: var(--gray-100); --pb-line: var(--gray-alpha-400); --pb-fg: var(--gray-900); --pb-hover: var(--gray-alpha-600);
+  container-type: inline-size; width: 100%; padding: 8px 0;
+  background: var(--pb-bg); color: var(--pb-fg);
+  box-shadow: inset 0 1px 0 var(--pb-line), inset 0 -1px 0 var(--pb-line);
+  font-size: 14px; line-height: 20px;
+}
+.hy-pbanner--success { --pb-bg: var(--blue-100); --pb-line: var(--blue-400); --pb-fg: var(--blue-900); --pb-hover: var(--blue-500); }
+.hy-pbanner--warning { --pb-bg: var(--amber-100); --pb-line: var(--amber-400); --pb-fg: var(--amber-900); --pb-hover: var(--amber-500); }
+.hy-pbanner--error { --pb-bg: var(--red-100); --pb-line: var(--red-400); --pb-fg: var(--red-900); --pb-hover: var(--red-500); }
+.hy-pbanner__inner { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0 8px; padding: 0 24px; }
+.hy-pbanner__message { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.hy-pbanner__icon { flex: none; display: inline-flex; margin-top: 2px; }
+.hy-pbanner__icon svg { width: 16px; height: 16px; }
+.hy-pbanner__label { min-width: 0; }
+.hy-pbanner__cta {
+  display: inline-flex; align-items: center; height: 24px; padding: 0; margin: -2px 0;
+  border: 0; background: none; font: inherit; font-weight: 500; color: inherit; cursor: pointer;
+  text-decoration: underline; text-decoration-color: var(--pb-line); text-underline-offset: 5px;
+}
+.hy-pbanner__cta:hover { text-decoration-color: var(--pb-hover); color: var(--pb-fg); }
+.hy-pbanner__cta:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; border-radius: 2px; }
+/* Narrow: message on top, the call to action under it, aligned with the text rather than the icon. */
+@container (max-width: 560px) {
+  .hy-pbanner__inner { flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: 0 16px; }
+  .hy-pbanner__cta { margin: 0 0 0 24px; }
+}

@@ -1,0 +1,39 @@
+<!-- @dsCard group="Forms" height=200 subtitle="Sizes, icons, disabled, full width" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Switch</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var row = { padding: 0, gap: 24 };
+function Demo() {
+  var view = React.useState('grid');
+  return h(F, null,
+    h('div', { className: 'hy-row', style: row },
+      h(H.Switch, { name: 'size-small', size: 'small' },
+        h(H.SwitchControl, { label: 'Source', value: 'source', defaultChecked: true }),
+        h(H.SwitchControl, { label: 'Output', value: 'output' })),
+      h(H.Switch, { name: 'size-default' },
+        h(H.SwitchControl, { label: 'Source', value: 'source', defaultChecked: true }),
+        h(H.SwitchControl, { label: 'Output', value: 'output' })),
+      h(H.Switch, { name: 'size-large', size: 'large' },
+        h(H.Switch.Control, { label: 'Source', value: 'source', defaultChecked: true }),
+        h(H.Switch.Control, { label: 'Output', value: 'output' }))),
+    h('div', { className: 'hy-row', style: row },
+      h(H.Switch, { name: 'view', value: view[0], onChange: view[1] },
+        h(H.Tooltip, { text: 'Grid' }, h(H.SwitchControl, { label: 'Grid', value: 'grid', icon: h(H.Icon, { name: 'layout-grid' }) })),
+        h(H.Tooltip, { text: 'List' }, h(H.SwitchControl, { label: 'List', value: 'list', icon: h(H.Icon, { name: 'list' }) }))),
+      h(H.Switch, { name: 'env' },
+        h(H.SwitchControl, { label: 'Preview', value: 'preview', defaultChecked: true }),
+        h(H.SwitchControl, { label: 'Production', value: 'production', disabled: true }),
+        h(H.SwitchControl, { label: 'Development', value: 'development' }))),
+    h(H.Switch, { name: 'full', style: { width: '100%', maxWidth: 420 } },
+      h(H.SwitchControl, { label: 'Logs', value: 'logs', defaultChecked: true }),
+      h(H.SwitchControl, { label: 'Metrics', value: 'metrics' }),
+      h(H.SwitchControl, { label: 'Traces', value: 'traces' })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

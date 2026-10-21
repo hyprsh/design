@@ -1,0 +1,23 @@
+/* ---------- SplitButton ---------- */
+.hy-menu.hy-split { display: inline-flex; align-items: stretch; vertical-align: top; }
+.hy-split > .hy-btn:focus-visible { z-index: 1; }
+.hy-split__main { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+.hy-split__toggle { border-top-left-radius: 0; border-bottom-left-radius: 0; }
+/* default: a 1px gap in the page colour divides the two halves */
+.hy-split--default .hy-split__toggle { margin-left: 1px; }
+/* secondary: the two borders overlap into one 1px line */
+.hy-split--secondary .hy-split__toggle { margin-left: -1px; }
+.hy-split__toggle .hy-glyph { transition: transform .15s cubic-bezier(.4,0,.2,1); }
+.hy-split__toggle[aria-expanded="true"] .hy-glyph { transform: rotate(180deg); }
+
+.hy-menu__item.hy-split__item { align-items: flex-start; padding: 8px; }
+.hy-split__item .hy-menu__text.hy-menu__text { white-space: normal; overflow: visible; }
+.hy-split__item .hy-menu__affix.hy-menu__affix { margin-top: 2px; }
+.hy-split__item-body { display: flex; flex-direction: column; gap: 2px; }
+.hy-split__item-title { font-size: 14px; line-height: 20px; color: var(--gray-1000); }
+.hy-split__item[aria-disabled="true"] .hy-split__item-title { color: var(--gray-700); }
+.hy-split__item-desc { font-size: 13px; line-height: 18px; color: var(--gray-900); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-split__toggle .hy-glyph { transition: none; }
+}

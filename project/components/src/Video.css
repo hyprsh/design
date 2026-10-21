@@ -1,0 +1,82 @@
+/* ---------- Video ---------- */
+.hy-video {
+  position: relative; overflow: hidden; min-width: 0; max-width: 100%;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-lg);
+  background: var(--background-200);
+  box-shadow: var(--shadow-border);
+}
+.hy-video__media { display: block; width: 100%; height: 100%; object-fit: cover; }
+video.hy-video__media { cursor: pointer; }
+
+/* drawn poster for a player with no file yet: a soft grid and a centred play mark */
+.hy-video__poster {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 50% 42%, transparent 0 27px, var(--gray-alpha-400) 27px 28px, transparent 28px),
+    linear-gradient(var(--gray-alpha-200) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(90deg, var(--gray-alpha-200) 1px, transparent 1px) 0 0 / 32px 32px,
+    linear-gradient(160deg, var(--background-100) 0%, var(--gray-100) 100%);
+}
+.hy-video__poster::after {
+  content: ''; position: absolute; left: 50%; top: 42%;
+  width: 0; height: 0; transform: translate(-35%, -50%);
+  border-style: solid; border-width: 9px 0 9px 15px;
+  border-color: transparent transparent transparent var(--gray-700);
+}
+
+.hy-video__bar {
+  position: absolute; left: 50%; bottom: 5%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: var(--space-2);
+  width: 85%; max-width: 560px; height: 48px; box-sizing: border-box;
+  padding: 0 var(--space-4) 0 var(--space-1);
+  border-radius: var(--radius-md);
+  background: var(--background-100);
+  box-shadow: var(--shadow-border), var(--shadow-small);
+  transition: opacity .2s cubic-bezier(.4,0,.2,1);
+}
+.hy-video.is-playing .hy-video__bar { opacity: 0; }
+.hy-video.is-playing:hover .hy-video__bar,
+.hy-video.is-playing:focus-within .hy-video__bar { opacity: 1; }
+@media (hover: none) { .hy-video.is-playing .hy-video__bar { opacity: 1; } }
+
+.hy-video__play {
+  flex: none; display: inline-flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; padding: 0; border: 0; cursor: pointer;
+  border-radius: var(--radius-sm); background: transparent; color: var(--gray-1000);
+  transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-video__play:hover:not(:disabled) { background: var(--gray-alpha-200); }
+.hy-video__play:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-video__play:disabled { cursor: default; color: var(--gray-700); }
+
+.hy-video__time {
+  flex: none; min-width: 4ch; text-align: center;
+  font-size: 13px; line-height: 16px; font-variant-numeric: tabular-nums; color: var(--gray-900);
+}
+
+.hy-video__seek {
+  --p: 0%;
+  flex: 1 1 auto; min-width: 0; height: 16px; margin: 0; padding: 0;
+  -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer;
+}
+.hy-video__seek:disabled { cursor: default; }
+.hy-video__seek::-webkit-slider-runnable-track {
+  height: 4px; border-radius: var(--radius-full);
+  background: linear-gradient(90deg, var(--gray-1000) var(--p), var(--gray-alpha-400) var(--p));
+}
+.hy-video__seek::-moz-range-track { height: 4px; border-radius: var(--radius-full); background: var(--gray-alpha-400); }
+.hy-video__seek::-moz-range-progress { height: 4px; border-radius: var(--radius-full); background: var(--gray-1000); }
+.hy-video__seek::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 12px; height: 12px; margin-top: -4px; border: 0; border-radius: var(--radius-full);
+  background: var(--gray-1000);
+}
+.hy-video__seek::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: var(--radius-full); background: var(--gray-1000); }
+.hy-video__seek:disabled::-webkit-slider-thumb { background: var(--gray-500); }
+.hy-video__seek:disabled::-moz-range-thumb { background: var(--gray-500); }
+.hy-video__seek:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; border-radius: var(--radius-sm); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-video__bar, .hy-video__play { transition-duration: 0s; }
+}

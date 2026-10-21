@@ -1,0 +1,20 @@
+/* ---------- FileTree ---------- */
+.hy-ft, .hy-ft__group { list-style: none; margin: 0; padding: 0; }
+.hy-ft { font-family: var(--font-mono); font-size: 13px; line-height: 20px; color: var(--gray-1000); min-width: 0; }
+.hy-ft__row {
+  --hy-ft-depth: 0;
+  position: relative; display: flex; align-items: center; gap: 8px; box-sizing: border-box;
+  width: calc(100% + 16px); min-height: 28px; margin: 0 -8px; padding: 0 8px 0 calc(8px + var(--hy-ft-depth) * 24px);
+  border: 0; border-radius: var(--radius-md); background: transparent;
+  font: inherit; color: inherit; text-align: left; text-decoration: none;
+}
+button.hy-ft__row, a.hy-ft__row { cursor: pointer; transition: background-color .15s cubic-bezier(.4,0,.2,1); }
+button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100); }
+.hy-ft__row.is-active { background: var(--gray-alpha-200); }
+.hy-ft__row:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-ft__icon { flex: none; color: var(--gray-900); }
+.hy-ft__name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-ft__guide {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  left: calc(15.5px + var(--hy-ft-level) * 24px); background: var(--gray-alpha-400);
+}

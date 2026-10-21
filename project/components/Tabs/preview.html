@@ -1,0 +1,27 @@
+<!-- @dsCard group="Navigation" height=208 subtitle="Underlined primary tabs with panels, and compact secondary pills" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tabs</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState('24h'), range = s[0], setRange = s[1];
+  return h(F, null,
+    h(H.Tabs, { 'aria-label': 'Project', tabs: [
+      { value: 'overview', title: 'Overview', content: 'Production deployment is Ready. 3 domains assigned.' },
+      { value: 'deployments', title: 'Deployments', content: '128 deployments in the last 30 days.' },
+      { value: 'logs', title: 'Logs', content: 'Streaming runtime logs…' },
+      { value: 'settings', title: 'Settings', content: 'General, Domains, Environment Variables, Git.' },
+      { value: 'usage', title: 'Usage', disabled: true, tooltip: 'Available on Pro' }] }),
+    h(H.Tabs, { 'aria-label': 'Time Range', variant: 'secondary', selected: range, setSelected: setRange, tabs: [
+      { value: '1h', title: 'Last Hour' },
+      { value: '24h', title: 'Last 24 Hours' },
+      { value: '7d', title: 'Last 7 Days' },
+      { value: '30d', title: 'Last 30 Days', disabled: true }] }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

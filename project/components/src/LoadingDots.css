@@ -1,0 +1,12 @@
+/* ---------- LoadingDots ---------- */
+.hy-dots { display: inline-flex; align-items: center; color: var(--gray-900); }
+.hy-dots__text { margin-right: 8px; }
+.hy-dots__row { display: inline-flex; align-items: center; }
+.hy-dots__dot {
+  display: inline-block; margin: 0 1px; border-radius: var(--radius-full); background: currentColor;
+  animation: hy-dots-blink 1.4s ease infinite both;
+}
+.hy-dots__dot:nth-child(2) { animation-delay: .2s; }
+.hy-dots__dot:nth-child(3) { animation-delay: .4s; }
+@keyframes hy-dots-blink { 0% { opacity: .2; } 20% { opacity: 1; } 100% { opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .hy-dots__dot { animation: none; opacity: .6; } }

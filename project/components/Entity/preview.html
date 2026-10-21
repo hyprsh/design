@@ -1,0 +1,37 @@
+<!-- @dsCard group="Content" height=532 subtitle="Single row, loading row, list with actions, selectable list, fill" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Entity</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:560px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var tokens = [
+  { id: 'ci', name: 'ci-deploy', scope: 'Full access · Created Mar 2' },
+  { id: 'pr', name: 'preview-bot', scope: 'Read only · Created Jan 18' }
+];
+var members = ['Platform Team', 'Docs Team', 'Edge Kit'];
+function Demo() {
+  var sel = React.useState({ 'Docs Team': true });
+  return h(F, null,
+    h(H.EntityList, null,
+      h(H.Entity, { left: h(H.Avatar, { letter: 'PT', title: 'Platform Team' }), right: 'Connected 1h ago' },
+        h(H.EntityContent, { title: 'Platform Team', description: 'platform@team.example' })),
+      h(H.Entity, { left: h(H.Skeleton, { width: 32, height: 32, pill: true }) },
+        h(H.EntityContent, { title: h(H.Skeleton, { width: 120, height: 14 }), description: h(H.Skeleton, { width: 180, height: 14 }) }))),
+    h(H.EntityList, { 'aria-label': 'Access tokens' }, tokens.map(function (t) {
+      return h(H.Entity, { key: t.id, left: h(H.Icon, { name: 'key-round', size: 16 }),
+        right: h(H.Button, { size: 'small', variant: 'secondary' }, 'Revoke Token') },
+        h(H.EntityContent, { title: t.name, description: t.scope }));
+    })),
+    h(H.EntityList, { 'aria-label': 'Teams' }, members.map(function (m) {
+      return h(H.Entity, { key: m, left: h(H.Checkbox, { 'aria-label': 'Select ' + m, checked: !!sel[0][m],
+          onChange: function (e) { var n = Object.assign({}, sel[0]); n[m] = e.target.checked; sel[1](n); } }) },
+        h(H.EntityContent, { title: m, fill: true }),
+        h('span', { className: 'hy-num', style: { color: 'var(--gray-900)', fontSize: 14 } }, m.length + ' members'));
+    })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

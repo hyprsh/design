@@ -1,0 +1,14 @@
+/* ---------- Description ---------- */
+.hy-description { display: flex; flex-direction: column; gap: 8px; min-width: 0; margin: 0; }
+.hy-description__title { display: flex; align-items: center; gap: 4px; margin: 0; font-size: 14px; line-height: 16px; color: var(--gray-900); }
+.hy-description__content { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); overflow-wrap: anywhere; }
+.hy-description--right { align-items: flex-end; text-align: right; }
+.hy-description--right .hy-description__title { justify-content: flex-end; }
+.hy-description--ellipsis .hy-description__content { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-description__tip {
+  position: relative; display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; margin: 0;
+  border: 0; border-radius: var(--radius-full); background: none; color: var(--gray-900); cursor: help;
+}
+.hy-description__tip::before { content: ''; position: absolute; inset: -4px; }
+.hy-description__tip:hover { color: var(--gray-1000); }
+.hy-description__tip:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }

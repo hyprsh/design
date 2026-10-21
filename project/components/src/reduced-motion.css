@@ -1,0 +1,8 @@
+/* ---------- Reduced motion: keep fades, drop movement and loops ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hy-skeleton { animation: none; }
+  .hy-spinner > span { animation-duration: 2.4s; }
+  .hy-modal, .hy-cmd, .hy-toast { animation-name: hy-fade; }
+  .hy-menu__list { animation-name: hy-fade; }
+  .hy-toggle__thumb, .hy-tabs__tab::after, .hy-progress__fill { transition-duration: 0s; }
+}

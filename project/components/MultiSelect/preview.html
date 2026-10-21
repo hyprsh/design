@@ -1,0 +1,35 @@
+<!-- @dsCard group="Forms" height=220 subtitle="Checklist filter with Only / Select All" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MultiSelect</title></head>
+<body>
+<div id="root" class="hy-row" style="max-width:none;align-items:flex-start;gap:24px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var levels = ['Error', 'Warning', 'Info', 'Debug'];
+function Demo() {
+  var env = React.useState(['production', 'preview']);
+  var sel = React.useState(['Error', 'Warning']);
+  var picked = sel[0];
+  function set(next) { sel[1](levels.filter(function (l) { return next.indexOf(l) >= 0; })); }
+  return h(F, null,
+    h(H.MultiSelect, {
+      label: 'Environments', defaultOpen: true, value: env[0], onChange: env[1],
+      items: [{ value: 'production', label: 'Production' }, { value: 'preview', label: 'Preview' }, { value: 'development', label: 'Development' }]
+    }),
+    h(H.MultiSelect.Root, null,
+      h(H.MultiSelect.Trigger, null, picked.length === levels.length ? 'All Levels' : picked.length === 1 ? picked[0] : 'Levels (' + picked.length + ')'),
+      h(H.MultiSelect.Content, { 'aria-label': 'Log levels' },
+        levels.map(function (l) {
+          return h(H.MultiSelect.Row, {
+            key: l, name: l, checked: picked.indexOf(l) >= 0, selectedCount: picked.length, totalCount: levels.length,
+            onChange: function (c) { set(c ? picked.concat([l]) : picked.filter(function (p) { return p !== l; })); },
+            onSelectOnly: function () { set([l]); },
+            onSelectAll: function () { set(levels); }
+          });
+        }))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

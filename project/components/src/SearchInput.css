@@ -1,0 +1,3 @@
+/* ---------- SearchInput ---------- */
+.hy-search input::-webkit-search-cancel-button,
+.hy-search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }

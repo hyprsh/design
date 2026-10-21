@@ -1,0 +1,15 @@
+{
+  "name": "hyprsh-design",
+  "private": true,
+  "type": "module",
+  "description": "hyprsh design system: Geist-based tokens, docs and React components, published as a Design System artifact.",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "check": "node scripts/build.mjs --check",
+    "dev": "node scripts/dev.mjs",
+    "shots": "node scripts/shot.mjs",
+    "icons": "node scripts/icons.mjs",
+    "tokens:css": "node scripts/tokens-css.mjs"
+  },
+  "engines": { "node": ">=20" }
+}

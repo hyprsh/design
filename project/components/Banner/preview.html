@@ -1,0 +1,18 @@
+<!-- @dsCard group="Feedback" height=128 subtitle="Announcement with a link button; collapses to one button when narrow" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Banner</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.Banner, { button: { href: '#', content: 'Read More' } }, h('b', null, 'Build Cache'), ' – Now shared across every branch'),
+    h('div', { style: { maxWidth: 360, margin: '0 auto', width: '100%' } },
+      h(H.Banner, { button: { href: '#', content: 'Read More' } }, h('b', null, 'Build Cache'), ' – Now shared across every branch')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

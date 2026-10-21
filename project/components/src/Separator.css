@@ -1,0 +1,7 @@
+/* ---------- Separator ---------- */
+.hy-separator { flex: none; background: var(--gray-200); }
+.hy-separator--horizontal { height: 1px; width: 100%; }
+.hy-separator--vertical { width: 1px; align-self: stretch; min-height: 1em; }
+.hy-separator--inset { background: var(--gray-alpha-400); }
+.hy-separator--horizontal.hy-separator--inset { width: calc(100% - 2px); margin-left: 1px; margin-right: 1px; }
+.hy-separator--vertical.hy-separator--inset { margin-top: 1px; margin-bottom: 1px; }

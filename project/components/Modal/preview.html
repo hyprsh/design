@@ -1,0 +1,30 @@
+<!-- @dsCard group="Overlays" height=440 subtitle="Header, subtitle, inset, actions footer; focus trap and Escape" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Modal</title></head>
+<body>
+<div id="root" class="hy-row"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState(true), open = s[0], setOpen = s[1];
+  var v = React.useState(''), name = v[0], setName = v[1];
+  function close() { setOpen(false); }
+  return h(F, null,
+    h(H.Button, { size: 'small', onClick: function () { setOpen(true); } }, 'Create Token…'),
+    h(H.Modal, { active: open, onClickOutside: close, inline: true },
+      h(H.ModalBody, null,
+        h(H.ModalHeader, null,
+          h(H.ModalTitle, null, 'Create Token'),
+          h(H.ModalSubtitle, null, 'Enter a unique name for the token so you can tell it apart from your other tokens, then pick its scope.')),
+        h(H.ModalInset, null,
+          h(H.Input, { label: 'Token Name', name: 'token', autoComplete: 'off', spellCheck: false, placeholder: 'ci-deploy…', value: name, onChange: function (e) { setName(e.target.value); }, 'data-autofocus': true })),
+        h('p', { style: { margin: '20px 0 0' } }, 'The token is shown once. Store it somewhere safe.')),
+      h(H.ModalActions, null,
+        h(H.ModalAction, { variant: 'secondary', onClick: close }, 'Cancel'),
+        h(H.ModalAction, { disabled: !name.trim(), onClick: close }, 'Create Token'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

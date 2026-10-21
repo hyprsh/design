@@ -1,0 +1,21 @@
+<!-- @dsCard group="Feedback" height=696 subtitle="First-run with actions, and a filtered search with no results" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EmptyState</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:560px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.EmptyState, { icon: 'chart-column', title: 'No Analytics Yet', description: 'Page views show up here a few minutes after your first deployment gets traffic.' },
+      h(H.Button, { variant: 'secondary', size: 'small' }, 'Enable Analytics'),
+      h('a', { href: '#learn' }, 'Learn More')),
+    h('div', { 'aria-live': 'polite' },
+      h(H.EmptyState, { icon: 'search', title: 'No Results for “billing”', description: 'Try a different search, or clear the filters to see every project.' },
+        h(H.Button, { variant: 'secondary', size: 'small' }, 'Clear Filters'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

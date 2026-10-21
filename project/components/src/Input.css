@@ -1,0 +1,30 @@
+/* ---------- Input ---------- */
+/* The base field, input and select styles live in core.css. This aligns Input with Geist:
+   32/36/40px heights, styled or plain prefix/suffix, a soft error ring and pill corners. */
+.hy-input { overflow: hidden; }
+.hy-input--medium { height: 36px; }
+.hy-input--large { height: 40px; border-radius: var(--radius-lg); }
+.hy-input--rounded { border-radius: var(--radius-full); }
+.hy-input--error, .hy-input--error:hover, .hy-input--error:focus-within { box-shadow: 0 0 0 1px var(--red-900), 0 0 0 4px var(--red-300); }
+.hy-input--disabled, .hy-input--disabled:hover { background: var(--gray-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-input--disabled input::placeholder { color: var(--gray-700); }
+
+.hy-input__prefix, .hy-input__suffix {
+  display: flex; align-items: center; justify-content: center; flex: none; gap: 4px;
+  height: 100%; padding: 0 12px; font-size: 14px; white-space: nowrap;
+  background: var(--background-200);
+}
+.hy-input__prefix { color: var(--gray-900); box-shadow: 1px 0 0 var(--gray-alpha-400); }
+.hy-input__suffix { color: var(--gray-1000); box-shadow: -1px 0 0 var(--gray-alpha-400); }
+.hy-input--large .hy-input__prefix, .hy-input--large .hy-input__suffix { font-size: 16px; }
+.hy-input__prefix--plain, .hy-input__suffix--plain { background: transparent; box-shadow: none; color: var(--gray-900); }
+.hy-input__prefix--plain { padding-right: 0; }
+.hy-input__suffix--plain { padding-left: 0; }
+.hy-input--plain-prefix input { padding-left: 8px; }
+.hy-input--plain-suffix input { padding-right: 8px; }
+.hy-input--disabled .hy-input__prefix--plain, .hy-input--disabled .hy-input__suffix--plain { color: var(--gray-700); }
+
+/* Error text grows with the field, as in Geist. */
+.hy-field__alert { display: contents; }
+.hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
+.hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }

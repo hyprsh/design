@@ -1,0 +1,46 @@
+<!-- @dsCard group="Actions" height=252 subtitle="Five variants, four sizes, square/circle/rounded shapes, prefix/suffix, loading, disabled, ButtonLink" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Button</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function I(name) { return h(H.Icon, { name: name }); }
+function Row(kids) { return h('div', { className: 'hy-row', style: { padding: 0 } }, kids); }
+function Demo() {
+  var s = React.useState(false), busy = s[0], setBusy = s[1];
+  function deploy() { setBusy(true); setTimeout(function () { setBusy(false); }, 1600); }
+  return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 16 } },
+    Row([
+      h(H.Button, { key: 1, variant: 'default' }, 'Deploy'),
+      h(H.Button, { key: 2, variant: 'secondary' }, 'Add Domain'),
+      h(H.Button, { key: 3, variant: 'tertiary' }, 'View Logs'),
+      h(H.Button, { key: 4, variant: 'error' }, 'Delete Project'),
+      h(H.Button, { key: 5, variant: 'warning' }, 'Force Redeploy')]),
+    Row([
+      h(H.Button, { key: 1, size: 'small' }, 'Small'),
+      h(H.Button, { key: 2 }, 'Medium'),
+      h(H.Button, { key: 3, size: 'large' }, 'Large'),
+      h(H.Button, { key: 4, prefix: I('arrow-left') }, 'Previous'),
+      h(H.Button, { key: 5, suffix: I('arrow-right') }, 'Next'),
+      h(H.Button, { key: 6, variant: 'secondary', shape: 'rounded', shadow: true }, 'Get Started')]),
+    Row([
+      h(H.Button, { key: 1, svgOnly: true, shape: 'square', size: 'tiny', 'aria-label': 'Upload File' }, I('arrow-up')),
+      h(H.Button, { key: 2, svgOnly: true, shape: 'square', size: 'small', 'aria-label': 'Upload File' }, I('arrow-up')),
+      h(H.Button, { key: 3, svgOnly: true, shape: 'square', 'aria-label': 'Upload File' }, I('arrow-up')),
+      h(H.Button, { key: 4, svgOnly: true, shape: 'square', size: 'large', 'aria-label': 'Upload File' }, I('arrow-up')),
+      h(H.Button, { key: 5, svgOnly: true, shape: 'circle', size: 'small', variant: 'default', 'aria-label': 'Upload File' }, I('arrow-up')),
+      h(H.Button, { key: 6, svgOnly: true, shape: 'circle', variant: 'default', 'aria-label': 'Upload File' }, I('arrow-up')),
+      h(H.Button, { key: 7, svgOnly: true, shape: 'circle', size: 'large', variant: 'default', 'aria-label': 'Upload File' }, I('arrow-up'))]),
+    Row([
+      h(H.Button, { key: 1, variant: 'default', loading: busy, onClick: deploy }, busy ? 'Deploying…' : 'Deploy Project'),
+      h(H.Button, { key: 2, loading: true }, 'Saving…'),
+      h(H.Button, { key: 3, disabled: true }, 'Disabled'),
+      h(H.Button, { key: 4, disabled: true, variant: 'tertiary' }, 'Tertiary'),
+      h(H.ButtonLink, { key: 5, href: '#signup', variant: 'default' }, 'Sign Up')]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

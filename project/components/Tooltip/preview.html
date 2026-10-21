@@ -1,0 +1,24 @@
+<!-- @dsCard group="Overlays" height=260 subtitle="Four sides, box alignment, types, rich content, no tip" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tooltip</title></head>
+<body>
+<div id="root" style="display:grid;grid-template-columns:repeat(4,1fr);row-gap:96px;align-items:center;justify-items:center;padding:56px 24px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function icon(d) { return h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true' }, h('path', { d: d })); }
+function Demo() {
+  return h(F, null,
+    h('div', { style: { justifySelf: 'start' } }, h(H.Tooltip, { text: 'Limited to 100 requests per minute', position: 'right', type: 'success', defaultOpen: true }, h('span', { tabIndex: 0, className: 'label-14' }, 'Right'))),
+    h(H.Tooltip, { text: 'Copies the production URL', defaultOpen: true }, h(H.Button, { svgOnly: true, size: 'small', variant: 'tertiary', 'aria-label': 'Copy URL' }, icon('M5.5 5.5v-2a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-2M3.5 5.5h6a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-6a1 1 0 0 1-1-1v-6a1 1 0 0 1 1-1z'))),
+    h(H.Tooltip, { text: 'Builds on main deploy to production', position: 'bottom', boxAlign: 'left', type: 'violet', defaultOpen: true }, h('span', { tabIndex: 0, className: 'label-14' }, 'Bottom/Left')),
+    h('div', { style: { justifySelf: 'end' } }, h(H.Tooltip, { text: h(F, null, 'Search ', h(H.KeyboardInput, { small: true }, '/')), position: 'left', defaultOpen: true }, h('span', { tabIndex: 0, className: 'label-14' }, 'Shortcut'))),
+    h(H.Tooltip, { text: 'Preview deployments expire after 30 days', position: 'bottom', type: 'warning', defaultOpen: true }, h('span', { tabIndex: 0, className: 'label-14' }, 'Bottom')),
+    h(H.Tooltip, { text: 'Couldn’t reach the build cache', position: 'bottom', type: 'error', defaultOpen: true }, h('span', { tabIndex: 0, className: 'label-14' }, 'Error')),
+    h(H.Tooltip, { text: 'No tip indicator on this one', position: 'bottom', tip: false, defaultOpen: true }, 'No Tip'),
+    h(H.Tooltip, { text: h(F, null, 'The ', h('b', null, 'Edge Config'), ' is read at the edge.'), position: 'bottom', center: false, defaultOpen: true }, 'Rich Text'));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

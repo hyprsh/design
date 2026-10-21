@@ -1,0 +1,16 @@
+/* ---------- Banner ---------- */
+.hy-banner { container-type: inline-size; width: 100%; }
+.hy-banner__row {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  max-width: 1080px; margin: 0 auto;
+}
+.hy-banner__text { margin: 0; min-width: 0; font-size: 16px; line-height: 24px; color: var(--gray-900); }
+.hy-banner__text b, .hy-banner__text strong { color: var(--gray-1000); font-weight: 600; }
+.hy-banner__compact { display: none; }
+.hy-banner__compact .hy-btn__label { font-size: 14px; color: var(--gray-900); }
+.hy-banner__compact b, .hy-banner__compact strong { color: var(--gray-1000); font-weight: 600; }
+/* Narrow: the text and its link collapse into one rounded button, truncated to a line. */
+@container (max-width: 560px) {
+  .hy-banner--has-button .hy-banner__row { display: none; }
+  .hy-banner--has-button .hy-banner__compact { display: flex; width: fit-content; max-width: 100%; margin: 0 auto; }
+}

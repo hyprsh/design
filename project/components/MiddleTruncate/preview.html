@@ -1,0 +1,21 @@
+<!-- @dsCard group="Content" height=232 subtitle="Long URL, branch and path at shrinking widths" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MiddleTruncate</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:560px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var url = 'hyprsh-web-git-feat-deploy-previews-for-pull-requests-acme.hyprsh.app';
+function box(w, child) { return h('div', { className: 'copy-14', style: { width: w, maxWidth: '100%', padding: 'var(--space-2) var(--space-3)', boxShadow: 'inset 0 0 0 1px var(--gray-alpha-400)', borderRadius: 'var(--radius-md)' } }, child); }
+function Demo() {
+  return h(F, null,
+    box('100%', h(H.MiddleTruncate, { value: url })),
+    box(280, h(H.MiddleTruncate, { value: url })),
+    box(200, h(H.MiddleTruncate, { value: 'feat/deploy-previews-for-pull-requests', className: 'label-13-mono' })),
+    box(200, h(H.MiddleTruncate, { value: 'short-name' })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

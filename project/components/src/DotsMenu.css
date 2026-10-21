@@ -1,0 +1,4 @@
+/* ---------- DotsMenu ---------- */
+.hy-dots-menu__button { color: var(--gray-900); }
+.hy-dots-menu__button:hover, .hy-dots-menu__button[aria-expanded="true"] { color: var(--gray-1000); }
+.hy-dots-menu__button[aria-expanded="true"] { background: var(--gray-alpha-200); }

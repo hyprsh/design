@@ -1,0 +1,37 @@
+/* ---------- Switch ---------- */
+.hy-switch {
+  display: inline-flex; align-items: stretch; gap: 0; box-sizing: border-box;
+  height: 36px; padding: 4px; border-radius: var(--radius-md);
+  background: var(--background-100); box-shadow: 0 0 0 1px var(--gray-alpha-400);
+}
+.hy-switch--small { height: 32px; }
+.hy-switch--large { height: 40px; }
+.hy-switch__control { position: relative; display: flex; flex: 1 0 auto; cursor: pointer; }
+.hy-switch > .hy-tooltip { display: flex; flex: 1 0 auto; }
+.hy-switch__input {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; opacity: 0;
+}
+.hy-switch__face {
+  display: flex; flex: 1; align-items: center; justify-content: center; gap: 6px;
+  min-width: 0; padding: 0 12px; border-radius: var(--radius-sm);
+  font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; color: var(--gray-900);
+  transition: color .15s ease, background-color .15s ease;
+}
+.hy-switch__label { overflow: hidden; text-overflow: ellipsis; }
+.hy-switch__icon { display: inline-flex; line-height: 0; }
+.hy-switch__control--icon .hy-switch__face { padding: 0 8px; }
+.hy-switch__control--large .hy-switch__face { padding: 0 16px; font-size: 16px; line-height: 24px; }
+.hy-switch__control--large.hy-switch__control--icon .hy-switch__face { padding: 0 12px; }
+.hy-switch__control:hover .hy-switch__face { color: var(--gray-1000); }
+.hy-switch__input:checked + .hy-switch__face { background: var(--gray-100); color: var(--gray-1000); }
+[data-theme="dark"] .hy-switch__input:checked + .hy-switch__face { background: var(--gray-300); }
+.hy-switch__input:focus-visible + .hy-switch__face { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-switch__control.is-disabled { cursor: not-allowed; }
+.hy-switch__control.is-disabled .hy-switch__face,
+.hy-switch__control.is-disabled:hover .hy-switch__face { color: var(--gray-700); }
+.hy-switch__control.is-disabled .hy-switch__input:checked + .hy-switch__face { color: var(--gray-800); }
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-switch__face { transition-duration: 0s; }
+}

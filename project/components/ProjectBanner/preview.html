@@ -1,0 +1,21 @@
+<!-- @dsCard group="Feedback" height=316 subtitle="Gray, success, warning, error; with call to action; narrow layout" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ProjectBanner</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.ProjectBanner, { label: 'This project is paused. Deployments will resume when you unpause it.', callToAction: { label: 'Resume Project', onClick: function () {} } }),
+    h(H.ProjectBanner, { variant: 'success', label: 'Your domain is verified and serving traffic.', callToAction: { label: 'View Domain', href: '#' } }),
+    h(H.ProjectBanner, { variant: 'warning', label: 'Your build minutes reset in 2 days. Builds may queue until then.', callToAction: { label: 'Upgrade Plan', href: '#' } }),
+    h(H.ProjectBanner, { variant: 'error', icon: h(H.Icon, { name: 'credit-card', size: 16 }), label: 'Your last payment failed. Update your card to keep deploying.', callToAction: { label: 'Update Billing', href: '#' } }),
+    h('div', { style: { maxWidth: 360 } },
+      h(H.ProjectBanner, { variant: 'warning', label: 'Your build minutes reset in 2 days.', callToAction: { label: 'Upgrade Plan', href: '#' } })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

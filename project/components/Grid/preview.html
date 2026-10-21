@@ -1,0 +1,29 @@
+<!-- @dsCard group="Layout" height=640 subtitle="Guides, solid and spanning cells, crosses, dashed guides, hidden row guides" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Grid</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none;gap:32px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var C = H.Grid.Cell, X = H.Grid.Cross;
+function Demo() {
+  return h(F, null,
+    h(H.GridSystem, { guideWidth: 1 },
+      h(H.Grid, { columns: 3, rows: 2 },
+        h(X, { column: 1, row: 1 }), h(X, { column: 4, row: 1 }), h(X, { column: 1, row: 3 }), h(X, { column: 4, row: 3 }),
+        h(C, { column: '1/3', row: '1', solid: true }, 'Build & Deploy'),
+        h(C, null, 'Domains'),
+        h(C, null, 'Logs'),
+        h(C, { column: '2/4', row: '2', solid: true }, 'Preview Branches'))),
+    h(H.GridSystem, { dashedGuides: true },
+      h(H.Grid, { columns: 1, rows: 1 },
+        h(X, { column: 1, row: 1 }), h(X, { column: 2, row: 1 }), h(X, { column: 1, row: 2 }), h(X, { column: 2, row: 2 }),
+        h(C, null, 'Dashed guides with crosses'))),
+    h(H.GridSystem, null,
+      h(H.Grid, { columns: 12, rows: 2, height: 'preserve-aspect-ratio', hideGuides: 'row' })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

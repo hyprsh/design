@@ -1,0 +1,24 @@
+<!-- @dsCard group="Media" height=200 subtitle="Sizes, letters, placeholder, group with limit and reverse, status icons" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Avatar</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var team = [{ username: 'ci-bot' }, { title: 'Platform Team', letter: 'PT' }, { username: 'release-bot' }, { title: 'Docs Team', letter: 'DT' }, { username: 'edge-runner' }];
+function Row(children) { return h('div', { style: { display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' } }, children); }
+function Demo() {
+  return h(F, null,
+    Row([h(H.Avatar, { key: 1, size: 24, username: 'ci-bot' }), h(H.Avatar, { key: 2, size: 32, username: 'ci-bot' }), h(H.Avatar, { key: 3, size: 48, username: 'ci-bot' }),
+      h(H.Avatar, { key: 4, letter: 'SL', title: 'Storage Team' }), h(H.Avatar, { key: 5, letter: 'EK', title: 'Edge Kit' }), h(H.Avatar, { key: 6, placeholder: true, size: 48 })]),
+    Row([h(H.AvatarGroup, { key: 1, members: team.slice(0, 3), size: 32 }), h(H.AvatarGroup, { key: 2, members: team, limit: 3, size: 32 }), h(H.AvatarGroup, { key: 3, members: team.slice(0, 3), reverse: true, size: 32 }),
+      h(H.AvatarGroup, { key: 4, members: team.slice(0, 3), size: 24 }), h(H.AvatarGroup, { key: 5, members: team.slice(0, 3), overlap: 0, size: 24 })]),
+    Row([h(H.AvatarWithIcon, { key: 1, username: 'deploy-hook', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'circle-arrow-down' }) }),
+      h(H.AvatarWithIcon, { key: 2, username: 'release-bot', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'circle-check' }) }),
+      h(H.AvatarWithIcon, { key: 3, username: 'cron-runner', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'clock' }) })]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

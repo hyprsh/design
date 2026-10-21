@@ -1,0 +1,22 @@
+/* ---------- Skeleton ---------- */
+.hy-skeleton {
+  position: relative; display: block; overflow: hidden;
+  border-radius: var(--radius-sm); background: var(--gray-100);
+}
+.hy-skeleton--wrap { display: inline-block; vertical-align: top; max-width: 100%; }
+.hy-skeleton__content { display: block; visibility: hidden; }
+/* The shimmer: a band three times the box's width, two gradient tiles, slid one tile per cycle. */
+.hy-skeleton::after {
+  content: ''; position: absolute; top: 0; bottom: 0; left: 0; right: -200%;
+  background-image: linear-gradient(to right, var(--gray-100), var(--gray-200), var(--gray-100));
+  background-size: 50% 100%;
+  animation: hy-skeleton-shimmer 1.5s ease-in-out infinite reverse;
+}
+.hy-skeleton--static::after { animation: none; background: none; }
+.hy-skeleton--rounded, .hy-skeleton--pill { border-radius: var(--radius-full); }
+.hy-skeleton--squared { border-radius: 0; }
+/* Over a Button: reach one pixel past its border ring on the visible sides. */
+.hy-skeleton--button { overflow: visible; border-radius: var(--radius-md); clip-path: inset(-1px round var(--radius-md)); }
+.hy-skeleton--button::after { top: -1px; bottom: -1px; left: -1px; }
+@keyframes hy-skeleton-shimmer { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .hy-skeleton::after { animation: none; } }

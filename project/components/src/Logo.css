@@ -1,0 +1,4 @@
+/* ---------- Logo ---------- */
+.hy-logo { display: inline-flex; align-items: center; gap: calc(var(--hy-logo-size) * .3); flex: none; color: var(--gray-1000); line-height: 1; }
+.hy-logo__mark { display: block; flex: none; }
+.hy-logo__word { font-family: var(--font-sans); font-weight: 600; font-size: calc(var(--hy-logo-size) * .92); letter-spacing: -0.04em; white-space: nowrap; transform: translateY(-.04em); }

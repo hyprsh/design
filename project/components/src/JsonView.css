@@ -1,0 +1,31 @@
+/* ---------- JsonView ---------- */
+.hy-jv {
+  display: inline-block; vertical-align: top; max-width: 100%; box-sizing: border-box; padding-left: 16px;
+  font-family: var(--font-mono); font-size: 13px; line-height: 20px; color: var(--gray-1000); text-align: left;
+  font-feature-settings: "liga" 0;
+}
+.hy-jv__item { outline: none; }
+.hy-jv__row, .hy-jv__close {
+  position: relative; margin-left: -16px; padding: 2px 8px 2px 16px; border-radius: var(--radius-sm);
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.hy-jv__row.is-expandable { cursor: pointer; }
+.hy-jv__row.is-expandable:hover { background: var(--gray-alpha-100); }
+.hy-jv__item:focus-visible > .hy-jv__row { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-jv__toggle {
+  position: absolute; left: 0; top: 2px; width: 16px; height: 20px; display: grid; place-items: center;
+  color: var(--gray-900); transform: rotate(-90deg); transition: transform .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-jv__toggle.is-open { transform: none; }
+.hy-jv__group { padding-left: 16px; }
+.hy-jv__key { color: var(--pink-900); }
+.hy-jv__punct { color: var(--gray-1000); }
+.hy-jv__more { color: var(--gray-900); }
+.hy-jv__string { color: var(--green-900); }
+.hy-jv__number { color: var(--blue-900); }
+.hy-jv__boolean { color: var(--amber-900); }
+.hy-jv__null, .hy-jv__undefined { color: var(--gray-900); }
+.hy-jv__mark { background: var(--amber-400); color: var(--gray-1000); border-radius: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .hy-jv__toggle { transition: none; }
+}

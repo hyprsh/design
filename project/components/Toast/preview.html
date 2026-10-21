@@ -1,0 +1,30 @@
+<!-- @dsCard group="Feedback" height=420 subtitle="useToasts(): message, success, warning, error, action, undo; legacy toasts list" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Toast</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var toasts = H.useToasts();
+  var s = React.useState([
+    { id: 1, text: 'Domain added', preserve: true },
+    { id: 2, text: 'Environment variable deleted', onUndoAction: function () {}, preserve: true },
+    { id: 3, text: 'Deployment promoted to production', type: 'success', preserve: true },
+    { id: 4, text: 'Some routes were skipped during the build', type: 'warning', preserve: true },
+    { id: 5, text: 'Couldn’t verify domain. Try again.', type: 'error', action: 'Retry', preserve: true }]);
+  function dismiss(id) { s[1](function (l) { return l.filter(function (t) { return t.id !== id; }); }); }
+  return h('div', { style: { display: 'flex', gap: 32, alignItems: 'flex-start' } },
+    h('div', { style: { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' } },
+      h(H.Button, { size: 'small', onClick: function () { toasts.message({ text: 'Project archived' }); } }, 'Show Toast'),
+      h(H.Button, { size: 'small', onClick: function () { toasts.success('Deployment promoted'); } }, 'Success'),
+      h(H.Button, { size: 'small', onClick: function () { toasts.warning('Build cache skipped'); } }, 'Warning'),
+      h(H.Button, { size: 'small', onClick: function () { toasts.error('Failed to start build. Try again.'); } }, 'Error'),
+      h(H.Button, { size: 'small', onClick: function () { toasts.message({ text: 'Branch deleted', onUndoAction: function () { toasts.message('Branch restored'); } }); } }, 'Undo')),
+    h('div', { style: { flex: 1, maxWidth: 420 } }, h(H.Toast, { inline: true, toasts: s[0], onDismiss: dismiss })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

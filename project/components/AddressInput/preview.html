@@ -1,0 +1,21 @@
+<!-- @dsCard group="Forms" height=520 subtitle="Country-aware fields, local suggestions, errors" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>AddressInput</title></head>
+<body>
+<div id="root" class="hy-row" style="max-width:none;align-items:flex-start;gap:48px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var a = React.useState({ country: 'US', line1: '123 Market Street', city: '', region: '' , postalCode: '94105' });
+  var b = React.useState({ country: 'DE' });
+  return h(F, null,
+    h('div', { style: { width: 400 } },
+      h(H.AddressInput, { label: 'Billing Address', value: a[0], onChange: a[1], errors: H.getAddressErrors(a[0]), countries: ['US', 'CA', 'AU', 'DE', 'HK', 'AE'] })),
+    h('div', { style: { width: 400 } },
+      h(H.AddressInput, { label: 'Shipping Address', name: 'shipping', value: b[0], onChange: b[1], suggestions: H.AddressInput.demoSuggestions })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

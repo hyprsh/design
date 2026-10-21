@@ -1,0 +1,20 @@
+<!-- @dsCard group="Feedback" height=120 subtitle="Sizes sm, md, lg; after text; in a button" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LoadingDots</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24, alignItems: 'center' } },
+      h(H.LoadingDots, { size: 'sm' }), h(H.LoadingDots, { size: 'md' }), h(H.LoadingDots, { size: 'lg' }), h(H.LoadingDots, { size: 6 })),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24, alignItems: 'center' } },
+      h('span', { className: 'copy-14' }, h(H.LoadingDots, null, 'Deploying')),
+      h(H.Button, { size: 'small', disabled: true }, h(H.LoadingDots, null, 'Saving'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

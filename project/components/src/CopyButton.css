@@ -1,0 +1,16 @@
+/* ---------- CopyButton ---------- */
+.hy-copy-btn__icons { position: relative; display: inline-grid; width: 16px; height: 16px; }
+.hy-copy-btn__icon {
+  grid-area: 1 / 1; display: inline-flex;
+  transition: opacity .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1);
+}
+.hy-copy-btn__icon--check { opacity: 0; transform: scale(.5); }
+.hy-copy-btn.is-copied .hy-copy-btn__icon--copy { opacity: 0; transform: scale(.5); }
+.hy-copy-btn.is-copied .hy-copy-btn__icon--check { opacity: 1; transform: scale(1); }
+.hy-copy-btn__status {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-copy-btn__icon { transition: opacity .01s; transform: none !important; }
+}

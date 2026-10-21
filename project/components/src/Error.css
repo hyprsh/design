@@ -1,0 +1,13 @@
+/* ---------- Error ---------- */
+.hy-error { display: flex; align-items: flex-start; gap: 8px; min-width: 0; color: var(--red-900); font-size: 14px; line-height: 20px; }
+.hy-error__glyph { margin-top: 2px; }
+.hy-error__text { min-width: 0; overflow-wrap: anywhere; }
+.hy-error__label { font-weight: 500; }
+.hy-error--small { font-size: 13px; line-height: 18px; gap: 6px; }
+.hy-error--large { font-size: 16px; line-height: 24px; }
+.hy-error--large .hy-error__glyph { margin-top: 4px; }
+.hy-error__link { display: inline-flex; align-items: center; gap: 2px; color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; border-radius: var(--radius-sm); }
+.hy-error__link:hover { color: var(--red-1000); }
+.hy-error__link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-error__ext { flex: none; }
+.hy-error__glyph { flex: none; }

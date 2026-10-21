@@ -1,0 +1,24 @@
+/* ---------- Avatar ---------- */
+.hy-avatar {
+  position: relative; box-sizing: border-box; display: inline-grid; place-items: center; flex: none; overflow: hidden;
+  border-radius: var(--radius-full); background-color: var(--gray-200); color: var(--gray-1000);
+  box-shadow: inset 0 0 0 1px var(--gray-alpha-300);
+  font-family: var(--font-sans); font-weight: 500; line-height: 1; vertical-align: middle; user-select: none;
+}
+.hy-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.hy-avatar--letter { background-color: var(--gray-300); letter-spacing: 0; }
+.hy-avatar--placeholder { background-image: linear-gradient(180deg, var(--gray-100), var(--gray-300)); box-shadow: inset 0 0 0 1px var(--gray-alpha-400); }
+.hy-avatar--shape { box-shadow: inset 0 0 0 1px var(--gray-alpha-200); }
+
+.hy-avatar-group { display: inline-flex; align-items: center; isolation: isolate; }
+.hy-avatar-group__item { position: relative; display: inline-flex; border-radius: var(--radius-full); box-shadow: 0 0 0 1px var(--background-100); }
+.hy-avatar-group__item + .hy-avatar-group__item { margin-left: calc(-1 * var(--hy-avatar-overlap, 10px)); }
+.hy-avatar-group__more { padding: 0 6px 0 calc(var(--hy-avatar-overlap, 10px) + 2px); font-weight: 600; font-variant-numeric: tabular-nums; background-color: var(--gray-100); box-shadow: inset 0 0 0 1px var(--gray-alpha-400); }
+
+.hy-avatar-icon { position: relative; display: inline-flex; flex: none; vertical-align: middle; }
+.hy-avatar-icon__badge {
+  position: absolute; left: -2px; bottom: -2px; display: grid; place-items: center;
+  border-radius: var(--radius-full); color: var(--gray-900);
+}
+.hy-avatar-icon__badge--bg { background: var(--background-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-avatar-icon__badge svg { width: 70%; height: 70%; }

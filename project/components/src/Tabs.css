@@ -1,0 +1,33 @@
+/* ---------- Tabs ---------- */
+.hy-tabs__list { display: flex; gap: 24px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); overflow-x: auto; scrollbar-width: none; }
+.hy-tabs__list--tips { overflow: visible; flex-wrap: wrap; }
+.hy-tabs__tip { display: inline-flex; flex: none; }
+.hy-tabs__tab {
+  position: relative; display: inline-flex; align-items: center; gap: 6px; flex: none;
+  height: 48px; padding: 0 2px; border: 0; background: none; cursor: pointer;
+  font: inherit; font-size: 14px; line-height: 20px; color: var(--gray-900); white-space: nowrap;
+  transition: color .15s cubic-bezier(.4,0,.2,1), background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-tabs__tab::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: var(--gray-1000); transform: scaleX(0); transform-origin: center;
+  transition: transform .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-tabs__tab:hover { color: var(--gray-1000); }
+.hy-tabs__tab[aria-selected="true"] { color: var(--gray-1000); }
+.hy-tabs__tab[aria-selected="true"]::after { transform: scaleX(1); }
+.hy-tabs__tab:disabled, .hy-tabs__tab:disabled:hover { color: var(--gray-700); cursor: not-allowed; }
+.hy-tabs__tab[aria-selected="true"]:disabled::after { background: var(--gray-700); }
+.hy-tabs__tab:focus-visible { outline-offset: -2px; border-radius: var(--radius-sm); }
+.hy-tabs__icon { display: inline-flex; }
+.hy-tabs__panel { padding: var(--space-4) 0; font-size: 14px; line-height: 20px; color: var(--gray-900); }
+
+/* secondary: compact pills with no underline, for switching views inside a card or toolbar */
+.hy-tabs--secondary .hy-tabs__list { gap: 0; box-shadow: none; padding: 2px; margin: -2px; }
+.hy-tabs--secondary .hy-tabs__tab { height: 32px; padding: 0 12px; font-size: 13px; line-height: 20px; border-radius: var(--radius-md); }
+.hy-tabs--secondary .hy-tabs__tab::after { content: none; }
+.hy-tabs--secondary .hy-tabs__tab:hover { background: var(--gray-alpha-100); }
+.hy-tabs--secondary .hy-tabs__tab[aria-selected="true"] { background: var(--gray-200); color: var(--gray-1000); }
+.hy-tabs--secondary .hy-tabs__tab:disabled, .hy-tabs--secondary .hy-tabs__tab:disabled:hover { background: none; color: var(--gray-700); }
+.hy-tabs--secondary .hy-tabs__tab[aria-selected="true"]:disabled { background: var(--gray-100); }
+.hy-tabs--secondary .hy-tabs__tab:focus-visible { outline-offset: 0; border-radius: var(--radius-md); }

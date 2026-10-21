@@ -1,0 +1,18 @@
+<!-- @dsCard group="Status" height=120 subtitle="Queued, building, ready, error, canceled, deleted; dot only" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>StatusDot</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var states = ['QUEUED', 'BUILDING', 'READY', 'ERROR', 'CANCELED', 'DELETED'];
+  return h(F, null,
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, states.map(function (s) { return h(H.StatusDot, { key: s, state: s }); })),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, states.map(function (s) { return h(H.StatusDot, { key: s, state: s, label: false, titlePrefix: 'api-gateway production' }); })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

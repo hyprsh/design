@@ -1,0 +1,49 @@
+<!-- @dsCard group="Forms" height=940 subtitle="Title, subtitle, controls, footer status and actions; error, warning and disabled" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Fieldset</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px;gap:24px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState('acme-web'), name = s[0], setName = s[1];
+  var dirty = name !== 'acme-web';
+  return h(F, null,
+    h(H.Fieldset, null,
+      h(H.FieldsetContent, null,
+        h(H.FieldsetTitle, null, 'Project Name'),
+        h(H.FieldsetSubtitle, null, 'Used to identify your project on the dashboard and in the CLI.'),
+        h(H.Input, { 'aria-label': 'Project Name', name: 'name', autoComplete: 'off', spellCheck: false, value: name, onChange: function (e) { setName(e.target.value); } })),
+      h(H.FieldsetFooter, null,
+        h(H.FieldsetFooterStatus, null, 'Lowercase letters, numbers and hyphens.'),
+        h(H.FieldsetFooterActions, null, h(H.FieldsetFooterAction, { disabled: !dirty }, 'Save')))),
+    h(H.Fieldset, { type: 'error' },
+      h(H.FieldsetContent, null,
+        h(H.FieldsetTitle, null, 'Custom Domain'),
+        h(H.FieldsetSubtitle, null, 'acme.dev is not pointing at this project yet.')),
+      h(H.FieldsetFooter, null,
+        h(H.FieldsetFooterStatus, null, 'DNS check failed: no A record for acme.dev.'),
+        h(H.FieldsetFooterActions, null,
+          h(H.FieldsetFooterAction, { variant: 'secondary' }, 'Remove'),
+          h(H.FieldsetFooterAction, null, 'Refresh')))),
+    h(H.Fieldset, { type: 'warning' },
+      h(H.FieldsetContent, null,
+        h(H.FieldsetTitle, null, 'Node.js Version'),
+        h(H.FieldsetSubtitle, null, 'Node.js 18 reaches end of life soon. Builds keep working until then.')),
+      h(H.FieldsetFooter, null,
+        h(H.FieldsetFooterStatus, null, 'Upgrade to Node.js 22 before the cutoff.'),
+        h(H.FieldsetFooterActions, null, h(H.FieldsetFooterAction, null, 'Upgrade')))),
+    h(H.Fieldset, null,
+      h(H.FieldsetContent, { disabled: true },
+        h(H.FieldsetTitle, null, 'Team Billing Email'),
+        h(H.FieldsetSubtitle, null, 'Invoices go to this address.'),
+        h(H.Input, { 'aria-label': 'Team Billing Email', type: 'email', defaultValue: 'billing@acme.dev' })),
+      h(H.FieldsetFooter, { highlight: true },
+        h(H.FieldsetFooterStatus, null, 'Only team owners can change this.'),
+        h(H.FieldsetFooterActions, null, h(H.FieldsetFooterAction, { disabled: true }, 'Save')))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!-- @dsCard group="Feedback" height=440 subtitle="Variants, fill, small, label, action, custom icon, disabled" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Note</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.Note, null, 'Environment variables apply to new deployments only.'),
+    h(H.Note, { variant: 'secondary' }, 'Preview deployments are deleted after 30 days.'),
+    h(H.Note, { variant: 'success', fill: true, label: 'Domain Verified' }, 'The HTTPS certificate was issued.'),
+    h(H.Note, { variant: 'warning', action: h(H.Button, { size: 'small' }, 'Upgrade') }, 'You have used 92% of your build minutes.'),
+    h(H.Note, { variant: 'error', fill: true },
+      h(H.Note.Content, null, h(H.Note.Label, null, 'Build Failed:'), 'Missing HYPR_TOKEN. Add it under ', h('a', { href: '#' }, 'Environment Variables'), '.')),
+    h(H.Note, { variant: 'violet', size: 'small', fill: true }, 'Edge Config is in beta.'),
+    h(H.Note, { variant: 'cyan', size: 'small', icon: h(H.Icon, { name: 'sparkles', size: 16 }) }, 'Build cache is now shared across branches.'),
+    h(H.Note, { disabled: true, action: h(H.Button, { size: 'small', variant: 'secondary' }, 'Retry') }, 'Log streaming is paused while the region is read-only.'));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

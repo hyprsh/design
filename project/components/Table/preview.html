@@ -1,0 +1,38 @@
+<!-- @dsCard group="Content" height=448 subtitle="Compound parts, striped interactive body, footer, data form" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Table</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none;gap:32px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var fmt = new Intl.NumberFormat(undefined);
+var usage = [
+  { project: 'api-gateway', builds: '128 builds', minutes: '412 min', requests: 1284500 },
+  { project: 'docs-site', builds: '64 builds', minutes: '96 min', requests: 302110 },
+  { project: 'edge-config', builds: '23 builds', minutes: '38 min', requests: 88214 }];
+function Usage() {
+  var total = usage.reduce(function (s, r) { return s + r.requests; }, 0);
+  return h(H.TableRoot, null, h(H.Table, { caption: 'Usage by project' },
+    h(H.TableColgroup, null, h(H.TableCol, { style: { width: '44%' } }), h(H.TableCol, { style: { width: '22%' } }), h(H.TableCol, { style: { width: '22%' } }), h(H.TableCol)),
+    h(H.TableHeader, null, h(H.TableRow, null, h(H.TableHead, null, 'Project'), h(H.TableHead, null, 'Builds'), h(H.TableHead, null, 'Build Time'), h(H.TableHead, null, 'Requests'))),
+    h(H.TableBody, { striped: true, interactive: true }, usage.map(function (r) {
+      return h(H.TableRow, { key: r.project }, h(H.TableCell, null, r.project), h(H.TableCell, null, r.builds), h(H.TableCell, null, r.minutes), h(H.TableCell, { className: 'hy-num' }, fmt.format(r.requests)));
+    })),
+    h(H.TableFooter, null, h(H.TableRow, null, h(H.TableCell, { colSpan: 3 }, 'Total'), h(H.TableCell, { className: 'hy-num' }, fmt.format(total))))));
+}
+function Deployments() {
+  return h(H.Table, { caption: 'Recent deployments', bordered: true, columns: [
+    { key: 'commit', header: 'Commit', mono: true },
+    { key: 'status', header: 'Status', render: function (r) { return h(H.StatusDot, { state: r.status }); } },
+    { key: 'branch', header: 'Branch' },
+    { key: 'duration', header: 'Duration', numeric: true }],
+    rows: [
+      { id: 1, commit: 'a1b2c3d', status: 'ready', branch: 'main', duration: '42s' },
+      { id: 2, commit: '9f8e7d6', status: 'building', branch: 'feat/edge-config', duration: '—' },
+      { id: 3, commit: '4c5d6e7', status: 'error', branch: 'fix/env-loading', duration: '1m 03s' }] });
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Usage), h(Deployments)));
+</script>
+</body>
+</html>

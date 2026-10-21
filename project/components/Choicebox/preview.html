@@ -1,0 +1,26 @@
+<!-- @dsCard group="Forms" height=320 subtitle="Radio, checkbox, disabled, extra content" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Choicebox</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var plan = React.useState('pro');
+  var regions = React.useState(['fra1']);
+  return h(F, null,
+    h(H.ChoiceboxGroup, { label: 'Plan', showLabel: true, direction: 'row', value: plan[0], onChange: plan[1] },
+      h(H.ChoiceboxGroupItem, { title: 'Hobby', description: 'For personal projects.', value: 'hobby' }),
+      h(H.ChoiceboxGroupItem, { title: 'Pro', description: 'For teams shipping to production.', value: 'pro' },
+        h(H.Badge, { variant: 'blue-subtle', size: 'small' }, 'Includes 1 TB transfer')),
+      h(H.ChoiceboxGroupItem, { title: 'Enterprise', description: 'Talk to sales first.', value: 'enterprise', disabled: true, tooltip: 'Contact sales to enable' })),
+    h(H.Choicebox, { label: 'Regions', showLabel: true, type: 'checkbox', direction: 'row', value: regions[0], onChange: regions[1] },
+      h(H.Choicebox.Item, { title: 'Frankfurt', description: 'fra1', value: 'fra1' }),
+      h(H.Choicebox.Item, { title: 'Washington', description: 'iad1', value: 'iad1' }),
+      h(H.Choicebox.Item, { title: 'Tokyo', description: 'hnd1', value: 'hnd1' })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

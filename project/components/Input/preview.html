@@ -1,0 +1,30 @@
+<!-- @dsCard group="Forms" height=400 subtitle="Label, hint, error, styled and plain prefix/suffix, 3 sizes, rounded, disabled" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Input</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:680px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function I(name) { return h(H.Icon, { name: name }); }
+function Row(kids) { return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 12, alignItems: 'end' } }, kids); }
+function Demo() {
+  return h(F, null,
+    Row([
+      h(H.Input, { key: 1, size: 'small', 'aria-label': 'Small Input', placeholder: 'Small', autoComplete: 'off' }),
+      h(H.Input, { key: 2, 'aria-label': 'Medium Input', placeholder: 'Medium', autoComplete: 'off' }),
+      h(H.Input, { key: 3, size: 'large', 'aria-label': 'Large Input', placeholder: 'Large', autoComplete: 'off' })]),
+    Row([
+      h(H.Input, { key: 1, 'aria-label': 'Domain', prefix: 'https://', suffix: '.dev', placeholder: 'my-app', autoComplete: 'off', spellCheck: false }),
+      h(H.Input, { key: 2, 'aria-label': 'Filter Deployments', prefix: I('search'), prefixStyling: false, placeholder: 'Filter…', autoComplete: 'off' }),
+      h(H.Input, { key: 3, 'aria-label': 'Git Branch', prefix: I('git-branch'), prefixStyling: false, suffix: I('arrow-right'), suffixStyling: false, placeholder: 'main', autoComplete: 'off' })]),
+    h(H.Input, { label: 'Project Name', name: 'project', autoComplete: 'off', spellCheck: false, placeholder: 'my-app', hint: 'Lowercase letters, numbers and hyphens.' }),
+    h(H.Input, { label: 'Domain', name: 'domain', autoComplete: 'off', spellCheck: false, defaultValue: 'acme.dev', error: 'Domain acme.dev is already assigned to another project.' }),
+    Row([
+      h(H.Input, { key: 1, 'aria-label': 'Team Slug', rounded: true, placeholder: 'acme', autoComplete: 'off' }),
+      h(H.Input, { key: 2, 'aria-label': 'Project ID', disabled: true, defaultValue: 'prj_8hJk2LmN', prefix: 'ID' })]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

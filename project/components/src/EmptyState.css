@@ -1,0 +1,18 @@
+/* ---------- EmptyState ---------- */
+.hy-empty-state {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px;
+  padding: 48px 24px; text-align: center;
+  border-radius: var(--radius-lg); box-shadow: inset 0 0 0 1px var(--gray-alpha-400);
+}
+.hy-empty-state__icon {
+  box-sizing: border-box; display: grid; place-items: center; width: 48px; height: 48px; padding: 10px;
+  border-radius: var(--radius-lg); background: var(--background-100); color: var(--gray-900);
+  box-shadow: inset 0 0 0 1px var(--gray-alpha-400), var(--shadow-small);
+}
+.hy-empty-state__text { display: flex; flex-direction: column; align-items: center; gap: 8px; max-width: 340px; }
+.hy-empty-state__title { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--gray-1000); text-wrap: balance; }
+.hy-empty-state__description { margin: 0; font-size: 14px; line-height: 20px; color: var(--gray-900); text-wrap: pretty; }
+.hy-empty-state__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.hy-empty-state__actions a:not([class]) { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--link); text-decoration: none; border-radius: var(--radius-sm); }
+.hy-empty-state__actions a:not([class]):hover { text-decoration: underline; }
+.hy-empty-state__actions a:not([class]):focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }

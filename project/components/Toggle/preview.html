@@ -1,0 +1,26 @@
+<!-- @dsCard group="Forms" height=168 subtitle="Sizes, colour, icons, disabled" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Toggle</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState(true);
+  return h(F, null,
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
+      h(H.Toggle, { checked: s[0], onChange: s[1] }, 'Auto-assign domains'),
+      h(H.Toggle, { size: 'medium' }, 'Skew Protection'),
+      h(H.Toggle, { size: 'large', defaultChecked: true, 'aria-label': 'Analytics' })),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
+      h(H.Toggle, { color: 'amber', defaultChecked: true, direction: 'switch-first', icon: { checked: h(H.Icon, { name: 'moon', size: 8 }), unchecked: h(H.Icon, { name: 'sun', size: 8 }) } }, 'Dark Mode'),
+      h(H.Toggle, { color: 'red', size: 'medium' }, 'Maintenance Mode')),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
+      h(H.Toggle, { disabled: true }, 'Disabled Off'),
+      h(H.Toggle, { disabled: true, defaultChecked: true }, 'Disabled On')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

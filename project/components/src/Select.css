@@ -1,0 +1,21 @@
+/* ---------- Select ---------- */
+/* Base frame and chevron live in core.css. This aligns sizes, prefix/suffix, placeholder, error and disabled with Geist. */
+.hy-select--medium { height: 36px; }
+.hy-select--large { height: 40px; border-radius: var(--radius-lg); }
+.hy-select select { padding: 0 36px 0 12px; background-color: transparent; }
+.hy-select select option, .hy-select select optgroup { color: var(--gray-1000); background-color: var(--background-100); }
+.hy-select--placeholder select { color: var(--gray-700); }
+.hy-select--prefix select { padding-left: 36px; }
+.hy-select__prefix, .hy-select__suffix {
+  position: absolute; top: 0; bottom: 0; display: flex; align-items: center;
+  pointer-events: none; color: var(--gray-900);
+}
+.hy-select__prefix { left: 12px; }
+.hy-select__suffix { right: 12px; }
+.hy-select__prefix svg, .hy-select__suffix svg { width: 16px; height: 16px; }
+.hy-select--error, .hy-select--error:hover, .hy-select--error:focus-within { box-shadow: 0 0 0 1px var(--red-900), 0 0 0 4px var(--red-300); }
+.hy-select--disabled, .hy-select--disabled:hover { background: var(--gray-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-select select:disabled { color: var(--gray-700); cursor: not-allowed; }
+.hy-select--disabled .hy-select__chevron, .hy-select--disabled .hy-select__prefix, .hy-select--disabled .hy-select__suffix { color: var(--gray-700); }
+.hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
+.hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }

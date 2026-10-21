@@ -1,0 +1,29 @@
+<!-- @dsCard group="Overlays" height=400 subtitle="Side panel: header, description, footer; floating, from the right" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sheet</title></head>
+<body>
+<div id="root" class="hy-row"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Row(k, v) {
+  return h('div', { key: k, style: { display: 'flex', justifyContent: 'space-between', gap: 16, padding: '8px 0', boxShadow: 'inset 0 -1px 0 var(--gray-alpha-400)' } },
+    h('span', { style: { color: 'var(--gray-900)' } }, k), h('span', { className: 'label-14-mono', style: { color: 'var(--gray-1000)' } }, v));
+}
+function Demo() {
+  return h(H.Sheet, { modal: true, inline: true, defaultOpen: true },
+    h(H.SheetTrigger, { asChild: true }, h(H.Button, null, 'Deployment Details')),
+    h(H.SheetContent, { side: 'right', floating: true },
+      h(H.SheetHeader, null,
+        h(H.SheetTitle, null, 'Deployment Details'),
+        h('p', { className: 'copy-14' }, 'hyprsh-web on main, promoted to production.')),
+      h(H.SheetDescription, null,
+        Row('Status', 'Ready'), Row('Branch', 'main'), Row('Commit', '4f2a9c1'), Row('Duration', '42s')),
+      h(H.SheetFooter, null,
+        h(H.SheetClose, { asChild: true }, h(H.Button, { variant: 'secondary' }, 'Close')),
+        h(H.Button, { variant: 'primary' }, 'Redeploy'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

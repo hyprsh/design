@@ -1,0 +1,25 @@
+<!-- @dsCard group="Data" height=470 subtitle="Default depth, fully open with a search highlight, and collapsed" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>JsonView</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:560px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var data = {
+  id: 'dpl_8fK2xR4mT9',
+  deployment: { url: 'hyprsh-web-git-main.hyprsh.app', state: 'READY', regions: ['fra1', 'iad1'], meta: { branch: 'main' } },
+  build: { durationMs: 41250, cached: false, error: null, logs: ['Installing dependencies…', 'Compiled successfully in 12.4s'] },
+  'x-request-id': 'req_51b0'
+};
+var pattern = H.makeJsonViewHighlightPattern(['main', 'fra1']);
+function Demo() {
+  return h(F, null,
+    h(H.JsonView, { data: data, 'aria-label': 'Deployment response' }),
+    h(H.JsonView, { data: data.deployment, defaultExpandDepth: 3, highlightPattern: pattern, 'aria-label': 'Deployment, matches for main and fra1' }),
+    h(H.JsonView, { data: data, defaultExpandDepth: 0, 'aria-label': 'Collapsed response' }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

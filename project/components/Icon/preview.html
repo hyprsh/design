@@ -1,0 +1,20 @@
+<!-- @dsCard group="Content" height=112 subtitle="Lucide at Geist weight: 16px, 1.5px stroke" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Icon</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement;
+function Demo() {
+  var names = ['git-branch', 'git-commit-horizontal', 'globe', 'server', 'database', 'cloud', 'terminal', 'code-xml', 'folder', 'file-text', 'settings', 'users', 'bell', 'search', 'circle-check', 'circle-alert', 'triangle-alert', 'info', 'external-link', 'copy', 'arrow-right', 'chevron-down', 'ellipsis', 'x'];
+  return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 16 } },
+    h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 20, color: 'var(--gray-1000)' } }, names.map(function (n) { return h(H.Icon, { key: n, name: n }); })),
+    h('div', { style: { display: 'flex', alignItems: 'center', gap: 20, color: 'var(--gray-900)' } },
+      [14, 16, 20, 24, 32].map(function (s) { return h(H.Icon, { key: s, name: 'rocket', size: s }); }),
+      h('span', { className: 'label-13', style: { color: 'var(--gray-900)' } }, H.Icon.names.length + ' icons')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+<!-- @dsCard group="Actions" height=236 subtitle="Full-width button that appends the next page, with a loading state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>LoadMoreButton</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var NAMES = ['acme-web', 'acme-docs', 'acme-api', 'acme-blog', 'acme-status', 'acme-admin'];
+function Demo() {
+  var s = React.useState(2), count = s[0], setCount = s[1];
+  var l = React.useState(false), loading = l[0], setLoading = l[1];
+  function more() {
+    setLoading(true);
+    setTimeout(function () { setLoading(false); setCount(function (c) { return Math.min(c + 2, NAMES.length); }); }, 1200);
+  }
+  var box = { border: '1px solid var(--gray-alpha-400)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' };
+  return h('div', null,
+    h('div', { style: box },
+      NAMES.slice(0, count).map(function (n) {
+        return h('div', { key: n, style: { padding: '10px 12px', fontSize: 14, color: 'var(--gray-1000)', borderBottom: '1px solid var(--gray-alpha-400)' } }, n);
+      }),
+      count < NAMES.length ? h(H.LoadMoreButton, { noGap: true, noBorderRadius: true, variant: 'tertiary', loading: loading, onClick: more }, 'Load More Projects') : null),
+    h(H.LoadMoreButton, { loading: true }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

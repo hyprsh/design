@@ -1,0 +1,36 @@
+/* ---------- Fieldset ---------- */
+.hy-fieldset {
+  position: relative; display: flex; flex-direction: column; min-width: 0;
+  border-radius: var(--radius-md); background: var(--background-100);
+  box-shadow: 0 0 0 1px var(--gray-alpha-400);
+  color: var(--gray-1000);
+}
+.hy-fieldset__content { position: relative; min-width: 0; margin: 0; padding: 20px; border: 0; }
+.hy-fieldset__title { margin: 0; font-size: 20px; line-height: 26px; font-weight: 600; letter-spacing: -0.4px; color: var(--gray-1000); text-wrap: balance; }
+.hy-fieldset__subtitle { margin: 0; padding: 8px 0 20px; font-size: 14px; line-height: 20px; color: var(--gray-900); }
+.hy-fieldset__subtitle:last-child { padding-bottom: 0; }
+.hy-fieldset__content--disabled .hy-fieldset__title, .hy-fieldset__content--disabled .hy-fieldset__subtitle { color: var(--gray-700); }
+.hy-fieldset__wall { position: absolute; inset: 0; z-index: 1; cursor: not-allowed; }
+.hy-fieldset__footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  min-height: 56px; padding: 12px 12px 12px 20px;
+  background: var(--background-200); border-top: 1px solid var(--gray-400);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  font-size: 14px; line-height: 20px; color: var(--gray-900);
+}
+.hy-fieldset__footer--highlight { background: var(--gray-100); }
+.hy-fieldset__status { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
+.hy-fieldset__status-icon { flex: none; margin-top: 2px; }
+.hy-fieldset__status a { color: var(--link); text-decoration: none; }
+.hy-fieldset__status a:hover { text-decoration: underline; }
+.hy-fieldset__actions { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
+.hy-fieldset--error { box-shadow: 0 0 0 1px var(--red-400); }
+.hy-fieldset--error .hy-fieldset__footer { background: var(--red-100); border-top-color: var(--red-400); color: var(--red-900); }
+.hy-fieldset--warning { box-shadow: 0 0 0 1px var(--amber-400); }
+.hy-fieldset--warning .hy-fieldset__footer { background: var(--amber-100); border-top-color: var(--amber-400); color: var(--amber-900); }
+@media (max-width: 480px) {
+  .hy-fieldset__footer { flex-wrap: wrap; }
+}
+/* Controls disabled by the native fieldset don't know it; gray their frames here. */
+.hy-fieldset__content:disabled .hy-input, .hy-fieldset__content:disabled .hy-select, .hy-fieldset__content:disabled .hy-textarea { background: var(--gray-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-fieldset__content:disabled .hy-field__label { color: var(--gray-700); }

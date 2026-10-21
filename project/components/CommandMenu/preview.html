@@ -1,0 +1,32 @@
+<!-- @dsCard group="Overlays" height=540 subtitle="⌘ K palette: compound parts, groups, suffix shortcuts, arrow keys, empty state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CommandMenu</title></head>
+<body>
+<div id="root"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function K(k) { return h(H.KeyboardInput, { small: true }, k); }
+function Demo() {
+  var s = React.useState(true), open = s[0], setOpen = s[1];
+  return h(F, null,
+    h(H.Button, { size: 'small', variant: 'secondary', onClick: function () { setOpen(true); }, suffix: h(H.KeyboardInput, { meta: true, small: true }, 'K') }, 'Search…'),
+    h(H.CommandMenu, { open: open, setOpen: setOpen, inline: true },
+      h(H.CommandMenuInput, { placeholder: 'Search for a command or page…' }),
+      h(H.CommandMenuList, null,
+        h(H.CommandMenuGroup, { heading: 'Projects' },
+          h(H.CommandMenuItem, { callback: function () {} }, 'hyprsh-web'),
+          h(H.CommandMenuItem, { callback: function () {} }, 'hyprsh-api')),
+        h(H.CommandMenuGroup, { heading: 'Actions' },
+          h(H.CommandMenuItem, { keywords: ['new'], suffix: h(F, null, K('⌘'), K('N')), callback: function () {} }, 'Create Project…'),
+          h(H.CommandMenuItem, { keywords: ['ship', 'release'], callback: function () {} }, 'Deploy to Production'),
+          h(H.CommandMenuItem, { keywords: ['dark', 'light'], suffix: h(F, null, K('⌘'), K('⇧'), K('L')), callback: function () {} }, 'Switch Theme')),
+        h(H.CommandMenuDivider),
+        h(H.CommandMenuGroup, { heading: 'Navigation' },
+          h(H.CommandMenuItem, { suffix: h(F, null, K('G'), K('S')), callback: function () {} }, 'Go to Settings'),
+          h(H.CommandMenuItem, { suffix: h(F, null, K('G'), K('U')), callback: function () {} }, 'Go to Usage')))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

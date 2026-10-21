@@ -1,0 +1,94 @@
+/* ---------- Grid ---------- */
+.hy-grid-system, .hy-grid {
+  --hy-guide: var(--gray-alpha-400);
+  --hy-guide-cross: var(--gray-alpha-700);
+}
+.hy-grid { --hy-guide-w: 1px; }
+.hy-grid-system .hy-grid { --hy-guide-w: inherit; }
+.hy-grid-system--debug .hy-grid { --hy-guide: var(--amber-500); }
+.hy-grid {
+  container: hy-grid / inline-size;
+  min-width: 0;
+  --hy-cols: var(--hy-cols-sm); --hy-rows: var(--hy-rows-sm);
+}
+.hy-grid__inner {
+  position: relative; display: grid;
+  grid-template-columns: repeat(var(--hy-cols), minmax(0, 1fr));
+  grid-template-rows: repeat(var(--hy-rows), 1fr);
+}
+.hy-grid--square .hy-grid__inner { aspect-ratio: var(--hy-cols) / var(--hy-rows); }
+
+/* guides: each track draws its right and bottom line; the frame draws the outside */
+.hy-grid__decor { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hy-grid__guides { position: absolute; inset: 0; display: grid; }
+.hy-grid__guides--md, .hy-grid__guides--lg { display: none; }
+.hy-grid__guide, .hy-grid__frame {
+  --hy-v: var(--hy-guide); --hy-h: var(--hy-guide);
+  background-repeat: no-repeat;
+}
+.hy-grid__guide {
+  background-image: linear-gradient(var(--hy-v), var(--hy-v)), linear-gradient(var(--hy-h), var(--hy-h));
+  background-position: right top, left bottom;
+  background-size: var(--hy-guide-w) 100%, 100% var(--hy-guide-w);
+}
+.hy-grid--hide-column .hy-grid__guide, .hy-grid__guide.is-last-col { --hy-v: transparent; }
+.hy-grid--hide-row .hy-grid__guide, .hy-grid__guide.is-last-row { --hy-h: transparent; }
+.hy-grid__frame {
+  position: absolute; inset: 0; z-index: 2; pointer-events: none;
+  background-image:
+    linear-gradient(var(--hy-v), var(--hy-v)), linear-gradient(var(--hy-v), var(--hy-v)),
+    linear-gradient(var(--hy-h), var(--hy-h)), linear-gradient(var(--hy-h), var(--hy-h));
+  background-position: left top, right top, left top, left bottom;
+  background-size: var(--hy-guide-w) 100%, var(--hy-guide-w) 100%, 100% var(--hy-guide-w), 100% var(--hy-guide-w);
+}
+.hy-grid-system--dashed .hy-grid__guide {
+  background-image:
+    linear-gradient(to bottom, var(--hy-v) 50%, transparent 0),
+    linear-gradient(to right, var(--hy-h) 50%, transparent 0);
+  background-repeat: repeat-y, repeat-x;
+  background-size: var(--hy-guide-w) 8px, 8px var(--hy-guide-w);
+}
+.hy-grid-system--dashed .hy-grid__frame {
+  background-image:
+    linear-gradient(to bottom, var(--hy-v) 50%, transparent 0), linear-gradient(to bottom, var(--hy-v) 50%, transparent 0),
+    linear-gradient(to right, var(--hy-h) 50%, transparent 0), linear-gradient(to right, var(--hy-h) 50%, transparent 0);
+  background-repeat: repeat-y, repeat-y, repeat-x, repeat-x;
+  background-size: var(--hy-guide-w) 8px, var(--hy-guide-w) 8px, 8px var(--hy-guide-w), 8px var(--hy-guide-w);
+}
+
+/* cells */
+.hy-grid__cell {
+  position: relative; z-index: 1; min-width: 0;
+  grid-column: var(--hy-c-sm); grid-row: var(--hy-r-sm);
+  padding: var(--space-6);
+  font-size: 16px; line-height: 24px; color: var(--gray-1000);
+}
+/* a solid cell covers the guides inside it but leaves its own right and bottom edge showing */
+.hy-grid__cell--solid {
+  background: var(--hy-grid-bg, var(--background-100));
+  margin: 0 var(--hy-guide-w) var(--hy-guide-w) 0;
+}
+
+/* crosses sit on guide intersections */
+.hy-grid__cross {
+  position: absolute; z-index: 3; width: 21px; height: 21px; pointer-events: none;
+  left: calc(100% * (var(--hy-x) - 1) / var(--hy-cols));
+  top: calc(100% * (var(--hy-y) - 1) / var(--hy-rows));
+  transform: translate(-50%, -50%);
+  background:
+    linear-gradient(var(--hy-guide-cross), var(--hy-guide-cross)) center / var(--hy-guide-w) 100% no-repeat,
+    linear-gradient(var(--hy-guide-cross), var(--hy-guide-cross)) center / 100% var(--hy-guide-w) no-repeat;
+}
+
+@container hy-grid (min-width: 600px) {
+  .hy-grid__inner { --hy-cols: var(--hy-cols-md); --hy-rows: var(--hy-rows-md); }
+  .hy-grid__guides--sm, .hy-grid__guides--lg { display: none; }
+  .hy-grid__guides--md { display: grid; }
+  .hy-grid__cell { grid-column: var(--hy-c-md); grid-row: var(--hy-r-md); padding: calc(2 * var(--space-6)); }
+}
+@container hy-grid (min-width: 960px) {
+  .hy-grid__inner { --hy-cols: var(--hy-cols-lg); --hy-rows: var(--hy-rows-lg); }
+  .hy-grid__guides--sm, .hy-grid__guides--md { display: none; }
+  .hy-grid__guides--lg { display: grid; }
+  .hy-grid__cell { grid-column: var(--hy-c-lg); grid-row: var(--hy-r-lg); }
+}

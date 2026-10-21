@@ -1,0 +1,19 @@
+<!-- @dsCard group="Content" height=176 subtitle="Combined modifiers, single keys, small, and the non-Mac set" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KeyboardInput</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var row = { display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 'var(--space-3)' };
+function Demo() {
+  return h(F, null,
+    h('div', { style: row }, h(H.Kbd, { meta: true }, 'K'), h(H.Kbd, { meta: true, shift: true }, 'P'), h(H.Kbd, { alt: true, ctrl: true }, 'T'), h(H.Kbd, null, 'Esc'), h(H.Kbd, { small: true, meta: true }, 'K'), h(H.Kbd, { small: true }, '/')),
+    h('div', { style: row }, h(H.Kbd, { platform: 'other', meta: true }, 'K'), h(H.Kbd, { platform: 'other', meta: true, shift: true }, 'P'), h(H.Kbd, { platform: 'other', alt: true }, 'Enter')),
+    h('p', { className: 'copy-14', style: { margin: 0 } }, 'Press ', h(H.Kbd, { meta: true }, 'K'), ' to open the command menu.'));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

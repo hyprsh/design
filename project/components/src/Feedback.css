@@ -1,0 +1,58 @@
+/* ---------- Feedback ---------- */
+.hy-feedback { position: relative; display: inline-flex; }
+.hy-feedback__panel {
+  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 50%; margin-left: -170px;
+  box-sizing: border-box; width: 340px; overflow: hidden; text-align: left;
+  border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
+  transform-origin: top center; animation: hy-pop .12s cubic-bezier(.4,0,.2,1);
+}
+.hy-feedback__panel form { margin: 0; }
+.hy-feedback__body { display: flex; flex-direction: column; gap: 8px; padding: 8px; }
+.hy-feedback__footer {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 8px;
+  background: var(--background-200); box-shadow: inset 0 1px 0 var(--gray-alpha-400);
+}
+
+.hy-feedback__field {
+  display: flex; border-radius: var(--radius-md); background: var(--background-100);
+  box-shadow: 0 0 0 1px var(--gray-alpha-400); transition: box-shadow .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-feedback__field:hover { box-shadow: 0 0 0 1px var(--gray-alpha-500); }
+.hy-feedback__field:focus-within { box-shadow: 0 0 0 1px var(--gray-alpha-600), 0 0 0 4px var(--gray-alpha-200); }
+.hy-feedback__field--error, .hy-feedback__field--error:hover, .hy-feedback__field--error:focus-within { box-shadow: 0 0 0 1px var(--red-800), 0 0 0 4px var(--red-300); }
+.hy-feedback__field textarea {
+  flex: 1; min-width: 0; min-height: 96px; margin: 0; padding: 10px 12px; resize: vertical;
+  font: inherit; font-size: 14px; line-height: 20px; color: var(--gray-1000);
+  background: transparent; border: 0; outline: none; border-radius: inherit;
+}
+.hy-feedback__field textarea::placeholder { color: var(--gray-700); opacity: 1; }
+.hy-feedback__topic select { padding-left: 10px; }
+.hy-feedback__error { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 13px; line-height: 18px; color: var(--red-900); }
+
+.hy-feedback__emotions { display: flex; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.hy-feedback__emotion { position: relative; display: inline-flex; cursor: pointer; }
+.hy-feedback__face {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-full); color: var(--gray-900);
+  transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-feedback__emotion:hover .hy-feedback__face { background: var(--gray-alpha-200); color: var(--gray-1000); }
+.hy-feedback__emotion input:checked + .hy-feedback__face { background: var(--accent-200); color: var(--accent-900); }
+.hy-feedback__emotion input:focus-visible + .hy-feedback__face { box-shadow: var(--shadow-focus-ring); }
+.hy-feedback__emotion input:disabled + .hy-feedback__face { opacity: .5; cursor: not-allowed; }
+
+.hy-feedback__sent { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 32px 24px; text-align: center; }
+.hy-feedback__sent-icon { display: grid; place-items: center; width: 32px; height: 32px; margin-bottom: 8px; border-radius: var(--radius-full); background: var(--blue-700); color: var(--white); }
+.hy-feedback__sent-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); }
+.hy-feedback__sent-copy { margin: 0; font-size: 14px; line-height: 20px; color: var(--gray-900); }
+
+.hy-feedback-inline {
+  display: inline-flex; flex-direction: column; box-sizing: border-box; max-width: 100%; margin: 0;
+  border-radius: var(--radius-full); background: var(--background-100); box-shadow: var(--shadow-border);
+}
+.hy-feedback-inline:focus { outline: none; }
+.hy-feedback__sent:focus { outline: none; }
+.hy-feedback-inline--open { display: flex; width: 100%; max-width: 420px; border-radius: var(--radius-xl); }
+.hy-feedback-inline__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 40px; padding: 4px 4px 4px 16px; }
+.hy-feedback-inline__copy { display: flex; align-items: center; gap: 8px; margin: 0; padding-right: 12px; font-size: 14px; line-height: 20px; color: var(--gray-900); white-space: nowrap; }
+.hy-feedback-inline__body { display: flex; flex-direction: column; gap: 8px; padding: 4px 8px 8px; }
+.hy-feedback-inline__actions { display: flex; justify-content: flex-end; }

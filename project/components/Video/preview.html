@@ -1,0 +1,15 @@
+<!-- @dsCard group="Media" height=320 subtitle="Muted looping clip with a floating play and seek bar" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Video</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none;align-items:center"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement;
+function Demo() {
+  return h(H.Video, { width: 480, height: 270, style: { width: '100%', maxWidth: 480 }, 'aria-label': 'Placeholder for a deploy walkthrough clip' });
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

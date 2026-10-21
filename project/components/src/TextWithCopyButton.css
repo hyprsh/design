@@ -1,0 +1,16 @@
+/* ---------- TextWithCopyButton ---------- */
+.hy-twcb {
+  display: inline-flex; align-items: center; gap: 6px; max-width: 100%; min-height: 24px; min-width: 0;
+  margin: 0; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent;
+  font: inherit; color: var(--gray-1000); text-align: left; cursor: pointer;
+}
+.hy-twcb__text { min-width: 0; overflow-wrap: anywhere; }
+.hy-twcb--ellipsis .hy-twcb__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+.hy-twcb__icon { display: grid; flex: none; color: var(--gray-700); transition: color .15s cubic-bezier(.4,0,.2,1); }
+.hy-twcb:hover .hy-twcb__icon { color: var(--gray-1000); }
+.hy-twcb__glyph { grid-area: 1 / 1; display: grid; transition: opacity .15s cubic-bezier(.4,0,.2,1), transform .15s cubic-bezier(.4,0,.2,1); }
+.hy-twcb__glyph.is-out { opacity: 0; transform: scale(.6); }
+.hy-twcb:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .hy-twcb__glyph.is-out { transform: none; }
+}

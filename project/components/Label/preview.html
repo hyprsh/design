@@ -1,0 +1,22 @@
+<!-- @dsCard group="Forms" height=230 subtitle="for an id, wrapping its control, Title Case or bypassCasing" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Label</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h('div', null,
+      h(H.Label, { id: 'team-email', value: 'Email Address' }),
+      h('div', { style: { height: 8 } }),
+      h(H.Input, { id: 'team-email', type: 'email', name: 'email', autoComplete: 'email', spellCheck: false, placeholder: 'ops@acme.dev' })),
+    h(H.Label, { value: 'build command', withInput: true },
+      h(H.Input, { name: 'build', autoComplete: 'off', spellCheck: false, placeholder: 'npm run build' })),
+    h(H.Label, { value: 'npm token (read-only)', bypassCasing: true }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

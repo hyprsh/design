@@ -1,0 +1,12 @@
+# Logo
+
+The hyprsh mark, a faceted delta starship, alone or locked up with the “hyprsh” wordmark.
+
+**You provide:** nothing required. Optional: `variant` (`lockup` by default, `mark` or `wordmark`), `size` (the mark’s height in px, default 24; the wordmark scales with it), `tone` (`nebula` by default, the indigo → violet → pink gradient; `mono` fills with `currentColor`) and `aria-label` (default “hyprsh”).
+
+- Use the lockup in headers, sign-in screens and docs. Use the mark alone where space is tight: the app bar at 20–24px, avatars and favicons.
+- The nebula gradient belongs to the mark only. Never put it behind UI, text or buttons; the interface uses the solid `accent-*` pink.
+- Use `mono` on photos, on coloured fills and anywhere one colour is printed. It takes the text colour around it.
+- Keep clear space of at least half the mark’s height on every side. Don’t stretch, rotate, outline or recolour the mark, and don’t set the wordmark in another typeface.
+- The mark reads down to 16px. Below that, use the mono mark or leave it out.
+- The source SVGs are in `brand/`: `logo-mark.svg`, `logo-mark-mono.svg`, `logo-lockup.svg`.

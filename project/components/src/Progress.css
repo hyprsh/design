@@ -1,0 +1,28 @@
+/* ---------- Progress ---------- */
+.hy-progress { --progress-fill: var(--gray-1000); display: flex; flex-direction: column; gap: 8px; min-width: 0; width: 100%; }
+.hy-progress--secondary { --progress-fill: var(--gray-700); }
+.hy-progress--success { --progress-fill: var(--blue-700); }
+.hy-progress--warning { --progress-fill: var(--amber-700); }
+.hy-progress--error { --progress-fill: var(--red-700); }
+.hy-progress--green { --progress-fill: var(--green-700); }
+.hy-progress__head { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; line-height: 16px; }
+.hy-progress__label { color: var(--gray-1000); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-progress__value { color: var(--gray-900); font-variant-numeric: tabular-nums; }
+.hy-progress__bar { position: relative; }
+.hy-progress__track { position: relative; height: 100%; border-radius: var(--radius-md); background: var(--gray-200); overflow: hidden; }
+.hy-progress__fill {
+  position: absolute; inset: 0; border-radius: inherit; background: var(--progress-fill);
+  transition: transform .2s cubic-bezier(.4,0,.2,1);
+}
+/* A stop: a 2px notch (one dark pixel, one page-coloured) with a focusable marker for its tooltip. */
+.hy-progress__divider {
+  position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; pointer-events: none;
+  background: linear-gradient(to right, var(--gray-alpha-600) 50%, var(--background-100) 50%);
+}
+.hy-progress__stop { position: absolute; display: flex; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; }
+.hy-progress__trigger {
+  position: relative; display: block; width: 14px; height: 14px; padding: 0; margin: 0;
+  border: 0; border-radius: var(--radius-full); background: transparent; cursor: default;
+}
+.hy-progress__trigger::after { content: ''; position: absolute; inset: -5px; }
+.hy-progress__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }

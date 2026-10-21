@@ -1,0 +1,19 @@
+<!-- @dsCard group="Status" height=128 subtitle="Badge-styled link; sm, md, lg; with icon" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pill</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var icon = h(H.Icon, { name: 'message-square' });
+  var row = function (kids) { return h('div', { className: 'hy-row', style: { padding: 0, gap: 8 } }, kids); };
+  return h(F, null,
+    row([h(H.Pill, { key: 1, href: '#changelog', size: 'sm' }, 'Changelog'), h(H.Pill, { key: 2, href: '#changelog', size: 'md' }, 'Changelog'), h(H.Pill, { key: 3, href: '#changelog', size: 'lg' }, 'Changelog')]),
+    row([h(H.Pill, { key: 1, href: '#feedback', size: 'sm', icon: icon }, 'Feedback'), h(H.Pill, { key: 2, href: '#feedback', size: 'md', icon: icon }, 'Feedback'), h(H.Pill, { key: 3, href: '#feedback', size: 'lg', icon: icon }, 'Feedback')]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

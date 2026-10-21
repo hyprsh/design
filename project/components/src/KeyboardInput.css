@@ -1,0 +1,13 @@
+/* ---------- KeyboardInput ---------- */
+.hy-kbd {
+  display: inline-flex; align-items: center; justify-content: center; gap: 2px; vertical-align: middle;
+  min-width: 24px; min-height: 24px; box-sizing: border-box; padding: 0 6px; margin-left: 4px;
+  border-radius: var(--radius-sm); background: var(--background-100);
+  box-shadow: inset 0 0 0 1px var(--gray-alpha-400);
+  font-family: var(--font-sans); font-size: 14px; font-weight: 400; line-height: 1.7em; color: var(--gray-1000);
+  text-align: center; white-space: nowrap;
+}
+.hy-kbd:first-child { margin-left: 0; }
+.hy-kbd--words { gap: 4px; }
+.hy-kbd__cmd { min-width: 1em; }
+.hy-kbd--small { min-width: 20px; min-height: 20px; padding: 0 4px; margin-left: 2px; font-size: 12px; }

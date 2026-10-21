@@ -1,0 +1,29 @@
+<!-- @dsCard group="Forms" height=400 subtitle="Placeholder, label, hint, error, prefix icon, 3 sizes, disabled" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Select</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:640px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var REGIONS = [{ value: 'iad1', label: 'Washington, D.C. (iad1)' }, { value: 'fra1', label: 'Frankfurt (fra1)' }, { value: 'sin1', label: 'Singapore (sin1)' }, { value: 'syd1', label: 'Sydney (syd1)', disabled: true }];
+function Row(kids) { return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, alignItems: 'end' } }, kids); }
+function Opts() { return [h('option', { key: 1, value: 'next' }, 'Next.js'), h('option', { key: 2, value: 'astro' }, 'Astro'), h('option', { key: 3, value: 'remix' }, 'Remix')]; }
+function Demo() {
+  var s = React.useState('fra1'), region = s[0], setRegion = s[1];
+  return h(F, null,
+    Row([
+      h(H.Select, { key: 1, size: 'small', 'aria-label': 'Framework, Small', placeholder: 'Select a framework' }, Opts()),
+      h(H.Select, { key: 2, 'aria-label': 'Framework', placeholder: 'Select a framework' }, Opts()),
+      h(H.Select, { key: 3, size: 'large', 'aria-label': 'Framework, Large', defaultValue: 'astro' }, Opts())]),
+    h(H.Select, { label: 'Function Region', name: 'region', options: REGIONS, value: region, onChange: function (e) { setRegion(e.target.value); }, prefix: h(H.Icon, { name: 'globe' }), hint: 'Serverless functions run closest to this region.' }),
+    h(H.Select, { label: 'Git Branch', name: 'branch', placeholder: 'Select a branch', required: true, error: 'Select a branch to deploy.' },
+      h('option', { value: 'main' }, 'main'), h('option', { value: 'preview' }, 'preview')),
+    Row([
+      h(H.Select, { key: 1, 'aria-label': 'Node.js Version', disabled: true, defaultValue: '20' }, h('option', { value: '20' }, 'Node.js 20.x')),
+      h(H.Select, { key: 2, 'aria-label': 'Sort Order', suffix: h(H.Icon, { name: 'arrow-down-up' }), defaultValue: 'new' }, h('option', { value: 'new' }, 'Newest First'), h('option', { value: 'old' }, 'Oldest First'))]));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

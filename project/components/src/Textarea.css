@@ -1,0 +1,25 @@
+/* ---------- Textarea ---------- */
+.hy-textarea {
+  display: flex; min-width: 0; border-radius: var(--radius-md);
+  background: var(--background-100);
+  box-shadow: 0 0 0 1px var(--gray-alpha-400);
+  transition: box-shadow .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-textarea:hover { box-shadow: 0 0 0 1px var(--gray-alpha-500); }
+.hy-textarea:focus-within { box-shadow: 0 0 0 1px var(--gray-alpha-600); outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-textarea textarea {
+  flex: 1; min-width: 0; margin: 0; padding: 10px 12px;
+  font: inherit; font-size: 14px; line-height: 20px; color: var(--gray-1000);
+  background: transparent; border: 0; outline: none; border-radius: inherit; resize: none;
+}
+.hy-textarea textarea::placeholder { color: var(--gray-700); opacity: 1; }
+.hy-textarea--small textarea { padding: 6px 12px; }
+.hy-textarea--large { border-radius: var(--radius-lg); }
+.hy-textarea--large textarea { padding: 10px 12px; font-size: 16px; line-height: 24px; }
+.hy-textarea--error, .hy-textarea--error:hover, .hy-textarea--error:focus-within { box-shadow: 0 0 0 1px var(--red-900), 0 0 0 4px var(--red-300); }
+.hy-textarea--disabled, .hy-textarea--disabled:hover { background: var(--gray-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-textarea textarea:disabled { color: var(--gray-700); cursor: not-allowed; }
+.hy-textarea textarea[readonly] { cursor: default; }
+@media (pointer: coarse) {
+  .hy-textarea textarea { font-size: 16px; }
+}

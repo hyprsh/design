@@ -1,0 +1,34 @@
+<!-- @dsCard group="Actions" height=300 subtitle="Default action plus a chevron menu of alternatives, in default and secondary" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SplitButton</title></head>
+<body>
+<div id="root" class="hy-row" style="align-items:flex-start"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function I(name) { return h(H.Icon, { name: name }); }
+function Demo() {
+  return h(F, null,
+    h(H.SplitButton, {
+      defaultOpen: true,
+      buttonProps: { onClick: function () {} },
+      menuButtonLabel: 'More Deploy Options',
+      menuProps: { width: 320 },
+      menuItems: h(F, null,
+        h(H.SplitButtonMenuItem, { icon: I('rocket'), title: 'Deploy to Production', description: 'Build and promote to your production domains.' }),
+        h(H.SplitButtonMenuItem, { icon: I('refresh-cw'), title: 'Deploy Without Cache', description: 'Rebuild every dependency from scratch.' }),
+        h(H.SplitButtonMenuItem, { icon: I('git-branch'), title: 'Deploy a Branch…', description: 'Pick a branch to preview.' }))
+    }, 'Deploy'),
+    h(H.SplitButton, {
+      buttonProps: { variant: 'secondary', size: 'small' },
+      menuButtonLabel: 'More Merge Options',
+      menuAlignment: 'bottom-end',
+      menuItems: [
+        { title: 'Squash and Merge' },
+        { title: 'Rebase and Merge' }]
+    }, 'Merge Pull Request'));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
