@@ -65,7 +65,7 @@ Screenshots need Google Chrome installed in `/Applications`.
 Install it from this repo. Installing runs `prepare`, which builds `dist/`. The repo is private, so the machine (or CI) needs GitHub access to hyprsh/design.
 
 ```bash
-npm install github:hyprsh/design#v0.1.0
+npm install github:hyprsh/design#v0.3.0
 ```
 
 ```tsx
@@ -80,7 +80,7 @@ import { Button, Input, Logo } from '@hyprsh/design';
 - Icons: the main entry carries only the Lucide icons the components use. In an app, pass an icon component, such as `<Icon icon={GitBranch} />` with `GitBranch` from `lucide-react`, or use `lucide-react` directly. `import '@hyprsh/design/icons'` registers the full set for `<Icon name="…">`, at about 450 KB.
 - The logo SVGs are at `@hyprsh/design/brand/logo-mark.svg`, `logo-mark-mono.svg` and `logo-lockup.svg`.
 
-To release a version, bump `version` in `package.json`, then tag it (`git tag v0.2.0 && git push --tags`) and point apps at the new tag.
+To release a version, bump `version` in `package.json`, then tag it (`git tag v0.4.0 && git push --tags`) and point apps at the new tag.
 
 ## Using the bundle in plain HTML
 
