@@ -23,6 +23,7 @@ project/
     index.d.ts         built: <Name>Props for every component
 scripts/
   build.mjs            builds the bundle and checks every component against the artifact contract
+  package.mjs          builds the npm package into dist/ (ES module, types, styles, tokens, fonts, logo)
   dev.mjs              local card viewer, light and dark side by side
   shot.mjs             headless Chrome mount check + screenshots into .cache/shots
   icons.mjs            vendors Lucide into src/_icons.js
@@ -37,6 +38,8 @@ Node 20 or newer. There are no dependencies to install.
 npm run build
 ```
 
+This builds the artifact bundle and the package in `dist/`.
+
 ```bash
 npm run dev
 ```
@@ -49,7 +52,29 @@ npm run shots -- Button Toggle
 
 Screenshots need Google Chrome installed in `/Applications`.
 
-## Using the components
+## Using it in a React app
+
+Install it from this repo. Installing runs `prepare`, which builds `dist/`. The repo is private, so the machine (or CI) needs GitHub access to hyprsh/design.
+
+```bash
+npm install github:hyprsh/design#v0.1.0
+```
+
+```tsx
+import '@hyprsh/design/tokens.css';
+import '@hyprsh/design/styles.css';
+import { Button, Input, Logo } from '@hyprsh/design';
+```
+
+- React and ReactDOM 18 or newer are peer dependencies.
+- Dark mode follows `data-theme="dark"` or a `.dark` class on any ancestor, so it works with Tailwind's class-based dark variant.
+- `tokens.css` brings the colour, space, radius and shadow variables, the type classes (`.heading-24`, `.copy-14`…) and Geist through `@font-face`.
+- Icons: the main entry carries only the Lucide icons the components use. In an app, pass an icon component, such as `<Icon icon={GitBranch} />` with `GitBranch` from `lucide-react`, or use `lucide-react` directly. `import '@hyprsh/design/icons'` registers the full set for `<Icon name="…">`, at about 450 KB.
+- The logo SVGs are at `@hyprsh/design/brand/logo-mark.svg`, `logo-mark-mono.svg` and `logo-lockup.svg`.
+
+To release a version, bump `version` in `package.json`, then tag it (`git tag v0.2.0 && git push --tags`) and point apps at the new tag.
+
+## Using the bundle in plain HTML
 
 The bundle needs React 18 and the compiled tokens on the page:
 
