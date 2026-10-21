@@ -47,9 +47,10 @@ export function buildPackage() {
     `var ICONS = ${JSON.stringify(subset)};`,
     '',
     ...order.map((n) => `/* ---- ${n} ---- */\n(function () {\n${indent(read(join(SRC, n + '.js')).trim(), '  ')}\n})();\n`),
-    ...defined.map((n) => `export var ${n} = HY.${n};`),
-    'export var registerIcons = HY.Icon.register;',
-    'export var Hyprsh = HY;',
+    // Aliased so that exports such as Error never shadow globals inside this module.
+    ...defined.map((n) => `var __hy_${n} = HY.${n};`),
+    `var __hy_registerIcons = HY.Icon.register;`,
+    `export { ${defined.map((n) => `__hy_${n} as ${n}`).join(', ')}, __hy_registerIcons as registerIcons, HY as Hyprsh };`,
     '',
   ].join('\n');
 
