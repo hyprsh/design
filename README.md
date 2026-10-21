@@ -2,6 +2,8 @@
 
 hyprsh’s design system, closely based on Vercel’s [Geist](https://vercel.com/geist/introduction). It covers the Geist colour scale, the Geist Sans and Geist Mono fonts, the type and control scales, materials, and React rebuilds of the Geist component catalogue. The interface rules come from Vercel’s [web interface guidelines](https://github.com/vercel-labs/web-interface-guidelines).
 
+hyprsh is not affiliated with or endorsed by Vercel. Geist is Vercel’s name for its design system and typeface.
+
 It is published as a Design System artifact. The `project/` folder is exactly what gets published.
 
 ## Layout
@@ -106,3 +108,11 @@ Icons are [Lucide](https://lucide.dev) (ISC), vendored with its licence in `proj
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the component conventions, the preview and README formats, and how to check your work.
+
+## Licence
+
+MIT, see `LICENSE`. Parts by others keep their own licences:
+
+- Geist and Geist Mono fonts: SIL Open Font License 1.1, `project/fonts/OFL.txt`.
+- Lucide icons: ISC, `project/components/src/LUCIDE-LICENSE.txt`.
+- `project/guidelines.md`, adapted from Vercel Labs' Web Interface Guidelines: MIT, notice at the end of that file.
