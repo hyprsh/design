@@ -1,4 +1,4 @@
-<!-- @dsCard group="Status" height=200 subtitle="8 hues solid and subtle, inverted, trial; sm, md, lg; with icons" -->
+<!-- @dsCard group="Status" height=200 subtitle="8 hues solid and subtle, inverted; sm, md, lg; with icons" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Badge</title></head>
@@ -13,9 +13,7 @@ function Demo() {
   var row = function (kids) { return h('div', { className: 'hy-row', style: { padding: 0, gap: 8 } }, kids); };
   return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12 } },
     row(hues.map(function (v) { return h(H.Badge, { key: v, variant: v }, cap(v)); }).concat([
-      h(H.Badge, { key: 'i', variant: 'inverted' }, 'Inverted'),
-      h(H.Badge, { key: 't', variant: 'trial' }, 'Trial'),
-      h(H.Badge, { key: 'u', variant: 'turbo' }, 'Turbo')])),
+      h(H.Badge, { key: 'i', variant: 'inverted' }, 'Inverted')])),
     row(hues.map(function (v) { return h(H.Badge, { key: v, variant: v, contrast: 'low' }, cap(v) + ' Subtle'); })),
     row([
       h(H.Badge, { key: 1, size: 'sm', variant: 'purple', contrast: 'low' }, 'Beta'),

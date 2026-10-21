@@ -2455,7 +2455,7 @@
     function Badge(props) {
       var variant = props.variant || 'gray';
       /* 'blue-subtle' and variant="blue" contrast="low" are the same badge. */
-      if (props.contrast === 'low' && !/-subtle$/.test(variant) && ['inverted', 'trial', 'turbo', 'pill'].indexOf(variant) < 0) variant += '-subtle';
+      if (props.contrast === 'low' && !/-subtle$/.test(variant) && ['inverted', 'pill'].indexOf(variant) < 0) variant += '-subtle';
       var size = BADGE_SIZE[props.size] || 'medium';
       return h('span', {
         className: cx('hy-badge', 'hy-badge--' + variant, 'hy-badge--' + size, props.className),

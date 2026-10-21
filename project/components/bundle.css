@@ -1105,8 +1105,6 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 .hy-badge--green { background: var(--green-700); color: var(--black); }
 .hy-badge--teal { background: var(--teal-700); color: var(--black); }
 .hy-badge--inverted { background: var(--gray-1000); color: var(--background-100); }
-.hy-badge--trial { background: linear-gradient(135deg, var(--blue-800), var(--pink-800)); color: var(--white); }
-.hy-badge--turbo { background: linear-gradient(135deg, var(--red-800), var(--blue-800)); color: var(--white); }
 
 /* Subtle (contrast="low") tints pair 200 with 900 text in the same hue. */
 .hy-badge--gray-subtle { background: var(--gray-200); color: var(--gray-1000); }

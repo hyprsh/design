@@ -6,17 +6,17 @@
 <div id="root" class="hy-col" style="max-width:640px"></div>
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
-var REGIONS = [{ value: 'iad1', label: 'Washington, D.C. (iad1)' }, { value: 'fra1', label: 'Frankfurt (fra1)' }, { value: 'sin1', label: 'Singapore (sin1)' }, { value: 'syd1', label: 'Sydney (syd1)', disabled: true }];
+var REGIONS = [{ value: 'us-east', label: 'Washington, D.C. (us-east)' }, { value: 'eu-central', label: 'Frankfurt (eu-central)' }, { value: 'ap-southeast', label: 'Singapore (ap-southeast)' }, { value: 'au-east', label: 'Sydney (au-east)', disabled: true }];
 function Row(kids) { return h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12, alignItems: 'end' } }, kids); }
-function Opts() { return [h('option', { key: 1, value: 'next' }, 'Next.js'), h('option', { key: 2, value: 'astro' }, 'Astro'), h('option', { key: 3, value: 'remix' }, 'Remix')]; }
+function Opts() { return [h('option', { key: 1, value: 'npm' }, 'npm'), h('option', { key: 2, value: 'pnpm' }, 'pnpm'), h('option', { key: 3, value: 'yarn' }, 'Yarn')]; }
 function Demo() {
-  var s = React.useState('fra1'), region = s[0], setRegion = s[1];
+  var s = React.useState('eu-central'), region = s[0], setRegion = s[1];
   return h(F, null,
     Row([
-      h(H.Select, { key: 1, size: 'small', 'aria-label': 'Framework, Small', placeholder: 'Select a framework' }, Opts()),
-      h(H.Select, { key: 2, 'aria-label': 'Framework', placeholder: 'Select a framework' }, Opts()),
-      h(H.Select, { key: 3, size: 'large', 'aria-label': 'Framework, Large', defaultValue: 'astro' }, Opts())]),
-    h(H.Select, { label: 'Function Region', name: 'region', options: REGIONS, value: region, onChange: function (e) { setRegion(e.target.value); }, prefix: h(H.Icon, { name: 'globe' }), hint: 'Serverless functions run closest to this region.' }),
+      h(H.Select, { key: 1, size: 'small', 'aria-label': 'Package Manager, Small', placeholder: 'Select a package manager' }, Opts()),
+      h(H.Select, { key: 2, 'aria-label': 'Package Manager', placeholder: 'Select a package manager' }, Opts()),
+      h(H.Select, { key: 3, size: 'large', 'aria-label': 'Package Manager, Large', defaultValue: 'pnpm' }, Opts())]),
+    h(H.Select, { label: 'Build Region', name: 'region', options: REGIONS, value: region, onChange: function (e) { setRegion(e.target.value); }, prefix: h(H.Icon, { name: 'globe' }), hint: 'Builds run closest to this region.' }),
     h(H.Select, { label: 'Git Branch', name: 'branch', placeholder: 'Select a branch', required: true, error: 'Select a branch to deploy.' },
       h('option', { value: 'main' }, 'main'), h('option', { value: 'preview' }, 'preview')),
     Row([

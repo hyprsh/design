@@ -7,10 +7,10 @@
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 var jsx = "// Rendered on every request\nexport default function Page({ params }) {\n  const project = getProject(params.slug);\n  return (\n    <main className=\"page\">\n      <h1>{project.name}</h1>\n      <Status ready={true} count={3} />\n    </main>\n  );\n}";
-var config = "{\n  \"framework\": \"nextjs\",\n  \"buildCommand\": \"pnpm build\",\n  \"regions\": [\"fra1\", \"iad1\"],\n  \"cleanUrls\": true,\n  \"trailingSlash\": false\n}";
+var config = "{\n  \"name\": \"hyprsh-web\",\n  \"build\": \"pnpm build\",\n  \"regions\": [\"eu-central\", \"us-east\"],\n  \"cache\": true,\n  \"output\": \"dist\"\n}";
 var codes = {
   ts: "export async function deploy(project: string): Promise<Deployment> {\n  const res = await fetch(`/v1/projects/${project}/deploy`, { method: 'POST' });\n  return res.json();\n}",
-  bash: "# Link the folder, then ship a production build\nhyprsh link --yes\nHYPRSH_ENV=production hyprsh deploy --prebuilt --token \"$TOKEN\"",
+  bash: "# Set up the folder, then ship a production build\nhyprsh init\nhyprsh deploy --env production",
   css: ".status:hover {\n  color: var(--gray-1000);\n  padding: 0 12px;\n  border-radius: 6px !important;\n}"
 };
 var langs = [{ label: 'TypeScript', value: 'ts' }, { label: 'Bash', value: 'bash' }, { label: 'CSS', value: 'css' }];

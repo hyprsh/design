@@ -9,7 +9,7 @@ var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 var sample = "import { Snippet } from 'hyprsh';\n\nexport function Install() {\n  return <Snippet text=\"npm i -g hyprsh\" />;\n}";
 function Demo() {
   return h(F, null,
-    h('p', { className: 'copy-14', style: { margin: 0 } }, 'Set ', h(H.Code, null, 'HYPRSH_TOKEN'), ' in ', h(H.Code, null, '.env.local'), ', then run the build with ', h(H.Code, null, '--prebuilt'), '.'),
+    h('p', { className: 'copy-14', style: { margin: 0 } }, 'Set ', h(H.Code, null, 'HYPRSH_TOKEN'), ' in ', h(H.Code, null, '.env.local'), ', then run the build with ', h(H.Code, null, '--frozen-lockfile'), '.'),
     h(H.Code, { syntax: 'javascript' }, sample));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
