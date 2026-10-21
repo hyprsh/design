@@ -8,4 +8,5 @@ A floating card that appears on hover or focus of its trigger and can hold riche
 - Lead with the entity name and one identifying line, then 2–4 “Label: value” rows with Title Case keys. Show unknown values as “—”, never “N/A”.
 - At most one action (“View Project”). Never put destructive actions in it: it can close when the pointer leaves.
 - Don't repeat what the trigger already shows, and never nest it in a Tooltip or another ContextCard.
+- On touch screens there is no hover: a tap on the trigger toggles the card (the first tap on a link opens the card, a second tap follows the link) and a tap outside closes it. The card flips sides and stays 8px inside the screen.
 - The trigger keeps its own accessible name; the card is supplementary.

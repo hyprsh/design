@@ -1,33 +1,26 @@
 /* ---------- ContextCard ---------- */
 .hy-ctx { position: relative; display: inline-flex; vertical-align: middle; }
 .hy-ctx__trigger { display: inline-flex; }
-a.hy-ctx__trigger { display: inline; }
+/* links: a 24px tall hit area without changing the line */
+a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px; }
 .hy-ctx__card {
-  --ctx-gap: 8px; --ctx-shift: 4px;
-  position: absolute; z-index: var(--z-tooltip);
-  width: max-content; max-width: min(360px, calc(100vw - 32px)); box-sizing: border-box; padding: 12px;
+  --ctx-gap: 8px; --ctx-from: none;
+  width: max-content; box-sizing: border-box; padding: 12px;
   border-radius: var(--radius-md); background: var(--background-100); box-shadow: var(--shadow-tooltip);
   color: var(--gray-1000); font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; text-align: left;
-  visibility: hidden; opacity: 0;
-  transition: opacity .15s cubic-bezier(.4,0,.2,1), transform .15s cubic-bezier(.4,0,.2,1), visibility 0s linear .15s;
+  animation: hy-ctx-in .15s cubic-bezier(.4,0,.2,1);
 }
-.hy-ctx__card.is-open { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+@keyframes hy-ctx-in { from { opacity: 0; transform: var(--ctx-from); } }
 /* an invisible bridge over the gap keeps the card open while the pointer crosses it */
 .hy-ctx__card::before { content: ''; position: absolute; inset: calc(-1 * var(--ctx-gap) - 1px); z-index: -1; }
 .hy-ctx__body { position: relative; }
 
-.hy-ctx__card--top { bottom: calc(100% + var(--ctx-gap)); transform: translateY(var(--ctx-shift)); transform-origin: bottom center; }
-.hy-ctx__card--bottom { top: calc(100% + var(--ctx-gap)); transform: translateY(calc(-1 * var(--ctx-shift))); transform-origin: top center; }
-.hy-ctx__card--left { right: calc(100% + var(--ctx-gap)); transform: translateX(var(--ctx-shift)); transform-origin: center right; }
-.hy-ctx__card--right { left: calc(100% + var(--ctx-gap)); transform: translateX(calc(-1 * var(--ctx-shift))); transform-origin: center left; }
-.hy-ctx__card--top.hy-ctx__card--center, .hy-ctx__card--bottom.hy-ctx__card--center { left: 50%; translate: -50% 0; }
-.hy-ctx__card--top.hy-ctx__card--start, .hy-ctx__card--bottom.hy-ctx__card--start { left: 0; }
-.hy-ctx__card--top.hy-ctx__card--end, .hy-ctx__card--bottom.hy-ctx__card--end { right: 0; }
-.hy-ctx__card--left.hy-ctx__card--center, .hy-ctx__card--right.hy-ctx__card--center { top: 50%; translate: 0 -50%; }
-.hy-ctx__card--left.hy-ctx__card--start, .hy-ctx__card--right.hy-ctx__card--start { top: 0; }
-.hy-ctx__card--left.hy-ctx__card--end, .hy-ctx__card--right.hy-ctx__card--end { bottom: 0; }
+.hy-ctx__card--top { --ctx-from: translateY(4px); transform-origin: bottom center; }
+.hy-ctx__card--bottom { --ctx-from: translateY(-4px); transform-origin: top center; }
+.hy-ctx__card--left { --ctx-from: translateX(4px); transform-origin: center right; }
+.hy-ctx__card--right { --ctx-from: translateX(-4px); transform-origin: center left; }
 
-/* tip: background fill plus the border stroke on its two slanted edges */
+/* tip: background fill plus the border stroke on its two slanted edges; its offset along the edge is set inline */
 .hy-ctx__tip { position: absolute; display: block; overflow: visible; }
 .hy-ctx__tip-fill { fill: var(--background-100); }
 .hy-ctx__tip-stroke { stroke: var(--gray-alpha-400); stroke-width: 1px; }
@@ -35,13 +28,7 @@ a.hy-ctx__trigger { display: inline; }
 .hy-ctx__card--bottom .hy-ctx__tip { bottom: calc(100% - 1px); transform: rotate(180deg); }
 .hy-ctx__card--left .hy-ctx__tip { left: calc(100% - 4.5px); transform: rotate(-90deg); }
 .hy-ctx__card--right .hy-ctx__tip { right: calc(100% - 4.5px); transform: rotate(90deg); }
-.hy-ctx__card--top .hy-ctx__tip, .hy-ctx__card--bottom .hy-ctx__tip { left: calc(50% - 7px); }
-.hy-ctx__card--start.hy-ctx__card--top .hy-ctx__tip, .hy-ctx__card--start.hy-ctx__card--bottom .hy-ctx__tip { left: 12px; }
-.hy-ctx__card--end.hy-ctx__card--top .hy-ctx__tip, .hy-ctx__card--end.hy-ctx__card--bottom .hy-ctx__tip { left: auto; right: 12px; }
-.hy-ctx__card--left .hy-ctx__tip, .hy-ctx__card--right .hy-ctx__tip { top: calc(50% - 3.5px); }
-.hy-ctx__card--start.hy-ctx__card--left .hy-ctx__tip, .hy-ctx__card--start.hy-ctx__card--right .hy-ctx__tip { top: 12px; }
-.hy-ctx__card--end.hy-ctx__card--left .hy-ctx__tip, .hy-ctx__card--end.hy-ctx__card--right .hy-ctx__tip { top: auto; bottom: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hy-ctx__card { --ctx-shift: 0px; }
+  .hy-ctx__card { --ctx-from: none !important; }
 }

@@ -1,5 +1,5 @@
 /* ---------- RelativeTimeCard ---------- */
-.hy-rtc { display: flex; flex-direction: column; gap: 12px; min-width: 300px; }
+.hy-rtc { display: flex; flex-direction: column; gap: 12px; min-width: min(300px, calc(100vw - 40px)); }
 .hy-rtc__ago { font-size: 13px; line-height: 20px; color: var(--gray-900); font-variant-numeric: tabular-nums; }
 .hy-rtc__rows { display: flex; flex-direction: column; gap: 8px; }
 .hy-rtc__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -9,5 +9,6 @@
   background: var(--gray-200); font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-900);
 }
 .hy-rtc__time { font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--gray-900); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.hy-rtc__trigger { font-variant-numeric: tabular-nums; color: inherit; border-radius: var(--radius-sm); cursor: default; }
+/* 24px tall hit area */
+.hy-rtc__trigger { display: inline-flex; align-items: center; min-height: 24px; font-variant-numeric: tabular-nums; color: inherit; border-radius: var(--radius-sm); cursor: default; }
 .hy-rtc__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }

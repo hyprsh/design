@@ -31,10 +31,11 @@
 .hy-filter-suggestion:hover { background: var(--gray-alpha-100); border-color: var(--gray-alpha-600); }
 
 .hy-filter-params__popover {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); box-sizing: border-box; width: 280px; max-width: 100%; overflow: hidden;
+  position: fixed; z-index: var(--z-menu); box-sizing: border-box; width: 280px; max-width: calc(100vw - 16px); overflow: hidden;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top left; animation: hy-pop .12s cubic-bezier(.4,0,.2,1);
 }
+.hy-filter-params__popover--top { transform-origin: bottom left; }
 .hy-filter-params__search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-filter-params__search-icon { color: var(--gray-900); }
 .hy-filter-params__search input {
@@ -49,7 +50,7 @@
 }
 .hy-filter-params__chip:hover { background: var(--gray-alpha-300); }
 .hy-filter-params__chip:focus-visible { box-shadow: var(--shadow-focus-ring); }
-.hy-filter-params__list { max-height: 280px; margin: 0; padding: 8px; overflow-y: auto; list-style: none; }
+.hy-filter-params__list { max-height: min(280px, calc(100vh - 76px)); margin: 0; padding: 8px; overflow-y: auto; list-style: none; }
 .hy-filter-params__option {
   display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px; border-radius: var(--radius-md);
   font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer; user-select: none;
@@ -65,3 +66,11 @@
   font: inherit; font-size: 13px; color: var(--gray-1000); cursor: pointer;
 }
 .hy-filter-params__stop:focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
+
+/* Touch screens: 40px pills, suggestions and options */
+@media (pointer: coarse) {
+  .hy-filter-pill, .hy-filter-suggestion { height: 40px; }
+  .hy-filter-pill__remove { width: 32px; height: 32px; }
+  .hy-filter-params__chip { height: 32px; }
+  .hy-filter-params__option { min-height: 40px; }
+}

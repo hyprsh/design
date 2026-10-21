@@ -69,8 +69,10 @@ body {
 .hy-input__affix:last-child { border-left: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 .hy-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-color: var(--background-100); color: var(--gray-1000); }
 .hy-select__chevron { position: absolute; right: 12px; pointer-events: none; color: var(--gray-900); }
+/* Touch screens: 16px text so iOS doesn't zoom on focus, and no field shorter than 40px. */
 @media (pointer: coarse) {
-  .hy-input input, .hy-select select { font-size: 16px; }
+  .hy-input input, .hy-select select, .hy-textarea textarea { font-size: 16px; }
+  .hy-input--small { height: 40px; }
 }
 
 /* ---------- Button ---------- */
@@ -126,6 +128,16 @@ body {
 .hy-btn--tertiary:disabled, .hy-btn--tertiary:disabled:hover, .hy-btn--tertiary[aria-disabled="true"] { background: transparent; box-shadow: none; }
 .hy-btn[aria-busy="true"] { cursor: wait; }
 
+/* Touch screens: every button is at least 40px tall (48px for large); tiny buttons keep their look but get a 40px hit area. */
+@media (pointer: coarse) {
+  .hy-btn, .hy-btn--small { height: 40px; }
+  .hy-btn--large { height: 48px; }
+  .hy-btn--icon, .hy-btn--icon.hy-btn--small { width: 40px; }
+  .hy-btn--icon.hy-btn--large { width: 48px; }
+  .hy-btn--tiny { height: 24px; }
+  .hy-btn--tiny::after { content: ''; position: absolute; inset: -8px; }
+}
+
 /* ---------- CopyButton ---------- */
 .hy-copy-btn__icons { position: relative; display: inline-grid; width: 16px; height: 16px; }
 .hy-copy-btn__icon {
@@ -161,10 +173,10 @@ body {
 .hy-split__toggle[aria-expanded="true"] .hy-glyph { transform: rotate(180deg); }
 
 .hy-menu__item.hy-split__item { align-items: flex-start; padding: 8px; }
-.hy-split__item .hy-menu__text.hy-menu__text { white-space: normal; overflow: visible; }
+.hy-split__item .hy-menu__text.hy-menu__text { white-space: normal; }
 .hy-split__item .hy-menu__affix.hy-menu__affix { margin-top: 2px; }
-.hy-split__item-body { display: flex; flex-direction: column; gap: 2px; }
-.hy-split__item-title { font-size: 14px; line-height: 20px; color: var(--gray-1000); }
+.hy-split__item-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hy-split__item-title { font-size: 14px; line-height: 20px; color: var(--gray-1000); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-split__item[aria-disabled="true"] .hy-split__item-title { color: var(--gray-700); }
 .hy-split__item-desc { font-size: 13px; line-height: 18px; color: var(--gray-900); }
 
@@ -180,11 +192,12 @@ body {
 .hy-address__pair--one { grid-template-columns: minmax(0, 1fr); }
 .hy-address__search { position: relative; }
 .hy-address__list {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 0; right: 0;
+  /* portalled; position, width and z-index come from useFloating */
   max-height: 300px; overflow-y: auto; margin: 0; padding: 4px; list-style: none; box-sizing: border-box;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top center; animation: hy-address-in .12s ease-out;
 }
+.hy-address__list--top { transform-origin: bottom center; }
 .hy-address__option { display: flex; align-items: flex-start; gap: 8px; padding: 8px; border-radius: var(--radius-md); cursor: pointer; }
 .hy-address__option.is-active { background: var(--gray-alpha-100); }
 .hy-address__pin { flex: none; margin-top: 2px; color: var(--gray-900); }
@@ -194,6 +207,14 @@ body {
 .hy-address__status { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px; font-size: 14px; color: var(--gray-900); }
 .hy-address__manual { margin: -8px 0 0 -8px; }
 .hy-address__failed { margin: 0; font-size: 13px; line-height: 18px; color: var(--amber-900); }
+
+/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+@media (pointer: coarse) {
+  .hy-address input, .hy-address select { font-size: 16px; }
+  .hy-address__option, .hy-address__status { min-height: 40px; }
+  .hy-address__option { align-items: center; }
+  .hy-address__pin { margin-top: 0; }
+}
 
 @keyframes hy-address-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-address-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -255,16 +276,18 @@ body {
 .hy-calendar__presets--stacked .hy-calendar__presets-select { width: 100%; }
 
 /* popover */
+/* portalled; position and z-index come from useFloating */
 .hy-calendar__popover {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 0;
   display: flex; flex-direction: column; gap: 12px; width: 280px; box-sizing: border-box; padding: 12px;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top left; animation: hy-calendar-in .12s ease-out;
 }
-.hy-calendar__popover--center { left: 50%; margin-left: -140px; transform-origin: top center; }
-.hy-calendar__popover--end { left: auto; right: 0; transform-origin: top right; }
+.hy-calendar__popover--center { transform-origin: top center; }
+.hy-calendar__popover--end { transform-origin: top right; }
+.hy-calendar__popover--top { transform-origin: bottom left; }
+.hy-calendar__popover--top.hy-calendar__popover--center { transform-origin: bottom center; }
+.hy-calendar__popover--top.hy-calendar__popover--end { transform-origin: bottom right; }
 .hy-calendar__popover--horizontal { flex-direction: row; width: auto; gap: 0; padding: 0; }
-.hy-calendar__popover--horizontal.hy-calendar__popover--center { left: 50%; margin-left: 0; translate: -50% 0; }
 .hy-calendar__popover--horizontal .hy-calendar__month { width: 256px; padding: 12px; }
 .hy-calendar__popover--horizontal .hy-calendar__side { width: 256px; padding: 12px; border-top: 0; border-left: 1px solid var(--gray-alpha-400); }
 .hy-calendar__head { display: flex; align-items: center; justify-content: space-between; height: 32px; margin-bottom: 4px; padding-left: 4px; }
@@ -325,14 +348,35 @@ body {
 .hy-calendar__zone select:hover { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .hy-calendar__zone select:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 
+/* Narrow screens: the side-by-side layout stacks the fields under the month again. */
+@media (max-width: 559px) {
+  .hy-calendar__popover--horizontal { flex-direction: column; width: 280px; }
+  .hy-calendar__popover--horizontal .hy-calendar__month,
+  .hy-calendar__popover--horizontal .hy-calendar__side { width: auto; }
+  .hy-calendar__popover--horizontal .hy-calendar__side { border-left: 0; border-top: 1px solid var(--gray-alpha-400); }
+}
+
 @keyframes hy-calendar-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-calendar-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-calendar__popover { animation-name: hy-calendar-fade; }
   .hy-calendar__trigger { transition-duration: 0s; }
 }
+/* Touch screens: 16px text so iOS doesn't zoom on focus, 40px day cells, buttons and fields (as large as fits). */
 @media (pointer: coarse) {
-  .hy-calendar__input, .hy-calendar__presets-select { font-size: 16px; }
+  .hy-calendar__input, .hy-calendar__presets-select, .hy-calendar__zone select { font-size: 16px; }
+  .hy-calendar__popover, .hy-calendar__popover--horizontal { width: min(304px, calc(100vw - 16px)); }
+  .hy-calendar__popover--horizontal .hy-calendar__month { width: auto; }
+  .hy-calendar__head { height: 40px; }
+  .hy-calendar__navbtn { width: 40px; height: 40px; }
+  .hy-calendar__day { width: 100%; max-width: 40px; height: 40px; }
+  .hy-calendar__input, .hy-calendar__zone { height: 40px; }
+  .hy-calendar__input--time { width: 104px; }
+  .hy-calendar__zone .hy-icon, .hy-calendar__zone .hy-glyph { top: 12px; }
+}
+@media (pointer: coarse) and (min-width: 560px) {
+  .hy-calendar__popover--horizontal { width: auto; }
+  .hy-calendar__popover--horizontal .hy-calendar__month { width: 304px; }
 }
 
 /* ---------- Checkbox ---------- */
@@ -354,13 +398,15 @@ body {
 .hy-check--disabled { color: var(--gray-700); cursor: not-allowed; }
 .hy-check--disabled .hy-check__input + .hy-check__box, .hy-check--disabled:hover .hy-check__input + .hy-check__box { background: var(--gray-100); box-shadow: inset 0 0 0 1px var(--gray-500); color: var(--gray-500); }
 .hy-check--disabled .hy-check__input:checked + .hy-check__box { background: var(--gray-600); box-shadow: inset 0 0 0 1px var(--gray-600); color: var(--background-100); }
+/* Touch: the whole label row is a 40px target. */
+@media (pointer: coarse) { .hy-check { min-height: 40px; } }
 
 /* ---------- Choicebox ---------- */
 .hy-choicebox { min-width: 0; margin: 0; padding: 0; border: 0; }
 .hy-choicebox__legend { padding: 0; margin: 0 0 8px; font-size: 13px; line-height: 16px; color: var(--gray-900); }
 .hy-choicebox__list { display: flex; flex-direction: column; gap: 8px; }
-.hy-choicebox__list--row { flex-direction: row; gap: 12px; }
-.hy-choicebox__list--row > .hy-choicebox__item { flex: 1 1 0; min-width: 0; }
+.hy-choicebox__list--row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px; }
+.hy-choicebox__list--row > .hy-choicebox__item { min-width: 0; }
 .hy-choicebox__item {
   position: relative; display: flex; flex-direction: column; overflow: hidden;
   border-radius: var(--radius-md); background: var(--background-100);
@@ -444,11 +490,12 @@ body {
 .hy-combobox__chevron .hy-glyph { transition: transform .15s ease; }
 .hy-combobox.is-open .hy-combobox__chevron .hy-glyph { transform: rotate(180deg); }
 .hy-combobox__list {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 0; right: 0;
+  /* portalled; position, width and z-index come from useFloating */
   box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top center; animation: hy-combobox-in .12s ease-out;
 }
+.hy-combobox__list--top { transform-origin: bottom center; }
 .hy-combobox__option {
   display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px;
   border-radius: var(--radius-md); font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer;
@@ -464,6 +511,13 @@ body {
 }
 @keyframes hy-combobox-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-combobox-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+@media (pointer: coarse) {
+  .hy-combobox__field input { font-size: 16px; }
+  .hy-combobox__option, .hy-combobox__empty { min-height: 40px; }
+  .hy-combobox__btn { width: 32px; height: 32px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .hy-combobox__list { animation-name: hy-combobox-fade; }
@@ -614,16 +668,18 @@ body {
   font-size: 12px; line-height: 16px; font-weight: 500; font-variant-numeric: tabular-nums;
 }
 .hy-multiselect__content {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 0;
-  display: flex; flex-direction: column; gap: 4px; min-width: 220px; max-height: 320px; overflow-y: auto;
+  position: fixed; z-index: var(--z-menu);
+  display: flex; flex-direction: column; gap: 4px; min-width: min(220px, calc(100vw - 16px)); max-height: min(320px, calc(100vh - 16px)); overflow-y: auto;
   box-sizing: border-box; padding: 8px; border-radius: var(--radius-xl);
   background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top left; animation: hy-multiselect-in .12s ease-out;
 }
-.hy-multiselect__content--end { left: auto; right: 0; transform-origin: top right; }
+.hy-multiselect__content--end { transform-origin: top right; }
+.hy-multiselect__content--top { transform-origin: bottom left; }
+.hy-multiselect__content--top.hy-multiselect__content--end { transform-origin: bottom right; }
 .hy-multiselect__row { display: flex; align-items: center; gap: 4px; min-height: 28px; }
 .hy-multiselect__checkcell { display: grid; place-items: center; flex: none; width: 28px; height: 28px; }
-.hy-multiselect__checkcell .hy-check { min-height: 0; }
+.hy-multiselect__checkcell .hy-check { min-height: 0; width: 100%; height: 100%; justify-content: center; }
 .hy-multiselect__checkcell .hy-check__input:focus-visible + .hy-check__box { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-multiselect__name {
   display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; height: 28px;
@@ -638,6 +694,14 @@ body {
 .hy-multiselect__row:hover .hy-multiselect__action,
 .hy-multiselect__row:focus-within .hy-multiselect__action { opacity: 1; }
 .hy-multiselect__row.is-disabled .hy-multiselect__action { opacity: 0; }
+
+/* Touch screens: 40px rows and a 40px tap area for each checkbox */
+@media (pointer: coarse) {
+  .hy-multiselect__row { min-height: 40px; }
+  .hy-multiselect__checkcell { width: 40px; height: 40px; }
+  .hy-multiselect__name { height: 40px; }
+  .hy-multiselect__action { opacity: 1; }
+}
 
 @keyframes hy-multiselect-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-multiselect-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -668,10 +732,17 @@ body {
 .hy-radio--disabled { color: var(--gray-700); cursor: not-allowed; }
 .hy-radio--disabled .hy-radio__input + .hy-radio__circle, .hy-radio--disabled:hover .hy-radio__input + .hy-radio__circle { background: var(--gray-100); box-shadow: inset 0 0 0 1px var(--gray-500); }
 .hy-radio--disabled .hy-radio__circle::after { background: var(--gray-500); }
+/* Touch: the whole label row is a 40px target. */
+@media (pointer: coarse) { .hy-radio { min-height: 40px; } .hy-radio-group { gap: 0; } .hy-radio-group--horizontal { gap: 0 24px; } }
 
 /* ---------- SearchInput ---------- */
 .hy-search input::-webkit-search-cancel-button,
 .hy-search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
+/* Touch screens: 16px text so iOS doesn't zoom on focus, and a 40px tall field. */
+@media (pointer: coarse) {
+  .hy-search input { font-size: 16px; }
+  .hy-search .hy-input--medium { height: 40px; }
+}
 
 /* ---------- Select ---------- */
 /* Base frame and chevron live in core.css. This aligns sizes, prefix/suffix, placeholder, error and disabled with Geist. */
@@ -694,6 +765,11 @@ body {
 .hy-select--disabled .hy-select__chevron, .hy-select--disabled .hy-select__prefix, .hy-select--disabled .hy-select__suffix { color: var(--gray-700); }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }
+/* Touch screens: no select shorter than 40px (core.css already sets 16px text so iOS doesn't zoom). */
+@media (pointer: coarse) {
+  .hy-select--small, .hy-select--medium { height: 40px; }
+  .hy-select select { font-size: 16px; }
+}
 
 /* ---------- Slider ---------- */
 .hy-slider { display: inline-flex; flex-direction: column; gap: 8px; max-width: 100%; }
@@ -908,6 +984,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hy-toggle__track, .hy-toggle__thumb { transition-duration: 0s; }
 }
+/* Touch: the whole label row is a 40px target. */
+@media (pointer: coarse) { .hy-toggle { min-height: 40px; } }
 
 /* ---------- Breadcrumbs ---------- */
 .hy-breadcrumbs__list { display: flex; flex-wrap: wrap; align-items: center; margin: 0; padding: 0; list-style: none; }
@@ -967,8 +1045,9 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 }
 
 /* ---------- Tabs ---------- */
-.hy-tabs__list { display: flex; gap: 24px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); overflow-x: auto; scrollbar-width: none; }
-.hy-tabs__list--tips { overflow: visible; flex-wrap: wrap; }
+.hy-tabs { min-width: 0; max-width: 100%; }
+.hy-tabs__list { display: flex; gap: 24px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; }
+.hy-tabs__list::-webkit-scrollbar { display: none; }
 .hy-tabs__tip { display: inline-flex; flex: none; }
 .hy-tabs__tab {
   position: relative; display: inline-flex; align-items: center; gap: 6px; flex: none;
@@ -1061,6 +1140,7 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-pill--small { height: 20px; padding: 0 8px; font-size: 11px; line-height: 20px; letter-spacing: .2px; }
 /* The small pill draws 20px; its hit area grows to 24px. */
 .hy-pill--small::after { content: ''; position: absolute; inset: -2px 0; }
+@media (pointer: coarse) { .hy-pill--small::after { inset: -10px 0; } }
 .hy-pill--small .hy-pill__icon { margin-left: -2px; }
 .hy-pill--small .hy-pill__icon svg { width: 12px; height: 12px; }
 .hy-pill--large { height: 32px; padding: 0 12px; gap: 6px; font-size: 14px; line-height: 20px; }
@@ -1221,6 +1301,7 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
   border: 0; border-radius: var(--radius-full); background: transparent; cursor: default;
 }
 .hy-progress__trigger::after { content: ''; position: absolute; inset: -5px; }
+@media (pointer: coarse) { .hy-progress__trigger::after { inset: -13px; } }
 .hy-progress__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
 /* ---------- ProjectBanner ---------- */
@@ -1291,6 +1372,10 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
   position: fixed; right: 24px; bottom: max(24px, env(safe-area-inset-bottom)); z-index: var(--z-toast);
   width: 420px; max-width: calc(100vw - 32px);
 }
+/* Phones: span the screen with 16px margins. */
+@media (max-width: 600px) {
+  .hy-toaster { left: 16px; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); width: auto; max-width: none; }
+}
 .hy-toaster--inline { position: static; width: auto; max-width: 420px; }
 .hy-toaster__list { position: relative; margin: 0; padding: 0; list-style: none; transition: height .35s cubic-bezier(.25,.75,.6,.98); }
 .hy-toaster--inline .hy-toaster__list { display: flex; flex-direction: column; gap: 8px; }
@@ -1307,11 +1392,11 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-toast > * { transition: opacity .2s cubic-bezier(.4,0,.2,1); }
 .hy-toast.is-behind > * { opacity: 0; }
 .hy-toast__inner { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
-.hy-toast__main { display: flex; align-items: center; gap: 12px; min-height: 24px; }
-.hy-toast__text { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.hy-toast__main { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 24px; }
+.hy-toast__text { flex: 1 1 10em; min-width: 0; overflow-wrap: anywhere; }
 .hy-toast__text a { color: inherit; font-weight: 500; text-decoration: underline; text-underline-offset: 2px; }
 .hy-toast__actions { display: flex; justify-content: flex-end; gap: 2px; }
-.hy-toast__main .hy-btn { margin: -4px 0; }
+.hy-toast__main .hy-btn { margin: -4px 0 -4px auto; }
 .hy-toast__close {
   flex: none; width: 24px; height: 24px; margin: -2px -4px -2px 0; display: grid; place-items: center;
   border: 0; border-radius: var(--radius-md); background: transparent; color: inherit; opacity: .7; cursor: pointer;
@@ -1430,12 +1515,13 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-description--right .hy-description__title { justify-content: flex-end; }
 .hy-description--ellipsis .hy-description__content { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-description__tip {
-  position: relative; display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; margin: 0;
+  /* 24px hit target; the negative margin keeps the 16px visual footprint in the title row */
+  position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin: -4px;
   border: 0; border-radius: var(--radius-full); background: none; color: var(--gray-900); cursor: help;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.hy-description__tip::before { content: ''; position: absolute; inset: -4px; }
 .hy-description__tip:hover { color: var(--gray-1000); }
-.hy-description__tip:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-description__tip:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }
 
 /* ---------- Entity ---------- */
 .hy-entity {
@@ -1624,10 +1710,11 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-filter-suggestion:hover { background: var(--gray-alpha-100); border-color: var(--gray-alpha-600); }
 
 .hy-filter-params__popover {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); box-sizing: border-box; width: 280px; max-width: 100%; overflow: hidden;
+  position: fixed; z-index: var(--z-menu); box-sizing: border-box; width: 280px; max-width: calc(100vw - 16px); overflow: hidden;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top left; animation: hy-pop .12s cubic-bezier(.4,0,.2,1);
 }
+.hy-filter-params__popover--top { transform-origin: bottom left; }
 .hy-filter-params__search { display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-filter-params__search-icon { color: var(--gray-900); }
 .hy-filter-params__search input {
@@ -1642,7 +1729,7 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 }
 .hy-filter-params__chip:hover { background: var(--gray-alpha-300); }
 .hy-filter-params__chip:focus-visible { box-shadow: var(--shadow-focus-ring); }
-.hy-filter-params__list { max-height: 280px; margin: 0; padding: 8px; overflow-y: auto; list-style: none; }
+.hy-filter-params__list { max-height: min(280px, calc(100vh - 76px)); margin: 0; padding: 8px; overflow-y: auto; list-style: none; }
 .hy-filter-params__option {
   display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px; border-radius: var(--radius-md);
   font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer; user-select: none;
@@ -1658,6 +1745,14 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
   font: inherit; font-size: 13px; color: var(--gray-1000); cursor: pointer;
 }
 .hy-filter-params__stop:focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
+
+/* Touch screens: 40px pills, suggestions and options */
+@media (pointer: coarse) {
+  .hy-filter-pill, .hy-filter-suggestion { height: 40px; }
+  .hy-filter-pill__remove { width: 32px; height: 32px; }
+  .hy-filter-params__chip { height: 32px; }
+  .hy-filter-params__option { min-height: 40px; }
+}
 
 /* ---------- Gauge ---------- */
 .hy-gauge { position: relative; display: inline-flex; flex: none; }
@@ -1711,6 +1806,11 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
   color: var(--gray-1000); overflow: hidden; animation: hy-rise .2s cubic-bezier(.4,0,.2,1);
 }
 .hy-cmd:focus { outline: none; }
+/* Phones: full width with 8px margins; the list scrolls inside the menu. */
+@media (max-width: 600px) {
+  .hy-cmd-overlay.hy-overlay--top { padding: max(8px, env(safe-area-inset-top)) 8px 8px; }
+  .hy-cmd { width: 100%; max-height: 100%; }
+}
 .hy-cmd__search { flex: none; display: flex; align-items: center; gap: 12px; padding: 12px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-cmd__input {
   flex: 1; min-width: 0; height: 28px; padding: 0 4px; border: 0; outline: none; background: transparent;
@@ -1723,6 +1823,10 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
   font: inherit; font-size: 12px; line-height: 20px; color: var(--gray-900); cursor: pointer;
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
+/* 20px drawn, 24px hit area (40px on touch) */
+.hy-cmd__esc { position: relative; }
+.hy-cmd__esc::after { content: ''; position: absolute; inset: -2px 0; }
+@media (pointer: coarse) { .hy-cmd__esc::after { inset: -10px -4px; } }
 .hy-cmd__esc:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-cmd__list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px; scroll-padding: 8px; }
@@ -1744,33 +1848,26 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 /* ---------- ContextCard ---------- */
 .hy-ctx { position: relative; display: inline-flex; vertical-align: middle; }
 .hy-ctx__trigger { display: inline-flex; }
-a.hy-ctx__trigger { display: inline; }
+/* links: a 24px tall hit area without changing the line */
+a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px; }
 .hy-ctx__card {
-  --ctx-gap: 8px; --ctx-shift: 4px;
-  position: absolute; z-index: var(--z-tooltip);
-  width: max-content; max-width: min(360px, calc(100vw - 32px)); box-sizing: border-box; padding: 12px;
+  --ctx-gap: 8px; --ctx-from: none;
+  width: max-content; box-sizing: border-box; padding: 12px;
   border-radius: var(--radius-md); background: var(--background-100); box-shadow: var(--shadow-tooltip);
   color: var(--gray-1000); font-family: var(--font-sans); font-size: 14px; line-height: 20px; font-weight: 400; text-align: left;
-  visibility: hidden; opacity: 0;
-  transition: opacity .15s cubic-bezier(.4,0,.2,1), transform .15s cubic-bezier(.4,0,.2,1), visibility 0s linear .15s;
+  animation: hy-ctx-in .15s cubic-bezier(.4,0,.2,1);
 }
-.hy-ctx__card.is-open { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
+@keyframes hy-ctx-in { from { opacity: 0; transform: var(--ctx-from); } }
 /* an invisible bridge over the gap keeps the card open while the pointer crosses it */
 .hy-ctx__card::before { content: ''; position: absolute; inset: calc(-1 * var(--ctx-gap) - 1px); z-index: -1; }
 .hy-ctx__body { position: relative; }
 
-.hy-ctx__card--top { bottom: calc(100% + var(--ctx-gap)); transform: translateY(var(--ctx-shift)); transform-origin: bottom center; }
-.hy-ctx__card--bottom { top: calc(100% + var(--ctx-gap)); transform: translateY(calc(-1 * var(--ctx-shift))); transform-origin: top center; }
-.hy-ctx__card--left { right: calc(100% + var(--ctx-gap)); transform: translateX(var(--ctx-shift)); transform-origin: center right; }
-.hy-ctx__card--right { left: calc(100% + var(--ctx-gap)); transform: translateX(calc(-1 * var(--ctx-shift))); transform-origin: center left; }
-.hy-ctx__card--top.hy-ctx__card--center, .hy-ctx__card--bottom.hy-ctx__card--center { left: 50%; translate: -50% 0; }
-.hy-ctx__card--top.hy-ctx__card--start, .hy-ctx__card--bottom.hy-ctx__card--start { left: 0; }
-.hy-ctx__card--top.hy-ctx__card--end, .hy-ctx__card--bottom.hy-ctx__card--end { right: 0; }
-.hy-ctx__card--left.hy-ctx__card--center, .hy-ctx__card--right.hy-ctx__card--center { top: 50%; translate: 0 -50%; }
-.hy-ctx__card--left.hy-ctx__card--start, .hy-ctx__card--right.hy-ctx__card--start { top: 0; }
-.hy-ctx__card--left.hy-ctx__card--end, .hy-ctx__card--right.hy-ctx__card--end { bottom: 0; }
+.hy-ctx__card--top { --ctx-from: translateY(4px); transform-origin: bottom center; }
+.hy-ctx__card--bottom { --ctx-from: translateY(-4px); transform-origin: top center; }
+.hy-ctx__card--left { --ctx-from: translateX(4px); transform-origin: center right; }
+.hy-ctx__card--right { --ctx-from: translateX(-4px); transform-origin: center left; }
 
-/* tip: background fill plus the border stroke on its two slanted edges */
+/* tip: background fill plus the border stroke on its two slanted edges; its offset along the edge is set inline */
 .hy-ctx__tip { position: absolute; display: block; overflow: visible; }
 .hy-ctx__tip-fill { fill: var(--background-100); }
 .hy-ctx__tip-stroke { stroke: var(--gray-alpha-400); stroke-width: 1px; }
@@ -1778,20 +1875,19 @@ a.hy-ctx__trigger { display: inline; }
 .hy-ctx__card--bottom .hy-ctx__tip { bottom: calc(100% - 1px); transform: rotate(180deg); }
 .hy-ctx__card--left .hy-ctx__tip { left: calc(100% - 4.5px); transform: rotate(-90deg); }
 .hy-ctx__card--right .hy-ctx__tip { right: calc(100% - 4.5px); transform: rotate(90deg); }
-.hy-ctx__card--top .hy-ctx__tip, .hy-ctx__card--bottom .hy-ctx__tip { left: calc(50% - 7px); }
-.hy-ctx__card--start.hy-ctx__card--top .hy-ctx__tip, .hy-ctx__card--start.hy-ctx__card--bottom .hy-ctx__tip { left: 12px; }
-.hy-ctx__card--end.hy-ctx__card--top .hy-ctx__tip, .hy-ctx__card--end.hy-ctx__card--bottom .hy-ctx__tip { left: auto; right: 12px; }
-.hy-ctx__card--left .hy-ctx__tip, .hy-ctx__card--right .hy-ctx__tip { top: calc(50% - 3.5px); }
-.hy-ctx__card--start.hy-ctx__card--left .hy-ctx__tip, .hy-ctx__card--start.hy-ctx__card--right .hy-ctx__tip { top: 12px; }
-.hy-ctx__card--end.hy-ctx__card--left .hy-ctx__tip, .hy-ctx__card--end.hy-ctx__card--right .hy-ctx__tip { top: auto; bottom: 12px; }
 
 @media (prefers-reduced-motion: reduce) {
-  .hy-ctx__card { --ctx-shift: 0px; }
+  .hy-ctx__card { --ctx-from: none !important; }
 }
 
 /* ---------- ContextMenu ---------- */
 .hy-menu.hy-context-menu { display: block; }
-.hy-context-menu__trigger { -webkit-touch-callout: none; border-radius: var(--radius-lg); }
+.hy-context-menu__trigger {
+  -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; border-radius: var(--radius-lg);
+}
+@media (pointer: coarse) {
+  .hy-context-menu__list .hy-menu__item { min-height: 40px; }
+}
 .hy-context-menu__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
 /* ---------- DestructiveActionModal ---------- */
@@ -1850,22 +1946,15 @@ a.hy-ctx__trigger { display: inline; }
 .hy-menu__unstyled:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
 .hy-menu__list {
-  position: absolute; z-index: var(--z-menu); box-sizing: border-box;
-  min-width: 150px; max-width: 320px; margin: 0; padding: 6px; list-style: none;
+  position: fixed; z-index: var(--z-menu); box-sizing: border-box;
+  min-width: min(150px, calc(100vw - 16px)); max-width: min(320px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px); overflow-y: auto; margin: 0; padding: 6px; list-style: none;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   font-size: 14px; line-height: 20px; text-align: left;
   animation: hy-pop .15s cubic-bezier(.4,0,.2,1);
   overscroll-behavior: contain; outline: none;
 }
-/* placement: side, then alignment along it */
-.hy-menu__list--bottom { top: calc(100% + 8px); }
-.hy-menu__list--top { bottom: calc(100% + 8px); }
-.hy-menu__list--left { right: calc(100% + 8px); }
-.hy-menu__list--right { left: calc(100% + 8px); }
-.hy-menu__list--bottom.hy-menu__list--start, .hy-menu__list--top.hy-menu__list--start { left: 0; }
-.hy-menu__list--bottom.hy-menu__list--end, .hy-menu__list--top.hy-menu__list--end { right: 0; }
-.hy-menu__list--left.hy-menu__list--start, .hy-menu__list--right.hy-menu__list--start { top: 0; }
-.hy-menu__list--left.hy-menu__list--end, .hy-menu__list--right.hy-menu__list--end { bottom: 0; }
+/* placed by useFloating (position: fixed, portalled); the classes only set where the pop animation grows from */
 .hy-menu__list--bottom.hy-menu__list--start { transform-origin: top left; }
 .hy-menu__list--bottom.hy-menu__list--end { transform-origin: top right; }
 .hy-menu__list--top.hy-menu__list--start { transform-origin: bottom left; }
@@ -1895,6 +1984,11 @@ a.hy-ctx__trigger { display: inline; }
 .hy-menu__section { display: block; }
 .hy-menu__section-title { display: block; padding: 8px 8px 4px; font-size: 12px; line-height: 16px; color: var(--gray-900); }
 .hy-menu__group { margin: 0; padding: 0; list-style: none; }
+/* Touch screens: 40px rows and triggers */
+@media (pointer: coarse) {
+  .hy-menu__item { min-height: 40px; }
+  .hy-menu__unstyled { min-width: 40px; min-height: 40px; }
+}
 @keyframes hy-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 
 /* ---------- Overlay, Modal ---------- */
@@ -1957,7 +2051,7 @@ a.hy-ctx__trigger { display: inline; }
 }
 
 /* ---------- RelativeTimeCard ---------- */
-.hy-rtc { display: flex; flex-direction: column; gap: 12px; min-width: 300px; }
+.hy-rtc { display: flex; flex-direction: column; gap: 12px; min-width: min(300px, calc(100vw - 40px)); }
 .hy-rtc__ago { font-size: 13px; line-height: 20px; color: var(--gray-900); font-variant-numeric: tabular-nums; }
 .hy-rtc__rows { display: flex; flex-direction: column; gap: 8px; }
 .hy-rtc__row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -1967,7 +2061,8 @@ a.hy-ctx__trigger { display: inline; }
   background: var(--gray-200); font-family: var(--font-mono); font-size: 12px; line-height: 16px; color: var(--gray-900);
 }
 .hy-rtc__time { font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--gray-900); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.hy-rtc__trigger { font-variant-numeric: tabular-nums; color: inherit; border-radius: var(--radius-sm); cursor: default; }
+/* 24px tall hit area */
+.hy-rtc__trigger { display: inline-flex; align-items: center; min-height: 24px; font-variant-numeric: tabular-nums; color: inherit; border-radius: var(--radius-sm); cursor: default; }
 .hy-rtc__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
 /* ---------- Sheet ---------- */
@@ -2020,16 +2115,14 @@ a.hy-ctx__trigger { display: inline; }
 .hy-tooltip__text { border-radius: var(--radius-sm); }
 .hy-tooltip__text:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-tooltip__box {
-  --tip-bg: var(--gray-1000); --tip-fg: var(--background-100); --tip-gap: 8px; --tip-shift: 4px;
-  position: absolute; z-index: var(--z-tooltip);
-  width: max-content; max-width: 250px; box-sizing: border-box; padding: 6px 8px;
+  --tip-bg: var(--gray-1000); --tip-fg: var(--background-100); --tip-shift: 4px;
+  width: max-content; max-width: min(250px, calc(100vw - 16px)); box-sizing: border-box; padding: 6px 8px;
   border-radius: var(--radius-lg); background: var(--tip-bg); color: var(--tip-fg);
   font-family: var(--font-sans); font-size: 13px; line-height: 17px; font-weight: 400; text-align: center; text-wrap: balance;
-  pointer-events: none; visibility: hidden; opacity: 0;
-  transition: opacity .15s cubic-bezier(.4,0,.2,1), transform .15s cubic-bezier(.4,0,.2,1), visibility 0s linear .15s;
+  overflow-wrap: anywhere; pointer-events: none;
+  animation: hy-tooltip-in .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-tooltip__box--start { text-align: left; }
-.hy-tooltip__box.is-open { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
 .hy-tooltip__box b, .hy-tooltip__box strong { font-weight: 600; }
 .hy-tooltip__box .hy-kbd { margin: 0 0 0 6px; height: 18px; min-width: 18px; font-size: 12px; }
 
@@ -2039,32 +2132,19 @@ a.hy-ctx__trigger { display: inline; }
 .hy-tooltip__box--warning { --tip-bg: var(--amber-700); --tip-fg: var(--black); }
 .hy-tooltip__box--violet { --tip-bg: var(--purple-700); --tip-fg: var(--white); }
 
-/* sides */
-.hy-tooltip__box--top { bottom: calc(100% + var(--tip-gap)); transform: translateY(var(--tip-shift)); transform-origin: bottom center; }
-.hy-tooltip__box--bottom { top: calc(100% + var(--tip-gap)); transform: translateY(calc(-1 * var(--tip-shift))); transform-origin: top center; }
-.hy-tooltip__box--left { right: calc(100% + var(--tip-gap)); transform: translateX(var(--tip-shift)); transform-origin: center right; }
-.hy-tooltip__box--right { left: calc(100% + var(--tip-gap)); transform: translateX(calc(-1 * var(--tip-shift))); transform-origin: center left; }
+/* enter: slide in a few px from the trigger's side */
+.hy-tooltip__box--top { --tip-from: translateY(var(--tip-shift)); }
+.hy-tooltip__box--bottom { --tip-from: translateY(calc(-1 * var(--tip-shift))); }
+.hy-tooltip__box--left { --tip-from: translateX(var(--tip-shift)); }
+.hy-tooltip__box--right { --tip-from: translateX(calc(-1 * var(--tip-shift))); }
+@keyframes hy-tooltip-in { from { opacity: 0; transform: var(--tip-from, none); } }
 
-/* alignment along the side (left/right on top/bottom; top/bottom on left/right) */
-.hy-tooltip__box--top.hy-tooltip__box--align-center, .hy-tooltip__box--bottom.hy-tooltip__box--align-center { left: 50%; translate: -50% 0; }
-.hy-tooltip__box--top.hy-tooltip__box--align-left, .hy-tooltip__box--bottom.hy-tooltip__box--align-left { left: 0; }
-.hy-tooltip__box--top.hy-tooltip__box--align-right, .hy-tooltip__box--bottom.hy-tooltip__box--align-right { right: 0; }
-.hy-tooltip__box--left.hy-tooltip__box--align-center, .hy-tooltip__box--right.hy-tooltip__box--align-center { top: 50%; translate: 0 -50%; }
-.hy-tooltip__box--left.hy-tooltip__box--align-left, .hy-tooltip__box--right.hy-tooltip__box--align-left { top: 0; }
-.hy-tooltip__box--left.hy-tooltip__box--align-right, .hy-tooltip__box--right.hy-tooltip__box--align-right { bottom: 0; }
-
-/* the tip points at the trigger */
+/* the tip points at the trigger; its offset along the edge comes from useFloating's arrowX/arrowY */
 .hy-tooltip__tip { position: absolute; display: block; fill: var(--tip-bg); }
-.hy-tooltip__box--top .hy-tooltip__tip { top: 100%; }
-.hy-tooltip__box--bottom .hy-tooltip__tip { bottom: 100%; transform: rotate(180deg); }
-.hy-tooltip__box--left .hy-tooltip__tip { left: calc(100% - 3.5px); transform: rotate(-90deg); }
-.hy-tooltip__box--right .hy-tooltip__tip { right: calc(100% - 3.5px); transform: rotate(90deg); }
-.hy-tooltip__box--top .hy-tooltip__tip, .hy-tooltip__box--bottom .hy-tooltip__tip { left: calc(50% - 7px); }
-.hy-tooltip__box--align-left.hy-tooltip__box--top .hy-tooltip__tip, .hy-tooltip__box--align-left.hy-tooltip__box--bottom .hy-tooltip__tip { left: 12px; }
-.hy-tooltip__box--align-right.hy-tooltip__box--top .hy-tooltip__tip, .hy-tooltip__box--align-right.hy-tooltip__box--bottom .hy-tooltip__tip { left: auto; right: 12px; }
-.hy-tooltip__box--left .hy-tooltip__tip, .hy-tooltip__box--right .hy-tooltip__tip { top: calc(50% - 3.5px); }
-.hy-tooltip__box--align-left.hy-tooltip__box--left .hy-tooltip__tip, .hy-tooltip__box--align-left.hy-tooltip__box--right .hy-tooltip__tip { top: 8px; }
-.hy-tooltip__box--align-right.hy-tooltip__box--left .hy-tooltip__tip, .hy-tooltip__box--align-right.hy-tooltip__box--right .hy-tooltip__tip { top: auto; bottom: 8px; }
+.hy-tooltip__box--top .hy-tooltip__tip { top: 100%; left: calc(50% - 7px); }
+.hy-tooltip__box--bottom .hy-tooltip__tip { bottom: 100%; left: calc(50% - 7px); transform: rotate(180deg); }
+.hy-tooltip__box--left .hy-tooltip__tip { left: calc(100% - 3.5px); top: calc(50% - 3.5px); transform: rotate(-90deg); }
+.hy-tooltip__box--right .hy-tooltip__tip { right: calc(100% - 3.5px); top: calc(50% - 3.5px); transform: rotate(90deg); }
 
 @media (prefers-reduced-motion: reduce) {
   .hy-tooltip__box { --tip-shift: 0px; }
@@ -2295,7 +2375,7 @@ a.hy-ctx__trigger { display: inline; }
   --hy-book-w: var(--hy-book-w-sm);
   --hy-book-d: calc(var(--hy-book-w) * 0.14);
   display: inline-block; flex: none; vertical-align: bottom;
-  width: var(--hy-book-w);
+  width: var(--hy-book-w); max-width: 100%;
   perspective: 900px;
 }
 @media (min-width: 600px) { .hy-book { --hy-book-w: var(--hy-book-w-md); } }
@@ -2313,7 +2393,7 @@ a.hy-ctx__trigger { display: inline; }
 
 .hy-book__cover {
   position: relative; display: flex; flex-direction: column; overflow: hidden;
-  width: var(--hy-book-w); aspect-ratio: 49 / 60;
+  width: var(--hy-book-w); max-width: 100%; aspect-ratio: 49 / 60;
   border-radius: var(--radius-md) var(--radius-sm) var(--radius-sm) var(--radius-md);
   background: var(--gray-100);
   box-shadow: var(--shadow-medium);
@@ -2559,9 +2639,10 @@ video.hy-video__media { cursor: pointer; }
 
 .hy-video__seek {
   --p: 0%;
-  flex: 1 1 auto; min-width: 0; height: 16px; margin: 0; padding: 0;
+  flex: 1 1 auto; min-width: 0; height: 24px; margin: 0; padding: 0;
   -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer;
 }
+@media (pointer: coarse) { .hy-video__seek { height: 40px; } }
 .hy-video__seek:disabled { cursor: default; }
 .hy-video__seek::-webkit-slider-runnable-track {
   height: 4px; border-radius: var(--radius-full);

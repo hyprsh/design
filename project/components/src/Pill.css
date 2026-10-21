@@ -17,6 +17,7 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-pill--small { height: 20px; padding: 0 8px; font-size: 11px; line-height: 20px; letter-spacing: .2px; }
 /* The small pill draws 20px; its hit area grows to 24px. */
 .hy-pill--small::after { content: ''; position: absolute; inset: -2px 0; }
+@media (pointer: coarse) { .hy-pill--small::after { inset: -10px 0; } }
 .hy-pill--small .hy-pill__icon { margin-left: -2px; }
 .hy-pill--small .hy-pill__icon svg { width: 12px; height: 12px; }
 .hy-pill--large { height: 32px; padding: 0 12px; gap: 6px; font-size: 14px; line-height: 20px; }

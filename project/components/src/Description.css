@@ -6,9 +6,10 @@
 .hy-description--right .hy-description__title { justify-content: flex-end; }
 .hy-description--ellipsis .hy-description__content { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-description__tip {
-  position: relative; display: inline-grid; place-items: center; width: 16px; height: 16px; padding: 0; margin: 0;
+  /* 24px hit target; the negative margin keeps the 16px visual footprint in the title row */
+  position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin: -4px;
   border: 0; border-radius: var(--radius-full); background: none; color: var(--gray-900); cursor: help;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
 }
-.hy-description__tip::before { content: ''; position: absolute; inset: -4px; }
 .hy-description__tip:hover { color: var(--gray-1000); }
-.hy-description__tip:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-description__tip:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }

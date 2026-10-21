@@ -12,7 +12,6 @@ function parsePosition(pos) {
   var side = MENU_SIDES.indexOf(parts[0]) >= 0 ? parts[0] : 'bottom';
   return { side: side, align: parts[1] === 'end' ? 'end' : 'start' };
 }
-var FLIP = { bottom: 'top', top: 'bottom', left: 'right', right: 'left' };
 
 function menuItems(list) {
   if (!list) return [];
@@ -25,12 +24,10 @@ function MenuContainer(props) {
   var st = useState(!!props.defaultOpen);
   var controlled = props.open !== undefined;
   var open = controlled ? !!props.open : st[0];
-  var triggerRef = useRef(null), listRef = useRef(null);
+  var rootRef = useRef(null), triggerRef = useRef(null), listRef = useRef(null);
   var focusOnOpen = useRef(null);
   var base = useId();
   var pos = parsePosition(props.position);
-  var placed = useState(pos.side);
-  var side = placed[0];
 
   function setOpen(next) {
     if (!controlled) st[1](next);
@@ -42,47 +39,16 @@ function MenuContainer(props) {
     if (refocus && triggerRef.current && triggerRef.current.focus) triggerRef.current.focus();
   }
 
+  /* The list is portalled to <body>, so it is passed to useDismiss alongside the trigger. */
   useDismiss(open, [triggerRef, listRef], function (why) { close(why === 'escape'); });
 
-  /* After opening: flip to the other side if this one overflows the window, then move focus in. */
-  useLayoutEffect(function () {
-    if (!open) { placed[1](pos.side); return; }
-    var list = listRef.current;
-    if (list && !props.anchorPoint) {
-      var r = list.getBoundingClientRect(), t = triggerRef.current ? triggerRef.current.getBoundingClientRect() : null;
-      var next = pos.side;
-      if (t) {
-        if (pos.side === 'bottom' && r.bottom > window.innerHeight && t.top - r.height - 8 > 0) next = 'top';
-        else if (pos.side === 'top' && r.top < 0 && t.bottom + r.height + 8 < window.innerHeight) next = 'bottom';
-        else if (pos.side === 'right' && r.right > window.innerWidth && t.left - r.width - 8 > 0) next = 'left';
-        else if (pos.side === 'left' && r.left < 0 && t.right + r.width + 8 < window.innerWidth) next = 'right';
-      }
-      if (next !== side) placed[1](next);
-    }
-    var which = focusOnOpen.current;
-    focusOnOpen.current = null;
-    if (list && props.anchorPoint) {
-      /* Context menus open at the pointer; shift back inside the window if they would overflow. */
-      var b = list.getBoundingClientRect();
-      /* Open towards the other side of the point, or pin to the window edge if neither side fits. */
-      var ax = props.anchorPoint.x, ay = props.anchorPoint.y;
-      if (b.right > window.innerWidth) list.style.left = (ax - b.width >= 0 ? ax - b.width : Math.max(0, window.innerWidth - b.width)) + 'px';
-      if (b.bottom > window.innerHeight) list.style.top = (ay - b.height >= 0 ? ay - b.height : Math.max(0, window.innerHeight - b.height)) + 'px';
-    }
-    if (which && list) {
-      var items = menuItems(list);
-      var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
-      (el || list).focus({ preventScroll: true });
-    }
-  }, [open, props.anchorPoint]);
-
   var ctx = {
-    open: open, openMenu: openMenu, close: close, triggerRef: triggerRef, listRef: listRef,
+    open: open, openMenu: openMenu, close: close, rootRef: rootRef, triggerRef: triggerRef, listRef: listRef, focusOnOpen: focusOnOpen,
     menuId: base + '-menu', buttonId: base + '-button',
-    side: side, align: pos.align, anchorPoint: props.anchorPoint
+    side: pos.side, align: pos.align, anchorPoint: props.anchorPoint
   };
   return h(MenuCtx.Provider, { value: ctx },
-    h(props.as || 'div', { className: cx('hy-menu', props.className), style: props.style }, props.children));
+    h(props.as || 'div', { ref: rootRef, className: cx('hy-menu', props.className), style: props.style }, props.children));
 }
 MenuContainer.Context = MenuCtx;
 
@@ -127,8 +93,39 @@ function Menu(props) {
 
 function MenuList(props) {
   var ctx = props.ctx;
-  var typed = useRef({ text: '', at: 0 });
   if (!ctx.open) return null;
+  var a = ctx.anchorPoint;
+  /* Keyed by the point so a second right-click re-places the menu. */
+  return h(MenuPopup, Object.assign({}, props, { key: a ? a.x + ',' + a.y : 'menu' }));
+}
+
+/* The open list: portalled, placed by useFloating (flips, stays 8px inside the screen). */
+function MenuPopup(props) {
+  var ctx = props.ctx;
+  var typed = useRef({ text: '', at: 0 });
+  var anchor = ctx.anchorPoint;
+  /* Beside the whole container (SplitButton aligns to its main button), or at a point for context menus.
+     A getter, because the container's ref is attached after this child's first layout effect. */
+  var anchorRef = useMemo(function () {
+    var point = anchor && {
+      getBoundingClientRect: function () { return { left: anchor.x, right: anchor.x, top: anchor.y, bottom: anchor.y, width: 0, height: 0 }; }
+    };
+    return { get current() { return point || ctx.rootRef.current || ctx.triggerRef.current; } };
+  }, []);
+  var pos = useFloating(true, anchorRef, ctx.listRef, { side: anchor ? 'bottom' : ctx.side, align: anchor ? 'start' : ctx.align, offset: anchor ? 0 : 8 });
+  var placed = !!pos;
+
+  /* Move focus in once the list is placed and visible. */
+  useLayoutEffect(function () {
+    if (!placed) return;
+    var which = ctx.focusOnOpen.current, list = ctx.listRef.current;
+    ctx.focusOnOpen.current = null;
+    if (!which || !list) return;
+    var items = menuItems(list);
+    var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
+    (el || list).focus({ preventScroll: true });
+  }, [placed]);
+
   function onKeyDown(e) {
     var items = menuItems(ctx.listRef.current);
     if (!items.length) return;
@@ -150,15 +147,15 @@ function MenuList(props) {
     }
     if (next) { e.preventDefault(); next.focus(); }
   }
-  var anchor = ctx.anchorPoint;
-  var style = Object.assign({}, props.width !== undefined ? { width: props.width } : null,
-    anchor ? { position: 'fixed', left: anchor.x, top: anchor.y } : null, props.style);
-  var list = h('ul', {
+  var side = pos ? pos.side : (anchor ? 'bottom' : ctx.side);
+  var align = anchor ? 'start' : ctx.align;
+  var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(320px, calc(100vw - 16px))' },
+    props.width !== undefined ? { width: props.width } : null, props.style));
+  return portal(h('ul', {
     ref: ctx.listRef, id: ctx.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': anchor ? undefined : ctx.buttonId,
     'aria-label': props['aria-label'], onKeyDown: onKeyDown, style: style,
-    className: cx('hy-menu__list', !anchor && 'hy-menu__list--' + ctx.side, !anchor && 'hy-menu__list--' + ctx.align, anchor && 'hy-menu__list--point', props.className)
-  }, props.children);
-  return anchor ? portal(list) : list;
+    className: cx('hy-menu__list', 'hy-menu__list--' + side, 'hy-menu__list--' + align, anchor && 'hy-menu__list--point', props.className)
+  }, props.children));
 }
 
 function itemInner(props) {

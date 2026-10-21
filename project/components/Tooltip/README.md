@@ -1,6 +1,6 @@
 # Tooltip
 
-A small floating label that appears on hover and keyboard focus to add context to an element. The first tooltip waits about 150ms, its neighbours then show instantly, and Escape hides it.
+A small floating label that appears on hover and keyboard focus to add context to an element. The first tooltip waits about 150ms, its neighbours then show instantly, and Escape hides it. On touch screens a tap toggles it and a tap elsewhere closes it; the box flips to the other side and stays inside the screen.
 
 **You provide:** `text` (a string or rich content, such as a KeyboardInput) and the trigger as `children` (usually an icon-only Button with its own `aria-label`; plain text is wrapped in a focusable span). Optional: `position` (`top` | `bottom` | `left` | `right`), `boxAlign` (`left` | `center` | `right`), `delay` (`false` for none, or ms), `type` (`success` | `error` | `warning` | `violet`), `tip={false}` to hide the arrow, `center={false}` to left-align the text, and `defaultOpen` (hyprsh) for docs.
 

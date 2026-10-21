@@ -3,16 +3,14 @@
 .hy-tooltip__text { border-radius: var(--radius-sm); }
 .hy-tooltip__text:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-tooltip__box {
-  --tip-bg: var(--gray-1000); --tip-fg: var(--background-100); --tip-gap: 8px; --tip-shift: 4px;
-  position: absolute; z-index: var(--z-tooltip);
-  width: max-content; max-width: 250px; box-sizing: border-box; padding: 6px 8px;
+  --tip-bg: var(--gray-1000); --tip-fg: var(--background-100); --tip-shift: 4px;
+  width: max-content; max-width: min(250px, calc(100vw - 16px)); box-sizing: border-box; padding: 6px 8px;
   border-radius: var(--radius-lg); background: var(--tip-bg); color: var(--tip-fg);
   font-family: var(--font-sans); font-size: 13px; line-height: 17px; font-weight: 400; text-align: center; text-wrap: balance;
-  pointer-events: none; visibility: hidden; opacity: 0;
-  transition: opacity .15s cubic-bezier(.4,0,.2,1), transform .15s cubic-bezier(.4,0,.2,1), visibility 0s linear .15s;
+  overflow-wrap: anywhere; pointer-events: none;
+  animation: hy-tooltip-in .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-tooltip__box--start { text-align: left; }
-.hy-tooltip__box.is-open { visibility: visible; opacity: 1; transform: none; transition-delay: 0s; }
 .hy-tooltip__box b, .hy-tooltip__box strong { font-weight: 600; }
 .hy-tooltip__box .hy-kbd { margin: 0 0 0 6px; height: 18px; min-width: 18px; font-size: 12px; }
 
@@ -22,32 +20,19 @@
 .hy-tooltip__box--warning { --tip-bg: var(--amber-700); --tip-fg: var(--black); }
 .hy-tooltip__box--violet { --tip-bg: var(--purple-700); --tip-fg: var(--white); }
 
-/* sides */
-.hy-tooltip__box--top { bottom: calc(100% + var(--tip-gap)); transform: translateY(var(--tip-shift)); transform-origin: bottom center; }
-.hy-tooltip__box--bottom { top: calc(100% + var(--tip-gap)); transform: translateY(calc(-1 * var(--tip-shift))); transform-origin: top center; }
-.hy-tooltip__box--left { right: calc(100% + var(--tip-gap)); transform: translateX(var(--tip-shift)); transform-origin: center right; }
-.hy-tooltip__box--right { left: calc(100% + var(--tip-gap)); transform: translateX(calc(-1 * var(--tip-shift))); transform-origin: center left; }
+/* enter: slide in a few px from the trigger's side */
+.hy-tooltip__box--top { --tip-from: translateY(var(--tip-shift)); }
+.hy-tooltip__box--bottom { --tip-from: translateY(calc(-1 * var(--tip-shift))); }
+.hy-tooltip__box--left { --tip-from: translateX(var(--tip-shift)); }
+.hy-tooltip__box--right { --tip-from: translateX(calc(-1 * var(--tip-shift))); }
+@keyframes hy-tooltip-in { from { opacity: 0; transform: var(--tip-from, none); } }
 
-/* alignment along the side (left/right on top/bottom; top/bottom on left/right) */
-.hy-tooltip__box--top.hy-tooltip__box--align-center, .hy-tooltip__box--bottom.hy-tooltip__box--align-center { left: 50%; translate: -50% 0; }
-.hy-tooltip__box--top.hy-tooltip__box--align-left, .hy-tooltip__box--bottom.hy-tooltip__box--align-left { left: 0; }
-.hy-tooltip__box--top.hy-tooltip__box--align-right, .hy-tooltip__box--bottom.hy-tooltip__box--align-right { right: 0; }
-.hy-tooltip__box--left.hy-tooltip__box--align-center, .hy-tooltip__box--right.hy-tooltip__box--align-center { top: 50%; translate: 0 -50%; }
-.hy-tooltip__box--left.hy-tooltip__box--align-left, .hy-tooltip__box--right.hy-tooltip__box--align-left { top: 0; }
-.hy-tooltip__box--left.hy-tooltip__box--align-right, .hy-tooltip__box--right.hy-tooltip__box--align-right { bottom: 0; }
-
-/* the tip points at the trigger */
+/* the tip points at the trigger; its offset along the edge comes from useFloating's arrowX/arrowY */
 .hy-tooltip__tip { position: absolute; display: block; fill: var(--tip-bg); }
-.hy-tooltip__box--top .hy-tooltip__tip { top: 100%; }
-.hy-tooltip__box--bottom .hy-tooltip__tip { bottom: 100%; transform: rotate(180deg); }
-.hy-tooltip__box--left .hy-tooltip__tip { left: calc(100% - 3.5px); transform: rotate(-90deg); }
-.hy-tooltip__box--right .hy-tooltip__tip { right: calc(100% - 3.5px); transform: rotate(90deg); }
-.hy-tooltip__box--top .hy-tooltip__tip, .hy-tooltip__box--bottom .hy-tooltip__tip { left: calc(50% - 7px); }
-.hy-tooltip__box--align-left.hy-tooltip__box--top .hy-tooltip__tip, .hy-tooltip__box--align-left.hy-tooltip__box--bottom .hy-tooltip__tip { left: 12px; }
-.hy-tooltip__box--align-right.hy-tooltip__box--top .hy-tooltip__tip, .hy-tooltip__box--align-right.hy-tooltip__box--bottom .hy-tooltip__tip { left: auto; right: 12px; }
-.hy-tooltip__box--left .hy-tooltip__tip, .hy-tooltip__box--right .hy-tooltip__tip { top: calc(50% - 3.5px); }
-.hy-tooltip__box--align-left.hy-tooltip__box--left .hy-tooltip__tip, .hy-tooltip__box--align-left.hy-tooltip__box--right .hy-tooltip__tip { top: 8px; }
-.hy-tooltip__box--align-right.hy-tooltip__box--left .hy-tooltip__tip, .hy-tooltip__box--align-right.hy-tooltip__box--right .hy-tooltip__tip { top: auto; bottom: 8px; }
+.hy-tooltip__box--top .hy-tooltip__tip { top: 100%; left: calc(50% - 7px); }
+.hy-tooltip__box--bottom .hy-tooltip__tip { bottom: 100%; left: calc(50% - 7px); transform: rotate(180deg); }
+.hy-tooltip__box--left .hy-tooltip__tip { left: calc(100% - 3.5px); top: calc(50% - 3.5px); transform: rotate(-90deg); }
+.hy-tooltip__box--right .hy-tooltip__tip { right: calc(100% - 3.5px); top: calc(50% - 3.5px); transform: rotate(90deg); }
 
 @media (prefers-reduced-motion: reduce) {
   .hy-tooltip__box { --tip-shift: 0px; }

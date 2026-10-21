@@ -70,6 +70,7 @@ Shadows are layered: a 1px translucent border, then an ambient layer, then a 1px
 - **Hover** raises contrast by one step: a background goes 100 → 200, a border goes `gray-alpha-400` → `500`, and a primary fill lightens slightly.
 - **Pressed** goes one more step, to 300 or `gray-alpha-600`.
 - **Disabled** controls get a `gray-100` fill, a `gray-700` label and `cursor: not-allowed`.
+- **Touch:** under `@media (pointer: coarse)` buttons and fields are at least 40px tall (48px for large), text fields use 16px text so iOS doesn't zoom, menu rows are 40px, and tiny controls keep their look with a 40px hit area. Anything shown on hover also opens on tap, and every popover stays 8px inside the screen.
 - **Focus** is the Geist ring: `outline: 2px solid var(--focus-color); outline-offset: 2px`, shown on `:focus-visible` only. `focus-color` is `accent-700` in light and `accent-900` in dark, and holds at least 3:1 on both backgrounds. Never remove an outline without replacing it. Group the ring with `:focus-within` on compound controls. Sticky headers must never cover a focused element.
 - **Selection** uses the `selection` token behind `gray-1000` text.
 

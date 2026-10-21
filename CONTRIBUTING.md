@@ -26,6 +26,7 @@ The build wraps each `src/Name.js` in its own function inside one IIFE, so local
 - `useControllable(value, defaultValue, onChange)` → `[value, set]`
 - `useDismiss(open, [ref, …], onDismiss)` closes on outside pointer-down or Escape
 - `useOverlayFocus(open, ref, initialRef)`, `trapTab(e, root)`, `useScrollLock(open)` and `portal(node)` for dialogs and popovers
+- `useFloating(open, anchorRef, floatRef, { side, align, offset })` → `{ top, left, side, arrowX, arrowY }` or null, and `floatingStyle(pos, extra)`, for anything that floats next to a trigger (tooltips, hover cards, menus, listboxes). Render the box with `portal()` only while open. It flips and stays 8px inside the screen, so popovers work on phones.
 - `copyText(text)` → Promise
 - `fieldIds(id)` and `FieldMessage({ ids, error, hint })` for form fields. The field styles `.hy-field*`, `.hy-input*` and `.hy-select*` are in core.css: reuse them for anything input-like.
 - `HY` is the registry. Use another component at render time with `h(HY.Button, …)`, never by a bare name.
@@ -96,6 +97,7 @@ One-sentence summary (this becomes the manifest summary).
 node scripts/build.mjs                 # build + contract checks
 node scripts/dev.mjs                   # http://127.0.0.1:4400 (?only=Name,Other)
 node scripts/shot.mjs Name Other       # headless Chrome: mount check + .cache/shots/Name-{light,dark}.png
+node scripts/mobile.mjs Name Other     # phone: 375px with touch, reports overflow and small targets, .cache/mobile/Name.png
 ```
 
-Look at both screenshots. Then compare with the Geist page: either open it in a browser or read its text and code samples.
+Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 40px tall under `@media (pointer: coarse)`. Then compare with the Geist page: either open it in a browser or read its text and code samples.

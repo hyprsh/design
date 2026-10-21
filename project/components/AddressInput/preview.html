@@ -10,9 +10,9 @@ function Demo() {
   var a = React.useState({ country: 'US', line1: '123 Market Street', city: '', region: '' , postalCode: '94105' });
   var b = React.useState({ country: 'DE' });
   return h(F, null,
-    h('div', { style: { width: 400 } },
+    h('div', { style: { width: 400, maxWidth: '100%' } },
       h(H.AddressInput, { label: 'Billing Address', value: a[0], onChange: a[1], errors: H.getAddressErrors(a[0]), countries: ['US', 'CA', 'AU', 'DE', 'HK', 'AE'] })),
-    h('div', { style: { width: 400 } },
+    h('div', { style: { width: 400, maxWidth: '100%' } },
       h(H.AddressInput, { label: 'Shipping Address', name: 'shipping', value: b[0], onChange: b[1], suggestions: H.AddressInput.demoSuggestions })));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

@@ -8,3 +8,4 @@ A relative timestamp (“2m ago”, “5h ago”, “Yesterday”) whose hover c
 - Pass the raw timestamp. Don't pre-format it and don't add “ago” after it: the trigger already reads “2m ago”.
 - Use `children` only for states the formatter can't describe (“Just now”, “Pending”, “Queued”) or for a custom trigger.
 - Add a leading label when the row is ambiguous (“Last deploy 2m ago”). The card already shows UTC and local time, so don't repeat them elsewhere in the row.
+- On touch screens a tap on the timestamp opens the card and a tap elsewhere closes it.

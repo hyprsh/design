@@ -50,6 +50,12 @@ The viewer runs at http://127.0.0.1:4400. Add `?only=Button,Toggle` to show just
 npm run shots -- Button Toggle
 ```
 
+```bash
+node scripts/mobile.mjs Button Toggle
+```
+
+The phone check renders cards at 375px with touch, flags anything wider than the screen and tap targets under 24px, and saves screenshots to `.cache/mobile`.
+
 Screenshots need Google Chrome installed in `/Applications`.
 
 ## Using it in a React app

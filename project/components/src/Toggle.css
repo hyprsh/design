@@ -68,3 +68,5 @@
 @media (prefers-reduced-motion: reduce) {
   .hy-toggle__track, .hy-toggle__thumb { transition-duration: 0s; }
 }
+/* Touch: the whole label row is a 40px target. */
+@media (pointer: coarse) { .hy-toggle { min-height: 40px; } }

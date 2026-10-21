@@ -98,6 +98,11 @@ function AddressInput(props) {
   var fs = useState('');
   var failed = fs[0], setFailed = fs[1];
   var box = useRef(null);
+  var listRef = useRef(null);
+  /* the list lines up with the text box itself, not the label above it */
+  var anchor = useMemo(function () {
+    return Object.defineProperty({}, 'current', { get: function () { return box.current ? box.current.querySelector('.hy-input') || box.current : null; } });
+  }, []);
   var seq = useRef(0);
   var listId = auto + '-suggestions';
 
@@ -107,7 +112,14 @@ function AddressInput(props) {
     : allCountries;
 
   function set(patch) { vs[1](Object.assign({}, addr, patch)); }
-  useDismiss(open, [box], function () { setOpen(false); });
+  useDismiss(open, [box, listRef], function () { setOpen(false); });
+  var listOpen = !!(open && (results.length || loading || query.trim()));
+  var pos = useFloating(listOpen, anchor, listRef, { side: 'bottom', align: 'start' });
+  var anchorWidth = listOpen && anchor.current ? anchor.current.offsetWidth : undefined;
+  /* useFloating re-measures on any scroll: nudge it when the list's height changes */
+  useLayoutEffect(function () {
+    if (listOpen && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
+  }, [listOpen, results.length, loading, anchorWidth]);
 
   function search(text) {
     var id = ++seq.current;
@@ -189,7 +201,12 @@ function AddressInput(props) {
         onFocus: function () { if (results.length) setOpen(true); },
         onKeyDown: onSearchKey
       }),
-      open && (results.length || loading || query.trim()) ? h('ul', { id: listId, role: 'listbox', 'aria-label': 'Address suggestions', className: 'hy-address__list', onMouseDown: function (e) { e.preventDefault(); } },
+      listOpen ? portal(h('ul', {
+        ref: listRef, id: listId, role: 'listbox', 'aria-label': 'Address suggestions',
+        className: cx('hy-address__list', pos && 'hy-address__list--' + pos.side),
+        style: floatingStyle(pos, { width: anchorWidth }),
+        onMouseDown: function (e) { e.preventDefault(); }
+      },
         loading ? h('li', { className: 'hy-address__status', role: 'presentation' }, h(HY.Spinner, { size: 16 }), 'Searching…')
           : !results.length ? h('li', { className: 'hy-address__status', role: 'presentation' }, 'No matching addresses.')
             : results.map(function (s, i) {
@@ -203,7 +220,7 @@ function AddressInput(props) {
                 h('span', { className: 'hy-address__lines' },
                   h('span', { className: 'hy-address__line1' }, s.line1),
                   h('span', { className: 'hy-address__line2' }, describe(s))));
-            })) : null)
+            }))) : null)
     : field('line1', 'Street Address', 'address-line1');
 
   var cityField = f.city ? field('city', f.city, 'address-level2') : null;

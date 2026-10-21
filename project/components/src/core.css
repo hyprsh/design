@@ -69,6 +69,8 @@ body {
 .hy-input__affix:last-child { border-left: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 .hy-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-color: var(--background-100); color: var(--gray-1000); }
 .hy-select__chevron { position: absolute; right: 12px; pointer-events: none; color: var(--gray-900); }
+/* Touch screens: 16px text so iOS doesn't zoom on focus, and no field shorter than 40px. */
 @media (pointer: coarse) {
-  .hy-input input, .hy-select select { font-size: 16px; }
+  .hy-input input, .hy-select select, .hy-textarea textarea { font-size: 16px; }
+  .hy-input--small { height: 40px; }
 }

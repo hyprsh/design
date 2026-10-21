@@ -3,7 +3,7 @@
   --hy-book-w: var(--hy-book-w-sm);
   --hy-book-d: calc(var(--hy-book-w) * 0.14);
   display: inline-block; flex: none; vertical-align: bottom;
-  width: var(--hy-book-w);
+  width: var(--hy-book-w); max-width: 100%;
   perspective: 900px;
 }
 @media (min-width: 600px) { .hy-book { --hy-book-w: var(--hy-book-w-md); } }
@@ -21,7 +21,7 @@
 
 .hy-book__cover {
   position: relative; display: flex; flex-direction: column; overflow: hidden;
-  width: var(--hy-book-w); aspect-ratio: 49 / 60;
+  width: var(--hy-book-w); max-width: 100%; aspect-ratio: 49 / 60;
   border-radius: var(--radius-md) var(--radius-sm) var(--radius-sm) var(--radius-md);
   background: var(--gray-100);
   box-shadow: var(--shadow-medium);

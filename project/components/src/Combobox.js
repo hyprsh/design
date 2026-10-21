@@ -59,6 +59,7 @@ function Combobox(props) {
   var root = useRef(null);
   var input = useRef(null);
   var listRef = useRef(null);
+  var field = useRef(null);
   var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
 
   /* keep the text in sync when the value changes from outside */
@@ -81,8 +82,15 @@ function Combobox(props) {
     if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
   }, [active, open]);
 
+  /* useFloating re-measures on any scroll: nudge it when filtering changes the list's height */
+  var fieldWidth = open && field.current ? field.current.offsetWidth : undefined;
+  useLayoutEffect(function () {
+    if (open && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
+  }, [open, shown.length, props.loading, fieldWidth]);
+
   function close() { setOpen(false); setTyped(false); setQuery(labelOf(value)); }
-  useDismiss(open, [root], close);
+  useDismiss(open, [root, listRef], close);
+  var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start' });
 
   function pick(o) {
     if (!o || o.disabled) return;
@@ -123,7 +131,8 @@ function Combobox(props) {
     if (input.current) input.current.focus();
   }
   function onBlur(e) {
-    if (root.current && e.relatedTarget && root.current.contains(e.relatedTarget)) return;
+    var t = e.relatedTarget;
+    if (t && ((root.current && root.current.contains(t)) || (listRef.current && listRef.current.contains(t)))) return;
     if (open) close();
     else setQuery(labelOf(value));
   }
@@ -138,7 +147,7 @@ function Combobox(props) {
     ref: root, className: cx('hy-combobox', open && 'is-open', props.className),
     style: Object.assign({ width: width }, props.style)
   }),
-    h('div', { className: cx('hy-input', 'hy-input--' + size, 'hy-combobox__field', props.errored && 'hy-input--error', props.disabled && 'hy-input--disabled') },
+    h('div', { ref: field, className: cx('hy-input', 'hy-input--' + size, 'hy-combobox__field', props.errored && 'hy-input--error', props.disabled && 'hy-input--disabled') },
       h('span', { className: 'hy-combobox__icon', 'aria-hidden': 'true' }, h(Glyph, { name: 'search', size: 16 })),
       h('input', {
         ref: input, id: id, type: 'text', role: 'combobox', autoComplete: 'off', spellCheck: false,
@@ -160,9 +169,13 @@ function Combobox(props) {
         onMouseDown: function (e) { e.preventDefault(); },
         onClick: function () { if (open) close(); else { setOpen(true); if (input.current) input.current.focus(); } }
       }, h(Glyph, { name: 'chevron', size: 16 }))),
-    open ? h('ul', {
+    open ? portal(h('ul', {
       ref: listRef, id: listId, role: 'listbox', 'aria-label': props['aria-label'], 'aria-labelledby': props['aria-labelledby'],
-      className: 'hy-combobox__list', style: { maxWidth: parts.list.maxWidth, width: parts.list.width },
+      className: cx('hy-combobox__list', pos && 'hy-combobox__list--' + pos.side),
+      style: floatingStyle(pos, {
+        width: parts.list.width != null ? parts.list.width : fieldWidth,
+        maxWidth: parts.list.maxWidth != null ? 'min(' + (typeof parts.list.maxWidth === 'number' ? parts.list.maxWidth + 'px' : parts.list.maxWidth) + ', calc(100vw - 16px))' : 'calc(100vw - 16px)'
+      }),
       onMouseDown: function (e) { e.preventDefault(); }
     },
       props.loading
@@ -182,7 +195,7 @@ function Combobox(props) {
               h('span', { className: 'hy-combobox__label' }, o.node),
               o.suffix ? h('span', { className: 'hy-combobox__affix' }, o.suffix) : null,
               h('span', { className: 'hy-combobox__check', 'aria-hidden': 'true' }, selected ? h(Glyph, { name: 'check', size: 16 }) : null));
-          })) : null,
+          }))) : null,
     h('span', { className: 'hy-sr', 'aria-live': 'polite' },
       open && typed ? (props.loading ? 'Loading' : shown.length + (shown.length === 1 ? ' result' : ' results')) : ''));
 }

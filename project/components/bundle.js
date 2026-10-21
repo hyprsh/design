@@ -112,10 +112,62 @@
       function inside(t) { return refs.some(function (r) { return r.current && r.current.contains(t); }); }
       function onDown(e) { if (!inside(e.target)) onDismiss('outside'); }
       function onKey(e) { if (e.key === 'Escape') onDismiss('escape'); }
-      document.addEventListener('mousedown', onDown);
+      document.addEventListener('pointerdown', onDown);
       document.addEventListener('keydown', onKey);
-      return function () { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+      return function () { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey); };
     }, [open]);
+  }
+
+  /* ---- place a floating box next to its anchor ----
+     Returns null until measured, then { top, left, side, arrowX, arrowY } in viewport px for position: fixed.
+     side: top | bottom | left | right (default bottom); align: start | center | end (default center).
+     It flips to the opposite side when the box doesn't fit, falls back from left/right to below on narrow
+     screens, and keeps the box 8px inside the viewport. Render the box through portal() while open,
+     with style floatingStyle(pos). Re-measures on resize and on any scroll. */
+  function useFloating(open, anchorRef, floatRef, opts) {
+    opts = opts || {};
+    var st = useState(null);
+    var side0 = opts.side || 'bottom', align = opts.align || 'center', gap = opts.offset == null ? 8 : opts.offset;
+    useLayoutEffect(function () {
+      if (!open) { st[1](null); return; }
+      var OPP = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
+      function place() {
+        var a = anchorRef.current, f = floatRef.current;
+        if (!a || !f) return;
+        var ar = a.getBoundingClientRect(), fw = f.offsetWidth, fh = f.offsetHeight;
+        var vw = document.documentElement.clientWidth, vh = window.innerHeight, m = 8;
+        var fits = { top: ar.top - gap - fh >= m, bottom: ar.bottom + gap + fh <= vh - m, left: ar.left - gap - fw >= m, right: ar.right + gap + fw <= vw - m };
+        var side = side0;
+        if (!fits[side] && fits[OPP[side]]) side = OPP[side];
+        if ((side === 'left' || side === 'right') && !fits[side]) side = fits.bottom || !fits.top ? 'bottom' : 'top';
+        var top, left;
+        if (side === 'top' || side === 'bottom') {
+          top = side === 'top' ? ar.top - gap - fh : ar.bottom + gap;
+          left = align === 'start' ? ar.left : align === 'end' ? ar.right - fw : ar.left + ar.width / 2 - fw / 2;
+        } else {
+          left = side === 'left' ? ar.left - gap - fw : ar.right + gap;
+          top = align === 'start' ? ar.top : align === 'end' ? ar.bottom - fh : ar.top + ar.height / 2 - fh / 2;
+        }
+        left = Math.max(m, Math.min(left, vw - m - fw));
+        top = Math.max(m, Math.min(top, vh - m - fh));
+        var next = { top: Math.round(top), left: Math.round(left), side: side,
+          arrowX: Math.round(Math.max(12, Math.min(fw - 12, ar.left + ar.width / 2 - left))),
+          arrowY: Math.round(Math.max(12, Math.min(fh - 12, ar.top + ar.height / 2 - top))) };
+        st[1](function (prev) {
+          return prev && prev.top === next.top && prev.left === next.left && prev.side === next.side && prev.arrowX === next.arrowX && prev.arrowY === next.arrowY ? prev : next;
+        });
+      }
+      place();
+      var raf = requestAnimationFrame(place);
+      window.addEventListener('resize', place);
+      window.addEventListener('scroll', place, true);
+      return function () { cancelAnimationFrame(raf); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
+    }, [open, side0, align, gap]);
+    return st[0];
+  }
+  /* Style for a box placed by useFloating: hidden until measured, never wider than the screen. */
+  function floatingStyle(pos, extra) {
+    return Object.assign({ position: 'fixed', top: pos ? pos.top : 0, left: pos ? pos.left : 0, visibility: pos ? 'visible' : 'hidden', maxWidth: 'calc(100vw - 16px)', zIndex: 'var(--z-menu)' }, extra);
   }
 
   /* ---- lock page scroll while an overlay is open ---- */
@@ -459,6 +511,11 @@
       var fs = useState('');
       var failed = fs[0], setFailed = fs[1];
       var box = useRef(null);
+      var listRef = useRef(null);
+      /* the list lines up with the text box itself, not the label above it */
+      var anchor = useMemo(function () {
+        return Object.defineProperty({}, 'current', { get: function () { return box.current ? box.current.querySelector('.hy-input') || box.current : null; } });
+      }, []);
       var seq = useRef(0);
       var listId = auto + '-suggestions';
 
@@ -468,7 +525,14 @@
         : allCountries;
 
       function set(patch) { vs[1](Object.assign({}, addr, patch)); }
-      useDismiss(open, [box], function () { setOpen(false); });
+      useDismiss(open, [box, listRef], function () { setOpen(false); });
+      var listOpen = !!(open && (results.length || loading || query.trim()));
+      var pos = useFloating(listOpen, anchor, listRef, { side: 'bottom', align: 'start' });
+      var anchorWidth = listOpen && anchor.current ? anchor.current.offsetWidth : undefined;
+      /* useFloating re-measures on any scroll: nudge it when the list's height changes */
+      useLayoutEffect(function () {
+        if (listOpen && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
+      }, [listOpen, results.length, loading, anchorWidth]);
 
       function search(text) {
         var id = ++seq.current;
@@ -550,7 +614,12 @@
             onFocus: function () { if (results.length) setOpen(true); },
             onKeyDown: onSearchKey
           }),
-          open && (results.length || loading || query.trim()) ? h('ul', { id: listId, role: 'listbox', 'aria-label': 'Address suggestions', className: 'hy-address__list', onMouseDown: function (e) { e.preventDefault(); } },
+          listOpen ? portal(h('ul', {
+            ref: listRef, id: listId, role: 'listbox', 'aria-label': 'Address suggestions',
+            className: cx('hy-address__list', pos && 'hy-address__list--' + pos.side),
+            style: floatingStyle(pos, { width: anchorWidth }),
+            onMouseDown: function (e) { e.preventDefault(); }
+          },
             loading ? h('li', { className: 'hy-address__status', role: 'presentation' }, h(HY.Spinner, { size: 16 }), 'Searching…')
               : !results.length ? h('li', { className: 'hy-address__status', role: 'presentation' }, 'No matching addresses.')
                 : results.map(function (s, i) {
@@ -564,7 +633,7 @@
                     h('span', { className: 'hy-address__lines' },
                       h('span', { className: 'hy-address__line1' }, s.line1),
                       h('span', { className: 'hy-address__line2' }, describe(s))));
-                })) : null)
+                }))) : null)
         : field('line1', 'Street Address', 'address-line1');
 
       var cityField = f.city ? field('city', f.city, 'address-level2') : null;
@@ -720,7 +789,7 @@
       var hover = hs[0], setHover = hs[1];
       var zs = useControllable(props.timezone, props.defaultTimezone || props.pinnedTimezone || 'local', props.onTimezoneChange);
       var msg = useState('');
-      var root = useRef(null), pop = useRef(null), trigger = useRef(null), byUser = useRef(false);
+      var root = useRef(null), pop = useRef(null), trigger = useRef(null), anchor = useRef(null), byUser = useRef(false);
       var titleId = auto + '-title';
       var presets = calPresetList(props.presets);
 
@@ -740,13 +809,23 @@
         setHover(null);
         if (restore && trigger.current) trigger.current.focus();
       }
-      useDismiss(open, [root], function (reason) { closePopover(reason === 'escape'); });
+      useDismiss(open, [root, pop], function (reason) { closePopover(reason === 'escape'); });
+      var align = props.popoverAlignment === 'center' || props.popoverAlignment === 'end' ? props.popoverAlignment : 'start';
+      var pos = useFloating(open, anchor, pop, { side: 'bottom', align: align });
       useEffect(function () {
-        if (!open || !byUser.current || !pop.current) return;
+        if (!open || !byUser.current) return;
         byUser.current = false;
-        var b = pop.current.querySelector('.hy-calendar__day[tabindex="0"]');
-        if (b) b.focus({ preventScroll: true });
+        /* wait a frame: the popover stays hidden until useFloating has measured it, and hidden boxes can't take focus */
+        var raf = requestAnimationFrame(function () {
+          var b = pop.current && pop.current.querySelector('.hy-calendar__day[tabindex="0"]');
+          if (b) b.focus({ preventScroll: true });
+        });
+        return function () { cancelAnimationFrame(raf); };
       }, [open]);
+      /* the grid can grow a row when the month changes: let useFloating re-measure (it listens to any scroll) */
+      useLayoutEffect(function () {
+        if (open && pop.current) pop.current.dispatchEvent(new Event('scroll'));
+      }, [open, focus.getFullYear(), focus.getMonth()]);
 
       function commit(r) {
         var out = mode === 'single' ? (r.start ? calWithTime(r.start, '00:00') : null)
@@ -872,9 +951,10 @@
       if (props.pinnedTimezone) zones.push({ value: props.pinnedTimezone, label: props.pinnedTimezone.replace(/_/g, ' ') });
       var showZone = showTime && props.showTimezone !== false;
 
-      var popover = open ? h('div', {
+      var popover = open ? portal(h('div', {
         ref: pop, role: 'dialog', 'aria-label': mode === 'single' ? 'Choose a date' : 'Choose a date range',
-        className: cx('hy-calendar__popover', props.horizontalLayout && 'hy-calendar__popover--horizontal', 'hy-calendar__popover--' + (props.popoverAlignment || 'start')),
+        className: cx('hy-calendar__popover', props.horizontalLayout && 'hy-calendar__popover--horizontal', 'hy-calendar__popover--' + align, pos && 'hy-calendar__popover--' + pos.side),
+        style: floatingStyle(pos),
         onKeyDown: function (e) { trapTab(e, pop.current); if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); apply(); } }
       },
         h('div', { className: 'hy-calendar__month' },
@@ -896,11 +976,11 @@
             h(HY.Icon, { name: 'globe', size: 16 }),
             h('select', { value: zs[0], onChange: function (e) { zs[1](e.target.value); } },
               zones.map(function (z) { return h('option', { key: z.value, value: z.value }, z.label); })),
-            h(Glyph, { name: 'chevron', size: 16 })) : null) : null) : null;
+            h(Glyph, { name: 'chevron', size: 16 })) : null) : null)) : null;
 
       return h('div', { ref: root, className: cx('hy-calendar', 'hy-calendar--' + layout, props.className), style: props.style },
         layout === 'stacked' ? presetSelect : null,
-        h('div', { className: 'hy-calendar__bar' },
+        h('div', { ref: anchor, className: 'hy-calendar__bar' },
           layout === 'joined' ? presetSelect : null,
           triggerEl,
           layout === 'compact' ? presetSelect : null),
@@ -1138,6 +1218,7 @@
       var root = useRef(null);
       var input = useRef(null);
       var listRef = useRef(null);
+      var field = useRef(null);
       var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
 
       /* keep the text in sync when the value changes from outside */
@@ -1160,8 +1241,15 @@
         if (el && el.scrollIntoView) el.scrollIntoView({ block: 'nearest' });
       }, [active, open]);
 
+      /* useFloating re-measures on any scroll: nudge it when filtering changes the list's height */
+      var fieldWidth = open && field.current ? field.current.offsetWidth : undefined;
+      useLayoutEffect(function () {
+        if (open && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
+      }, [open, shown.length, props.loading, fieldWidth]);
+
       function close() { setOpen(false); setTyped(false); setQuery(labelOf(value)); }
-      useDismiss(open, [root], close);
+      useDismiss(open, [root, listRef], close);
+      var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start' });
 
       function pick(o) {
         if (!o || o.disabled) return;
@@ -1202,7 +1290,8 @@
         if (input.current) input.current.focus();
       }
       function onBlur(e) {
-        if (root.current && e.relatedTarget && root.current.contains(e.relatedTarget)) return;
+        var t = e.relatedTarget;
+        if (t && ((root.current && root.current.contains(t)) || (listRef.current && listRef.current.contains(t)))) return;
         if (open) close();
         else setQuery(labelOf(value));
       }
@@ -1217,7 +1306,7 @@
         ref: root, className: cx('hy-combobox', open && 'is-open', props.className),
         style: Object.assign({ width: width }, props.style)
       }),
-        h('div', { className: cx('hy-input', 'hy-input--' + size, 'hy-combobox__field', props.errored && 'hy-input--error', props.disabled && 'hy-input--disabled') },
+        h('div', { ref: field, className: cx('hy-input', 'hy-input--' + size, 'hy-combobox__field', props.errored && 'hy-input--error', props.disabled && 'hy-input--disabled') },
           h('span', { className: 'hy-combobox__icon', 'aria-hidden': 'true' }, h(Glyph, { name: 'search', size: 16 })),
           h('input', {
             ref: input, id: id, type: 'text', role: 'combobox', autoComplete: 'off', spellCheck: false,
@@ -1239,9 +1328,13 @@
             onMouseDown: function (e) { e.preventDefault(); },
             onClick: function () { if (open) close(); else { setOpen(true); if (input.current) input.current.focus(); } }
           }, h(Glyph, { name: 'chevron', size: 16 }))),
-        open ? h('ul', {
+        open ? portal(h('ul', {
           ref: listRef, id: listId, role: 'listbox', 'aria-label': props['aria-label'], 'aria-labelledby': props['aria-labelledby'],
-          className: 'hy-combobox__list', style: { maxWidth: parts.list.maxWidth, width: parts.list.width },
+          className: cx('hy-combobox__list', pos && 'hy-combobox__list--' + pos.side),
+          style: floatingStyle(pos, {
+            width: parts.list.width != null ? parts.list.width : fieldWidth,
+            maxWidth: parts.list.maxWidth != null ? 'min(' + (typeof parts.list.maxWidth === 'number' ? parts.list.maxWidth + 'px' : parts.list.maxWidth) + ', calc(100vw - 16px))' : 'calc(100vw - 16px)'
+          }),
           onMouseDown: function (e) { e.preventDefault(); }
         },
           props.loading
@@ -1261,7 +1354,7 @@
                   h('span', { className: 'hy-combobox__label' }, o.node),
                   o.suffix ? h('span', { className: 'hy-combobox__affix' }, o.suffix) : null,
                   h('span', { className: 'hy-combobox__check', 'aria-hidden': 'true' }, selected ? h(Glyph, { name: 'check', size: 16 }) : null));
-              })) : null,
+              }))) : null,
         h('span', { className: 'hy-sr', 'aria-live': 'polite' },
           open && typed ? (props.loading ? 'Loading' : shown.length + (shown.length === 1 ? ' result' : ' results')) : ''));
     }
@@ -1612,17 +1705,33 @@
     function MultiSelectContent(props) {
       var ctx = React.useContext(MultiSelectContext);
       var ref = useRef(null);
-      useDismiss(ctx.open, [ctx.root], function (reason) {
+      /* The panel is portalled to <body> and placed by useFloating, so it flips and stays on screen. */
+      var pos = useFloating(ctx.open, ctx.root, ref, { side: 'bottom', align: props.align === 'end' ? 'end' : 'start', offset: 8 });
+      var placed = !!pos;
+      useDismiss(ctx.open, [ctx.root, ref], function (reason) {
         ctx.setOpen(false);
         if (reason === 'escape' && ctx.trigger.current) ctx.trigger.current.focus();
       });
+      /* Focus the first checkbox once the panel is placed (it is hidden until then), if opened from the trigger. */
       useEffect(function () {
-        if (!ctx.open || !ref.current || props.autoFocus === false) return;
+        if (!ctx.open || !placed || !ref.current || props.autoFocus === false) return;
         var first = ref.current.querySelector('[data-ms-col="0"]');
-        if (first && document.activeElement && ctx.root.current && ctx.root.current.contains(document.activeElement)) first.focus();
-      }, [ctx.open]);
+        if (first && document.activeElement && ctx.root.current && ctx.root.current.contains(document.activeElement)) first.focus({ preventScroll: true });
+      }, [ctx.open, placed]);
       if (!ctx.open) return null;
       function onKeyDown(e) {
+        if (e.key === 'Tab') {
+          /* Tabbing off either end closes the panel and continues from the trigger, as if it sat right after it. */
+          var tabbable = Array.prototype.filter.call(ref.current.querySelectorAll('input:not([disabled]),button:not([disabled])'), function (el) { return el.tabIndex >= 0; });
+          var at = tabbable.indexOf(document.activeElement);
+          var t = ctx.trigger.current;
+          if (t && ((e.shiftKey && at === 0) || (!e.shiftKey && at === tabbable.length - 1))) {
+            if (e.shiftKey) e.preventDefault();
+            t.focus();
+            ctx.setOpen(false);
+          }
+          return;
+        }
         var grid = multiSelectCells(ref.current);
         var r = -1, c = -1;
         grid.forEach(function (cells, i) { var k = cells.indexOf(document.activeElement); if (k >= 0) { r = i; c = k; } });
@@ -1639,12 +1748,12 @@
         e.preventDefault();
         if (grid[nr][nc]) grid[nr][nc].focus();
       }
-      return h('div', {
+      return portal(h('div', {
         ref: ref, id: ctx.contentId, role: 'dialog', 'aria-label': props['aria-label'] || 'Options',
-        className: cx('hy-multiselect__content', props.align === 'end' && 'hy-multiselect__content--end', props.className),
-        style: Object.assign({ width: props.width }, props.style),
+        className: cx('hy-multiselect__content', (pos ? pos.side === 'top' : false) && 'hy-multiselect__content--top', props.align === 'end' && 'hy-multiselect__content--end', props.className),
+        style: floatingStyle(pos, Object.assign({ width: props.width }, props.style)),
         onKeyDown: onKeyDown
-      }, props.children);
+      }, props.children));
     }
 
     function MultiSelectRow(props) {
@@ -2289,6 +2398,7 @@
     /*
      * Tabs: WAI-ARIA tabs. Geist's API (`selected` + `setSelected`, `tabs` with title/value/icon/disabled/tooltip,
      * `disabled`, `variant="secondary"`) plus our `onChange`, `defaultSelected` and per-tab `content` panels.
+     * A list wider than the screen scrolls sideways; tab tooltips are portalled, so the scroll doesn't clip them.
      */
     function Tabs(props) {
       var tabs = props.tabs || [];
@@ -2319,10 +2429,8 @@
       /* The selected tab takes the tab stop; if it is disabled (or none is selected), the first enabled tab does. */
       var focusable = tabs.filter(function (t) { return t.value === sel && !isOff(t); })[0] || tabs.filter(function (t) { return !isOff(t); })[0];
       var active = tabs.filter(function (t) { return t.value === sel; })[0];
-      /* A scrolling list would clip tooltips, so a list with tooltips wraps instead of scrolling. */
-      var tips = tabs.some(function (t) { return t.tooltip; });
       return h('div', { className: cx('hy-tabs', 'hy-tabs--' + variant, props.className), style: props.style },
-        h('div', { role: 'tablist', 'aria-label': props['aria-label'], className: cx('hy-tabs__list', tips && 'hy-tabs__list--tips'), onKeyDown: onKey },
+        h('div', { role: 'tablist', 'aria-label': props['aria-label'], className: 'hy-tabs__list', onKeyDown: onKey },
           tabs.map(function (t) {
             var on = t.value === sel;
             var btn = h('button', {
@@ -3673,6 +3781,22 @@
       return fpOptionLabel(param, v);
     }
 
+    /* The open popover: portalled and placed under its anchor by useFloating (flips, stays 8px inside the screen).
+       Keyed by the anchor, so it re-places when another pill opens it. Calls onPlaced once it is visible. */
+    function FilterParamsFloat(props) {
+      var pos = useFloating(true, props.anchorRef, props.floatRef, { side: 'bottom', align: 'start', offset: 8 });
+      var placed = !!pos;
+      useLayoutEffect(function () {
+        props.placedRef.current = placed;
+        if (placed) props.onPlaced();
+        return function () { props.placedRef.current = false; };
+      }, [placed]);
+      return portal(h('div', {
+        ref: props.floatRef, className: cx('hy-filter-params__popover', pos && pos.side === 'top' && 'hy-filter-params__popover--top'),
+        style: floatingStyle(pos)
+      }, props.children));
+    }
+
     function FilterParamsBar(props) {
       var params = props.params || [];
       var urlState = useSearchParamState();
@@ -3685,8 +3809,8 @@
       var query = useState('');
       var active = useState(0);
       var anchor = useState('add');  /* 'add' or a param index whose pill opened the popover */
-      var left = useState(0);
       var barRef = useRef(null), addRef = useRef(null), inputRef = useRef(null), pillRefs = useRef({});
+      var popRef = useRef(null), placedRef = useRef(false);
       var focusInput = useRef(false);
       var uid = useId();
       var listId = uid + '-list';
@@ -3694,17 +3818,21 @@
       var values = params.map(function (p) { return fpDecode(p, sp); });
 
       function anchorEl(a) { return a === 'add' ? addRef.current : pillRefs.current[a]; }
-      useLayoutEffect(function () {
-        if (!open[0] || !barRef.current) return;
-        var el = anchorEl(anchor[0]) || addRef.current;
-        if (!el) return;
-        var bar = barRef.current.getBoundingClientRect(), r = el.getBoundingClientRect();
-        var x = Math.max(0, Math.min(r.left - bar.left, bar.width - 280));
-        if (x !== left[0]) left[1](x);
-      });
+      /* Read when the popover is placed: the anchor's ref is attached after the popover's first layout effect. */
+      var anchorNow = useRef(null);
+      anchorNow.current = anchor[0];
+      var floatAnchor = useMemo(function () {
+        return { get current() { return anchorEl(anchorNow.current) || addRef.current; } };
+      }, []);
+      /* Focus the search input when asked to, but only once the popover is placed (it is hidden until then). */
+      function focusIfAsked() {
+        if (focusInput.current && inputRef.current && placedRef.current) {
+          inputRef.current.focus({ preventScroll: true });
+          focusInput.current = false;
+        }
+      }
       useEffect(function () {
-        if (open[0] && focusInput.current && inputRef.current) inputRef.current.focus({ preventScroll: true });
-        focusInput.current = false;
+        if (open[0]) focusIfAsked(); else focusInput.current = false;
       }, [open[0], step[0]]);
 
       function openAt(a, s) {
@@ -3712,11 +3840,11 @@
         anchor[1](a); step[1](s); query[1](''); active[1](0); open[1](true);
       }
       function close(returnFocus) {
-        var a = anchor[0];
+        var a = anchorNow.current; /* useDismiss keeps the first close it was given, so read the anchor from a ref */
         open[1](false); step[1](null); query[1](''); active[1](0);
         if (returnFocus) { var el = anchorEl(a) || addRef.current; if (el) el.focus({ preventScroll: true }); }
       }
-      useDismiss(open[0], [barRef], function (why) { close(why === 'escape'); });
+      useDismiss(open[0], [barRef, popRef], function (why) { close(why === 'escape'); });
 
       function apply(param, v) {
         var next = new URLSearchParams(sp.toString());
@@ -3780,7 +3908,13 @@
         else if (e.key === 'End' && !query[0]) { e.preventDefault(); active[1](items.length - 1); }
         else if (e.key === 'Enter') { e.preventDefault(); choose(items[act]); }
         else if (e.key === 'Backspace' && !query[0] && step[0] !== null && anchor[0] === 'add') { e.preventDefault(); step[1](null); active[1](0); }
-        else if (e.key === 'Tab') close(false);
+        else if (e.key === 'Tab') {
+          if (e.shiftKey && stepParam) return; /* to the Back chip, still inside the popover */
+          /* The popover lives at the end of <body>: continue tabbing from the element that opened it. */
+          var from = anchorEl(anchor[0]) || addRef.current;
+          if (from) { if (e.shiftKey) e.preventDefault(); from.focus({ preventScroll: true }); }
+          close(false);
+        }
       }
 
       var suggestions = [];
@@ -3792,7 +3926,7 @@
       var stepParam = step[0] === null ? null : params[step[0]];
       var thinking = props.ai && props.ai.isThinking;
 
-      var popover = open[0] ? h('div', { className: 'hy-filter-params__popover', style: { left: left[0] } },
+      var popover = open[0] ? h(FilterParamsFloat, { key: String(anchor[0]), anchorRef: floatAnchor, floatRef: popRef, placedRef: placedRef, onPlaced: focusIfAsked },
         h('div', { className: 'hy-filter-params__search' },
           stepParam ? h('button', {
             type: 'button', className: 'hy-filter-params__chip', 'aria-label': 'Back to filters (' + stepParam.key + ')',
@@ -4284,9 +4418,11 @@
   /* ---- ContextCard ---- */
   (function () {
     /* ContextCard (Geist: ContextCardTrigger): a floating card with richer content than a tooltip,
-       shown on hover or focus of its trigger. */
-    function ContextCardTip() {
-      return h('svg', { className: 'hy-ctx__tip', width: 14, height: 7, viewBox: '0 0 14 7', 'aria-hidden': 'true', focusable: 'false' },
+       shown on hover or focus of its trigger. On touch screens a tap on the trigger toggles it (the first
+       tap on a link opens the card instead of following it) and a tap outside closes it.
+       The card is portaled to <body> while open and placed with useFloating, so it stays on screen. */
+    function ContextCardTip(p) {
+      return h('svg', { className: 'hy-ctx__tip', style: p.style, width: 14, height: 7, viewBox: '0 0 14 7', 'aria-hidden': 'true', focusable: 'false' },
         h('path', { className: 'hy-ctx__tip-fill', d: 'M0 0h14L8.4 6.1a1.9 1.9 0 0 1-2.8 0z' }),
         h('path', { className: 'hy-ctx__tip-stroke', d: 'M0 .5h.6l5 5.4a1.9 1.9 0 0 0 2.8 0l5-5.4h.6', fill: 'none' }));
     }
@@ -4297,34 +4433,59 @@
       var id = useId();
       var timer = useRef(null);
       var root = useRef(null);
+      var card = useRef(null);
+      var lastTouch = useRef(0);
       var side = props.side || 'top';
       var align = props.align || 'center';
       var delay = typeof props.delay === 'number' ? props.delay : 150;
+      var pos = useFloating(open, root, card, { side: side, align: align, offset: 8 });
       useEffect(function () { return function () { clearTimeout(timer.current); }; }, []);
       useEffect(function () { if (props.onOpenChange) props.onOpenChange(open); }, [open]);
+      useDismiss(open, [root, card], function () { clearTimeout(timer.current); setOpen(false); });
+
+      function touched() { return Date.now() - lastTouch.current < 800; }
       function show() { clearTimeout(timer.current); timer.current = setTimeout(function () { setOpen(true); }, delay); }
+      function stay() { clearTimeout(timer.current); }
       function hideSoon() { clearTimeout(timer.current); timer.current = setTimeout(function () { setOpen(false); }, 100); }
-      function onBlur(e) { if (!root.current || !root.current.contains(e.relatedTarget)) hideSoon(); }
+      function onPointerEnter(e) { if (e.pointerType === 'touch') return; show(); }
+      function onPointerLeave(e) { if (e.pointerType === 'touch') return; hideSoon(); }
+      function onPointerDown(e) { if (e.pointerType === 'touch') lastTouch.current = Date.now(); }
+      function onFocus() { if (!touched()) show(); }
+      function within(el) { return !!el && ((root.current && root.current.contains(el)) || (card.current && card.current.contains(el))); }
+      function onBlur(e) { if (!within(e.relatedTarget) && !touched()) hideSoon(); }
+      /* Touch: a tap toggles the card. The first tap on a link only opens it; a second tap follows the link. */
+      function onClickCapture(e) {
+        if (!touched() || !root.current || !root.current.contains(e.target)) return;
+        var link = e.target.closest && e.target.closest('a[href]');
+        clearTimeout(timer.current);
+        if (!open) { if (link) e.preventDefault(); setOpen(true); }
+        else if (!link) setOpen(false);
+      }
       function onKey(e) {
         if (e.key === 'Escape' && open) {
           e.stopPropagation(); clearTimeout(timer.current); setOpen(false);
           var tr = root.current && root.current.firstChild;
-          if (tr && root.current.contains(document.activeElement) && tr !== document.activeElement && tr.focus) tr.focus();
+          if (tr && within(document.activeElement) && tr !== document.activeElement && tr.focus) tr.focus();
         }
       }
       var triggerProps = { 'aria-describedby': open ? id : undefined, 'aria-expanded': undefined };
       var trigger = props.render && React.isValidElement(props.render)
         ? React.cloneElement(props.render, Object.assign({}, triggerProps, { className: cx(props.render.props.className, 'hy-ctx__trigger') }), props.children)
         : h('div', Object.assign({}, triggerProps, { className: 'hy-ctx__trigger' }), props.children);
+      var placed = pos ? pos.side : side;
+      var tipStyle = !pos ? null : placed === 'top' || placed === 'bottom' ? { left: pos.arrowX - 7 } : { top: pos.arrowY - 3.5 };
+      var box = open ? portal(h('div', {
+        ref: card, id: id, role: 'tooltip',
+        className: cx('hy-ctx__card', 'hy-ctx__card--' + placed, 'is-open', props.contentClassName),
+        style: floatingStyle(pos, { zIndex: 'var(--z-menu)', maxWidth: 'min(360px, calc(100vw - 16px))' }),
+        onPointerEnter: function (e) { if (e.pointerType !== 'touch') stay(); },
+        onPointerLeave: onPointerLeave
+      }, h('div', { className: 'hy-ctx__body' }, props.content), props.tip === false ? null : h(ContextCardTip, { style: tipStyle }))) : null;
       return h('span', {
         ref: root, className: cx('hy-ctx', props.className),
-        onMouseEnter: show, onMouseLeave: hideSoon, onFocus: show, onBlur: onBlur, onKeyDown: onKey
-      },
-        trigger,
-        h('div', {
-          id: id, role: 'tooltip',
-          className: cx('hy-ctx__card', 'hy-ctx__card--' + side, 'hy-ctx__card--' + align, open && 'is-open', props.contentClassName)
-        }, h('div', { className: 'hy-ctx__body' }, props.content), props.tip === false ? null : h(ContextCardTip)));
+        onPointerEnter: onPointerEnter, onPointerLeave: onPointerLeave, onPointerDown: onPointerDown,
+        onFocus: onFocus, onBlur: onBlur, onKeyDown: onKey, onClickCapture: onClickCapture
+      }, trigger, box);
     }
 
     ContextCard.Trigger = ContextCard;
@@ -4381,6 +4542,7 @@
       var menu = React.useContext(HY.MenuContainer.Context);
       var lastKey = useRef(0);
       var press = useRef(null);
+      var start = useRef(null);
       useEffect(function () { return function () { clearTimeout(press.current); }; }, []);
 
       function setRef(el) {
@@ -4396,6 +4558,7 @@
         if (props.onContextMenu) props.onContextMenu(e);
         if (props.disabled || e.defaultPrevented) return;
         e.preventDefault();
+        cancelPress();
         if (Date.now() - lastKey.current < 400) return; /* already opened from the keyboard */
         openAt(e.clientX, e.clientY, 'list');
       }
@@ -4409,29 +4572,46 @@
           openAt(r.left + 8, r.top + 8, 'first');
         }
       }
-      /* Long-press for touch screens that don't fire contextmenu. */
-      function onTouchStart(e) {
-        if (props.disabled || e.touches.length !== 1) return;
-        var t = e.touches[0];
-        clearTimeout(press.current);
-        press.current = setTimeout(function () { lastKey.current = Date.now(); openAt(t.clientX, t.clientY, 'list'); }, 500);
+      /* Long-press on touch screens (pointerType touch): open after 500ms unless the finger moves more than 10px. */
+      function cancelPress() { clearTimeout(press.current); press.current = null; }
+      function onPointerDown(e) {
+        if (props.onPointerDown) props.onPointerDown(e);
+        if (props.disabled || e.pointerType !== 'touch' || !e.isPrimary) return;
+        var x = e.clientX, y = e.clientY;
+        cancelPress();
+        start.current = { x: x, y: y };
+        press.current = setTimeout(function () {
+          press.current = null;
+          if (menu && menu.open) return;
+          lastKey.current = Date.now(); /* the browser may also fire contextmenu for the same press */
+          openAt(x, y, 'list');
+        }, 500);
       }
-      function cancelPress() { clearTimeout(press.current); }
+      function onPointerMove(e) {
+        if (props.onPointerMove) props.onPointerMove(e);
+        if (!press.current || e.pointerType !== 'touch') return;
+        var s0 = start.current;
+        if (Math.abs(e.clientX - s0.x) > 10 || Math.abs(e.clientY - s0.y) > 10) cancelPress();
+      }
       function onMouseDown(e) {
         if (props.onMouseDown) props.onMouseDown(e);
         if (menu && menu.open && e.button === 0) menu.close(false);
       }
-      var rest = omit(props, ['children', 'className', 'disabled', 'as', 'onContextMenu', 'onKeyDown', 'onMouseDown']);
+      var rest = omit(props, ['children', 'className', 'disabled', 'as', 'onContextMenu', 'onKeyDown', 'onMouseDown', 'onPointerDown', 'onPointerMove', 'onPointerUp', 'onPointerCancel']);
       return h(props.as || 'div', Object.assign(rest, {
         ref: setRef, tabIndex: props.tabIndex === undefined ? 0 : props.tabIndex,
         className: cx('hy-context-menu__trigger', props.className),
         onContextMenu: onContextMenu, onKeyDown: onKeyDown, onMouseDown: onMouseDown,
-        onTouchStart: onTouchStart, onTouchMove: cancelPress, onTouchEnd: cancelPress, onTouchCancel: cancelPress
+        onPointerDown: onPointerDown, onPointerMove: onPointerMove, onPointerUp: function (e) { cancelPress(); if (props.onPointerUp) props.onPointerUp(e); },
+        onPointerCancel: function (e) { cancelPress(); if (props.onPointerCancel) props.onPointerCancel(e); }
       }), props.children);
     }
 
+    /* The list is portalled and placed by Menu (useFloating at the pointer), which keeps it 8px inside the screen. */
     function ContextMenuContent(props) {
-      return h(HY.Menu, Object.assign({}, props, { 'aria-label': props['aria-label'] || 'Context Menu' }));
+      return h(HY.Menu, Object.assign({}, props, {
+        'aria-label': props['aria-label'] || 'Context Menu', className: cx('hy-context-menu__list', props.className)
+      }));
     }
 
     function ContextMenuItem(props) { return h(HY.MenuItem, props); }
@@ -4626,7 +4806,6 @@
       var side = MENU_SIDES.indexOf(parts[0]) >= 0 ? parts[0] : 'bottom';
       return { side: side, align: parts[1] === 'end' ? 'end' : 'start' };
     }
-    var FLIP = { bottom: 'top', top: 'bottom', left: 'right', right: 'left' };
 
     function menuItems(list) {
       if (!list) return [];
@@ -4639,12 +4818,10 @@
       var st = useState(!!props.defaultOpen);
       var controlled = props.open !== undefined;
       var open = controlled ? !!props.open : st[0];
-      var triggerRef = useRef(null), listRef = useRef(null);
+      var rootRef = useRef(null), triggerRef = useRef(null), listRef = useRef(null);
       var focusOnOpen = useRef(null);
       var base = useId();
       var pos = parsePosition(props.position);
-      var placed = useState(pos.side);
-      var side = placed[0];
 
       function setOpen(next) {
         if (!controlled) st[1](next);
@@ -4656,47 +4833,16 @@
         if (refocus && triggerRef.current && triggerRef.current.focus) triggerRef.current.focus();
       }
 
+      /* The list is portalled to <body>, so it is passed to useDismiss alongside the trigger. */
       useDismiss(open, [triggerRef, listRef], function (why) { close(why === 'escape'); });
 
-      /* After opening: flip to the other side if this one overflows the window, then move focus in. */
-      useLayoutEffect(function () {
-        if (!open) { placed[1](pos.side); return; }
-        var list = listRef.current;
-        if (list && !props.anchorPoint) {
-          var r = list.getBoundingClientRect(), t = triggerRef.current ? triggerRef.current.getBoundingClientRect() : null;
-          var next = pos.side;
-          if (t) {
-            if (pos.side === 'bottom' && r.bottom > window.innerHeight && t.top - r.height - 8 > 0) next = 'top';
-            else if (pos.side === 'top' && r.top < 0 && t.bottom + r.height + 8 < window.innerHeight) next = 'bottom';
-            else if (pos.side === 'right' && r.right > window.innerWidth && t.left - r.width - 8 > 0) next = 'left';
-            else if (pos.side === 'left' && r.left < 0 && t.right + r.width + 8 < window.innerWidth) next = 'right';
-          }
-          if (next !== side) placed[1](next);
-        }
-        var which = focusOnOpen.current;
-        focusOnOpen.current = null;
-        if (list && props.anchorPoint) {
-          /* Context menus open at the pointer; shift back inside the window if they would overflow. */
-          var b = list.getBoundingClientRect();
-          /* Open towards the other side of the point, or pin to the window edge if neither side fits. */
-          var ax = props.anchorPoint.x, ay = props.anchorPoint.y;
-          if (b.right > window.innerWidth) list.style.left = (ax - b.width >= 0 ? ax - b.width : Math.max(0, window.innerWidth - b.width)) + 'px';
-          if (b.bottom > window.innerHeight) list.style.top = (ay - b.height >= 0 ? ay - b.height : Math.max(0, window.innerHeight - b.height)) + 'px';
-        }
-        if (which && list) {
-          var items = menuItems(list);
-          var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
-          (el || list).focus({ preventScroll: true });
-        }
-      }, [open, props.anchorPoint]);
-
       var ctx = {
-        open: open, openMenu: openMenu, close: close, triggerRef: triggerRef, listRef: listRef,
+        open: open, openMenu: openMenu, close: close, rootRef: rootRef, triggerRef: triggerRef, listRef: listRef, focusOnOpen: focusOnOpen,
         menuId: base + '-menu', buttonId: base + '-button',
-        side: side, align: pos.align, anchorPoint: props.anchorPoint
+        side: pos.side, align: pos.align, anchorPoint: props.anchorPoint
       };
       return h(MenuCtx.Provider, { value: ctx },
-        h(props.as || 'div', { className: cx('hy-menu', props.className), style: props.style }, props.children));
+        h(props.as || 'div', { ref: rootRef, className: cx('hy-menu', props.className), style: props.style }, props.children));
     }
     MenuContainer.Context = MenuCtx;
 
@@ -4741,8 +4887,39 @@
 
     function MenuList(props) {
       var ctx = props.ctx;
-      var typed = useRef({ text: '', at: 0 });
       if (!ctx.open) return null;
+      var a = ctx.anchorPoint;
+      /* Keyed by the point so a second right-click re-places the menu. */
+      return h(MenuPopup, Object.assign({}, props, { key: a ? a.x + ',' + a.y : 'menu' }));
+    }
+
+    /* The open list: portalled, placed by useFloating (flips, stays 8px inside the screen). */
+    function MenuPopup(props) {
+      var ctx = props.ctx;
+      var typed = useRef({ text: '', at: 0 });
+      var anchor = ctx.anchorPoint;
+      /* Beside the whole container (SplitButton aligns to its main button), or at a point for context menus.
+         A getter, because the container's ref is attached after this child's first layout effect. */
+      var anchorRef = useMemo(function () {
+        var point = anchor && {
+          getBoundingClientRect: function () { return { left: anchor.x, right: anchor.x, top: anchor.y, bottom: anchor.y, width: 0, height: 0 }; }
+        };
+        return { get current() { return point || ctx.rootRef.current || ctx.triggerRef.current; } };
+      }, []);
+      var pos = useFloating(true, anchorRef, ctx.listRef, { side: anchor ? 'bottom' : ctx.side, align: anchor ? 'start' : ctx.align, offset: anchor ? 0 : 8 });
+      var placed = !!pos;
+
+      /* Move focus in once the list is placed and visible. */
+      useLayoutEffect(function () {
+        if (!placed) return;
+        var which = ctx.focusOnOpen.current, list = ctx.listRef.current;
+        ctx.focusOnOpen.current = null;
+        if (!which || !list) return;
+        var items = menuItems(list);
+        var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
+        (el || list).focus({ preventScroll: true });
+      }, [placed]);
+
       function onKeyDown(e) {
         var items = menuItems(ctx.listRef.current);
         if (!items.length) return;
@@ -4764,15 +4941,15 @@
         }
         if (next) { e.preventDefault(); next.focus(); }
       }
-      var anchor = ctx.anchorPoint;
-      var style = Object.assign({}, props.width !== undefined ? { width: props.width } : null,
-        anchor ? { position: 'fixed', left: anchor.x, top: anchor.y } : null, props.style);
-      var list = h('ul', {
+      var side = pos ? pos.side : (anchor ? 'bottom' : ctx.side);
+      var align = anchor ? 'start' : ctx.align;
+      var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(320px, calc(100vw - 16px))' },
+        props.width !== undefined ? { width: props.width } : null, props.style));
+      return portal(h('ul', {
         ref: ctx.listRef, id: ctx.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': anchor ? undefined : ctx.buttonId,
         'aria-label': props['aria-label'], onKeyDown: onKeyDown, style: style,
-        className: cx('hy-menu__list', !anchor && 'hy-menu__list--' + ctx.side, !anchor && 'hy-menu__list--' + ctx.align, anchor && 'hy-menu__list--point', props.className)
-      }, props.children);
-      return anchor ? portal(list) : list;
+        className: cx('hy-menu__list', 'hy-menu__list--' + side, 'hy-menu__list--' + align, anchor && 'hy-menu__list--point', props.className)
+      }, props.children));
     }
 
     function itemInner(props) {
@@ -5141,12 +5318,15 @@
 
   /* ---- Tooltip ---- */
   (function () {
-    /* Tooltip: hover/focus label. The first one waits `delay`; neighbours opened soon after show instantly. */
+    /* Tooltip: hover/focus label. The first one waits `delay`; neighbours opened soon after show instantly.
+       The box is portalled to <body> only while open and placed with useFloating, so it flips and stays on screen.
+       Touch: a tap toggles it, and a tap outside or moving focus away closes it. */
     var lastTooltipClose = 0;
     var TOOLTIP_TYPES = { success: 1, error: 1, warning: 1, violet: 1 };
+    var TOOLTIP_ALIGN = { left: 'start', center: 'center', right: 'end', start: 'start', end: 'end' };
 
-    function TooltipTip() {
-      return h('svg', { className: 'hy-tooltip__tip', width: 14, height: 7, viewBox: '0 0 14 7', 'aria-hidden': 'true', focusable: 'false' },
+    function TooltipTip(p) {
+      return h('svg', { className: 'hy-tooltip__tip', style: p.style, width: 14, height: 7, viewBox: '0 0 14 7', 'aria-hidden': 'true', focusable: 'false' },
         h('path', { d: 'M0 0h14L8.4 6.1a1.9 1.9 0 0 1-2.8 0z' }));
     }
 
@@ -5155,11 +5335,15 @@
       var open = st[0], setOpen = st[1];
       var id = useId();
       var t = useRef(null);
+      var anchorRef = useRef(null), boxRef = useRef(null);
+      var touchAt = useRef(0);
       var delay = props.delay === false ? 0 : (typeof props.delay === 'number' ? props.delay : 150);
       var position = props.position || 'top';
-      var align = props.boxAlign || 'center';
+      var align = TOOLTIP_ALIGN[props.boxAlign] || (props.center === false ? 'start' : 'center');
       var type = TOOLTIP_TYPES[props.type] ? props.type : null;
+      var pos = useFloating(open, anchorRef, boxRef, { side: position, align: align, offset: 8 });
       useEffect(function () { return function () { clearTimeout(t.current); }; }, []);
+      function fromTouch() { return Date.now() - touchAt.current < 800; }
       function show() {
         clearTimeout(t.current);
         var warm = Date.now() - lastTooltipClose < 400;
@@ -5171,18 +5355,32 @@
         if (open) lastTooltipClose = Date.now();
         setOpen(false);
       }
+      useDismiss(open, [anchorRef, boxRef], hide);
+      function onPointerDown(e) {
+        if (e.pointerType !== 'touch') return;
+        touchAt.current = Date.now();
+        clearTimeout(t.current);
+        if (open) hide(); else setOpen(true);
+      }
+      /* Taps also send emulated mouseenter/mouseleave and focus; the tap toggle has already handled those. */
+      function onEnter() { if (!fromTouch()) show(); }
+      function onLeave() { if (!fromTouch()) hide(); }
+      function onFocus() { if (!fromTouch()) show(); }
       function onKey(e) { if (e.key === 'Escape' && open) { e.stopPropagation(); hide(); } }
+      var side = pos ? pos.side : position;
+      var tipStyle = null;
+      if (pos) tipStyle = side === 'top' || side === 'bottom' ? { left: pos.arrowX - 7 } : { top: pos.arrowY - 3.5 };
       var child = props.children;
       var trigger = React.isValidElement(child) && React.Children.count(child) === 1
         ? React.cloneElement(child, { 'aria-describedby': open ? id : undefined })
         : h('span', { tabIndex: 0, className: 'hy-tooltip__text', 'aria-describedby': open ? id : undefined }, child);
-      return h('span', { className: cx('hy-tooltip', props.className), onMouseEnter: show, onMouseLeave: hide, onFocus: show, onBlur: hide, onKeyDown: onKey },
+      return h('span', { ref: anchorRef, className: cx('hy-tooltip', props.className), onPointerDown: onPointerDown, onMouseEnter: onEnter, onMouseLeave: onLeave, onFocus: onFocus, onBlur: hide, onKeyDown: onKey },
         trigger,
-        h('span', {
-          role: 'tooltip', id: id,
-          className: cx('hy-tooltip__box', 'hy-tooltip__box--' + position, 'hy-tooltip__box--align-' + align, type && 'hy-tooltip__box--' + type,
-            props.center === false && 'hy-tooltip__box--start', open && 'is-open')
-        }, props.text, props.tip === false ? null : h(TooltipTip)));
+        open ? portal(h('span', {
+          ref: boxRef, role: 'tooltip', id: id,
+          className: cx('hy-tooltip__box', 'hy-tooltip__box--' + side, type && 'hy-tooltip__box--' + type, props.center === false && 'hy-tooltip__box--start'),
+          style: floatingStyle(pos, { zIndex: 'var(--z-tooltip)', maxWidth: 'min(250px, calc(100vw - 16px))' })
+        }, props.text, props.tip === false ? null : h(TooltipTip, { style: tipStyle }))) : null);
     }
 
     define('Tooltip', Tooltip);

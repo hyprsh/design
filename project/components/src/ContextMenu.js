@@ -45,6 +45,7 @@ function ContextMenuTrigger(props) {
   var menu = React.useContext(HY.MenuContainer.Context);
   var lastKey = useRef(0);
   var press = useRef(null);
+  var start = useRef(null);
   useEffect(function () { return function () { clearTimeout(press.current); }; }, []);
 
   function setRef(el) {
@@ -60,6 +61,7 @@ function ContextMenuTrigger(props) {
     if (props.onContextMenu) props.onContextMenu(e);
     if (props.disabled || e.defaultPrevented) return;
     e.preventDefault();
+    cancelPress();
     if (Date.now() - lastKey.current < 400) return; /* already opened from the keyboard */
     openAt(e.clientX, e.clientY, 'list');
   }
@@ -73,29 +75,46 @@ function ContextMenuTrigger(props) {
       openAt(r.left + 8, r.top + 8, 'first');
     }
   }
-  /* Long-press for touch screens that don't fire contextmenu. */
-  function onTouchStart(e) {
-    if (props.disabled || e.touches.length !== 1) return;
-    var t = e.touches[0];
-    clearTimeout(press.current);
-    press.current = setTimeout(function () { lastKey.current = Date.now(); openAt(t.clientX, t.clientY, 'list'); }, 500);
+  /* Long-press on touch screens (pointerType touch): open after 500ms unless the finger moves more than 10px. */
+  function cancelPress() { clearTimeout(press.current); press.current = null; }
+  function onPointerDown(e) {
+    if (props.onPointerDown) props.onPointerDown(e);
+    if (props.disabled || e.pointerType !== 'touch' || !e.isPrimary) return;
+    var x = e.clientX, y = e.clientY;
+    cancelPress();
+    start.current = { x: x, y: y };
+    press.current = setTimeout(function () {
+      press.current = null;
+      if (menu && menu.open) return;
+      lastKey.current = Date.now(); /* the browser may also fire contextmenu for the same press */
+      openAt(x, y, 'list');
+    }, 500);
   }
-  function cancelPress() { clearTimeout(press.current); }
+  function onPointerMove(e) {
+    if (props.onPointerMove) props.onPointerMove(e);
+    if (!press.current || e.pointerType !== 'touch') return;
+    var s0 = start.current;
+    if (Math.abs(e.clientX - s0.x) > 10 || Math.abs(e.clientY - s0.y) > 10) cancelPress();
+  }
   function onMouseDown(e) {
     if (props.onMouseDown) props.onMouseDown(e);
     if (menu && menu.open && e.button === 0) menu.close(false);
   }
-  var rest = omit(props, ['children', 'className', 'disabled', 'as', 'onContextMenu', 'onKeyDown', 'onMouseDown']);
+  var rest = omit(props, ['children', 'className', 'disabled', 'as', 'onContextMenu', 'onKeyDown', 'onMouseDown', 'onPointerDown', 'onPointerMove', 'onPointerUp', 'onPointerCancel']);
   return h(props.as || 'div', Object.assign(rest, {
     ref: setRef, tabIndex: props.tabIndex === undefined ? 0 : props.tabIndex,
     className: cx('hy-context-menu__trigger', props.className),
     onContextMenu: onContextMenu, onKeyDown: onKeyDown, onMouseDown: onMouseDown,
-    onTouchStart: onTouchStart, onTouchMove: cancelPress, onTouchEnd: cancelPress, onTouchCancel: cancelPress
+    onPointerDown: onPointerDown, onPointerMove: onPointerMove, onPointerUp: function (e) { cancelPress(); if (props.onPointerUp) props.onPointerUp(e); },
+    onPointerCancel: function (e) { cancelPress(); if (props.onPointerCancel) props.onPointerCancel(e); }
   }), props.children);
 }
 
+/* The list is portalled and placed by Menu (useFloating at the pointer), which keeps it 8px inside the screen. */
 function ContextMenuContent(props) {
-  return h(HY.Menu, Object.assign({}, props, { 'aria-label': props['aria-label'] || 'Context Menu' }));
+  return h(HY.Menu, Object.assign({}, props, {
+    'aria-label': props['aria-label'] || 'Context Menu', className: cx('hy-context-menu__list', props.className)
+  }));
 }
 
 function ContextMenuItem(props) { return h(HY.MenuItem, props); }

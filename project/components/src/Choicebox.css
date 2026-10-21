@@ -2,8 +2,8 @@
 .hy-choicebox { min-width: 0; margin: 0; padding: 0; border: 0; }
 .hy-choicebox__legend { padding: 0; margin: 0 0 8px; font-size: 13px; line-height: 16px; color: var(--gray-900); }
 .hy-choicebox__list { display: flex; flex-direction: column; gap: 8px; }
-.hy-choicebox__list--row { flex-direction: row; gap: 12px; }
-.hy-choicebox__list--row > .hy-choicebox__item { flex: 1 1 0; min-width: 0; }
+.hy-choicebox__list--row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 12px; }
+.hy-choicebox__list--row > .hy-choicebox__item { min-width: 0; }
 .hy-choicebox__item {
   position: relative; display: flex; flex-direction: column; overflow: hidden;
   border-radius: var(--radius-md); background: var(--background-100);

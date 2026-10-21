@@ -77,6 +77,22 @@ function fpLabel(param, v) {
   return fpOptionLabel(param, v);
 }
 
+/* The open popover: portalled and placed under its anchor by useFloating (flips, stays 8px inside the screen).
+   Keyed by the anchor, so it re-places when another pill opens it. Calls onPlaced once it is visible. */
+function FilterParamsFloat(props) {
+  var pos = useFloating(true, props.anchorRef, props.floatRef, { side: 'bottom', align: 'start', offset: 8 });
+  var placed = !!pos;
+  useLayoutEffect(function () {
+    props.placedRef.current = placed;
+    if (placed) props.onPlaced();
+    return function () { props.placedRef.current = false; };
+  }, [placed]);
+  return portal(h('div', {
+    ref: props.floatRef, className: cx('hy-filter-params__popover', pos && pos.side === 'top' && 'hy-filter-params__popover--top'),
+    style: floatingStyle(pos)
+  }, props.children));
+}
+
 function FilterParamsBar(props) {
   var params = props.params || [];
   var urlState = useSearchParamState();
@@ -89,8 +105,8 @@ function FilterParamsBar(props) {
   var query = useState('');
   var active = useState(0);
   var anchor = useState('add');  /* 'add' or a param index whose pill opened the popover */
-  var left = useState(0);
   var barRef = useRef(null), addRef = useRef(null), inputRef = useRef(null), pillRefs = useRef({});
+  var popRef = useRef(null), placedRef = useRef(false);
   var focusInput = useRef(false);
   var uid = useId();
   var listId = uid + '-list';
@@ -98,17 +114,21 @@ function FilterParamsBar(props) {
   var values = params.map(function (p) { return fpDecode(p, sp); });
 
   function anchorEl(a) { return a === 'add' ? addRef.current : pillRefs.current[a]; }
-  useLayoutEffect(function () {
-    if (!open[0] || !barRef.current) return;
-    var el = anchorEl(anchor[0]) || addRef.current;
-    if (!el) return;
-    var bar = barRef.current.getBoundingClientRect(), r = el.getBoundingClientRect();
-    var x = Math.max(0, Math.min(r.left - bar.left, bar.width - 280));
-    if (x !== left[0]) left[1](x);
-  });
+  /* Read when the popover is placed: the anchor's ref is attached after the popover's first layout effect. */
+  var anchorNow = useRef(null);
+  anchorNow.current = anchor[0];
+  var floatAnchor = useMemo(function () {
+    return { get current() { return anchorEl(anchorNow.current) || addRef.current; } };
+  }, []);
+  /* Focus the search input when asked to, but only once the popover is placed (it is hidden until then). */
+  function focusIfAsked() {
+    if (focusInput.current && inputRef.current && placedRef.current) {
+      inputRef.current.focus({ preventScroll: true });
+      focusInput.current = false;
+    }
+  }
   useEffect(function () {
-    if (open[0] && focusInput.current && inputRef.current) inputRef.current.focus({ preventScroll: true });
-    focusInput.current = false;
+    if (open[0]) focusIfAsked(); else focusInput.current = false;
   }, [open[0], step[0]]);
 
   function openAt(a, s) {
@@ -116,11 +136,11 @@ function FilterParamsBar(props) {
     anchor[1](a); step[1](s); query[1](''); active[1](0); open[1](true);
   }
   function close(returnFocus) {
-    var a = anchor[0];
+    var a = anchorNow.current; /* useDismiss keeps the first close it was given, so read the anchor from a ref */
     open[1](false); step[1](null); query[1](''); active[1](0);
     if (returnFocus) { var el = anchorEl(a) || addRef.current; if (el) el.focus({ preventScroll: true }); }
   }
-  useDismiss(open[0], [barRef], function (why) { close(why === 'escape'); });
+  useDismiss(open[0], [barRef, popRef], function (why) { close(why === 'escape'); });
 
   function apply(param, v) {
     var next = new URLSearchParams(sp.toString());
@@ -184,7 +204,13 @@ function FilterParamsBar(props) {
     else if (e.key === 'End' && !query[0]) { e.preventDefault(); active[1](items.length - 1); }
     else if (e.key === 'Enter') { e.preventDefault(); choose(items[act]); }
     else if (e.key === 'Backspace' && !query[0] && step[0] !== null && anchor[0] === 'add') { e.preventDefault(); step[1](null); active[1](0); }
-    else if (e.key === 'Tab') close(false);
+    else if (e.key === 'Tab') {
+      if (e.shiftKey && stepParam) return; /* to the Back chip, still inside the popover */
+      /* The popover lives at the end of <body>: continue tabbing from the element that opened it. */
+      var from = anchorEl(anchor[0]) || addRef.current;
+      if (from) { if (e.shiftKey) e.preventDefault(); from.focus({ preventScroll: true }); }
+      close(false);
+    }
   }
 
   var suggestions = [];
@@ -196,7 +222,7 @@ function FilterParamsBar(props) {
   var stepParam = step[0] === null ? null : params[step[0]];
   var thinking = props.ai && props.ai.isThinking;
 
-  var popover = open[0] ? h('div', { className: 'hy-filter-params__popover', style: { left: left[0] } },
+  var popover = open[0] ? h(FilterParamsFloat, { key: String(anchor[0]), anchorRef: floatAnchor, floatRef: popRef, placedRef: placedRef, onPlaced: focusIfAsked },
     h('div', { className: 'hy-filter-params__search' },
       stepParam ? h('button', {
         type: 'button', className: 'hy-filter-params__chip', 'aria-label': 'Back to filters (' + stepParam.key + ')',

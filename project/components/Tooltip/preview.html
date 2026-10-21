@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Tooltip</title></head>
 <body>
-<div id="root" style="display:grid;grid-template-columns:repeat(4,1fr);row-gap:96px;align-items:center;justify-items:center;padding:56px 24px"></div>
+<div id="root" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));row-gap:96px;align-items:center;justify-items:center;padding:56px 24px"></div>
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 function icon(d) { return h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true' }, h('path', { d: d })); }

@@ -6,6 +6,11 @@
   color: var(--gray-1000); overflow: hidden; animation: hy-rise .2s cubic-bezier(.4,0,.2,1);
 }
 .hy-cmd:focus { outline: none; }
+/* Phones: full width with 8px margins; the list scrolls inside the menu. */
+@media (max-width: 600px) {
+  .hy-cmd-overlay.hy-overlay--top { padding: max(8px, env(safe-area-inset-top)) 8px 8px; }
+  .hy-cmd { width: 100%; max-height: 100%; }
+}
 .hy-cmd__search { flex: none; display: flex; align-items: center; gap: 12px; padding: 12px; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-cmd__input {
   flex: 1; min-width: 0; height: 28px; padding: 0 4px; border: 0; outline: none; background: transparent;
@@ -18,6 +23,10 @@
   font: inherit; font-size: 12px; line-height: 20px; color: var(--gray-900); cursor: pointer;
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
+/* 20px drawn, 24px hit area (40px on touch) */
+.hy-cmd__esc { position: relative; }
+.hy-cmd__esc::after { content: ''; position: absolute; inset: -2px 0; }
+@media (pointer: coarse) { .hy-cmd__esc::after { inset: -10px -4px; } }
 .hy-cmd__esc:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-cmd__list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px; scroll-padding: 8px; }

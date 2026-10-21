@@ -14,11 +14,12 @@
 .hy-combobox__chevron .hy-glyph { transition: transform .15s ease; }
 .hy-combobox.is-open .hy-combobox__chevron .hy-glyph { transform: rotate(180deg); }
 .hy-combobox__list {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 0; right: 0;
+  /* portalled; position, width and z-index come from useFloating */
   box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top center; animation: hy-combobox-in .12s ease-out;
 }
+.hy-combobox__list--top { transform-origin: bottom center; }
 .hy-combobox__option {
   display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px;
   border-radius: var(--radius-md); font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer;
@@ -34,6 +35,13 @@
 }
 @keyframes hy-combobox-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-combobox-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+@media (pointer: coarse) {
+  .hy-combobox__field input { font-size: 16px; }
+  .hy-combobox__option, .hy-combobox__empty { min-height: 40px; }
+  .hy-combobox__btn { width: 32px; height: 32px; }
+}
 
 @media (prefers-reduced-motion: reduce) {
   .hy-combobox__list { animation-name: hy-combobox-fade; }

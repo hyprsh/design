@@ -1,6 +1,7 @@
 /*
  * Tabs: WAI-ARIA tabs. Geist's API (`selected` + `setSelected`, `tabs` with title/value/icon/disabled/tooltip,
  * `disabled`, `variant="secondary"`) plus our `onChange`, `defaultSelected` and per-tab `content` panels.
+ * A list wider than the screen scrolls sideways; tab tooltips are portalled, so the scroll doesn't clip them.
  */
 function Tabs(props) {
   var tabs = props.tabs || [];
@@ -31,10 +32,8 @@ function Tabs(props) {
   /* The selected tab takes the tab stop; if it is disabled (or none is selected), the first enabled tab does. */
   var focusable = tabs.filter(function (t) { return t.value === sel && !isOff(t); })[0] || tabs.filter(function (t) { return !isOff(t); })[0];
   var active = tabs.filter(function (t) { return t.value === sel; })[0];
-  /* A scrolling list would clip tooltips, so a list with tooltips wraps instead of scrolling. */
-  var tips = tabs.some(function (t) { return t.tooltip; });
   return h('div', { className: cx('hy-tabs', 'hy-tabs--' + variant, props.className), style: props.style },
-    h('div', { role: 'tablist', 'aria-label': props['aria-label'], className: cx('hy-tabs__list', tips && 'hy-tabs__list--tips'), onKeyDown: onKey },
+    h('div', { role: 'tablist', 'aria-label': props['aria-label'], className: 'hy-tabs__list', onKeyDown: onKey },
       tabs.map(function (t) {
         var on = t.value === sel;
         var btn = h('button', {

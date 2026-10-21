@@ -3,7 +3,7 @@
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ContextCard</title></head>
 <body>
-<div id="root" style="display:flex;justify-content:space-around;align-items:flex-start;padding:40px 24px 0;gap:24px"></div>
+<div id="root" style="display:flex;flex-wrap:wrap;justify-content:space-around;align-items:flex-start;padding:40px 24px 0;gap:232px 24px"></div>
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 function Row(k, v) {
@@ -20,7 +20,7 @@ function Project() {
 }
 function Demo() {
   return h(F, null,
-    h(H.ContextCard, { content: h(Project), side: 'bottom', align: 'start', defaultOpen: true }, h(H.Button, { size: 'small' }, 'hyprsh-web')),
+    h('div', { style: { minWidth: 'min(100%, 280px)' } }, h(H.ContextCard, { content: h(Project), side: 'bottom', align: 'start', defaultOpen: true }, h(H.Button, { size: 'small' }, 'hyprsh-web'))),
     h(H.ContextCardTrigger, { content: 'Built from main in 42s, promoted to production', side: 'bottom', align: 'end', defaultOpen: true,
       render: h('a', { href: '#deployment', style: { color: 'var(--link)', textUnderlineOffset: 2 } }) }, 'dpl_4f2a9c1'));
 }

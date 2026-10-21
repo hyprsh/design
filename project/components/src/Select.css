@@ -19,3 +19,8 @@
 .hy-select--disabled .hy-select__chevron, .hy-select--disabled .hy-select__prefix, .hy-select--disabled .hy-select__suffix { color: var(--gray-700); }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }
+/* Touch screens: no select shorter than 40px (core.css already sets 16px text so iOS doesn't zoom). */
+@media (pointer: coarse) {
+  .hy-select--small, .hy-select--medium { height: 40px; }
+  .hy-select select { font-size: 16px; }
+}

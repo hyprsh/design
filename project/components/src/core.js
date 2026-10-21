@@ -110,10 +110,62 @@ function useDismiss(open, refs, onDismiss) {
     function inside(t) { return refs.some(function (r) { return r.current && r.current.contains(t); }); }
     function onDown(e) { if (!inside(e.target)) onDismiss('outside'); }
     function onKey(e) { if (e.key === 'Escape') onDismiss('escape'); }
-    document.addEventListener('mousedown', onDown);
+    document.addEventListener('pointerdown', onDown);
     document.addEventListener('keydown', onKey);
-    return function () { document.removeEventListener('mousedown', onDown); document.removeEventListener('keydown', onKey); };
+    return function () { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey); };
   }, [open]);
+}
+
+/* ---- place a floating box next to its anchor ----
+   Returns null until measured, then { top, left, side, arrowX, arrowY } in viewport px for position: fixed.
+   side: top | bottom | left | right (default bottom); align: start | center | end (default center).
+   It flips to the opposite side when the box doesn't fit, falls back from left/right to below on narrow
+   screens, and keeps the box 8px inside the viewport. Render the box through portal() while open,
+   with style floatingStyle(pos). Re-measures on resize and on any scroll. */
+function useFloating(open, anchorRef, floatRef, opts) {
+  opts = opts || {};
+  var st = useState(null);
+  var side0 = opts.side || 'bottom', align = opts.align || 'center', gap = opts.offset == null ? 8 : opts.offset;
+  useLayoutEffect(function () {
+    if (!open) { st[1](null); return; }
+    var OPP = { top: 'bottom', bottom: 'top', left: 'right', right: 'left' };
+    function place() {
+      var a = anchorRef.current, f = floatRef.current;
+      if (!a || !f) return;
+      var ar = a.getBoundingClientRect(), fw = f.offsetWidth, fh = f.offsetHeight;
+      var vw = document.documentElement.clientWidth, vh = window.innerHeight, m = 8;
+      var fits = { top: ar.top - gap - fh >= m, bottom: ar.bottom + gap + fh <= vh - m, left: ar.left - gap - fw >= m, right: ar.right + gap + fw <= vw - m };
+      var side = side0;
+      if (!fits[side] && fits[OPP[side]]) side = OPP[side];
+      if ((side === 'left' || side === 'right') && !fits[side]) side = fits.bottom || !fits.top ? 'bottom' : 'top';
+      var top, left;
+      if (side === 'top' || side === 'bottom') {
+        top = side === 'top' ? ar.top - gap - fh : ar.bottom + gap;
+        left = align === 'start' ? ar.left : align === 'end' ? ar.right - fw : ar.left + ar.width / 2 - fw / 2;
+      } else {
+        left = side === 'left' ? ar.left - gap - fw : ar.right + gap;
+        top = align === 'start' ? ar.top : align === 'end' ? ar.bottom - fh : ar.top + ar.height / 2 - fh / 2;
+      }
+      left = Math.max(m, Math.min(left, vw - m - fw));
+      top = Math.max(m, Math.min(top, vh - m - fh));
+      var next = { top: Math.round(top), left: Math.round(left), side: side,
+        arrowX: Math.round(Math.max(12, Math.min(fw - 12, ar.left + ar.width / 2 - left))),
+        arrowY: Math.round(Math.max(12, Math.min(fh - 12, ar.top + ar.height / 2 - top))) };
+      st[1](function (prev) {
+        return prev && prev.top === next.top && prev.left === next.left && prev.side === next.side && prev.arrowX === next.arrowX && prev.arrowY === next.arrowY ? prev : next;
+      });
+    }
+    place();
+    var raf = requestAnimationFrame(place);
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return function () { cancelAnimationFrame(raf); window.removeEventListener('resize', place); window.removeEventListener('scroll', place, true); };
+  }, [open, side0, align, gap]);
+  return st[0];
+}
+/* Style for a box placed by useFloating: hidden until measured, never wider than the screen. */
+function floatingStyle(pos, extra) {
+  return Object.assign({ position: 'fixed', top: pos ? pos.top : 0, left: pos ? pos.left : 0, visibility: pos ? 'visible' : 'hidden', maxWidth: 'calc(100vw - 16px)', zIndex: 'var(--z-menu)' }, extra);
 }
 
 /* ---- lock page scroll while an overlay is open ---- */

@@ -52,16 +52,18 @@
 .hy-calendar__presets--stacked .hy-calendar__presets-select { width: 100%; }
 
 /* popover */
+/* portalled; position and z-index come from useFloating */
 .hy-calendar__popover {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 0;
   display: flex; flex-direction: column; gap: 12px; width: 280px; box-sizing: border-box; padding: 12px;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top left; animation: hy-calendar-in .12s ease-out;
 }
-.hy-calendar__popover--center { left: 50%; margin-left: -140px; transform-origin: top center; }
-.hy-calendar__popover--end { left: auto; right: 0; transform-origin: top right; }
+.hy-calendar__popover--center { transform-origin: top center; }
+.hy-calendar__popover--end { transform-origin: top right; }
+.hy-calendar__popover--top { transform-origin: bottom left; }
+.hy-calendar__popover--top.hy-calendar__popover--center { transform-origin: bottom center; }
+.hy-calendar__popover--top.hy-calendar__popover--end { transform-origin: bottom right; }
 .hy-calendar__popover--horizontal { flex-direction: row; width: auto; gap: 0; padding: 0; }
-.hy-calendar__popover--horizontal.hy-calendar__popover--center { left: 50%; margin-left: 0; translate: -50% 0; }
 .hy-calendar__popover--horizontal .hy-calendar__month { width: 256px; padding: 12px; }
 .hy-calendar__popover--horizontal .hy-calendar__side { width: 256px; padding: 12px; border-top: 0; border-left: 1px solid var(--gray-alpha-400); }
 .hy-calendar__head { display: flex; align-items: center; justify-content: space-between; height: 32px; margin-bottom: 4px; padding-left: 4px; }
@@ -122,12 +124,33 @@
 .hy-calendar__zone select:hover { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .hy-calendar__zone select:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 
+/* Narrow screens: the side-by-side layout stacks the fields under the month again. */
+@media (max-width: 559px) {
+  .hy-calendar__popover--horizontal { flex-direction: column; width: 280px; }
+  .hy-calendar__popover--horizontal .hy-calendar__month,
+  .hy-calendar__popover--horizontal .hy-calendar__side { width: auto; }
+  .hy-calendar__popover--horizontal .hy-calendar__side { border-left: 0; border-top: 1px solid var(--gray-alpha-400); }
+}
+
 @keyframes hy-calendar-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-calendar-fade { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-calendar__popover { animation-name: hy-calendar-fade; }
   .hy-calendar__trigger { transition-duration: 0s; }
 }
+/* Touch screens: 16px text so iOS doesn't zoom on focus, 40px day cells, buttons and fields (as large as fits). */
 @media (pointer: coarse) {
-  .hy-calendar__input, .hy-calendar__presets-select { font-size: 16px; }
+  .hy-calendar__input, .hy-calendar__presets-select, .hy-calendar__zone select { font-size: 16px; }
+  .hy-calendar__popover, .hy-calendar__popover--horizontal { width: min(304px, calc(100vw - 16px)); }
+  .hy-calendar__popover--horizontal .hy-calendar__month { width: auto; }
+  .hy-calendar__head { height: 40px; }
+  .hy-calendar__navbtn { width: 40px; height: 40px; }
+  .hy-calendar__day { width: 100%; max-width: 40px; height: 40px; }
+  .hy-calendar__input, .hy-calendar__zone { height: 40px; }
+  .hy-calendar__input--time { width: 104px; }
+  .hy-calendar__zone .hy-icon, .hy-calendar__zone .hy-glyph { top: 12px; }
+}
+@media (pointer: coarse) and (min-width: 560px) {
+  .hy-calendar__popover--horizontal { width: auto; }
+  .hy-calendar__popover--horizontal .hy-calendar__month { width: 304px; }
 }

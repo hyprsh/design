@@ -11,10 +11,10 @@
 .hy-split__toggle[aria-expanded="true"] .hy-glyph { transform: rotate(180deg); }
 
 .hy-menu__item.hy-split__item { align-items: flex-start; padding: 8px; }
-.hy-split__item .hy-menu__text.hy-menu__text { white-space: normal; overflow: visible; }
+.hy-split__item .hy-menu__text.hy-menu__text { white-space: normal; }
 .hy-split__item .hy-menu__affix.hy-menu__affix { margin-top: 2px; }
-.hy-split__item-body { display: flex; flex-direction: column; gap: 2px; }
-.hy-split__item-title { font-size: 14px; line-height: 20px; color: var(--gray-1000); }
+.hy-split__item-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.hy-split__item-title { font-size: 14px; line-height: 20px; color: var(--gray-1000); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-split__item[aria-disabled="true"] .hy-split__item-title { color: var(--gray-700); }
 .hy-split__item-desc { font-size: 13px; line-height: 18px; color: var(--gray-900); }
 

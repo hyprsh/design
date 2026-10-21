@@ -117,7 +117,7 @@ function Calendar(props) {
   var hover = hs[0], setHover = hs[1];
   var zs = useControllable(props.timezone, props.defaultTimezone || props.pinnedTimezone || 'local', props.onTimezoneChange);
   var msg = useState('');
-  var root = useRef(null), pop = useRef(null), trigger = useRef(null), byUser = useRef(false);
+  var root = useRef(null), pop = useRef(null), trigger = useRef(null), anchor = useRef(null), byUser = useRef(false);
   var titleId = auto + '-title';
   var presets = calPresetList(props.presets);
 
@@ -137,13 +137,23 @@ function Calendar(props) {
     setHover(null);
     if (restore && trigger.current) trigger.current.focus();
   }
-  useDismiss(open, [root], function (reason) { closePopover(reason === 'escape'); });
+  useDismiss(open, [root, pop], function (reason) { closePopover(reason === 'escape'); });
+  var align = props.popoverAlignment === 'center' || props.popoverAlignment === 'end' ? props.popoverAlignment : 'start';
+  var pos = useFloating(open, anchor, pop, { side: 'bottom', align: align });
   useEffect(function () {
-    if (!open || !byUser.current || !pop.current) return;
+    if (!open || !byUser.current) return;
     byUser.current = false;
-    var b = pop.current.querySelector('.hy-calendar__day[tabindex="0"]');
-    if (b) b.focus({ preventScroll: true });
+    /* wait a frame: the popover stays hidden until useFloating has measured it, and hidden boxes can't take focus */
+    var raf = requestAnimationFrame(function () {
+      var b = pop.current && pop.current.querySelector('.hy-calendar__day[tabindex="0"]');
+      if (b) b.focus({ preventScroll: true });
+    });
+    return function () { cancelAnimationFrame(raf); };
   }, [open]);
+  /* the grid can grow a row when the month changes: let useFloating re-measure (it listens to any scroll) */
+  useLayoutEffect(function () {
+    if (open && pop.current) pop.current.dispatchEvent(new Event('scroll'));
+  }, [open, focus.getFullYear(), focus.getMonth()]);
 
   function commit(r) {
     var out = mode === 'single' ? (r.start ? calWithTime(r.start, '00:00') : null)
@@ -269,9 +279,10 @@ function Calendar(props) {
   if (props.pinnedTimezone) zones.push({ value: props.pinnedTimezone, label: props.pinnedTimezone.replace(/_/g, ' ') });
   var showZone = showTime && props.showTimezone !== false;
 
-  var popover = open ? h('div', {
+  var popover = open ? portal(h('div', {
     ref: pop, role: 'dialog', 'aria-label': mode === 'single' ? 'Choose a date' : 'Choose a date range',
-    className: cx('hy-calendar__popover', props.horizontalLayout && 'hy-calendar__popover--horizontal', 'hy-calendar__popover--' + (props.popoverAlignment || 'start')),
+    className: cx('hy-calendar__popover', props.horizontalLayout && 'hy-calendar__popover--horizontal', 'hy-calendar__popover--' + align, pos && 'hy-calendar__popover--' + pos.side),
+    style: floatingStyle(pos),
     onKeyDown: function (e) { trapTab(e, pop.current); if (e.key === 'Enter' && e.target.tagName === 'INPUT') { e.preventDefault(); apply(); } }
   },
     h('div', { className: 'hy-calendar__month' },
@@ -293,11 +304,11 @@ function Calendar(props) {
         h(HY.Icon, { name: 'globe', size: 16 }),
         h('select', { value: zs[0], onChange: function (e) { zs[1](e.target.value); } },
           zones.map(function (z) { return h('option', { key: z.value, value: z.value }, z.label); })),
-        h(Glyph, { name: 'chevron', size: 16 })) : null) : null) : null;
+        h(Glyph, { name: 'chevron', size: 16 })) : null) : null)) : null;
 
   return h('div', { ref: root, className: cx('hy-calendar', 'hy-calendar--' + layout, props.className), style: props.style },
     layout === 'stacked' ? presetSelect : null,
-    h('div', { className: 'hy-calendar__bar' },
+    h('div', { ref: anchor, className: 'hy-calendar__bar' },
       layout === 'joined' ? presetSelect : null,
       triggerEl,
       layout === 'compact' ? presetSelect : null),

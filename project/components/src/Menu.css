@@ -7,22 +7,15 @@
 .hy-menu__unstyled:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
 .hy-menu__list {
-  position: absolute; z-index: var(--z-menu); box-sizing: border-box;
-  min-width: 150px; max-width: 320px; margin: 0; padding: 6px; list-style: none;
+  position: fixed; z-index: var(--z-menu); box-sizing: border-box;
+  min-width: min(150px, calc(100vw - 16px)); max-width: min(320px, calc(100vw - 16px));
+  max-height: calc(100vh - 16px); overflow-y: auto; margin: 0; padding: 6px; list-style: none;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   font-size: 14px; line-height: 20px; text-align: left;
   animation: hy-pop .15s cubic-bezier(.4,0,.2,1);
   overscroll-behavior: contain; outline: none;
 }
-/* placement: side, then alignment along it */
-.hy-menu__list--bottom { top: calc(100% + 8px); }
-.hy-menu__list--top { bottom: calc(100% + 8px); }
-.hy-menu__list--left { right: calc(100% + 8px); }
-.hy-menu__list--right { left: calc(100% + 8px); }
-.hy-menu__list--bottom.hy-menu__list--start, .hy-menu__list--top.hy-menu__list--start { left: 0; }
-.hy-menu__list--bottom.hy-menu__list--end, .hy-menu__list--top.hy-menu__list--end { right: 0; }
-.hy-menu__list--left.hy-menu__list--start, .hy-menu__list--right.hy-menu__list--start { top: 0; }
-.hy-menu__list--left.hy-menu__list--end, .hy-menu__list--right.hy-menu__list--end { bottom: 0; }
+/* placed by useFloating (position: fixed, portalled); the classes only set where the pop animation grows from */
 .hy-menu__list--bottom.hy-menu__list--start { transform-origin: top left; }
 .hy-menu__list--bottom.hy-menu__list--end { transform-origin: top right; }
 .hy-menu__list--top.hy-menu__list--start { transform-origin: bottom left; }
@@ -52,4 +45,9 @@
 .hy-menu__section { display: block; }
 .hy-menu__section-title { display: block; padding: 8px 8px 4px; font-size: 12px; line-height: 16px; color: var(--gray-900); }
 .hy-menu__group { margin: 0; padding: 0; list-style: none; }
+/* Touch screens: 40px rows and triggers */
+@media (pointer: coarse) {
+  .hy-menu__item { min-height: 40px; }
+  .hy-menu__unstyled { min-width: 40px; min-height: 40px; }
+}
 @keyframes hy-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }

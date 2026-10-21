@@ -8,3 +8,4 @@ A compact filter button that opens a checklist; each row also offers a one-click
 - Let the trigger name the selection: “All Environments”, the single item when one is picked, or the label with a count.
 - Each checkbox is named after its item, and each action button reads as “Preview. Only”.
 - Arrow keys move between rows and between the checkbox and its action; Escape closes and returns focus to the trigger.
+- The panel floats above the page, flips above the trigger when there's no room below and stays on screen on phones, where rows are 40px tall and the Only / Select All action is always shown.

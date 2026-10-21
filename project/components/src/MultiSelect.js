@@ -36,17 +36,33 @@ function multiSelectCells(content) {
 function MultiSelectContent(props) {
   var ctx = React.useContext(MultiSelectContext);
   var ref = useRef(null);
-  useDismiss(ctx.open, [ctx.root], function (reason) {
+  /* The panel is portalled to <body> and placed by useFloating, so it flips and stays on screen. */
+  var pos = useFloating(ctx.open, ctx.root, ref, { side: 'bottom', align: props.align === 'end' ? 'end' : 'start', offset: 8 });
+  var placed = !!pos;
+  useDismiss(ctx.open, [ctx.root, ref], function (reason) {
     ctx.setOpen(false);
     if (reason === 'escape' && ctx.trigger.current) ctx.trigger.current.focus();
   });
+  /* Focus the first checkbox once the panel is placed (it is hidden until then), if opened from the trigger. */
   useEffect(function () {
-    if (!ctx.open || !ref.current || props.autoFocus === false) return;
+    if (!ctx.open || !placed || !ref.current || props.autoFocus === false) return;
     var first = ref.current.querySelector('[data-ms-col="0"]');
-    if (first && document.activeElement && ctx.root.current && ctx.root.current.contains(document.activeElement)) first.focus();
-  }, [ctx.open]);
+    if (first && document.activeElement && ctx.root.current && ctx.root.current.contains(document.activeElement)) first.focus({ preventScroll: true });
+  }, [ctx.open, placed]);
   if (!ctx.open) return null;
   function onKeyDown(e) {
+    if (e.key === 'Tab') {
+      /* Tabbing off either end closes the panel and continues from the trigger, as if it sat right after it. */
+      var tabbable = Array.prototype.filter.call(ref.current.querySelectorAll('input:not([disabled]),button:not([disabled])'), function (el) { return el.tabIndex >= 0; });
+      var at = tabbable.indexOf(document.activeElement);
+      var t = ctx.trigger.current;
+      if (t && ((e.shiftKey && at === 0) || (!e.shiftKey && at === tabbable.length - 1))) {
+        if (e.shiftKey) e.preventDefault();
+        t.focus();
+        ctx.setOpen(false);
+      }
+      return;
+    }
     var grid = multiSelectCells(ref.current);
     var r = -1, c = -1;
     grid.forEach(function (cells, i) { var k = cells.indexOf(document.activeElement); if (k >= 0) { r = i; c = k; } });
@@ -63,12 +79,12 @@ function MultiSelectContent(props) {
     e.preventDefault();
     if (grid[nr][nc]) grid[nr][nc].focus();
   }
-  return h('div', {
+  return portal(h('div', {
     ref: ref, id: ctx.contentId, role: 'dialog', 'aria-label': props['aria-label'] || 'Options',
-    className: cx('hy-multiselect__content', props.align === 'end' && 'hy-multiselect__content--end', props.className),
-    style: Object.assign({ width: props.width }, props.style),
+    className: cx('hy-multiselect__content', (pos ? pos.side === 'top' : false) && 'hy-multiselect__content--top', props.align === 'end' && 'hy-multiselect__content--end', props.className),
+    style: floatingStyle(pos, Object.assign({ width: props.width }, props.style)),
     onKeyDown: onKeyDown
-  }, props.children);
+  }, props.children));
 }
 
 function MultiSelectRow(props) {
