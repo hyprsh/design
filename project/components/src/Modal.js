@@ -29,6 +29,7 @@ var ModalAction = React.forwardRef(function ModalAction(props, ref) {
   }));
 });
 
+var MODAL_KEYS = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ', 'Escape', 'Tab'];
 var MODAL_PARTS = [ModalBody, ModalActions];
 function isModalPart(node) {
   var found = false;
@@ -58,7 +59,9 @@ function Modal(props) {
   });
   if (!open) return null;
   function onKey(e) {
-    if (e.key === 'Escape') { e.stopPropagation(); if (onEscape) onEscape(); }
+    /* Keys the dialog and its content use never reach the page's own handlers (the dialog is portalled, but React bubbles through the tree). */
+    if (MODAL_KEYS.indexOf(e.key) >= 0) e.stopPropagation();
+    if (e.key === 'Escape') { if (onEscape) onEscape(); }
     trapTab(e, box.current);
   }
   var legacy = props.title || props.description || props.actions || !isModalPart(props.children);

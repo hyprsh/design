@@ -1,4 +1,4 @@
-<!-- @dsCard group="Overlays" height=348 subtitle="MenuContainer, MenuButton, sections, locked and error items, typeahead; older label + items API" -->
+<!-- @dsCard group="Overlays" height=440 subtitle="MenuContainer, MenuButton, sections, locked and error items, typeahead; older label + items API" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Menu</title></head>
@@ -17,6 +17,8 @@ function Demo() {
           h(H.MenuItem, { onClick: noop }, 'Promote to Production')),
         h(H.MenuLink, { href: '#logs' }, 'View Build Logs'),
         h(H.MenuItemLocked, null, 'Transfer to Team…'),
+        h(H.MenuItem, { disabled: true, description: 'No file to delete' }, 'Delete File'),
+        h(H.MenuItem, { onClick: noop, description: 'Runs the build again' }, 'Rebuild'),
         h(H.MenuDivider),
         h(H.MenuItem, { onClick: noop, type: 'error' }, 'Delete Deployment…'))),
     h(H.MenuContainer, null,

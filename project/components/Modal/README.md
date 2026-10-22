@@ -9,3 +9,4 @@ A blocking dialog for a decision or a short focused task, with a title, body, op
 - The title is a Title Case statement, never a question: “Transfer Project”. The body is 1–3 sentences in sentence case, consequence first.
 - The primary action is Verb + Noun and repeats the title verb (“Transfer Project”). Cancel stays “Cancel”; acknowledgement-only modals use “Done”.
 - Keep focus inside after an error so the person can retry. Never open a modal on page load and never stack modals.
+- Keys stay inside: the dialog stops the arrows, Home, End, Enter, Space, Escape and Tab from bubbling out of its portal (through the React tree and to the document), so a page's own list shortcuts and an Escape handler on a pane do not react while it is open. Letters and shortcuts such as ⌘&nbsp;K are not stopped.

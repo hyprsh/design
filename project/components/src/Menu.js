@@ -13,12 +13,15 @@ function parsePosition(pos) {
   return { side: side, align: parts[1] === 'end' ? 'end' : 'start' };
 }
 
-function menuItems(list) {
+/* The items the arrow keys reach: enabled ones, and disabled ones that carry a description (data-focusable). */
+function menuItems(list, enabledOnly) {
   if (!list) return [];
   return Array.prototype.filter.call(list.querySelectorAll('[role="menuitem"]'), function (el) {
-    return el.getAttribute('aria-disabled') !== 'true';
+    return el.getAttribute('aria-disabled') !== 'true' || (!enabledOnly && el.hasAttribute('data-focusable'));
   });
 }
+/* Keys the menu handles itself; they never reach the page's own handlers through the React tree or the document. */
+var MENU_KEYS = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ', 'Escape', 'Tab'];
 
 function MenuContainer(props) {
   var st = useState(!!props.defaultOpen);
@@ -121,14 +124,19 @@ function MenuPopup(props) {
     var which = ctx.focusOnOpen.current, list = ctx.listRef.current;
     ctx.focusOnOpen.current = null;
     if (!which || !list) return;
-    var items = menuItems(list);
+    var items = menuItems(list, true);
+    if (!items.length) items = menuItems(list);
     var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
     (el || list).focus({ preventScroll: true });
   }, [placed]);
 
   function onKeyDown(e) {
+    var typeahead = e.key.length === 1 && /\S/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey;
+    if (MENU_KEYS.indexOf(e.key) >= 0 || typeahead) e.stopPropagation();
+    /* Escape is closed here: the document listener in useDismiss no longer hears a stopped key. */
+    if (e.key === 'Escape') { ctx.close(true); return; }
     var items = menuItems(ctx.listRef.current);
-    if (!items.length) return;
+    if (!items.length) { if (e.key === 'Tab') ctx.close(false); return; }
     var i = items.indexOf(document.activeElement);
     var next = null;
     if (e.key === 'ArrowDown') next = items[(i + 1) % items.length];
@@ -136,14 +144,14 @@ function MenuPopup(props) {
     else if (e.key === 'Home') next = items[0];
     else if (e.key === 'End') next = items[items.length - 1];
     else if (e.key === 'Tab') { ctx.close(false); return; }
-    else if (e.key.length === 1 && /\S/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+    else if (typeahead) {
       var now = Date.now();
       typed.current.text = (now - typed.current.at > 600 ? '' : typed.current.text) + e.key.toLowerCase();
       typed.current.at = now;
       var q = typed.current.text;
       var order = items.slice(i + 1).concat(items.slice(0, i + 1));
       if (q.length > 1) order = items.slice(i).concat(items.slice(0, i));
-      next = order.filter(function (el) { return el.textContent.trim().toLowerCase().indexOf(q) === 0; })[0] || null;
+      next = order.filter(function (el) { return itemText(el).indexOf(q) === 0; })[0] || null;
     }
     if (next) { e.preventDefault(); next.focus(); }
   }
@@ -158,10 +166,20 @@ function MenuPopup(props) {
   }, props.children));
 }
 
-function itemInner(props) {
+/* Typeahead matches the label, not the description. */
+function itemText(el) {
+  var t = el.querySelector('.hy-menu__text');
+  return (t || el).textContent.trim().toLowerCase();
+}
+
+function itemInner(props, descId) {
   return [
     props.prefix ? h('span', { key: 'p', className: 'hy-menu__affix', 'aria-hidden': 'true' }, props.prefix) : null,
-    h('span', { key: 't', className: 'hy-menu__text' }, props.children),
+    props.description
+      ? h('span', { key: 't', className: 'hy-menu__stack' },
+        h('span', { className: 'hy-menu__text' }, props.children),
+        h('span', { id: descId, className: 'hy-menu__desc', 'aria-hidden': 'true' }, props.description))
+      : h('span', { key: 't', className: 'hy-menu__text' }, props.children),
     props.shortcut ? h('span', { key: 'k', className: 'hy-menu__shortcut' }, props.shortcut) : null,
     props.suffix ? h('span', { key: 's', className: 'hy-menu__affix hy-menu__affix--end', 'aria-hidden': 'true' }, props.suffix) : null
   ];
@@ -170,7 +188,13 @@ function itemInner(props) {
 /* MenuItem: an action. With `href` it is a link (same as MenuLink). type="error" for destructive items. */
 function MenuItem(props) {
   var ctx = React.useContext(MenuCtx);
+  var descId = useId();
   var disabled = !!props.disabled;
+  /* A disabled item with a description stays reachable by the arrow keys, so its reason can be read. */
+  var hint = {
+    title: props.title, 'aria-describedby': props.description ? descId : undefined,
+    'data-focusable': disabled && props.description ? '' : undefined
+  };
   var cls = cx('hy-menu__item', props.type === 'error' && 'hy-menu__item--error', props.className);
   function activate(e) {
     if (disabled) { e.preventDefault(); return; }
@@ -181,17 +205,17 @@ function MenuItem(props) {
   function hover(e) { if (!disabled) e.currentTarget.focus({ preventScroll: true }); }
   if (props.href !== undefined) {
     return h('li', { role: 'none', className: 'hy-menu__li' },
-      h('a', {
+      h('a', Object.assign({
         role: 'menuitem', tabIndex: -1, href: disabled ? undefined : props.href, target: props.target, rel: props.rel,
         'aria-disabled': disabled || undefined, className: cls, onClick: activate, onMouseEnter: hover,
         onKeyDown: function (e) { if (e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }
-      }, itemInner(props)));
+      }, hint), itemInner(props, descId)));
   }
-  return h('li', {
+  return h('li', Object.assign({
     role: 'menuitem', tabIndex: -1, 'aria-disabled': disabled || undefined, className: cls, style: props.style,
     onClick: activate, onMouseEnter: hover,
     onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); } }
-  }, itemInner(props));
+  }, hint), itemInner(props, descId));
 }
 
 function MenuLink(props) { return h(MenuItem, Object.assign({}, props, { href: props.href || '#' })); }
@@ -222,7 +246,7 @@ function LegacyList(props) {
   return h(MenuList, { ctx: ctx, width: props.width, 'aria-label': typeof props.label === 'string' ? props.label : undefined },
     (props.items || []).map(function (it, i) {
       if (it.separator) return h(MenuDivider, { key: 'sep' + i });
-      return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href }, it.label);
+      return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title }, it.label);
     }));
 }
 

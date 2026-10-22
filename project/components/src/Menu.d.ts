@@ -1,4 +1,4 @@
-export interface MenuItemData { label: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean; href?: string }
+export interface MenuItemData { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean; href?: string }
 
 export type MenuPosition = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end';
 
@@ -47,7 +47,12 @@ export interface MenuItemProps {
   href?: string;
   target?: string;
   rel?: string;
+  /** Disabled items can't be activated (`aria-disabled`). One with a `description` still takes focus from the arrow keys, Home/End and typeahead so its reason can be read. */
   disabled?: boolean;
+  /** A second line of hint text under the label, linked with aria-describedby. Use it to say why an item is disabled. */
+  description?: React.ReactNode;
+  /** Native tooltip (the `title` attribute) for the item. */
+  title?: string;
   /** 'error' for destructive items. */
   type?: 'default' | 'error';
   prefix?: React.ReactNode;

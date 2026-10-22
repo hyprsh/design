@@ -34,12 +34,17 @@
 .hy-menu__item:focus, .hy-menu__item:hover { background: var(--gray-alpha-100); }
 .hy-menu__list .hy-menu__item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }
 .hy-menu__item[aria-disabled="true"] { color: var(--gray-700); cursor: not-allowed; background: none; }
+.hy-menu__item[aria-disabled="true"]:focus { background: var(--gray-alpha-100); }
 .hy-menu__item--error { color: var(--red-900); }
 .hy-menu__item--error[aria-disabled="true"] { color: var(--gray-700); background: none; }
 .hy-menu__affix { display: inline-flex; flex: none; color: var(--gray-900); }
 .hy-menu__item[aria-disabled="true"] .hy-menu__affix { color: inherit; }
 .hy-menu__affix--end { margin-left: auto; }
 .hy-menu__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-menu__stack { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6px 0; }
+.hy-menu__stack > .hy-menu__text { flex: none; }
+.hy-menu__desc { font-size: 13px; line-height: 16px; color: var(--gray-900); overflow-wrap: anywhere; }
+.hy-menu__item[aria-disabled="true"] .hy-menu__desc { color: var(--gray-800); }
 .hy-menu__shortcut { flex: none; color: var(--gray-900); font-size: 13px; }
 .hy-menu__sep { height: 1px; margin: 6px -6px; background: var(--gray-alpha-400); }
 .hy-menu__section { display: block; }
