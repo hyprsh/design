@@ -1,4 +1,4 @@
-<!-- @dsCard group="Overlays" height=1060 subtitle="⌘ K palette: groups, shortcuts, arrow keys, empty state; async server search with loading and a key hook" -->
+<!-- @dsCard group="Overlays" height=1580 subtitle="⌘ K palette: groups, shortcuts, arrow keys, empty state; async server search with loading and a key hook; an inline panel with native keys, Esc back via skipMenu, an input ref" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CommandMenu</title></head>
@@ -50,9 +50,43 @@ function Async() {
       h(H.CommandMenuList, { loading: res.busy },
         res.list.map(function (n) { return h(H.CommandMenuItem, { key: n, keepOpen: true, callback: function () { setPicked(n); } }, n); }))));
 }
+function Panel() {
+  var sm = React.useState('list'), mode = sm[0], setMode = sm[1];
+  var sr = React.useState('staging'), env = sr[0], setEnv = sr[1];
+  var sd = React.useState(''), log = sd[0], setLog = sd[1];
+  var inputRef = React.useRef(null);
+  var first = React.useRef(true);
+  /* Back on the list the input is a new element: put the caret back in it. */
+  React.useEffect(function () {
+    if (first.current) { first.current = false; return; }
+    if (mode === 'list' && inputRef.current) inputRef.current.focus();
+  }, [mode]);
+  function note(t) { setLog(t); }
+  return h(F, null,
+    h('div', { className: 'copy-13', style: { color: 'var(--gray-900)' } }, 'Panel: “Deploy…” swaps the list for a button and radios. Enter and Space press the button and the arrows move between radios natively; Esc goes back through e.skipMenu() instead of closing, and focus returns to the input through inputRef. Ctrl+N / Ctrl+P move the highlight.' + (log ? ' ' + log : '')),
+    h(H.CommandMenu, {
+      open: true, setOpen: function () {}, inline: true, hotkey: false, label: 'Deploy Menu', inputRef: inputRef,
+      onKeyDown: function (e) { if (e.key === 'Escape' && mode === 'panel') { e.skipMenu(); setMode('list'); note('Esc went back.'); } }
+    },
+      mode === 'list' ? h(F, null,
+        h(H.CommandMenuInput, { placeholder: 'Search for a command…', hideClose: true }),
+        h(H.CommandMenuList, null,
+          h(H.CommandMenuGroup, { heading: 'Actions' },
+            h(H.CommandMenuItem, { keepOpen: true, callback: function () { setMode('panel'); note(''); } }, 'Deploy…'),
+            h(H.CommandMenuItem, { callback: function () {} }, 'Create Branch'),
+            h(H.CommandMenuItem, { callback: function () {} }, 'Add Domain')))) :
+      h('div', { className: 'hy-col', style: { padding: 16, gap: 12 }, 'data-panel': true },
+        h('div', { className: 'label-14' }, 'Deploy to…'),
+        h('div', { role: 'radiogroup', 'aria-label': 'Environment', style: { display: 'flex', gap: 16 } },
+          ['staging', 'production', 'preview'].map(function (v) {
+            return h('label', { key: v, className: 'copy-14', style: { display: 'flex', gap: 6, alignItems: 'center' } },
+              h('input', { type: 'radio', name: 'env', value: v, checked: env === v, onChange: function () { setEnv(v); } }), v);
+          })),
+        h(H.Button, { size: 'small', variant: 'primary', onClick: function () { note('Deployed to ' + env + '.'); } }, 'Deploy'))));
+}
 /* A transformed box becomes the containing block of the fixed overlay, so each inline menu stays in its own frame. */
 function Frame(height, child) { return h('div', { style: { position: 'relative', transform: 'translateZ(0)', height: height } }, child); }
-function Both() { return h(F, null, Frame(620, h(Demo)), Frame(400, h(Async))); }
+function Both() { return h(F, null, Frame(620, h(Demo)), Frame(400, h(Async)), Frame(440, h(Panel))); }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Both));
 </script>
 </body>

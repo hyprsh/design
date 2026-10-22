@@ -4324,7 +4324,8 @@
       return needle.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
     }
 
-    function CommandMenuInput(props) {
+    /* Forwards its ref to the <input>; CommandMenu's inputRef prop points at the same element. */
+    var CommandMenuInput = React.forwardRef(function CommandMenuInput(props, ref) {
       var ctx = React.useContext(CmdCtx);
       var hideClose = props.hideClose || props.closeButton === false;
       return h('div', { className: cx('hy-cmd__search', props.className) },
@@ -4332,12 +4333,17 @@
         h('input', {
           className: 'hy-cmd__input', type: 'text', role: 'combobox', 'aria-expanded': 'true', 'aria-controls': ctx.listId,
           'aria-activedescendant': ctx.active || undefined, 'aria-autocomplete': 'list', 'aria-label': props['aria-label'] || ctx.label,
+          ref: function (el) {
+            if (typeof ref === 'function') ref(el); else if (ref) ref.current = el;
+            if (ctx.inputRef) { if (typeof ctx.inputRef === 'function') ctx.inputRef(el); else ctx.inputRef.current = el; }
+          },
           autoComplete: 'off', autoCorrect: 'off', spellCheck: false, 'data-autofocus': true,
           placeholder: props.placeholder || 'Search for a command or page…',
           value: ctx.query, onChange: function (e) { ctx.setQuery(e.target.value); }
         }),
         hideClose ? null : h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close }, 'Esc'));
-    }
+    });
+    CommandMenuInput.displayName = 'CommandMenuInput';
 
     function CommandMenuList(props) {
       var ctx = React.useContext(CmdCtx);
@@ -4347,7 +4353,7 @@
         props.children,
         loading ? h('div', { className: 'hy-cmd__loading', 'aria-live': 'polite' },
           h(HY.Spinner, { size: 16 }), h('span', null, props.loadingLabel || 'Searching…')) : null,
-        !loading && ctx.count === 0 && q ? h('div', { className: 'hy-cmd__empty' }, props.empty || 'No results for “' + q + '”. Try a page name or an action like “Deploy”.') : null);
+        !loading && ctx.count === 0 && q ? h('div', { className: 'hy-cmd__empty' }, props.empty || 'No results for “' + q + '”.') : null);
     }
 
     function CommandMenuGroup(props) {
@@ -4461,11 +4467,21 @@
         var next = delta === Infinity ? opts.length - 1 : delta === -Infinity ? 0 : (i + delta + opts.length) % opts.length;
         act[1](opts[next].id);
       }
+      /* The menu's own keys come from the dialog itself, the search input or the list. A key from
+         anything else, such as the Esc button or a panel the app renders in place of the list, is left to the app and the browser. */
+      function ownTarget(t) {
+        return t === box.current || !!(t && t.closest && t.closest('.hy-cmd__search') && !t.closest('.hy-cmd__esc')) || !!(listRef.current && listRef.current.contains(t));
+      }
       function onKey(e) {
+        var skipped = false;
+        e.skipMenu = function () { skipped = true; };
         if (props.onKeyDown) props.onKeyDown(e);
         if (e.defaultPrevented) return;
-        if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
-        else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+        /* Tab stays trapped for every target; skipMenu() and foreign targets only skip the other keys. */
+        if (skipped || !ownTarget(e.target)) { trapTab(e, box.current); return; }
+        var ctrlNP = e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey;
+        if (e.key === 'ArrowDown' || (ctrlNP && (e.key === 'n' || e.key === 'N'))) { e.preventDefault(); move(1); }
+        else if (e.key === 'ArrowUp' || (ctrlNP && (e.key === 'p' || e.key === 'P'))) { e.preventDefault(); move(-1); }
         else if (e.key === 'Home' && e.ctrlKey) { e.preventDefault(); move(-Infinity); }
         else if (e.key === 'End' && e.ctrlKey) { e.preventDefault(); move(Infinity); }
         else if (e.key === 'Enter' && !e.nativeEvent.isComposing) {
@@ -4480,7 +4496,7 @@
       var needle = filtering ? q[0].trim().toLowerCase() : '';
       var ctx = {
         query: q[0], needle: needle, filter: filtering && typeof props.filter === 'function' ? props.filter : null, setQuery: q[1], active: act[0], setActive: act[1],
-        listId: lid, listRef: listRef, count: cnt[0], close: close, label: props.label || 'Command Menu'
+        listId: lid, listRef: listRef, inputRef: props.inputRef, count: cnt[0], close: close, label: props.label || 'Command Menu'
       };
       var body = props.children !== undefined ? props.children : [
         h(CommandMenuInput, { key: 'i', placeholder: props.placeholder }),

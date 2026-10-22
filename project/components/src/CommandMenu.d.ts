@@ -26,8 +26,17 @@ export interface CommandMenuProps {
   shouldFilter?: boolean;
   /** Replaces the built-in word match. Return true to show an item. `value` is the item's `value` or text. Ignored when shouldFilter is false. */
   filter?: (item: { value: string; keywords: string[] }, query: string) => boolean;
-  /** Runs before the built-in arrow, Enter, Escape and Tab handling. Call `e.preventDefault()` to skip it for that key. */
-  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+  /**
+   * Runs before the built-in arrow, Ctrl+N/P, Enter, Escape and Tab handling, for every key pressed inside the menu.
+   * Call `e.skipMenu()` to skip the menu's handling of that key and leave the browser default alone (Enter and Space still
+   * press a button, arrows still move between radios). `e.preventDefault()` also skips it, but cancels the default too.
+   * Tab is trapped in the menu after `skipMenu()`, but not after `preventDefault()`.
+   * Keys from content other than the input and the list (such as a panel in place of the list) are never handled
+   * by the menu; this hook still sees them.
+   */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement> & { skipMenu: () => void }) => void;
+  /** Receives the search <input> (same element as a ref on CommandMenuInput). Use it to focus the input from outside. */
+  inputRef?: React.Ref<HTMLInputElement>;
   className?: string;
 }
 export interface CommandMenuInputProps {
@@ -43,7 +52,7 @@ export interface CommandMenuInputProps {
 }
 export interface CommandMenuListProps {
   children?: React.ReactNode;
-  /** Replaces the default empty-state copy. */
+  /** Replaces the default empty-state copy, “No results for “query”.” */
   empty?: React.ReactNode;
   /** Show a spinner row (and no empty state) while results load. Marks the list busy and announces the label politely. */
   loading?: boolean;
@@ -69,7 +78,7 @@ export interface CommandMenuItemProps {
   className?: string;
 }
 export declare function CommandMenu(props: CommandMenuProps): React.ReactElement | null;
-export declare function CommandMenuInput(props: CommandMenuInputProps): React.ReactElement;
+export declare const CommandMenuInput: React.ForwardRefExoticComponent<CommandMenuInputProps & React.RefAttributes<HTMLInputElement>>;
 export declare function CommandMenuList(props: CommandMenuListProps): React.ReactElement;
 export declare function CommandMenuGroup(props: CommandMenuGroupProps): React.ReactElement | null;
 export declare function CommandMenuItem(props: CommandMenuItemProps): React.ReactElement | null;
