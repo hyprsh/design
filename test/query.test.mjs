@@ -268,7 +268,7 @@ describe('reading a query as a filter menu value', () => {
   it('collects the included and the excluded values, and whether no:label is there', () => {
     assert.deepEqual(queryMenu('is:open label:bug -label:wontfix', 'label', issues), { include: ['bug'], exclude: ['wontfix'], none: false });
     assert.deepEqual(queryMenu('no:label', 'label', issues), { include: [], exclude: [], none: true });
-    assert.deepEqual(queryMenu('no:assignee,label', 'label', issues), { include: [], exclude: [], none: true });
+    assert.deepEqual(queryMenu('no:assignee no:label', 'label', issues), { include: [], exclude: [], none: true });
     assert.deepEqual(queryMenu('is:open', 'label', issues), { include: [], exclude: [], none: false });
   });
 
@@ -319,12 +319,22 @@ describe('writing a filter menu value into a query', () => {
     assert.equal(write('-label:bug', { include: ['bug'] }), 'label:bug');
   });
 
-  it('writes no:label and drops the qualifier\'s own terms, then clears no:label when a value is chosen', () => {
-    assert.equal(write('is:open label:bug -label:x sort:newest', { none: true }), 'is:open sort:newest no:label');
-    assert.equal(write('no:assignee', { none: true }), 'no:assignee,label');
-    assert.equal(write('is:open no:label sort:newest', { include: ['bug'] }), 'is:open sort:newest label:bug');
-    assert.equal(write('no:label,assignee', { exclude: ['bug'] }), 'no:assignee -label:bug');
+  it('writes no:label where the qualifier\'s own terms were, and a value back where no:label was', () => {
+    assert.equal(write('is:open label:bug -label:x sort:newest', { none: true }), 'is:open no:label sort:newest');
+    assert.equal(write('is:open sort:newest', { none: true }), 'is:open sort:newest no:label');
+    assert.equal(write('is:open no:label sort:newest', { include: ['bug'] }), 'is:open label:bug sort:newest');
+    assert.equal(write('is:open no:label sort:newest', { include: ['bug'], exclude: ['x'] }), 'is:open label:bug -label:x sort:newest');
     assert.equal(write('is:open no:label', {}), 'is:open');
+  });
+
+  it('keeps no:label a term of its own, since values after one qualifier are alternatives', () => {
+    assert.equal(write('no:assignee', { none: true }), 'no:assignee no:label');
+    assert.equal(write('no:assignee no:label', { include: ['bug'] }), 'no:assignee label:bug');
+  });
+
+  it('leaves a no: term that names other qualifiers too to the query', () => {
+    assert.deepEqual(queryMenu('no:label,assignee', 'label', issues).none, false);
+    assert.equal(write('no:label,assignee', { exclude: ['bug'] }), 'no:label,assignee -label:bug');
   });
 
   it('leaves other terms and free text alone, and returns the same text when nothing changed', () => {

@@ -183,23 +183,44 @@ function queryAll(q, name, excluded) {
   return seen;
 }
 
+/* A menu owns only a `no:` term that names its qualifier alone: values after one qualifier are alternatives, so
+   `no:label,assignee` (no label or no assignee) is not "no label" and stays the query's own. */
+function queryIsNone(t, name) { return t.name === 'no' && !t.excluded && t.values.length === 1 && t.values[0] === name; }
+
 function queryMenu(input, name, qualifiers) {
   var q = parseQuery(input, qualifiers);
-  return { include: queryAll(q, name, false), exclude: queryAll(q, name, true), none: queryAll(q, 'no', false).indexOf(name) >= 0 };
+  return { include: queryAll(q, name, false), exclude: queryAll(q, name, true), none: q.terms.some(function (t) { return queryIsNone(t, name); }) };
 }
 
-/* The query after the menu for `name` changed to `next`: only that qualifier's terms are touched, and only where they differ. */
+/* The query after the menu for `name` changed to `next`: only that qualifier's terms are touched, and only where they differ.
+   Switching between none and values swaps the terms in place, so the query keeps its order. */
 function withQueryMenu(input, name, next, qualifiers) {
-  var now = queryMenu(input, name, qualifiers), out = input;
+  var now = queryMenu(input, name, qualifiers), out = input, terms, first = -1, i;
   if (next.none) {
     var own = queryFind(qualifiers, name);
     if (!own || !own.none) return input;
-    /* Everything else this qualifier says goes: nothing has a value for it. */
-    var terms = parseQuery(out, qualifiers).terms;
-    for (var i = terms.length - 1; i >= 0; i--) if (terms[i].name === name) out = withoutTerm(out, i, qualifiers);
-    return queryAdd(out, 'no', name, false, qualifiers);
+    /* Everything else this qualifier says goes: nothing has a value for it. no:name takes the first term's place. */
+    terms = parseQuery(out, qualifiers).terms;
+    for (i = 0; i < terms.length && first < 0; i++) if (terms[i].name === name) first = i;
+    for (i = terms.length - 1; i > first; i--) if (terms[i].name === name) out = withoutTerm(out, i, qualifiers);
+    if (first >= 0 && now.none) return withoutTerm(out, first, qualifiers);
+    var none = termText({ name: 'no', values: [name], excluded: false });
+    if (first >= 0) return out.slice(0, terms[first].span[0]) + none + out.slice(terms[first].span[1]);
+    return now.none ? out : (out.replace(/\s+$/, '') + ' ' + none).replace(/^\s+/, '');
   }
-  if (now.none) out = queryRemove(out, 'no', name, false, qualifiers);
+  if (now.none) {
+    /* The values chosen in place of none go where no:name was, unless the qualifier already has terms of its own. */
+    terms = parseQuery(out, qualifiers).terms;
+    for (i = 0; i < terms.length && first < 0; i++) if (queryIsNone(terms[i], name)) first = i;
+    for (i = terms.length - 1; i > first; i--) if (queryIsNone(terms[i], name)) out = withoutTerm(out, i, qualifiers);
+    var put = [];
+    if (!now.include.length && !now.exclude.length) {
+      if (next.include.length) put.push(termText({ name: name, values: next.include, excluded: false }));
+      if (next.exclude.length) put.push(termText({ name: name, values: next.exclude, excluded: true }));
+    }
+    if (put.length) return out.slice(0, terms[first].span[0]) + put.join(' ') + out.slice(terms[first].span[1]);
+    out = withoutTerm(out, first, qualifiers);
+  }
   [false, true].forEach(function (excluded) {
     var from = excluded ? now.exclude : now.include, to = excluded ? next.exclude : next.include;
     from.forEach(function (v) { if (to.indexOf(v) < 0) out = queryRemove(out, name, v, excluded, qualifiers); });
