@@ -92,18 +92,16 @@ function valuesOf(q, name, each) {
 
 var QUERY_MAX_SUGGESTIONS = 8;
 
-/* The names to complete the word `typed` to (`name:`, or `-name:` after a dash, which only excludable ones take). */
+/* The names to complete the word `typed` to (`name:`, or `-name:` after a dash, which only excludable ones take). A name is
+   suggested only when it starts with the word, so a free-text word that is no name's start opens nothing. */
 function queryNameSuggestions(input, caret, start, dash, typed, qualifiers) {
-  var pool = qualifiers.filter(function (q) { return (!dash || q.excludable) && q.name.toLowerCase().indexOf(typed) >= 0; });
-  var ranked = pool.filter(function (q) { return q.name.toLowerCase().indexOf(typed) === 0; })
-    .concat(pool.filter(function (q) { return q.name.toLowerCase().indexOf(typed) !== 0; }));
+  var matching = qualifiers.filter(function (q) { return (!dash || q.excludable) && q.name.toLowerCase().indexOf(typed) === 0; });
   /* The rest of the word goes too, with a colon already after the caret. */
   var end = caret + /^[a-z_]*:?/i.exec(input.slice(caret))[0].length;
-  return ranked.map(function (q) {
+  return matching.map(function (q) {
     var label = dash + q.name + ':';
-    var at = dash.length + q.name.toLowerCase().indexOf(typed);
     var head = input.slice(0, start) + label;
-    return { label: label, text: head + input.slice(end), caret: head.length, match: [at, at + typed.length], description: q.help, keepOpen: true };
+    return { label: label, text: head + input.slice(end), caret: head.length, match: [dash.length, dash.length + typed.length], description: q.help, keepOpen: true };
   });
 }
 

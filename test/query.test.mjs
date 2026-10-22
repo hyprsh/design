@@ -196,10 +196,10 @@ describe('suggesting qualifier names', () => {
     assert.deepEqual(s, { label: 'label:', text: 'crash label:', caret: 12, match: [0, 2], description: 'Has this label', keepOpen: true });
   });
 
-  it('puts names that start with the word first, then names that contain it', () => {
+  it('suggests only the names that start with the word, and the match is the typed prefix', () => {
     assert.deepEqual(names('l', 1), ['label:']);
-    assert.deepEqual(names('e', 1), ['label:', 'assignee:']);
-    assert.deepEqual(suggestQuery('s', 1, issues).map((s) => [s.label, s.match]), [['assignee:', [1, 2]], ['is:', [1, 2]]]);
+    assert.deepEqual(names('e', 1), []);
+    assert.deepEqual(suggestQuery('a', 1, issues).map((s) => [s.label, s.match]), [['assignee:', [0, 1]]]);
     assert.deepEqual(names('is', 2), ['is:']);
   });
 
@@ -216,15 +216,26 @@ describe('suggesting qualifier names', () => {
     assert.equal(got[0].caret, 7);
     assert.deepEqual(got[0].match, [1, 2]);
     assert.deepEqual(names('-', 1), ['-label:']);
+    assert.deepEqual(names('-a', 2), []);
   });
 
-  it('is case-insensitive and offers nothing for a word that no name contains', () => {
+  it('is case-insensitive and offers nothing for a word that starts no name', () => {
     assert.deepEqual(names('LA', 2), ['label:']);
     assert.deepEqual(names('zzz', 3), []);
   });
 
   it('does not suggest names for a word with a colon whose qualifier is unknown', () => {
     assert.deepEqual(names('title:x', 7), []);
+  });
+
+  it('suggests a name only when the word is its start, so a free-text o opens nothing', () => {
+    const named = [
+      { name: 'label', help: 'Has this label' },
+      { name: 'slot', help: 'Fits this slot' },
+      { name: 'profile', help: 'Has this profile' },
+    ];
+    assert.deepEqual(suggestQuery('o', 1, named), []);
+    assert.deepEqual(suggestQuery('sl', 2, named).map((s) => s.label), ['slot:']);
   });
 });
 
