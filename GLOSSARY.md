@@ -20,6 +20,40 @@ _Avoid_: tab bar
 The round button beside the tab bar capsule, for an action that isn't a screen.
 _Avoid_: FAB, action button
 
+## Queries
+
+**Query**:
+The whole text of a query field, terms and free text together: `is:open label:bug,docs crash`.
+_Avoid_: filter (that is the screen feature a query drives), search string
+
+**Qualifier**:
+A name an app understands in a query, written before a colon: `label`, `sort`.
+_Avoid_: key, facet, operator
+
+**Term**:
+One qualifier with its values as typed: `-label:bug,docs`. Values after one qualifier are alternatives; the same qualifier twice must match both.
+_Avoid_: token, chip, filter
+
+**Free text**:
+The words of a query that are not terms.
+_Avoid_: search text, keywords
+
+**Exclude**:
+What a leading `-` does to a term: leave its values out instead of asking for them.
+_Avoid_: negate, not
+
+**Filter menu**:
+A dropdown that owns one qualifier's values: it starts empty, and each value checked in it includes or excludes that value.
+_Avoid_: multi-select (that one starts with everything selected and narrows down), facet, dropdown
+
+**Query bar**:
+A query field with a row of filter menus beside it, all reading and writing the same query.
+_Avoid_: filter bar (that is the URL-bound filter pills), search bar
+
+**Suggestion**:
+A completion offered for the word at the caret of a query field, which rewrites the query when picked.
+_Avoid_: option (that is a choice in a list that holds the value), autocomplete
+
 ## Touch
 
 **Touch target**:
@@ -41,3 +75,11 @@ _Avoid_: mobile, small screen
 **Touch sizing**:
 The rules that apply when the pointer is coarse or the viewport is at phone width, so a narrow window with a mouse gets what a phone gets.
 _Avoid_: mobile mode, touch mode
+
+**Touch-only device**:
+A device used by touch alone, with no mouse, trackpad or keyboard to hover or press keys: a phone or a tablet on its own. Narrower than touch sizing: a touch laptop or a narrow desktop window is not one.
+_Avoid_: mobile, touch device
+
+**Shortcut hint**:
+A key shown beside a control or in a menu row to teach its keyboard shortcut. Hidden on touch-only devices.
+_Avoid_: kbd, keyboard hint
