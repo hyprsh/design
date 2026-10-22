@@ -6,7 +6,7 @@ A floating pill tab bar for the main screens of an app at phone width. **hyprsh 
 
 **Items:** an item with a `value` selects it. An item with only `onClick` is an action, such as More opening a Drawer: pair it with `haspopup`. `href` renders a link. `current` takes the selection, for More while a screen that lives in More is open: while any item has it, no item is selected by `value`. The selected item carries `aria-current="page"`.
 
-**Badges:** `badge={true}` is a dot, a number is a count (“99+” above 99, nothing for 0), and a node is rendered as given. Add `badgeLabel` (“3 need attention”) so the badge reaches assistive tech: it joins the item's accessible name.
+**Badges:** `badge={true}` is a dot, a number is a count (“99+” above 99, nothing for 0), and a node is rendered as given. Add `badgeLabel` (“3 need attention”) so the badge reaches assistive tech: it joins the item's accessible name. `badgeTone` (`'accent'` by default, `'error'` or `'warning'`) draws a dot or count in red or amber, for a count that is worse than news. A node badge ignores it. The tone is visual only and never changes the accessible name, so say it in `badgeLabel` (“2 blocking”, “1 warning”).
 
 **Minimise on scroll:** with `minimizeOnScroll` the capsule shrinks to the selected item after the content scrolls down 24px. It expands on scrolling up, at the top, or on a tap (the tap doesn't navigate). It watches every scrolling element in the document, except horizontal scrolling and anything inside a dialog or sheet. That includes a layout that scrolls an inner container instead of the window. Pass `scrollRef` to watch only that one container.
 

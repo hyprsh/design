@@ -1,4 +1,4 @@
-<!-- @dsCard group="Navigation" height=640 subtitle="Floating pill tab bar for phones: selected pill, dot, count and 99+ badges, accessory, a current More item, minimised" -->
+<!-- @dsCard group="Navigation" height=720 subtitle="Floating pill tab bar for phones: selected pill, dot, count and 99+, error and warning badges, accessory, a current More item, minimised" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TabBar</title></head>
@@ -22,6 +22,11 @@ function Demo() {
       h(H.TabBar.Item, { value: 'upcoming', label: 'Upcoming', icon: icon('calendar-clock') }),
       h(H.TabBar.Item, { value: 'activity', label: 'Activity', icon: icon('activity'), badge: 120, badgeLabel: 'More than 99 events' }),
       h(H.TabBar.Item, { label: 'More', icon: icon('ellipsis'), haspopup: true })),
+    h('p', { className: 'label-13' }, 'Error count and warning dot badges'),
+    h(H.TabBar, { label: 'Screens', hideFrom: false, style: inFlow, defaultValue: 'overview' },
+      h(H.TabBar.Item, { value: 'overview', label: 'Overview', icon: icon('inbox'), badge: 2, badgeTone: 'error', badgeLabel: '2 blocking' }),
+      h(H.TabBar.Item, { value: 'library', label: 'Library', icon: icon('library'), badge: true, badgeTone: 'warning', badgeLabel: 'Needs review' }),
+      h(H.TabBar.Item, { value: 'upcoming', label: 'Upcoming', icon: icon('calendar-clock'), badge: 3, badgeLabel: '3 scheduled' })),
     h('p', { className: 'label-13' }, 'More is current while a screen inside it is open'),
     h(H.TabBar, { label: 'Screens', hideFrom: false, style: inFlow },
       h(H.TabBar.Item, { value: 'overview', label: 'Overview', icon: icon('inbox') }),

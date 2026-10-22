@@ -3267,9 +3267,11 @@
       var minimized = !!ctx.minimized;
       var badge = props.badge;
       var badgeNode = null;
-      if (badge === true) badgeNode = h('span', { className: 'hy-tabbar__badge hy-tabbar__badge--dot' });
+      /* The tone only recolours dots and counts; a node badge is rendered as given. */
+      var toneClass = props.badgeTone === 'error' || props.badgeTone === 'warning' ? ' hy-tabbar__badge--' + props.badgeTone : '';
+      if (badge === true) badgeNode = h('span', { className: 'hy-tabbar__badge hy-tabbar__badge--dot' + toneClass });
       else if (typeof badge === 'number') {
-        if (badge > 0) badgeNode = h('span', { className: 'hy-tabbar__badge hy-tabbar__badge--count' }, badge > 99 ? '99+' : String(badge));
+        if (badge > 0) badgeNode = h('span', { className: 'hy-tabbar__badge hy-tabbar__badge--count' + toneClass }, badge > 99 ? '99+' : String(badge));
       } else if (badge !== undefined && badge !== null && badge !== false) badgeNode = h('span', { className: 'hy-tabbar__badge' }, badge);
       function onClick(e) {
         /* A tap on the minimised capsule only expands it. */
