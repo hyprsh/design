@@ -27,6 +27,8 @@
 .hy-tabs--secondary .hy-tabs__list { gap: 0; box-shadow: none; padding: 2px; margin: -2px; }
 .hy-tabs--secondary .hy-tabs__tab { height: 32px; padding: 0 12px; font-size: 13px; line-height: 20px; border-radius: var(--radius-md); }
 .hy-tabs--secondary .hy-tabs__tab::after { content: none; }
+/* Touch sizing: secondary tabs are drawn at the touch target (primary tabs are already 48px). */
+@media (pointer: coarse), (max-width: 639px) { .hy-tabs--secondary .hy-tabs__tab { height: var(--touch-target); } }
 .hy-tabs--secondary .hy-tabs__tab:hover { background: var(--gray-alpha-100); }
 .hy-tabs--secondary .hy-tabs__tab[aria-selected="true"] { background: var(--gray-200); color: var(--gray-1000); }
 .hy-tabs--secondary .hy-tabs__tab:disabled, .hy-tabs--secondary .hy-tabs__tab:disabled:hover { background: none; color: var(--gray-700); }

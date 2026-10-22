@@ -11,3 +11,4 @@ Triggers an action such as submitting a form, starting a deploy or opening a dia
 - Labels are Title Case and name the result: “Deploy Project”, “Invite Member”, “Rotate Key”. Never “Submit”, “OK” or “Confirm”. A label that opens a follow-up ends with “…”.
 - Icon-only buttons need `svgOnly` and an `aria-label` that names the action and its target (“Copy Deployment URL”, not “Copy”). Don't add an `aria-label` to a button that already has visible text.
 - `shape="rounded"` with `shadow` is a marketing look; keep product UI square.
+- Under touch sizing `small` and `medium` buttons are 44px tall (icon-only ones 44px wide too), `large` stays 48px, and `tiny` keeps its drawn size with a 44px hit area.

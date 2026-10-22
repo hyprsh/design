@@ -12,12 +12,22 @@ These are the rules every hyprsh interface follows. They are adapted from Vercel
 
 ## Targets and input
 
-- **Must:** hit targets are at least 24px, and at least 44px on touch. If the visual is smaller, expand the hit area.
+- **Must:** hit targets are at least 24px, and at least 44px under touch sizing (see below). If the visual is smaller, expand the hit area.
 - **Must:** a checkbox or radio and its label form one hit target, with no dead zones.
 - **Must:** inputs are 16px or larger on touch devices. Never disable zoom (`user-scalable=no`, `maximum-scale=1`).
 - **Must:** set `touch-action: manipulation`. Set `-webkit-tap-highlight-color` on purpose.
 - **Must:** drag, swipe and pinch gestures have a click and keyboard alternative. While dragging, disable text selection and make the dragged element `inert`.
 - **Should:** autofocus only on desktop, and only when there is one primary input.
+
+## Touch sizing
+
+Touch sizing applies under `@media (pointer: coarse), (max-width: 639px)`: a coarse pointer or phone width, so a narrow window with a mouse gets what a phone gets. Its touch target is 44px, the `--touch-target` token.
+
+- **Must:** write the touch target as `var(--touch-target)`, never as `44px`. Media queries can't read custom properties, so the query writes `max-width: 639px` itself.
+- **Must:** keep rules that aren't about size (16px field text so iOS doesn't zoom, hover on tap, popovers staying 8px inside the screen) under `(pointer: coarse)` alone.
+- **Must:** these are drawn at the touch target: Button (small and default; icon-only Buttons are 44px wide too), Input, Select, Menu items and Menu's unstyled trigger, Checkbox, Radio and Toggle rows, Switch (every size), secondary Tabs, Combobox, MultiSelect, SearchInput, AddressInput, CommandMenuTrigger, ContextMenu and FilterParams.
+- **Must:** these keep their drawn size and grow only their hit area to the touch target: tiny Button, interactive Pills (links and buttons, every size), the Progress stop trigger and CommandMenu's Esc key.
+- Large Buttons (48px), primary Tabs (48px) and CommandMenu items (44px) are already at or above the touch target and don't change. Calendar and the Video seek bar still have their own 40px rules under `(pointer: coarse)`.
 
 ## Forms
 

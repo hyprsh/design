@@ -9,3 +9,4 @@ A segmented control for choosing one of two or three views or modes; it behaves 
 - Wrap icon-only controls in a Tooltip so sighted users get the name too.
 - Use it to change what's shown right now (Source / Output, Grid / List), not to fill in a form that's saved later.
 - The selected segment changes background and text weight colour, so it reads without colour alone.
+- Under touch sizing every size is drawn 44px tall.

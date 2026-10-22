@@ -82,5 +82,8 @@ body {
 @media (pointer: coarse) {
   .hy-input input, .hy-select select, .hy-textarea textarea,
   .hy-field--mono .hy-input input, .hy-field--mono .hy-textarea textarea { font-size: 16px; }
-  .hy-input--small { height: 40px; }
+}
+/* Touch sizing: fields are drawn at the touch target. Input.css and Select.css do the same for their sizes. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-input, .hy-input--small, .hy-select { height: var(--touch-target); }
 }

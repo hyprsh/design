@@ -3,7 +3,7 @@
 .hy-context-menu__trigger {
   -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; border-radius: var(--radius-lg);
 }
-@media (pointer: coarse) {
-  .hy-context-menu__list .hy-menu__item { min-height: 40px; }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-context-menu__list .hy-menu__item { min-height: var(--touch-target); }
 }
 .hy-context-menu__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }

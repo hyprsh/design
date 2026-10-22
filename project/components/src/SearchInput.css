@@ -1,8 +1,10 @@
 /* ---------- SearchInput ---------- */
 .hy-search input::-webkit-search-cancel-button,
 .hy-search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
-/* Touch screens: 16px text so iOS doesn't zoom on focus, and a 40px tall field. */
+/* Touch screens: 16px text so iOS doesn't zoom on focus. Touch sizing: the field is drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-search input { font-size: 16px; }
-  .hy-search .hy-input--medium { height: 40px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-search .hy-input--medium { height: var(--touch-target); }
 }

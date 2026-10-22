@@ -54,12 +54,13 @@
 .hy-btn--tertiary:disabled, .hy-btn--tertiary:disabled:hover, .hy-btn--tertiary[aria-disabled="true"] { background: transparent; box-shadow: none; }
 .hy-btn[aria-busy="true"] { cursor: wait; }
 
-/* Touch screens: every button is at least 40px tall (48px for large); tiny buttons keep their look but get a 40px hit area. */
-@media (pointer: coarse) {
-  .hy-btn, .hy-btn--small { height: 40px; }
+/* Touch sizing: buttons are drawn at the touch target (48px for large); tiny buttons keep their drawn size and
+   get a hit area of the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-btn, .hy-btn--small { height: var(--touch-target); }
   .hy-btn--large { height: 48px; }
-  .hy-btn--icon, .hy-btn--icon.hy-btn--small { width: 40px; }
+  .hy-btn--icon, .hy-btn--icon.hy-btn--small { width: var(--touch-target); }
   .hy-btn--icon.hy-btn--large { width: 48px; }
   .hy-btn--tiny { height: 24px; }
-  .hy-btn--tiny::after { content: ''; position: absolute; inset: -8px; }
+  .hy-btn--tiny::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
 }

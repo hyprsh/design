@@ -9,4 +9,4 @@ A link styled like a Badge: a light, rounded way to point somewhere that doesn't
 - Use a Pill for secondary destinations: a changelog entry, a filter shortcut, a “Join the Discussion” link. Use a Button for actions that change something.
 - Keep the label to one to three words in Title Case, and make it name the destination.
 - Badge is for static labels; never make a Badge clickable when a Pill fits.
-- The small size draws at 20px but keeps a 24px hit area.
+- The small size draws at 20px but keeps a 24px hit area. Under touch sizing every size keeps its drawn size and the hit area grows to at least 44px.

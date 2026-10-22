@@ -39,7 +39,7 @@ Don't edit `core.js`, `core.css`, `tokens.json` or another component's files. If
 - **API:** mirror Geist's prop names and values from the page's code samples, including compound parts. For `<Switch><SwitchControl/></Switch>`, export `Switch` and attach the part as `Switch.Control`. Also define it as its own component when the samples import it separately (`define('SwitchControl', SwitchControl)`). Support controlled and uncontrolled use (`value`/`defaultValue`, `checked`/`defaultChecked`, `onChange`).
 - **Renamed or aligned props:** when you change an existing component's API to match Geist, keep the old prop names working as aliases. Other cards use them.
 - **Class names:** prefix with `hy-` and use BEM-ish names (`hy-split-btn__menu`, `--small`, `is-open`).
-- **Values:** use tokens only: `var(--gray-…)`, `var(--accent-…)` for anything that shows the accent (never `--pink-…` directly), `var(--space-…)`, `var(--radius-…)`, `var(--shadow-…)`, `var(--font-sans|mono)`, `var(--z-…)` and `var(--focus-color)`. Fixed sizes such as control heights (32/40/48) and font sizes (12/13/14/16) are fine as px, because they come from Geist's type and control scale. Never hard-code hex colours.
+- **Values:** use tokens only: `var(--gray-…)`, `var(--accent-…)` for anything that shows the accent (never `--pink-…` directly), `var(--space-…)`, `var(--radius-…)`, `var(--shadow-…)`, `var(--font-sans|mono)`, `var(--z-…)`, `var(--touch-target)` for touch sizing and `var(--focus-color)`. Fixed sizes such as control heights (32/40/48) and font sizes (12/13/14/16) are fine as px, because they come from Geist's type and control scale. Never hard-code hex colours.
 - **Both themes:** every colour must come from a token so dark mode works on its own. Check that dark mode is legible.
 - **Accessibility** (from `project/guidelines.md`):
   - native elements first
@@ -98,6 +98,7 @@ node scripts/build.mjs                 # build + contract checks
 node scripts/dev.mjs                   # http://127.0.0.1:4400 (?only=Name,Other)
 node scripts/shot.mjs Name Other       # headless Chrome: mount check + .cache/shots/Name-{light,dark}.png
 node scripts/mobile.mjs Name Other     # phone: 375px with touch, reports overflow and small targets, .cache/mobile/Name.png
+node scripts/touch.mjs                 # touch sizing: drawn sizes and hit areas at desktop, phone width and coarse pointer
 ```
 
-Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 40px tall under `@media (pointer: coarse)`. Then compare with the Geist page: either open it in a browser or read its text and code samples.
+Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 44px tall under touch sizing (`@media (pointer: coarse), (max-width: 639px)`, sized with `var(--touch-target)`). Then compare with the Geist page: either open it in a browser or read its text and code samples.

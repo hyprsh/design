@@ -28,3 +28,7 @@
 .hy-field__alert { display: contents; }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }
+/* Touch sizing: every size is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-input--small, .hy-input--medium, .hy-input--large { height: var(--touch-target); }
+}

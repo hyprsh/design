@@ -11,7 +11,21 @@ const SRC = join(COMP, 'src');
 const NAMESPACE = 'Hyprsh';
 export const GROUPS = ['Actions', 'Forms', 'Navigation', 'Status', 'Feedback', 'Content', 'Data', 'Overlays', 'Layout', 'Media'];
 
+const TOUCH_MEDIA = '@media (pointer: coarse), (max-width: 639px)';
+
 const read = (p) => readFileSync(p, 'utf8');
+
+// The rules inside every `<header> { … }` block in css whose header is exactly `header`, as [selector, declarations].
+function rulesUnder(css, header) {
+  const out = [];
+  for (let i = css.indexOf(header + ' {'); i !== -1; i = css.indexOf(header + ' {', i + 1)) {
+    const start = css.indexOf('{', i) + 1;
+    let depth = 1, j = start;
+    for (; j < css.length && depth; j++) depth += css[j] === '{' ? 1 : css[j] === '}' ? -1 : 0;
+    for (const [, sel, decl] of css.slice(start, j - 1).matchAll(/([^{}]+)\{([^{}]*)\}/g)) out.push([sel.trim(), decl]);
+  }
+  return out;
+}
 const indent = (s, pad) => s.split('\n').map((l) => (l ? pad + l : l)).join('\n');
 
 export function build({ write = true } = {}) {
@@ -79,6 +93,16 @@ export function build({ write = true } = {}) {
   if (/<\/script|<!--/i.test(js)) errors.push('bundle.js: contains </script or <!-- (consumers inline it)');
   if (/<\/style/i.test(css)) errors.push('bundle.css: contains </style');
   if (/transition:\s*all/.test(css)) errors.push('bundle.css: transition: all (list properties)');
+  // Touch sizing (GLOSSARY.md) reads var(--touch-target): no rule writes the touch target as a number, and sizes don't
+  // grow under a coarse pointer alone. Calendar and Video seek sizing are still to move over.
+  for (const [sel, decl] of rulesUnder(css, TOUCH_MEDIA)) {
+    if (/\b4[04]px\b/.test(decl)) errors.push(`bundle.css: touch sizing rule ${sel} writes 40px/44px; use var(--touch-target)`);
+  }
+  for (const [sel, decl] of rulesUnder(css, '@media (pointer: coarse)')) {
+    if (/(^|[\s;])(min-)?(height|width):\s*4[04]px/.test(decl) && !/^\.hy-(calendar|video)/.test(sel)) {
+      errors.push(`bundle.css: ${sel} is sized under (pointer: coarse) alone; move it to ${TOUCH_MEDIA}`);
+    }
+  }
   const dup = order.filter((n) => (js.match(new RegExp(`define\\('${n}',`, 'g')) || []).length > 1);
   if (dup.length) errors.push('duplicate define: ' + dup.join(', '));
 

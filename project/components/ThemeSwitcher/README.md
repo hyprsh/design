@@ -16,7 +16,7 @@ Apps that style dark mode with a `.dark` class (Tailwind's class strategy) shoul
 
 ## Cycle variant
 
-`variant="cycle"` is a single icon button for narrow rails and toolbars. Each press moves System → Light → Dark → System. The icon shows the current choice, the button is named “Theme: Dark” (and so on), and a Tooltip shows the same text. It takes the same `value`, `defaultValue`, `onChange`, `storageKey`, `attribute`, `size` and `disabled` props; the button is at least 40px on touch screens.
+`variant="cycle"` is a single icon button for narrow rails and toolbars. Each press moves System → Light → Dark → System. The icon shows the current choice, the button is named “Theme: Dark” (and so on), and a Tooltip shows the same text. It takes the same `value`, `defaultValue`, `onChange`, `storageKey`, `attribute`, `size` and `disabled` props; the button is at least 44px under touch sizing.
 
 `size` maps straight onto `Button`'s sizes: `medium` (the default) is 36px, like a default Button, and `small` is 32px. Earlier versions rendered one step down (32px by default, 24px for `small`), so existing cycle users get a 4px bigger button by default; pass `size="small"` to keep the old 32px. The icon is 16px at both sizes. The radios keep their own sizes (32px, or 24px for `small`).
 

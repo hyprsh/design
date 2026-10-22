@@ -25,5 +25,5 @@
   border: 0; border-radius: var(--radius-full); background: transparent; cursor: default;
 }
 .hy-progress__trigger::after { content: ''; position: absolute; inset: -5px; }
-@media (pointer: coarse) { .hy-progress__trigger::after { inset: -13px; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-progress__trigger::after { inset: min(0px, calc((100% - var(--touch-target)) / 2)); } }
 .hy-progress__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }

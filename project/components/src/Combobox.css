@@ -36,10 +36,12 @@
 @keyframes hy-combobox-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-combobox-fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+/* Touch screens: 16px text (no iOS zoom on focus). Touch sizing: rows are drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-combobox__field input { font-size: 16px; }
-  .hy-combobox__option, .hy-combobox__empty { min-height: 40px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-combobox__option, .hy-combobox__empty { min-height: var(--touch-target); }
   .hy-combobox__btn { width: 32px; height: 32px; }
 }
 

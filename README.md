@@ -58,6 +58,12 @@ node scripts/mobile.mjs Button Toggle
 
 The phone check renders cards at 375px with touch, flags anything wider than the screen and tap targets under 24px, and saves screenshots to `.cache/mobile`.
 
+```bash
+node scripts/touch.mjs
+```
+
+The touch sizing check measures the controls touch sizing covers at 1280px with a mouse, at 375px with a mouse and with a coarse pointer, and fails when a drawn size or hit area is off (see Touch sizing in `project/guidelines.md`).
+
 Screenshots need Google Chrome installed in `/Applications`.
 
 ## Using it in a React app

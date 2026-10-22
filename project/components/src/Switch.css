@@ -6,6 +6,8 @@
 }
 .hy-switch--small { height: 32px; }
 .hy-switch--large { height: 40px; }
+/* Touch sizing: every size is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) { .hy-switch, .hy-switch--small, .hy-switch--large { height: var(--touch-target); } }
 .hy-switch__control { position: relative; display: flex; flex: 1 0 auto; cursor: pointer; }
 .hy-switch > .hy-tooltip { display: flex; flex: 1 0 auto; }
 .hy-switch__input {

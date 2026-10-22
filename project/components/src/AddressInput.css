@@ -22,10 +22,12 @@
 .hy-address__manual { margin: -8px 0 0 -8px; }
 .hy-address__failed { margin: 0; font-size: 13px; line-height: 18px; color: var(--amber-900); }
 
-/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+/* Touch screens: 16px text (no iOS zoom on focus). Touch sizing: rows are drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-address input, .hy-address select { font-size: 16px; }
-  .hy-address__option, .hy-address__status { min-height: 40px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-address__option, .hy-address__status { min-height: var(--touch-target); }
   .hy-address__option { align-items: center; }
   .hy-address__pin { margin-top: 0; }
 }

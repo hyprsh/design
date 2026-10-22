@@ -9,3 +9,4 @@ Switches between views of the same object. Follows the WAI-ARIA tabs pattern: ar
 - Use `primary` for the sections of a page and `secondary` to switch a view inside a card, chart or toolbar. Use a Switch for settings that change data rather than the view.
 - Give a disabled tab a `tooltip` that says why (“Available on Pro”), or leave the tab out.
 - Use `disabled` for the whole set only while the content is loading or can't change.
+- Under touch sizing `secondary` tabs are drawn 44px tall; `primary` tabs are already 48px.

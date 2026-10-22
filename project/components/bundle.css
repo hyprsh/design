@@ -82,7 +82,10 @@ body {
 @media (pointer: coarse) {
   .hy-input input, .hy-select select, .hy-textarea textarea,
   .hy-field--mono .hy-input input, .hy-field--mono .hy-textarea textarea { font-size: 16px; }
-  .hy-input--small { height: 40px; }
+}
+/* Touch sizing: fields are drawn at the touch target. Input.css and Select.css do the same for their sizes. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-input, .hy-input--small, .hy-select { height: var(--touch-target); }
 }
 
 /* ---------- Button ---------- */
@@ -141,14 +144,15 @@ body {
 .hy-btn--tertiary:disabled, .hy-btn--tertiary:disabled:hover, .hy-btn--tertiary[aria-disabled="true"] { background: transparent; box-shadow: none; }
 .hy-btn[aria-busy="true"] { cursor: wait; }
 
-/* Touch screens: every button is at least 40px tall (48px for large); tiny buttons keep their look but get a 40px hit area. */
-@media (pointer: coarse) {
-  .hy-btn, .hy-btn--small { height: 40px; }
+/* Touch sizing: buttons are drawn at the touch target (48px for large); tiny buttons keep their drawn size and
+   get a hit area of the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-btn, .hy-btn--small { height: var(--touch-target); }
   .hy-btn--large { height: 48px; }
-  .hy-btn--icon, .hy-btn--icon.hy-btn--small { width: 40px; }
+  .hy-btn--icon, .hy-btn--icon.hy-btn--small { width: var(--touch-target); }
   .hy-btn--icon.hy-btn--large { width: 48px; }
   .hy-btn--tiny { height: 24px; }
-  .hy-btn--tiny::after { content: ''; position: absolute; inset: -8px; }
+  .hy-btn--tiny::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
 }
 
 /* ---------- CopyButton ---------- */
@@ -221,10 +225,12 @@ body {
 .hy-address__manual { margin: -8px 0 0 -8px; }
 .hy-address__failed { margin: 0; font-size: 13px; line-height: 18px; color: var(--amber-900); }
 
-/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+/* Touch screens: 16px text (no iOS zoom on focus). Touch sizing: rows are drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-address input, .hy-address select { font-size: 16px; }
-  .hy-address__option, .hy-address__status { min-height: 40px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-address__option, .hy-address__status { min-height: var(--touch-target); }
   .hy-address__option { align-items: center; }
   .hy-address__pin { margin-top: 0; }
 }
@@ -415,8 +421,8 @@ body {
 .hy-check-field { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
 .hy-check__description { padding-left: 24px; font-size: 13px; line-height: 18px; color: var(--gray-900); cursor: pointer; }
 .hy-check-field--disabled .hy-check__description { color: var(--gray-700); cursor: not-allowed; }
-/* Touch: the whole label row is a 40px target. */
-@media (pointer: coarse) { .hy-check { min-height: 40px; } }
+/* Touch sizing: the whole label row is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) { .hy-check { min-height: var(--touch-target); } }
 
 /* ---------- Choicebox ---------- */
 .hy-choicebox { min-width: 0; margin: 0; padding: 0; border: 0; }
@@ -529,10 +535,12 @@ body {
 @keyframes hy-combobox-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-combobox-fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Touch screens: 16px text (no iOS zoom on focus) and 40px rows. */
+/* Touch screens: 16px text (no iOS zoom on focus). Touch sizing: rows are drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-combobox__field input { font-size: 16px; }
-  .hy-combobox__option, .hy-combobox__empty { min-height: 40px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-combobox__option, .hy-combobox__empty { min-height: var(--touch-target); }
   .hy-combobox__btn { width: 32px; height: 32px; }
 }
 
@@ -667,6 +675,10 @@ body {
 .hy-field__alert { display: contents; }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }
+/* Touch sizing: every size is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-input--small, .hy-input--medium, .hy-input--large { height: var(--touch-target); }
+}
 
 /* ---------- Label ---------- */
 .hy-label { display: flex; flex-direction: column; min-width: 0; font-size: 13px; line-height: 20px; color: var(--gray-900); }
@@ -712,12 +724,14 @@ body {
 .hy-multiselect__row:focus-within .hy-multiselect__action { opacity: 1; }
 .hy-multiselect__row.is-disabled .hy-multiselect__action { opacity: 0; }
 
-/* Touch screens: 40px rows and a 40px tap area for each checkbox */
+/* Touch screens: the row action is always shown. Touch sizing: rows and each checkbox's hit area are drawn at the touch target */
 @media (pointer: coarse) {
-  .hy-multiselect__row { min-height: 40px; }
-  .hy-multiselect__checkcell { width: 40px; height: 40px; }
-  .hy-multiselect__name { height: 40px; }
   .hy-multiselect__action { opacity: 1; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-multiselect__row { min-height: var(--touch-target); }
+  .hy-multiselect__checkcell { width: var(--touch-target); height: var(--touch-target); }
+  .hy-multiselect__name { height: var(--touch-target); }
 }
 
 @keyframes hy-multiselect-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
@@ -749,16 +763,18 @@ body {
 .hy-radio--disabled { color: var(--gray-700); cursor: not-allowed; }
 .hy-radio--disabled .hy-radio__input + .hy-radio__circle, .hy-radio--disabled:hover .hy-radio__input + .hy-radio__circle { background: var(--gray-100); box-shadow: inset 0 0 0 1px var(--gray-500); }
 .hy-radio--disabled .hy-radio__circle::after { background: var(--gray-500); }
-/* Touch: the whole label row is a 40px target. */
-@media (pointer: coarse) { .hy-radio { min-height: 40px; } .hy-radio-group { gap: 0; } .hy-radio-group--horizontal { gap: 0 24px; } }
+/* Touch sizing: the whole label row is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) { .hy-radio { min-height: var(--touch-target); } .hy-radio-group { gap: 0; } .hy-radio-group--horizontal { gap: 0 24px; } }
 
 /* ---------- SearchInput ---------- */
 .hy-search input::-webkit-search-cancel-button,
 .hy-search input::-webkit-search-decoration { -webkit-appearance: none; appearance: none; }
-/* Touch screens: 16px text so iOS doesn't zoom on focus, and a 40px tall field. */
+/* Touch screens: 16px text so iOS doesn't zoom on focus. Touch sizing: the field is drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-search input { font-size: 16px; }
-  .hy-search .hy-input--medium { height: 40px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-search .hy-input--medium { height: var(--touch-target); }
 }
 
 /* ---------- Select ---------- */
@@ -782,10 +798,12 @@ body {
 .hy-select--disabled .hy-select__chevron, .hy-select--disabled .hy-select__prefix, .hy-select--disabled .hy-select__suffix { color: var(--gray-700); }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }
-/* Touch screens: no select shorter than 40px (core.css already sets 16px text so iOS doesn't zoom). */
+/* Touch screens: 16px text so iOS doesn't zoom. Touch sizing: every size is drawn at the touch target. */
 @media (pointer: coarse) {
-  .hy-select--small, .hy-select--medium { height: 40px; }
   .hy-select select { font-size: 16px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-select--small, .hy-select--medium, .hy-select--large { height: var(--touch-target); }
 }
 
 /* ---------- Slider ---------- */
@@ -844,6 +862,8 @@ body {
 }
 .hy-switch--small { height: 32px; }
 .hy-switch--large { height: 40px; }
+/* Touch sizing: every size is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) { .hy-switch, .hy-switch--small, .hy-switch--large { height: var(--touch-target); } }
 .hy-switch__control { position: relative; display: flex; flex: 1 0 auto; cursor: pointer; }
 .hy-switch > .hy-tooltip { display: flex; flex: 1 0 auto; }
 .hy-switch__input {
@@ -1001,8 +1021,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .hy-toggle__track, .hy-toggle__thumb { transition-duration: 0s; }
 }
-/* Touch: the whole label row is a 40px target. */
-@media (pointer: coarse) { .hy-toggle { min-height: 40px; } }
+/* Touch sizing: the whole label row is drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) { .hy-toggle { min-height: var(--touch-target); } }
 
 /* ---------- Breadcrumbs ---------- */
 .hy-breadcrumbs__list { display: flex; flex-wrap: wrap; align-items: center; margin: 0; padding: 0; list-style: none; }
@@ -1053,9 +1073,12 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 .hy-cmdk-trigger__prefix { display: flex; flex: none; align-items: center; color: var(--gray-700); }
 .hy-cmdk-trigger__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-cmdk-trigger__shortcut { display: flex; flex: none; align-items: center; gap: 4px; margin-right: -4px; }
-/* Touch screens: 16px text so iOS doesn't zoom, and no trigger shorter than 40px. */
+/* Touch screens: 16px text so iOS doesn't zoom. Touch sizing: the trigger is drawn at the touch target. */
 @media (pointer: coarse) {
-  .hy-cmdk-trigger, .hy-cmdk-trigger--small { height: 40px; font-size: 16px; }
+  .hy-cmdk-trigger { font-size: 16px; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-cmdk-trigger, .hy-cmdk-trigger--small { height: var(--touch-target); }
 }
 @media (prefers-reduced-motion: reduce) { .hy-cmdk-trigger { transition: none; } }
 
@@ -1125,6 +1148,8 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 .hy-tabs--secondary .hy-tabs__list { gap: 0; box-shadow: none; padding: 2px; margin: -2px; }
 .hy-tabs--secondary .hy-tabs__tab { height: 32px; padding: 0 12px; font-size: 13px; line-height: 20px; border-radius: var(--radius-md); }
 .hy-tabs--secondary .hy-tabs__tab::after { content: none; }
+/* Touch sizing: secondary tabs are drawn at the touch target (primary tabs are already 48px). */
+@media (pointer: coarse), (max-width: 639px) { .hy-tabs--secondary .hy-tabs__tab { height: var(--touch-target); } }
 .hy-tabs--secondary .hy-tabs__tab:hover { background: var(--gray-alpha-100); }
 .hy-tabs--secondary .hy-tabs__tab[aria-selected="true"] { background: var(--gray-200); color: var(--gray-1000); }
 .hy-tabs--secondary .hy-tabs__tab:disabled, .hy-tabs--secondary .hy-tabs__tab:disabled:hover { background: none; color: var(--gray-700); }
@@ -1188,9 +1213,10 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-pill__icon { display: inline-flex; flex: none; margin-left: -4px; }
 .hy-pill__icon svg { width: 14px; height: 14px; }
 .hy-pill--small { height: 20px; padding: 0 8px; font-size: 11px; line-height: 20px; letter-spacing: .2px; }
-/* The small pill draws 20px; its hit area grows to 24px. */
+/* The small pill draws 20px; its hit area grows to 24px. Under touch sizing an interactive pill of any size keeps its
+   drawn size and its hit area grows to the touch target. */
 .hy-pill--small::after { content: ''; position: absolute; inset: -2px 0; }
-@media (pointer: coarse) { .hy-pill--small::after { inset: -10px 0; } }
+@media (pointer: coarse), (max-width: 639px) { a.hy-pill::after, button.hy-pill::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)) 0; } }
 .hy-pill--small .hy-pill__icon { margin-left: -2px; }
 .hy-pill--small .hy-pill__icon svg { width: 12px; height: 12px; }
 .hy-pill--large { height: 32px; padding: 0 12px; gap: 6px; font-size: 14px; line-height: 20px; }
@@ -1364,7 +1390,7 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
   border: 0; border-radius: var(--radius-full); background: transparent; cursor: default;
 }
 .hy-progress__trigger::after { content: ''; position: absolute; inset: -5px; }
-@media (pointer: coarse) { .hy-progress__trigger::after { inset: -13px; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-progress__trigger::after { inset: min(0px, calc((100% - var(--touch-target)) / 2)); } }
 .hy-progress__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
 /* ---------- ProjectBanner ---------- */
@@ -1828,12 +1854,12 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 }
 .hy-filter-params__stop:focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
 
-/* Touch screens: 40px pills, suggestions and options */
-@media (pointer: coarse) {
-  .hy-filter-pill, .hy-filter-suggestion { height: 40px; }
+/* Touch sizing: pills, suggestions and options are drawn at the touch target */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-filter-pill, .hy-filter-suggestion { height: var(--touch-target); }
   .hy-filter-pill__remove { width: 32px; height: 32px; }
   .hy-filter-params__chip { height: 32px; }
-  .hy-filter-params__option { min-height: 40px; }
+  .hy-filter-params__option { min-height: var(--touch-target); }
 }
 
 /* ---------- Gauge ---------- */
@@ -1906,10 +1932,10 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
   font: inherit; font-size: 12px; line-height: 20px; color: var(--gray-900); cursor: pointer;
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
-/* 20px drawn, 24px hit area (40px on touch) */
+/* 20px drawn, 24px hit area (the touch target under touch sizing) */
 .hy-cmd__esc { position: relative; }
 .hy-cmd__esc::after { content: ''; position: absolute; inset: -2px 0; }
-@media (pointer: coarse) { .hy-cmd__esc::after { inset: -10px -4px; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-cmd__esc::after { inset: min(0px, calc((100% - var(--touch-target)) / 2)); } }
 .hy-cmd__esc:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-cmd__list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px; scroll-padding: 8px; }
@@ -1919,7 +1945,7 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
   border-radius: var(--radius-md); font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer;
   user-select: none; -webkit-user-select: none;
 }
-@media (pointer: coarse) { .hy-cmd__item { min-height: 44px; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-cmd__item { min-height: var(--touch-target); } }
 .hy-cmd__item.is-active { background: var(--gray-alpha-100); }
 .hy-cmd__item.is-disabled { color: var(--gray-700); cursor: not-allowed; }
 .hy-cmd__icon { display: inline-flex; flex: none; color: var(--gray-900); }
@@ -1970,8 +1996,8 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-context-menu__trigger {
   -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; border-radius: var(--radius-lg);
 }
-@media (pointer: coarse) {
-  .hy-context-menu__list .hy-menu__item { min-height: 40px; }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-context-menu__list .hy-menu__item { min-height: var(--touch-target); }
 }
 .hy-context-menu__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 
@@ -2074,10 +2100,10 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-menu__section { display: block; }
 .hy-menu__section-title { display: block; padding: 8px 8px 4px; font-size: 12px; line-height: 16px; color: var(--gray-900); }
 .hy-menu__group { margin: 0; padding: 0; list-style: none; }
-/* Touch screens: 40px rows and triggers */
-@media (pointer: coarse) {
-  .hy-menu__item { min-height: 40px; }
-  .hy-menu__unstyled { min-width: 40px; min-height: 40px; }
+/* Touch sizing: rows and the unstyled trigger are drawn at the touch target */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-menu__item { min-height: var(--touch-target); }
+  .hy-menu__unstyled { min-width: var(--touch-target); min-height: var(--touch-target); }
 }
 @keyframes hy-pop { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 

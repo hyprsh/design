@@ -67,10 +67,10 @@
 }
 .hy-filter-params__stop:focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
 
-/* Touch screens: 40px pills, suggestions and options */
-@media (pointer: coarse) {
-  .hy-filter-pill, .hy-filter-suggestion { height: 40px; }
+/* Touch sizing: pills, suggestions and options are drawn at the touch target */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-filter-pill, .hy-filter-suggestion { height: var(--touch-target); }
   .hy-filter-pill__remove { width: 32px; height: 32px; }
   .hy-filter-params__chip { height: 32px; }
-  .hy-filter-params__option { min-height: 40px; }
+  .hy-filter-params__option { min-height: var(--touch-target); }
 }

@@ -24,10 +24,10 @@
   font: inherit; font-size: 12px; line-height: 20px; color: var(--gray-900); cursor: pointer;
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
-/* 20px drawn, 24px hit area (40px on touch) */
+/* 20px drawn, 24px hit area (the touch target under touch sizing) */
 .hy-cmd__esc { position: relative; }
 .hy-cmd__esc::after { content: ''; position: absolute; inset: -2px 0; }
-@media (pointer: coarse) { .hy-cmd__esc::after { inset: -10px -4px; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-cmd__esc::after { inset: min(0px, calc((100% - var(--touch-target)) / 2)); } }
 .hy-cmd__esc:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-cmd__list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px; scroll-padding: 8px; }
@@ -37,7 +37,7 @@
   border-radius: var(--radius-md); font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer;
   user-select: none; -webkit-user-select: none;
 }
-@media (pointer: coarse) { .hy-cmd__item { min-height: 44px; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-cmd__item { min-height: var(--touch-target); } }
 .hy-cmd__item.is-active { background: var(--gray-alpha-100); }
 .hy-cmd__item.is-disabled { color: var(--gray-700); cursor: not-allowed; }
 .hy-cmd__icon { display: inline-flex; flex: none; color: var(--gray-900); }
