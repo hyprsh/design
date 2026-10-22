@@ -158,8 +158,12 @@ describe('no:name', () => {
     assert.deepEqual(q.problems, [{ message: 'no: cannot be excluded', span: [0, 9] }]);
   });
 
-  it('is free text when no qualifier can be empty, and a real qualifier called no wins', () => {
-    assert.equal(parseQuery('no:label', qualifiers).text, 'no:label');
+  it('is a problem when no qualifier can be empty, and a real qualifier called no wins', () => {
+    const q = parseQuery('no:label crash', qualifiers);
+    assert.deepEqual(q.terms, []);
+    assert.equal(q.text, 'crash');
+    assert.deepEqual(q.problems, [{ message: 'no: no qualifier here can be empty', span: [0, 8] }]);
+    assert.deepEqual(parseQuery('no:', qualifiers).problems, []);
     const own = [...issues, { name: 'no', help: 'a real one' }];
     matches(parseQuery('no:anything', own).terms, [{ name: 'no', values: ['anything'] }]);
   });

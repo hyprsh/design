@@ -271,13 +271,13 @@
   /* The names of the qualifiers `no:` can name. */
   function queryNones(qualifiers) { return qualifiers.filter(function (q) { return q.none; }).map(function (q) { return q.name; }); }
 
-  /* What a token is: a term of a known qualifier, or free text. `no:` is a term too while some qualifier has `none`,
-     unless the app has a qualifier of that name itself. */
+  /* What a token is: a term of a known qualifier, or free text. `no:` is always a term, so it is flagged where nothing can
+     be empty, unless the app has a qualifier of that name itself. */
   function queryTermOf(t, qualifiers) {
     var m = /^(-?)([a-z_]+):(.*)$/i.exec(t.raw);
     if (!m) return null;
     var name = m[2].toLowerCase();
-    if (!queryFind(qualifiers, name) && !(name === 'no' && queryNones(qualifiers).length)) return null;
+    if (!queryFind(qualifiers, name) && name !== 'no') return null;
     return { name: name, values: querySplit(m[3]), excluded: m[1] === '-', span: [t.start, t.end] };
   }
 
@@ -286,9 +286,14 @@
     queryTokens(input).forEach(function (t) {
       var term = queryTermOf(t, qualifiers);
       if (!term) { text.push(t.raw); return; }
-      var q = queryFind(qualifiers, term.name) || { name: 'no', values: queryNones(qualifiers) };
+      var own = queryFind(qualifiers, term.name);
+      var q = own || { name: 'no', values: queryNones(qualifiers) };
       if (term.excluded && !q.excludable) {
         problems.push({ message: q.name + ': cannot be excluded', span: term.span });
+        return;
+      }
+      if (!own && !q.values.length) {
+        if (term.values.length) problems.push({ message: 'no: no qualifier here can be empty', span: term.span });
         return;
       }
       var known = q.values;

@@ -49,8 +49,8 @@ export interface QuerySuggestion {
 /**
  * Reads a query. Unknown qualifiers (`error:disk`) are free text, and an unfinished term (`label:`) is ignored. Values a
  * qualifier does not take, and excludes it does not allow, are dropped and named in `problems`. `no:name` is a term
- * (named `no`, with the qualifier names as values) while some qualifier has `none: true`; it is a problem for any other
- * qualifier. Names are case-insensitive, values are not.
+ * (named `no`, with the qualifier names as values) for qualifiers with `none: true`; it is a problem for any other
+ * qualifier, and wherever no qualifier has `none`. Names are case-insensitive, values are not.
  */
 export declare function parseQuery(text: string, qualifiers: readonly Qualifier[]): Query;
 /**
