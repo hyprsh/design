@@ -105,6 +105,11 @@ body {
 .hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 16px; height: 16px; }
 .hy-btn--tiny .hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--tiny.hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 14px; height: 14px; }
 
+/* A suffix that is only a shortcut hint disappears with it on touch-only devices, leaving no gap. */
+@media (hover: none) and (pointer: coarse) {
+  .hy-btn__affix:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
+
 /* sizes: tiny 24 (icon only), small 32, medium 36, large 40 */
 .hy-btn--tiny { height: 24px; padding: 0 4px; font-size: 12px; line-height: 16px; border-radius: var(--radius-sm); }
 .hy-btn--tiny .hy-btn__label { padding: 0 2px; }
@@ -496,6 +501,18 @@ body {
 .hy-clearable__clear:hover .hy-kbd { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .hy-clearable__cmdk { display: inline-flex; align-items: center; gap: 4px; }
 .hy-clearable__cmdk .hy-kbd { margin: 0; }
+/* The Esc hint is the clear button's only content, so on touch-only devices an × takes its place and the button stays. */
+.hy-clearable__x { display: none; color: var(--gray-900); }
+.hy-clearable__clear:hover .hy-clearable__x { color: var(--gray-1000); }
+@media (hover: none) and (pointer: coarse) {
+  .hy-clearable__clear .hy-kbd:not(.hy-kbd--always) + .hy-clearable__x { display: inline-flex; }
+  .hy-clearable__cmdk:has(> .hy-kbd:not(.hy-kbd--always)):not(:has(> .hy-kbd--always)) { display: none; }
+}
+/* Touch sizing: the clear button keeps its drawn size and gets a hit area of the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-clearable__clear { position: relative; }
+  .hy-clearable__clear::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
+}
 
 /* ---------- Combobox ---------- */
 .hy-combobox { position: relative; display: inline-flex; flex-direction: column; width: 100%; max-width: 100%; vertical-align: top; }
@@ -1189,6 +1206,9 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 .hy-cmdk-trigger__prefix { display: flex; flex: none; align-items: center; color: var(--gray-700); }
 .hy-cmdk-trigger__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-cmdk-trigger__shortcut { display: flex; flex: none; align-items: center; gap: 4px; margin-right: -4px; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-cmdk-trigger__shortcut:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
 /* Touch screens: 16px text so iOS doesn't zoom. Touch sizing: the trigger is drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-cmdk-trigger { font-size: 16px; }
@@ -1845,6 +1865,11 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-kbd--words { gap: 4px; }
 .hy-kbd__cmd { min-width: 1em; }
 .hy-kbd--small { min-width: 20px; min-height: 20px; padding: 0 4px; margin-left: 2px; font-size: 12px; }
+/* Shortcut hints are hidden on touch-only devices (no hover, coarse pointer): there is no keyboard to press them on.
+   alwaysShow keeps one visible. Hosts collapse the wrapper around a hint they own with the same query. */
+@media (hover: none) and (pointer: coarse) {
+  .hy-kbd:not(.hy-kbd--always) { display: none; }
+}
 
 /* ---------- MiddleTruncate ---------- */
 .hy-mt { position: relative; display: inline-grid; max-width: 100%; min-width: 0; overflow: hidden; vertical-align: bottom; white-space: pre; }
@@ -2152,6 +2177,9 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-cmd__icon { display: inline-flex; flex: none; color: var(--gray-900); }
 .hy-cmd__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-cmd__suffix { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--gray-900); font-size: 13px; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-cmd__suffix:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
 .hy-cmd__divider { height: 1px; margin: 8px -8px; background: var(--gray-alpha-400); }
 .hy-cmd__empty { padding: 32px 16px; text-align: center; color: var(--gray-900); font-size: 14px; line-height: 20px; text-wrap: balance; }
 .hy-cmd__loading { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 8px; font-size: 14px; line-height: 20px; color: var(--gray-900); }
@@ -2291,6 +2319,9 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-menu__affix { display: inline-flex; flex: none; color: var(--gray-900); }
 .hy-menu__item[aria-disabled="true"] .hy-menu__affix { color: inherit; }
 .hy-menu__affix--end { margin-left: auto; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-menu__affix:has(> .hy-kbd:not(.hy-kbd--always):only-child), .hy-menu__shortcut:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
 .hy-menu__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-menu__stack { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6px 0; }
 .hy-menu__stack > .hy-menu__text { flex: none; }

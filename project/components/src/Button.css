@@ -15,6 +15,11 @@
 .hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 16px; height: 16px; }
 .hy-btn--tiny .hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--tiny.hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 14px; height: 14px; }
 
+/* A suffix that is only a shortcut hint disappears with it on touch-only devices, leaving no gap. */
+@media (hover: none) and (pointer: coarse) {
+  .hy-btn__affix:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
+
 /* sizes: tiny 24 (icon only), small 32, medium 36, large 40 */
 .hy-btn--tiny { height: 24px; padding: 0 4px; font-size: 12px; line-height: 16px; border-radius: var(--radius-sm); }
 .hy-btn--tiny .hy-btn__label { padding: 0 2px; }

@@ -11,6 +11,8 @@ export interface KeyboardInputProps {
   small?: boolean;
   /** hyprsh: force the modifier set instead of detecting the reader's platform. */
   platform?: 'mac' | 'other';
+  /** Keep it visible on touch-only devices (no hover, coarse pointer), where it is hidden by default. For when the key itself is the content, such as a keyboard-shortcuts page. */
+  alwaysShow?: boolean;
   /** The one key after the modifiers. */
   children?: React.ReactNode;
   className?: string;

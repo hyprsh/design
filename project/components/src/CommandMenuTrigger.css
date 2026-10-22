@@ -16,6 +16,9 @@
 .hy-cmdk-trigger__prefix { display: flex; flex: none; align-items: center; color: var(--gray-700); }
 .hy-cmdk-trigger__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-cmdk-trigger__shortcut { display: flex; flex: none; align-items: center; gap: 4px; margin-right: -4px; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-cmdk-trigger__shortcut:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
 /* Touch screens: 16px text so iOS doesn't zoom. Touch sizing: the trigger is drawn at the touch target. */
 @media (pointer: coarse) {
   .hy-cmdk-trigger { font-size: 16px; }

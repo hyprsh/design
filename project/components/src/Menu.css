@@ -40,6 +40,9 @@
 .hy-menu__affix { display: inline-flex; flex: none; color: var(--gray-900); }
 .hy-menu__item[aria-disabled="true"] .hy-menu__affix { color: inherit; }
 .hy-menu__affix--end { margin-left: auto; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-menu__affix:has(> .hy-kbd:not(.hy-kbd--always):only-child), .hy-menu__shortcut:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
 .hy-menu__text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-menu__stack { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 6px 0; }
 .hy-menu__stack > .hy-menu__text { flex: none; }

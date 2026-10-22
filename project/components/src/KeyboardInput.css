@@ -11,3 +11,8 @@
 .hy-kbd--words { gap: 4px; }
 .hy-kbd__cmd { min-width: 1em; }
 .hy-kbd--small { min-width: 20px; min-height: 20px; padding: 0 4px; margin-left: 2px; font-size: 12px; }
+/* Shortcut hints are hidden on touch-only devices (no hover, coarse pointer): there is no keyboard to press them on.
+   alwaysShow keeps one visible. Hosts collapse the wrapper around a hint they own with the same query. */
+@media (hover: none) and (pointer: coarse) {
+  .hy-kbd:not(.hy-kbd--always) { display: none; }
+}

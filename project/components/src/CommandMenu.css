@@ -43,6 +43,9 @@
 .hy-cmd__icon { display: inline-flex; flex: none; color: var(--gray-900); }
 .hy-cmd__label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-cmd__suffix { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--gray-900); font-size: 13px; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-cmd__suffix:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
+}
 .hy-cmd__divider { height: 1px; margin: 8px -8px; background: var(--gray-alpha-400); }
 .hy-cmd__empty { padding: 32px 16px; text-align: center; color: var(--gray-900); font-size: 14px; line-height: 20px; text-wrap: balance; }
 .hy-cmd__loading { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 8px; font-size: 14px; line-height: 20px; color: var(--gray-900); }

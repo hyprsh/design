@@ -42,7 +42,8 @@ var ClearableInput = React.forwardRef(function ClearableInput(props, ref) {
   var suffix = custom ? props.suffix
     : dirty && !props.disabled && !props.readOnly
       ? h('button', { type: 'button', className: 'hy-clearable__clear', 'aria-label': 'Clear', onClick: clear },
-          h(HY.KeyboardInput, { small: true }, 'Esc'))
+          h(HY.KeyboardInput, { small: true }, 'Esc'),
+          h('span', { className: 'hy-clearable__x', 'aria-hidden': 'true' }, h(Glyph, { name: 'x', size: 14 })))
       : props.cmdk
         ? h('span', { className: 'hy-clearable__cmdk', 'aria-hidden': 'true' },
             h(HY.KeyboardInput, { small: true, meta: true }), h(HY.KeyboardInput, { small: true }, 'K'))

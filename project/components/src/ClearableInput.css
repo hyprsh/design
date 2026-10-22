@@ -11,3 +11,15 @@
 .hy-clearable__clear:hover .hy-kbd { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .hy-clearable__cmdk { display: inline-flex; align-items: center; gap: 4px; }
 .hy-clearable__cmdk .hy-kbd { margin: 0; }
+/* The Esc hint is the clear button's only content, so on touch-only devices an × takes its place and the button stays. */
+.hy-clearable__x { display: none; color: var(--gray-900); }
+.hy-clearable__clear:hover .hy-clearable__x { color: var(--gray-1000); }
+@media (hover: none) and (pointer: coarse) {
+  .hy-clearable__clear .hy-kbd:not(.hy-kbd--always) + .hy-clearable__x { display: inline-flex; }
+  .hy-clearable__cmdk:has(> .hy-kbd:not(.hy-kbd--always)):not(:has(> .hy-kbd--always)) { display: none; }
+}
+/* Touch sizing: the clear button keeps its drawn size and gets a hit area of the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-clearable__clear { position: relative; }
+  .hy-clearable__clear::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
+}

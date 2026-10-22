@@ -19,9 +19,9 @@ function KeyboardInput(props) {
   var child = props.children;
   if (child != null && child !== false && child !== '') { parts.push({ text: child }); names.push(child); }
   var labelled = names.every(function (n) { return typeof n === 'string' || typeof n === 'number'; });
-  var rest = omit(props, ['meta', 'shift', 'alt', 'ctrl', 'small', 'platform', 'children', 'className']);
+  var rest = omit(props, ['meta', 'shift', 'alt', 'ctrl', 'small', 'platform', 'alwaysShow', 'children', 'className']);
   return h('kbd', Object.assign({ 'aria-label': labelled && names.length ? names.join(' ') : undefined }, rest, {
-    className: cx('hy-kbd', props.small && 'hy-kbd--small', !mac && parts.length > 1 && 'hy-kbd--words', props.className)
+    className: cx('hy-kbd', props.small && 'hy-kbd--small', props.alwaysShow && 'hy-kbd--always', !mac && parts.length > 1 && 'hy-kbd--words', props.className)
   }), parts.map(function (p, i) {
     return h('span', { key: i, className: p.mod ? 'hy-kbd__cmd' : undefined, 'aria-hidden': labelled ? 'true' : undefined }, p.text);
   }));

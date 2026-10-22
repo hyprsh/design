@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=176 subtitle="Combined modifiers, single keys, small, and the non-Mac set" -->
+<!-- @dsCard group="Content" height=216 subtitle="Combined modifiers, single keys, small, the non-Mac set, and alwaysShow" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>KeyboardInput</title></head>
@@ -11,6 +11,7 @@ function Demo() {
   return h(F, null,
     h('div', { style: row }, h(H.Kbd, { meta: true }, 'K'), h(H.Kbd, { meta: true, shift: true }, 'P'), h(H.Kbd, { alt: true, ctrl: true }, 'T'), h(H.Kbd, null, 'Esc'), h(H.Kbd, { small: true, meta: true }, 'K'), h(H.Kbd, { small: true }, '/')),
     h('div', { style: row }, h(H.Kbd, { platform: 'other', meta: true }, 'K'), h(H.Kbd, { platform: 'other', meta: true, shift: true }, 'P'), h(H.Kbd, { platform: 'other', alt: true }, 'Enter')),
+    h('div', { style: row }, h(H.Kbd, { alwaysShow: true, meta: true }, 'K'), h('span', { className: 'copy-14' }, 'alwaysShow stays visible on touch-only devices')),
     h('p', { className: 'copy-14', style: { margin: 0 } }, 'Press ', h(H.Kbd, { meta: true }, 'K'), ' to open the command menu.'));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
