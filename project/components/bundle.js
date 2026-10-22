@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Pagination"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -2444,6 +2444,23 @@
     define('CommandMenuTrigger', CommandMenuTrigger);
   })();
 
+  /* ---- Link ---- */
+  (function () {
+    /* An inline text link in the design's link colour: <a> by default, <button> with as="button" for an action that reads as a link. */
+    var Link = React.forwardRef(function Link(props, ref) {
+      var isButton = props.as === 'button';
+      var rest = omit(props, ['as', 'children', 'className', 'disabled']);
+      var cls = cx('hy-link', props.className);
+      if (isButton) {
+        return h('button', Object.assign({ type: 'button' }, rest, { ref: ref, disabled: props.disabled, className: cls }), props.children);
+      }
+      if (props.disabled) rest.href = undefined;
+      return h('a', Object.assign(rest, { ref: ref, 'aria-disabled': props.disabled || undefined, className: cls }), props.children);
+    });
+
+    define('Link', Link);
+  })();
+
   /* ---- Pagination ---- */
   (function () {
     /* Pagination: previous / next links between pages in a sequence, such as docs or a guide. */
@@ -2549,14 +2566,26 @@
   (function () {
     var PILL_SIZE = { sm: 'small', md: 'medium', lg: 'large', small: 'small', medium: 'medium', large: 'large' };
 
-    /* A link styled like a Badge: lighter than a button. Renders <a> with href, <button> with onClick only. */
+    /* A link styled like a Badge: lighter than a button. Renders <a> with href, <button> with onClick only.
+       With pressed / defaultPressed / onPressedChange it is a toggle chip: a <button> with aria-pressed. */
     function Pill(props) {
       var size = PILL_SIZE[props.size] || 'medium';
-      var rest = omit(props, ['size', 'icon', 'children', 'className']);
-      var tag = props.href ? 'a' : (props.onClick ? 'button' : 'span');
+      var toggle = props.pressed !== undefined || props.defaultPressed !== undefined || !!props.onPressedChange;
+      var pr = useControllable(props.pressed, !!props.defaultPressed, props.onPressedChange);
+      var rest = omit(props, ['size', 'icon', 'children', 'className', 'pressed', 'defaultPressed', 'onPressedChange']);
+      var tag = toggle ? 'button' : props.href ? 'a' : (props.onClick ? 'button' : 'span');
       if (tag === 'button' && !rest.type) rest.type = 'button';
-      return h(tag, Object.assign(rest, { className: cx('hy-pill', 'hy-pill--' + size, props.className) }),
-        props.icon ? h('span', { className: 'hy-pill__icon', 'aria-hidden': 'true' }, props.icon) : null,
+      if (toggle) {
+        rest['aria-pressed'] = pr[0];
+        rest.onClick = function (e) {
+          if (props.onClick) props.onClick(e);
+          if (!e.defaultPrevented) pr[1](!pr[0]);
+        };
+      }
+      var on = toggle && pr[0];
+      var lead = props.icon || (on ? h(Glyph, { name: 'check', size: 14 }) : null);
+      return h(tag, Object.assign(rest, { className: cx('hy-pill', 'hy-pill--' + size, toggle && 'hy-pill--toggle', on && 'is-pressed', props.className) }),
+        lead ? h('span', { className: 'hy-pill__icon', 'aria-hidden': 'true' }, lead) : null,
         h('span', { className: 'hy-pill__label' }, props.children));
     }
 
@@ -5281,6 +5310,75 @@
     define('ModalActions', ModalActions);
     define('ModalAction', ModalAction);
     define('Modal', Modal);
+  })();
+
+  /* ---- Popover ---- */
+  (function () {
+    /* Popover: a click-opened floating panel with interactive content. Non-modal dialog: focus moves in and Tab stays
+       inside, Escape or a click outside closes it, and Escape (or the content's close()) returns focus to the trigger.
+       Placed with useFloating like Menu and Tooltip, so it flips and stays on screen. */
+    var POPOVER_SIDES = ['bottom', 'top', 'left', 'right'];
+    function popoverPosition(pos) {
+      var parts = String(pos || 'bottom-start').split('-');
+      return { side: POPOVER_SIDES.indexOf(parts[0]) >= 0 ? parts[0] : 'bottom', align: parts[1] === 'end' ? 'end' : parts[1] === 'center' ? 'center' : 'start' };
+    }
+
+    function Popover(props) {
+      var c = useControllable(props.open, !!props.defaultOpen, props.onOpenChange);
+      var open = c[0], setOpen = c[1];
+      var triggerRef = useRef(null), boxRef = useRef(null);
+      var id = useId();
+      var where = popoverPosition(props.position);
+      var pos = useFloating(open, triggerRef, boxRef, { side: where.side, align: where.align, offset: 8 });
+      var placed = !!pos;
+
+      function close(refocus) {
+        setOpen(false);
+        if (refocus && triggerRef.current && triggerRef.current.focus) triggerRef.current.focus({ preventScroll: true });
+      }
+      useDismiss(open, [triggerRef, boxRef], function (why) { close(why === 'escape'); });
+
+      /* Move focus in once the box is placed and visible. */
+      useLayoutEffect(function () {
+        if (!placed) return;
+        var root = boxRef.current;
+        if (!root) return;
+        var target = (props.initialFocusRef && props.initialFocusRef.current) || root.querySelector('[data-autofocus]') || root.querySelector(FOCUSABLE) || root;
+        target.focus({ preventScroll: true });
+      }, [placed]);
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape') { e.stopPropagation(); close(true); return; }
+        if (e.key === 'Tab') e.stopPropagation();
+        trapTab(e, boxRef.current);
+      }
+      function toggle() { open ? close(false) : setOpen(true); }
+
+      var trigger = props.trigger;
+      if (!React.isValidElement(trigger)) trigger = h(HY.Button, { variant: 'secondary' }, trigger);
+      var own = trigger.ref;
+      var triggerNode = React.cloneElement(trigger, {
+        ref: function (el) {
+          triggerRef.current = el;
+          if (typeof own === 'function') own(el); else if (own) own.current = el;
+        },
+        'aria-haspopup': 'dialog', 'aria-expanded': open, 'aria-controls': open ? id : undefined,
+        onClick: function (e) {
+          if (trigger.props.onClick) trigger.props.onClick(e);
+          if (!e.defaultPrevented) toggle();
+        }
+      });
+      var side = pos ? pos.side : where.side;
+      var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(360px, calc(100vw - 16px))' }, props.width !== undefined ? { width: props.width } : null, props.style));
+      var content = typeof props.children === 'function' ? props.children({ close: function () { close(true); } }) : props.children;
+      return h(React.Fragment, null, triggerNode,
+        open ? portal(h('div', {
+          ref: boxRef, id: id, role: 'dialog', tabIndex: -1, 'aria-label': props.label, 'aria-labelledby': props['aria-labelledby'],
+          className: cx('hy-popover', 'hy-popover--' + side, props.className), style: style, onKeyDown: onKeyDown
+        }, content)) : null);
+    }
+
+    define('Popover', Popover);
   })();
 
   /* ---- RelativeTimeCard ---- */

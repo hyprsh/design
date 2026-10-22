@@ -775,6 +775,18 @@ export interface CommandMenuTriggerProps extends Omit<React.ButtonHTMLAttributes
 }
 export declare const CommandMenuTrigger: React.ForwardRefExoticComponent<CommandMenuTriggerProps & React.RefAttributes<HTMLButtonElement>>;
 
+export interface LinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'color'> {
+  /** Element to render. 'a' (default) navigates; 'button' is an action that looks like a link. */
+  as?: 'a' | 'button';
+  /** For as="button": the native disabled state. For an anchor it removes the href and sets aria-disabled. */
+  disabled?: boolean;
+  onClick?: React.MouseEventHandler<HTMLElement>;
+  type?: 'button' | 'submit' | 'reset';
+  children?: React.ReactNode;
+  className?: string;
+}
+export declare const Link: React.ForwardRefExoticComponent<LinkProps & React.RefAttributes<HTMLAnchorElement & HTMLButtonElement>>;
+
 export interface PaginationLinkData {
   /** Title of the neighbouring page. */
   title: string;
@@ -852,6 +864,12 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   size?: 'sm' | 'md' | 'lg' | Size;
   /** Leading icon or logo; sized to the pill (12/14/16px). */
   icon?: React.ReactNode;
+  /** Makes the pill a toggle chip: a <button> with `aria-pressed`. Controlled state. Several chips can be on at once. */
+  pressed?: boolean;
+  /** Toggle chip, uncontrolled initial state. */
+  defaultPressed?: boolean;
+  /** Toggle chip: called with the next state when it is clicked. Giving this, `pressed` or `defaultPressed` makes a toggle. */
+  onPressedChange?: (pressed: boolean) => void;
   children?: React.ReactNode;
   className?: string;
 }
@@ -1847,6 +1865,28 @@ export declare const Modal: ((props: ModalProps) => React.ReactElement | null) &
   Inset: typeof ModalInset; Actions: typeof ModalActions; Action: typeof ModalAction;
 };
 
+export interface PopoverProps {
+  /** The element that opens the popover, usually a Button. It gets `aria-haspopup="dialog"`, `aria-expanded` and `aria-controls`, a toggling `onClick` and the ref used to place the box. Text becomes a secondary Button. */
+  trigger: React.ReactNode;
+  /** The content, or a function receiving `{ close }` (closes and returns focus to the trigger). */
+  children?: React.ReactNode | ((api: { close: () => void }) => React.ReactNode);
+  open?: boolean;
+  defaultOpen?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  /** Side and alignment of the box. It flips when there is no room. Default 'bottom-start'. */
+  position?: MenuPosition | 'bottom-center' | 'top-center';
+  /** Accessible name of the dialog. Give this or `aria-labelledby`. */
+  label?: string;
+  'aria-labelledby'?: string;
+  /** Box width in px or CSS. Default fits the content, 200 to 360px. */
+  width?: number | string;
+  /** Element to focus on open. Default: `[data-autofocus]`, else the first focusable element, else the box. */
+  initialFocusRef?: React.RefObject<HTMLElement>;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Popover(props: PopoverProps): React.ReactElement;
+
 export interface RelativeTimeCardProps {
   /** The timestamp: Unix ms, a Date or an ISO string. Don't pre-format it. */
   date: number | Date | string;
@@ -2197,6 +2237,7 @@ declare global {
       Toggle: typeof Toggle;
       Breadcrumbs: typeof Breadcrumbs;
       CommandMenuTrigger: typeof CommandMenuTrigger;
+      Link: typeof Link;
       Pagination: typeof Pagination;
       Tabs: typeof Tabs;
       Badge: typeof Badge;
@@ -2235,6 +2276,7 @@ declare global {
       Drawer: typeof Drawer;
       Menu: typeof Menu;
       Modal: typeof Modal;
+      Popover: typeof Popover;
       RelativeTimeCard: typeof RelativeTimeCard;
       Sheet: typeof Sheet;
       Tooltip: typeof Tooltip;

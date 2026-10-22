@@ -6,6 +6,12 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   size?: 'sm' | 'md' | 'lg' | Size;
   /** Leading icon or logo; sized to the pill (12/14/16px). */
   icon?: React.ReactNode;
+  /** Makes the pill a toggle chip: a <button> with `aria-pressed`. Controlled state. Several chips can be on at once. */
+  pressed?: boolean;
+  /** Toggle chip, uncontrolled initial state. */
+  defaultPressed?: boolean;
+  /** Toggle chip: called with the next state when it is clicked. Giving this, `pressed` or `defaultPressed` makes a toggle. */
+  onPressedChange?: (pressed: boolean) => void;
   children?: React.ReactNode;
   className?: string;
 }

@@ -1,4 +1,4 @@
-<!-- @dsCard group="Status" height=128 subtitle="Badge-styled link; sm, md, lg; with icon" -->
+<!-- @dsCard group="Status" height=190 subtitle="Badge-styled link; sm, md, lg; with icon; toggle chips" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pill</title></head>
@@ -6,12 +6,20 @@
 <div id="root" class="hy-col"></div>
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Chips() {
+  var st = React.useState({ Wanted: true, Missing: false, Grabbed: true });
+  return h('div', { className: 'hy-row', style: { padding: 0, gap: 8 }, role: 'group', 'aria-label': 'Filter by state' },
+    Object.keys(st[0]).map(function (k) {
+      return h(H.Pill, { key: k, pressed: st[0][k], onPressedChange: function (v) { var n = Object.assign({}, st[0]); n[k] = v; st[1](n); } }, k);
+    }));
+}
 function Demo() {
   var icon = h(H.Icon, { name: 'message-square' });
   var row = function (kids) { return h('div', { className: 'hy-row', style: { padding: 0, gap: 8 } }, kids); };
   return h(F, null,
     row([h(H.Pill, { key: 1, href: '#changelog', size: 'sm' }, 'Changelog'), h(H.Pill, { key: 2, href: '#changelog', size: 'md' }, 'Changelog'), h(H.Pill, { key: 3, href: '#changelog', size: 'lg' }, 'Changelog')]),
-    row([h(H.Pill, { key: 1, href: '#feedback', size: 'sm', icon: icon }, 'Feedback'), h(H.Pill, { key: 2, href: '#feedback', size: 'md', icon: icon }, 'Feedback'), h(H.Pill, { key: 3, href: '#feedback', size: 'lg', icon: icon }, 'Feedback')]));
+    row([h(H.Pill, { key: 1, href: '#feedback', size: 'sm', icon: icon }, 'Feedback'), h(H.Pill, { key: 2, href: '#feedback', size: 'md', icon: icon }, 'Feedback'), h(H.Pill, { key: 3, href: '#feedback', size: 'lg', icon: icon }, 'Feedback')]),
+    h(Chips));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

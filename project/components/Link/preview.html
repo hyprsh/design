@@ -1,0 +1,18 @@
+<!-- @dsCard group="Navigation" height=150 subtitle="Inline link as <a> and as a button; disabled; in body text" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Link</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h('p', { className: 'copy-14', style: { margin: 0 } }, 'Nothing needs attention. ', h(H.Link, { href: '#log' }, 'Older ones are in the Log'), '.'),
+    h('p', { className: 'copy-14', style: { margin: 0 } }, '3 notices are hidden. ', h(H.Link, { as: 'button', onClick: function () {} }, 'Show notices')),
+    h('p', { className: 'copy-14', style: { margin: 0 } }, 'Not available: ', h(H.Link, { as: 'button', disabled: true }, 'Retry'), ' · ', h(H.Link, { href: '#x', disabled: true }, 'Docs')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

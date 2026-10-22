@@ -23,3 +23,6 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-pill--large { height: 32px; padding: 0 12px; gap: 6px; font-size: 14px; line-height: 20px; }
 .hy-pill--large .hy-pill__icon { margin-left: 0; }
 .hy-pill--large .hy-pill__icon svg { width: 16px; height: 16px; }
+/* Toggle chip: pressed has a heavier ring, a tint and a check, so it never relies on colour alone. */
+.hy-pill--toggle.is-pressed { background: var(--gray-alpha-100); box-shadow: inset 0 0 0 1px var(--gray-1000); }
+button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }

@@ -1042,6 +1042,17 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 }
 @media (prefers-reduced-motion: reduce) { .hy-cmdk-trigger { transition: none; } }
 
+/* ---------- Link ---------- */
+.hy-link {
+  display: inline; margin: 0; padding: 0; border: 0; border-radius: var(--radius-sm); background: none;
+  color: var(--link); font: inherit; text-decoration: underline; text-decoration-color: currentColor;
+  text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.hy-link:hover { text-decoration-thickness: 2px; }
+.hy-link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-link:disabled, .hy-link[aria-disabled="true"] { color: var(--gray-700); cursor: not-allowed; text-decoration-thickness: 1px; }
+
 /* ---------- Pagination ---------- */
 .hy-pagination { display: flex; justify-content: space-between; align-items: stretch; gap: 16px; }
 .hy-pagination__link {
@@ -1168,6 +1179,9 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 .hy-pill--large { height: 32px; padding: 0 12px; gap: 6px; font-size: 14px; line-height: 20px; }
 .hy-pill--large .hy-pill__icon { margin-left: 0; }
 .hy-pill--large .hy-pill__icon svg { width: 16px; height: 16px; }
+/* Toggle chip: pressed has a heavier ring, a tint and a check, so it never relies on colour alone. */
+.hy-pill--toggle.is-pressed { background: var(--gray-alpha-100); box-shadow: inset 0 0 0 1px var(--gray-1000); }
+button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 
 /* ---------- StatusDot ---------- */
 .hy-status { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 16px; color: var(--gray-1000); }
@@ -2093,6 +2107,21 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 @media (prefers-reduced-motion: reduce) {
   .hy-modal-overlay > .hy-modal { animation-name: hy-fade; }
 }
+
+/* ---------- Popover ---------- */
+.hy-popover {
+  position: fixed; z-index: var(--z-menu); box-sizing: border-box; min-width: min(200px, calc(100vw - 16px));
+  max-width: min(360px, calc(100vw - 16px)); max-height: calc(100vh - 16px); overflow-y: auto; padding: 12px;
+  border-radius: var(--radius-xl); background: var(--background-100); color: var(--gray-1000); box-shadow: var(--shadow-menu);
+  font-size: 14px; line-height: 20px; text-align: left; outline: none; overscroll-behavior: contain;
+  animation: hy-popover-in .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-popover--bottom { --pop-from: translateY(-4px); }
+.hy-popover--top { --pop-from: translateY(4px); }
+.hy-popover--left { --pop-from: translateX(4px); }
+.hy-popover--right { --pop-from: translateX(-4px); }
+@keyframes hy-popover-in { from { opacity: 0; transform: var(--pop-from, none); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .hy-popover { animation: none; } }
 
 /* ---------- RelativeTimeCard ---------- */
 .hy-rtc { display: flex; flex-direction: column; gap: 12px; min-width: min(300px, calc(100vw - 40px)); }

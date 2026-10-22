@@ -1,0 +1,26 @@
+<!-- @dsCard group="Overlays" height=300 subtitle="Click-opened panel with interactive content; focus kept inside, Escape and outside click close" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Popover</title></head>
+<body>
+<div id="root" class="hy-row" style="align-items:flex-start;gap:24px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  return h(F, null,
+    h(H.Popover, { trigger: h(H.Button, { variant: 'secondary', size: 'small' }, 'File Details'), label: 'File details', defaultOpen: true, width: 300 },
+      function (api) {
+        return h('div', { style: { display: 'grid', gap: 12 } },
+          h('div', null, h('div', { className: 'label-13', style: { color: 'var(--gray-900)' } }, 'Path'),
+            h('code', { className: 'hy-mono', style: { userSelect: 'all', overflowWrap: 'anywhere' } }, '/media/shows/Some Show/Season 02/Some.Show.S02E05.mkv')),
+          h('div', { style: { display: 'flex', gap: 8 } },
+            h(H.CopyButton, { textToCopy: '/media/shows/Some Show/Season 02/Some.Show.S02E05.mkv' }),
+            h(H.Button, { size: 'small', variant: 'secondary', onClick: api.close }, 'Close')));
+      }),
+    h(H.Popover, { trigger: 'Filter Help', position: 'bottom-end', label: 'Filter syntax' },
+      h('div', null, 'Type ', h('code', { className: 'hy-mono' }, 'status:ready'), ' to match a state.')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
