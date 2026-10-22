@@ -23,6 +23,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   typeName?: string;
   /** 'inline' puts the label beside the field instead of above it, for toolbars (“Monitor [select]”). The hint and error stay under the field. Needs `label`. Default 'top'. */
   labelPosition?: 'top' | 'inline';
+  /** Geist Mono in the value, the placeholder and the error line, for paths, keys and hashes. Default false. */
+  mono?: boolean;
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }

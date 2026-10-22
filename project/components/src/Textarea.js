@@ -12,8 +12,8 @@ var Textarea = React.forwardRef(function Textarea(props, ref) {
   var ids = fieldIds(id);
   var size = props.size || 'medium';
   var errText = isMessage(props.error) ? props.error : null;
-  var rest = omit(props, ['label', 'hint', 'error', 'size', 'className', 'wrapperClassName', 'id']);
-  return h('div', { className: cx('hy-field', 'hy-field--' + size, props.className) },
+  var rest = omit(props, ['label', 'hint', 'error', 'size', 'className', 'wrapperClassName', 'mono', 'id']);
+  return h('div', { className: cx('hy-field', 'hy-field--' + size, props.mono && 'hy-field--mono', props.className) },
     props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
     h('div', { className: cx('hy-textarea', 'hy-textarea--' + size, props.error && 'hy-textarea--error', props.disabled && 'hy-textarea--disabled', props.wrapperClassName) },
       h('textarea', Object.assign({ id: id, rows: 4 }, rest, {

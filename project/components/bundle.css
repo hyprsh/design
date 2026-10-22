@@ -69,6 +69,10 @@ body {
 .hy-input__affix:last-child { border-left: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 .hy-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-color: var(--background-100); color: var(--gray-1000); }
 .hy-select__chevron { position: absolute; right: 12px; pointer-events: none; color: var(--gray-900); }
+/* mono: Geist Mono in the value, the placeholder and the error line (13px reads as the 14px sans) */
+.hy-field--mono .hy-input input, .hy-field--mono .hy-textarea textarea { font-family: var(--font-mono); font-size: 13px; }
+.hy-field--mono.hy-field--large .hy-input input, .hy-field--mono.hy-field--large .hy-textarea textarea { font-size: 15px; }
+.hy-field--mono .hy-field__error { font-family: var(--font-mono); font-size: 12px; }
 /* labelPosition="inline": the label sits beside the frame; hint and error stay under the frame */
 .hy-field--inline-label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 8px; }
 .hy-field--inline-label > .hy-field__label { grid-column: 1; grid-row: 1; white-space: nowrap; }
@@ -76,7 +80,8 @@ body {
 .hy-field--inline-label > .hy-field__hint, .hy-field--inline-label > .hy-field__error, .hy-field--inline-label > .hy-field__alert > .hy-field__error { grid-column: 2; }
 /* Touch screens: 16px text so iOS doesn't zoom on focus, and no field shorter than 40px. */
 @media (pointer: coarse) {
-  .hy-input input, .hy-select select, .hy-textarea textarea { font-size: 16px; }
+  .hy-input input, .hy-select select, .hy-textarea textarea,
+  .hy-field--mono .hy-input input, .hy-field--mono .hy-textarea textarea { font-size: 16px; }
   .hy-input--small { height: 40px; }
 }
 
@@ -93,6 +98,9 @@ body {
 .hy-btn__label { overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
 .hy-btn__affix { display: inline-flex; flex: none; }
 .hy-btn svg { flex: none; }
+/* Plain svg children (a Lucide icon in prefix, suffix or svgOnly) are sized to the button; Icon, Glyph and Spinner keep the size they were given. */
+.hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 16px; height: 16px; }
+.hy-btn--tiny .hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--tiny.hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 14px; height: 14px; }
 
 /* sizes: tiny 24 (icon only), small 32, medium 36, large 40 */
 .hy-btn--tiny { height: 24px; padding: 0 4px; font-size: 12px; line-height: 16px; border-radius: var(--radius-sm); }
@@ -403,6 +411,10 @@ body {
 .hy-check--disabled { color: var(--gray-700); cursor: not-allowed; }
 .hy-check--disabled .hy-check__input + .hy-check__box, .hy-check--disabled:hover .hy-check__input + .hy-check__box { background: var(--gray-100); box-shadow: inset 0 0 0 1px var(--gray-500); color: var(--gray-500); }
 .hy-check--disabled .hy-check__input:checked + .hy-check__box { background: var(--gray-600); box-shadow: inset 0 0 0 1px var(--gray-600); color: var(--background-100); }
+/* description: a hint line under the label, in line with its text */
+.hy-check-field { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 2px; min-width: 0; }
+.hy-check__description { padding-left: 24px; font-size: 13px; line-height: 18px; color: var(--gray-900); cursor: pointer; }
+.hy-check-field--disabled .hy-check__description { color: var(--gray-700); cursor: not-allowed; }
 /* Touch: the whole label row is a 40px target. */
 @media (pointer: coarse) { .hy-check { min-height: 40px; } }
 
@@ -1192,15 +1204,18 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-status { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 16px; color: var(--gray-1000); }
 .hy-status__dot { width: 10px; height: 10px; border-radius: var(--radius-full); flex: none; background: var(--gray-700); }
 .hy-status__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hy-status--ready .hy-status__dot { background: var(--green-700); }
-.hy-status--building .hy-status__dot { background: var(--amber-700); }
+.hy-status--ready .hy-status__dot, .hy-status--success .hy-status__dot { background: var(--green-700); }
+.hy-status--building .hy-status__dot, .hy-status--warning .hy-status__dot { background: var(--amber-700); }
 .hy-status--error .hy-status__dot { background: var(--red-800); }
 .hy-status--queued .hy-status__dot,
 .hy-status--canceled .hy-status__dot,
-.hy-status--deleted .hy-status__dot { background: var(--gray-700); }
+.hy-status--deleted .hy-status__dot,
+.hy-status--neutral .hy-status__dot,
+.hy-status--pending .hy-status__dot { background: var(--gray-700); }
 /* In-flight states pulse; terminal states stay still. */
 .hy-status--building .hy-status__dot,
-.hy-status--queued .hy-status__dot { animation: hy-status-pulse 1.6s cubic-bezier(.4,0,.2,1) infinite; }
+.hy-status--queued .hy-status__dot,
+.hy-status--pending .hy-status__dot { animation: hy-status-pulse 1.6s cubic-bezier(.4,0,.2,1) infinite; }
 @keyframes hy-status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-status__dot { animation: none !important; }

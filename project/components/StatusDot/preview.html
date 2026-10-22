@@ -1,4 +1,4 @@
-<!-- @dsCard group="Status" height=120 subtitle="Queued, building, ready, error, canceled, deleted; dot only" -->
+<!-- @dsCard group="Status" height=190 subtitle="Semantic states, deployment states, custom labels, dot only" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>StatusDot</title></head>
@@ -8,7 +8,13 @@
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 function Demo() {
   var states = ['QUEUED', 'BUILDING', 'READY', 'ERROR', 'CANCELED', 'DELETED'];
+  var sem = ['success', 'warning', 'error', 'neutral', 'pending'];
   return h(F, null,
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, sem.map(function (s) { return h(H.StatusDot, { key: s, state: s }); })),
+    h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
+      h(H.StatusDot, { state: 'success', label: 'Healthy' }), h(H.StatusDot, { state: 'warning', label: 'Degraded' }),
+      h(H.StatusDot, { state: 'error', label: 'Failing' }), h(H.StatusDot, { state: 'neutral', label: 'Idle' }),
+      sem.map(function (s) { return h(H.StatusDot, { key: s, state: s, label: false, titlePrefix: 'Indexer' }); })),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, states.map(function (s) { return h(H.StatusDot, { key: s, state: s }); })),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, states.map(function (s) { return h(H.StatusDot, { key: s, state: s, label: false, titlePrefix: 'api-gateway production' }); })));
 }

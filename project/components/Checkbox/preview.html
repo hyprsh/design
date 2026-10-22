@@ -1,4 +1,4 @@
-<!-- @dsCard group="Forms" height=200 subtitle="Checked, indeterminate parent, disabled with and without a check" -->
+<!-- @dsCard group="Forms" height=270 subtitle="Checked, indeterminate parent, description, disabled with and without a check" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Checkbox</title></head>
@@ -17,6 +17,7 @@ function Demo() {
       ENVS.map(function (e) {
         return h(H.Checkbox, { key: e, checked: !!on[e], onChange: function () { var n = Object.assign({}, on); n[e] = !n[e]; setOn(n); } }, e);
       })),
+    h(H.Checkbox, { description: 'Sends the app version and an anonymous install ID to hyprsh.dev. Nothing about your library.', defaultChecked: true }, 'Check for Updates'),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
       h(H.Checkbox, { disabled: true }, 'Skew Protection'),
       h(H.Checkbox, { disabled: true, defaultChecked: true }, 'Build Cache')));

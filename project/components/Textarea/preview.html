@@ -1,4 +1,4 @@
-<!-- @dsCard group="Forms" height=470 subtitle="Label, hint, error, 3 sizes, disabled, read-only" -->
+<!-- @dsCard group="Forms" height=560 subtitle="Label, hint, error, mono, 3 sizes, disabled, read-only" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Textarea</title></head>
@@ -11,6 +11,7 @@ function Demo() {
   return h(F, null,
     h(H.Textarea, { label: 'Description', name: 'description', placeholder: 'Marketing site for the spring launch.', hint: 'Shown on the project overview.' }),
     h(H.Textarea, { label: 'Commit Message', name: 'message', rows: 2, defaultValue: 'fix', error: 'Commit Message must be at least 10 characters.' }),
+    h(H.Textarea, { label: 'Allowed Origins', name: 'origins', mono: true, rows: 3, spellCheck: false, defaultValue: 'https://hyprsh.dev\nhttps://docs.hyprsh.dev', error: 'Origin docs.hyprsh.dev needs a scheme.' }),
     Row([
       h(H.Textarea, { key: 1, 'aria-label': 'Small Notes', size: 'small', rows: 3, placeholder: 'Small' }),
       h(H.Textarea, { key: 2, 'aria-label': 'Disabled Notes', rows: 3, disabled: true, defaultValue: 'Locked by the team owner.' }),

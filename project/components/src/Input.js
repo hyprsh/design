@@ -15,7 +15,7 @@ var Input = React.forwardRef(function Input(props, ref) {
   var errText = isMessage(props.error) ? props.error : null;
   var plainPrefix = props.prefixStyling === false || props.prefixContainer === false;
   var plainSuffix = props.suffixStyling === false || props.suffixContainer === false;
-  var rest = omit(props, ['label', 'hint', 'error', 'prefix', 'suffix', 'prefixStyling', 'suffixStyling', 'prefixContainer', 'suffixContainer', 'size', 'rounded', 'className', 'wrapperClassName', 'labelPosition', 'id', 'type', 'typeName']);
+  var rest = omit(props, ['label', 'hint', 'error', 'prefix', 'suffix', 'prefixStyling', 'suffixStyling', 'prefixContainer', 'suffixContainer', 'size', 'rounded', 'className', 'wrapperClassName', 'labelPosition', 'mono', 'id', 'type', 'typeName']);
 
   function affix(node, side, styling, container) {
     if (node == null || node === false) return null;
@@ -31,7 +31,7 @@ var Input = React.forwardRef(function Input(props, ref) {
     el.focus();
   }
 
-  return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.className) },
+  return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.mono && 'hy-field--mono', props.className) },
     props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
     h('div', {
       className: cx('hy-input', 'hy-input--' + size, props.error && 'hy-input--error', props.disabled && 'hy-input--disabled', props.rounded && 'hy-input--rounded',

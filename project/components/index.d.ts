@@ -204,6 +204,8 @@ export interface CheckboxProps extends Omit<React.InputHTMLAttributes<HTMLInputE
   checked?: boolean | 'indeterminate';
   /** Shows a dash in an empty box and reports "mixed" to assistive tech. A visual state only: clicking still toggles `checked`. */
   indeterminate?: boolean;
+  /** A hint line under the label (13px, grey), linked to the input with `aria-describedby`: what the setting does or sends. Clicking it toggles the box. With it, `className` and `style` go on the wrapper around both. */
+  description?: React.ReactNode;
   /** The label, 13px. Without it, pass aria-label (e.g. "Select acme-web" for a table row). */
   children?: React.ReactNode;
 }
@@ -426,6 +428,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   typeName?: string;
   /** 'inline' puts the label beside the field instead of above it, for toolbars (“Monitor [select]”). The hint and error stay under the field. Needs `label`. Default 'top'. */
   labelPosition?: 'top' | 'inline';
+  /** Geist Mono in the value, the placeholder and the error line, for paths, keys and hashes. Default false. */
+  mono?: boolean;
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }
@@ -674,6 +678,8 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   error?: React.ReactNode;
   /** small and medium are 14px text, large is 16px. */
   size?: Size;
+  /** Geist Mono in the value, the placeholder and the error line, for paths, keys and hashes. Default false. */
+  mono?: boolean;
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }
@@ -879,14 +885,24 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
 }
 export declare function Pill(props: PillProps): React.ReactElement;
 
-type StatusDotState = 'queued' | 'building' | 'ready' | 'error' | 'canceled' | 'deleted';
+type StatusDotDeploymentState = 'queued' | 'building' | 'ready' | 'error' | 'canceled' | 'deleted';
+type StatusDotSemanticState = 'success' | 'warning' | 'error' | 'neutral' | 'pending';
+type StatusDotState = StatusDotDeploymentState | StatusDotSemanticState;
 export interface StatusDotProps {
-  /** Deployment state, in either case: 'READY' or 'ready'. Default 'ready'. */
+  /**
+   * A semantic state for any health or status (`success` green, `warning` amber, `error` red, `neutral` grey, `pending` grey and pulsing)
+   * or a deployment state (`queued`, `building`, `ready`, `error`, `canceled`, `deleted`), in either case. Default 'ready'.
+   */
   state?: StatusDotState | Uppercase<StatusDotState>;
-  /** Shown by default (the state word). true shows it, a node replaces it, false hides it (the accessible name stays). */
+  /** Shown by default (the state word). true shows it, a node replaces it ("Healthy", "Idle"), false hides it (the accessible name stays). */
   label?: React.ReactNode | boolean;
-  /** Noun phrase for the title and accessible name. Default 'This deployment' → “This deployment is ready.” */
+  /**
+   * Noun phrase for the title and accessible name. Deployment states: default 'This deployment' → “This deployment is ready.”
+   * Semantic states: optional; “api: Success”.
+   */
   titlePrefix?: string;
+  /** The whole title and accessible name, replacing the generated one. Use it for a dot without a label. */
+  title?: string;
   'aria-hidden'?: boolean | 'true' | 'false';
   className?: string;
 }
@@ -965,7 +981,7 @@ export interface LoadingDotsProps {
 }
 export declare function LoadingDots(props: LoadingDotsProps): React.ReactElement;
 
-export interface NoteProps {
+export interface NoteProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'className'> {
   /** Default 'default' (info icon). success is blue: the accent stays the accent. */
   variant?: 'default' | 'secondary' | 'success' | 'warning' | 'error' | 'violet' | 'cyan';
   /** Older name for `variant`. With `type`, a leading word (“Warning:”) is added unless label={false}. */
@@ -981,6 +997,8 @@ export interface NoteProps {
   label?: string | false;
   /** One inline control, such as a small Button. Or use <Note.Action>. */
   action?: React.ReactNode;
+  /** Defaults to 'status' for `success` and 'alert' for `error` (none for the other variants, or when disabled). Pass any role to replace it. `aria-*`, `id` and `data-*` pass through to the note. */
+  role?: React.AriaRole;
   /** Plain content, or <Note.Content> and <Note.Action> parts. */
   children?: React.ReactNode;
   className?: string;

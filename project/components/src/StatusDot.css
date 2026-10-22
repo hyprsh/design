@@ -2,15 +2,18 @@
 .hy-status { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 16px; color: var(--gray-1000); }
 .hy-status__dot { width: 10px; height: 10px; border-radius: var(--radius-full); flex: none; background: var(--gray-700); }
 .hy-status__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hy-status--ready .hy-status__dot { background: var(--green-700); }
-.hy-status--building .hy-status__dot { background: var(--amber-700); }
+.hy-status--ready .hy-status__dot, .hy-status--success .hy-status__dot { background: var(--green-700); }
+.hy-status--building .hy-status__dot, .hy-status--warning .hy-status__dot { background: var(--amber-700); }
 .hy-status--error .hy-status__dot { background: var(--red-800); }
 .hy-status--queued .hy-status__dot,
 .hy-status--canceled .hy-status__dot,
-.hy-status--deleted .hy-status__dot { background: var(--gray-700); }
+.hy-status--deleted .hy-status__dot,
+.hy-status--neutral .hy-status__dot,
+.hy-status--pending .hy-status__dot { background: var(--gray-700); }
 /* In-flight states pulse; terminal states stay still. */
 .hy-status--building .hy-status__dot,
-.hy-status--queued .hy-status__dot { animation: hy-status-pulse 1.6s cubic-bezier(.4,0,.2,1) infinite; }
+.hy-status--queued .hy-status__dot,
+.hy-status--pending .hy-status__dot { animation: hy-status-pulse 1.6s cubic-bezier(.4,0,.2,1) infinite; }
 @keyframes hy-status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-status__dot { animation: none !important; }

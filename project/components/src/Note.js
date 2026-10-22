@@ -25,6 +25,7 @@ function Note(props) {
   var legacyWord = !props.variant && props.type ? NOTE_WORD[variant] : null;
   var label = props.label === false ? null : (props.label || legacyWord);
   var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
+  var rest = omit(props, ['variant', 'type', 'fill', 'size', 'disabled', 'icon', 'label', 'action', 'children', 'className']);
 
   var kids = React.Children.toArray(props.children);
   var compound = kids.some(function (c) { return c && (c.type === NoteContent || c.type === NoteAction); });
@@ -44,11 +45,14 @@ function Note(props) {
     : props.icon !== undefined ? h('span', { className: 'hy-note__icon', 'aria-hidden': 'true' }, props.icon)
     : h(Glyph, { name: NOTE_GLYPH[variant], className: 'hy-note__icon' });
 
-  return h('div', {
+  /* role and aria-* pass through. Unless you set a role: success is a polite status and error an alert, so they are announced. */
+  var role = props.role !== undefined ? props.role
+    : props.disabled ? undefined : variant === 'error' ? 'alert' : variant === 'success' ? 'status' : undefined;
+  return h('div', Object.assign({}, rest, {
     className: cx('hy-note', 'hy-note--' + variant, 'hy-note--' + size, props.fill && 'hy-note--fill', props.disabled && 'is-disabled', hasAction && 'hy-note--has-action', props.className),
-    role: variant === 'error' && !props.disabled ? 'alert' : undefined,
-    'aria-disabled': props.disabled || undefined
-  }, icon, body, action);
+    role: role,
+    'aria-disabled': props.disabled || rest['aria-disabled'] || undefined
+  }), icon, body, action);
 }
 
 Note.Content = NoteContent;

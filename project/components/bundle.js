@@ -998,16 +998,28 @@
       var ref = useRef(null);
       var indeterminate = !!props.indeterminate || props.checked === 'indeterminate';
       useEffect(function () { if (ref.current) ref.current.indeterminate = indeterminate; }, [indeterminate]);
-      var rest = omit(props, ['children', 'className', 'checked', 'onChange', 'indeterminate', 'style']);
-      return h('label', { className: cx('hy-check', props.disabled && 'hy-check--disabled', indeterminate && 'hy-check--indeterminate', props.className), style: props.style },
+      var descId = useId();
+      var hasDesc = props.description != null && props.description !== false && props.description !== '';
+      var rest = omit(props, ['children', 'className', 'checked', 'onChange', 'indeterminate', 'style', 'description']);
+      var cls = cx('hy-check', props.disabled && 'hy-check--disabled', indeterminate && 'hy-check--indeterminate', !hasDesc && props.className);
+      var label = h('label', { className: cls, style: hasDesc ? undefined : props.style },
         h('input', Object.assign({ ref: ref, type: 'checkbox', className: 'hy-check__input' }, rest, {
           checked: props.checked === undefined ? undefined : props.checked === true,
-          onChange: props.onChange || (props.checked !== undefined ? function () {} : undefined)
+          onChange: props.onChange || (props.checked !== undefined ? function () {} : undefined),
+          'aria-describedby': cx(props['aria-describedby'], hasDesc && descId) || undefined
         })),
         h('span', { className: 'hy-check__box', 'aria-hidden': 'true' },
           h(Glyph, { name: indeterminate ? 'minus' : 'check', size: 12, className: 'hy-check__mark' })),
         props.children != null && props.children !== false ? h('span', { className: 'hy-check__label' }, props.children) : null
       );
+      if (!hasDesc) return label;
+      /* The hint sits beside the label, not inside it, so it isn't part of the accessible name; a click on it still toggles. */
+      return h('div', { className: cx('hy-check-field', props.disabled && 'hy-check-field--disabled', props.className), style: props.style },
+        label,
+        h('div', {
+          id: descId, className: 'hy-check__description',
+          onClick: function () { if (!props.disabled && ref.current) ref.current.click(); }
+        }, props.description));
     }
 
     define('Checkbox', Checkbox);
@@ -1606,7 +1618,7 @@
       var errText = isMessage(props.error) ? props.error : null;
       var plainPrefix = props.prefixStyling === false || props.prefixContainer === false;
       var plainSuffix = props.suffixStyling === false || props.suffixContainer === false;
-      var rest = omit(props, ['label', 'hint', 'error', 'prefix', 'suffix', 'prefixStyling', 'suffixStyling', 'prefixContainer', 'suffixContainer', 'size', 'rounded', 'className', 'wrapperClassName', 'labelPosition', 'id', 'type', 'typeName']);
+      var rest = omit(props, ['label', 'hint', 'error', 'prefix', 'suffix', 'prefixStyling', 'suffixStyling', 'prefixContainer', 'suffixContainer', 'size', 'rounded', 'className', 'wrapperClassName', 'labelPosition', 'mono', 'id', 'type', 'typeName']);
 
       function affix(node, side, styling, container) {
         if (node == null || node === false) return null;
@@ -1622,7 +1634,7 @@
         el.focus();
       }
 
-      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.className) },
+      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.mono && 'hy-field--mono', props.className) },
         props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
         h('div', {
           className: cx('hy-input', 'hy-input--' + size, props.error && 'hy-input--error', props.disabled && 'hy-input--disabled', props.rounded && 'hy-input--rounded',
@@ -2185,8 +2197,8 @@
       var ids = fieldIds(id);
       var size = props.size || 'medium';
       var errText = isMessage(props.error) ? props.error : null;
-      var rest = omit(props, ['label', 'hint', 'error', 'size', 'className', 'wrapperClassName', 'id']);
-      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.className) },
+      var rest = omit(props, ['label', 'hint', 'error', 'size', 'className', 'wrapperClassName', 'mono', 'id']);
+      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.mono && 'hy-field--mono', props.className) },
         props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
         h('div', { className: cx('hy-textarea', 'hy-textarea--' + size, props.error && 'hy-textarea--error', props.disabled && 'hy-textarea--disabled', props.wrapperClassName) },
           h('textarea', Object.assign({ id: id, rows: 4 }, rest, {
@@ -2596,19 +2608,30 @@
   (function () {
     var STATUS_LABEL = { ready: 'Ready', building: 'Building', error: 'Error', queued: 'Queued', canceled: 'Canceled', deleted: 'Deleted' };
     var STATUS_MESSAGE = { ready: 'is ready', building: 'is building', error: 'had an error', queued: 'is queued', canceled: 'was canceled', deleted: 'was deleted' };
+    /* Semantic states for any health or status, not only deployments. `error` belongs to both sets. */
+    var STATUS_SEMANTIC = { success: 'Success', warning: 'Warning', neutral: 'Neutral', pending: 'Pending' };
 
-    /* state takes Geist's QUEUED | BUILDING | READY | ERROR | CANCELED | DELETED, in any case. */
+    /* state takes the semantic states (success | warning | error | neutral | pending) or Geist's deployment states
+       (QUEUED | BUILDING | READY | ERROR | CANCELED | DELETED), in any case. */
     function StatusDot(props) {
       var state = String(props.state || 'ready').toLowerCase();
-      if (!STATUS_LABEL[state]) state = 'queued';
+      if (!STATUS_LABEL[state] && !STATUS_SEMANTIC[state]) state = 'queued';
+      var word = STATUS_SEMANTIC[state] || STATUS_LABEL[state];
       /* The brand book shows status with a word as well as a colour, so the label is on unless label={false}. */
-      var label = props.label === false ? null : (props.label === true || props.label == null ? STATUS_LABEL[state] : props.label);
-      var message = (props.titlePrefix || 'This deployment') + ' ' + STATUS_MESSAGE[state] + '.';
+      var label = props.label === false ? null : (props.label === true || props.label == null ? word : props.label);
+      /* Semantic states name the status itself; so does `error` once it has a custom label. Deployment states say what happened to a deployment. */
+      var general = !!STATUS_SEMANTIC[state] || (state === 'error' && props.label != null && props.label !== true && props.label !== false);
+      var name;
+      if (props.title) name = props.title;
+      else if (general) {
+        var text = typeof label === 'string' ? label : word;
+        name = props.titlePrefix ? props.titlePrefix + ': ' + text : text;
+      } else name = (props.titlePrefix || 'This deployment') + ' ' + STATUS_MESSAGE[state];
       return h('span', {
         className: cx('hy-status', 'hy-status--' + state, props.className),
-        title: message,
+        title: general || props.title ? name : name + '.',
         role: label ? undefined : 'img',
-        'aria-label': label ? undefined : message.slice(0, -1),
+        'aria-label': label ? undefined : name,
         'aria-hidden': props['aria-hidden']
       },
         h('span', { className: 'hy-status__dot', 'aria-hidden': 'true' }),
@@ -2755,6 +2778,7 @@
       var legacyWord = !props.variant && props.type ? NOTE_WORD[variant] : null;
       var label = props.label === false ? null : (props.label || legacyWord);
       var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
+      var rest = omit(props, ['variant', 'type', 'fill', 'size', 'disabled', 'icon', 'label', 'action', 'children', 'className']);
 
       var kids = React.Children.toArray(props.children);
       var compound = kids.some(function (c) { return c && (c.type === NoteContent || c.type === NoteAction); });
@@ -2774,11 +2798,14 @@
         : props.icon !== undefined ? h('span', { className: 'hy-note__icon', 'aria-hidden': 'true' }, props.icon)
         : h(Glyph, { name: NOTE_GLYPH[variant], className: 'hy-note__icon' });
 
-      return h('div', {
+      /* role and aria-* pass through. Unless you set a role: success is a polite status and error an alert, so they are announced. */
+      var role = props.role !== undefined ? props.role
+        : props.disabled ? undefined : variant === 'error' ? 'alert' : variant === 'success' ? 'status' : undefined;
+      return h('div', Object.assign({}, rest, {
         className: cx('hy-note', 'hy-note--' + variant, 'hy-note--' + size, props.fill && 'hy-note--fill', props.disabled && 'is-disabled', hasAction && 'hy-note--has-action', props.className),
-        role: variant === 'error' && !props.disabled ? 'alert' : undefined,
-        'aria-disabled': props.disabled || undefined
-      }, icon, body, action);
+        role: role,
+        'aria-disabled': props.disabled || rest['aria-disabled'] || undefined
+      }), icon, body, action);
     }
 
     Note.Content = NoteContent;

@@ -7,6 +7,8 @@ export interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextArea
   error?: React.ReactNode;
   /** small and medium are 14px text, large is 16px. */
   size?: Size;
+  /** Geist Mono in the value, the placeholder and the error line, for paths, keys and hashes. Default false. */
+  mono?: boolean;
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }

@@ -11,6 +11,9 @@
 .hy-btn__label { overflow: hidden; text-overflow: ellipsis; padding: 0 6px; }
 .hy-btn__affix { display: inline-flex; flex: none; }
 .hy-btn svg { flex: none; }
+/* Plain svg children (a Lucide icon in prefix, suffix or svgOnly) are sized to the button; Icon, Glyph and Spinner keep the size they were given. */
+.hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 16px; height: 16px; }
+.hy-btn--tiny .hy-btn__affix > svg:not(.hy-icon):not(.hy-glyph), .hy-btn--tiny.hy-btn--icon > svg:not(.hy-icon):not(.hy-glyph) { width: 14px; height: 14px; }
 
 /* sizes: tiny 24 (icon only), small 32, medium 36, large 40 */
 .hy-btn--tiny { height: 24px; padding: 0 4px; font-size: 12px; line-height: 16px; border-radius: var(--radius-sm); }

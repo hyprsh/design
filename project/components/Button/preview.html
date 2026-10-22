@@ -7,6 +7,7 @@
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 function I(name) { return h(H.Icon, { name: name }); }
+function Raw() { return h('svg', { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 2, strokeLinecap: 'round', strokeLinejoin: 'round' }, h('path', { d: 'M12 19V5M5 12l7-7 7 7' })); }
 function Row(kids) { return h('div', { className: 'hy-row', style: { padding: 0 } }, kids); }
 function Demo() {
   var s = React.useState(false), busy = s[0], setBusy = s[1];
@@ -24,7 +25,9 @@ function Demo() {
       h(H.Button, { key: 3, size: 'large' }, 'Large'),
       h(H.Button, { key: 4, prefix: I('arrow-left') }, 'Previous'),
       h(H.Button, { key: 5, suffix: I('arrow-right') }, 'Next'),
-      h(H.Button, { key: 6, variant: 'secondary', shape: 'rounded', shadow: true }, 'Get Started')]),
+      h(H.Button, { key: 6, variant: 'secondary', shape: 'rounded', shadow: true }, 'Get Started'),
+      h(H.Button, { key: 7, prefix: h(Raw) }, 'Raw svg'),
+      h(H.Button, { key: 8, svgOnly: true, shape: 'square', 'aria-label': 'Upload File' }, h(Raw))]),
     Row([
       h(H.Button, { key: 1, svgOnly: true, shape: 'square', size: 'tiny', 'aria-label': 'Upload File' }, I('arrow-up')),
       h(H.Button, { key: 2, svgOnly: true, shape: 'square', size: 'small', 'aria-label': 'Upload File' }, I('arrow-up')),

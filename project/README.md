@@ -37,6 +37,7 @@ hyprsh copy sounds like a precise engineer talking to another engineer: short, c
   - **Labels** (`label-20` … `label-12`) are for single lines.
   - **Copy** (`copy-24` … `copy-13`) is for paragraphs.
   - **Buttons** (`button-16`/`14`/`12`) are only for buttons.
+- **Strong type.** Labels and copy are weight 400. For emphasis inside one, wrap the words in `<strong>` (or `<b>`): in a `label-*` or `copy-*` class it renders at 500, Geist's own convention, so a row title in `label-14` is `<span class="label-14"><strong>Some Show</strong> · S02E05</span>`. To make a whole line strong, use the `-strong` variant: `label-14-strong`, `copy-14-strong`, `label-13-mono-strong`. Don't use 600 or bold for body text; 600 is for headings.
 - The product defaults are `label-14` for UI text, `copy-14` for descriptions, `heading-24`/`20` for section and card titles and `heading-32` for page titles. Marketing pages use 40 and above.
 - Use `font-variant-numeric: tabular-nums` wherever numbers are compared: tables, counters, prices and durations.
 - Put `text-wrap: balance` on headings. Never set text below 12px. Inputs are 16px on touch devices, so iOS doesn't zoom in.

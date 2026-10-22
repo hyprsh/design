@@ -8,7 +8,9 @@ import { fileURLToPath } from 'node:url';
 
 const px = (v) => (typeof v === 'number' ? v + 'px' : v);
 
-// The declarations of every type style, as [name, 'prop: value; …'] pairs.
+// The declarations of every type style, as [name, 'prop: value; …', strong] triples. `strong` is set for the Labels and
+// Copy styles: the same declarations at weight 500, for the `-strong` class and for <strong>/<b> inside the style.
+export const STRONG_WEIGHT = 500;
 export function typeStyles(t) {
   const out = [];
   for (const g of t.type.groups) {
@@ -17,7 +19,8 @@ export function typeStyles(t) {
       const p = [fam && `font-family: var(--font-${fam})`, s.fontSize !== undefined && `font-size: ${px(s.fontSize)}`,
         s.lineHeight !== undefined && `line-height: ${typeof s.lineHeight === 'number' && s.lineHeight >= 10 ? s.lineHeight + 'px' : s.lineHeight}`,
         s.fontWeight !== undefined && `font-weight: ${s.fontWeight}`, s.letterSpacing !== undefined && `letter-spacing: ${px(s.letterSpacing)}`].filter(Boolean);
-      out.push([s.name, p.join('; ') + ';']);
+      const strong = /^(Labels|Copy)$/.test(g.name) ? p.map((d) => d.startsWith('font-weight:') ? `font-weight: ${STRONG_WEIGHT}` : d).join('; ') + ';' : null;
+      out.push([s.name, p.join('; ') + ';', strong]);
     }
   }
   return out;
@@ -44,7 +47,12 @@ export function compileTokens(t, base = '', { classes = true } = {}) {
   }
   for (const [k, v] of Object.entries(t.type.families)) other.push(`  --font-${k}: ${v};`);
   out.push(`:root {\n${other.join('\n')}\n}`);
-  if (classes) for (const [name, decl] of typeStyles(t)) out.push(`.${name} { ${decl} }`);
+  if (classes) {
+    for (const [name, decl, strong] of typeStyles(t)) {
+      out.push(`.${name} { ${decl} }`);
+      if (strong) out.push(`.${name} :is(strong, b) { font-weight: ${STRONG_WEIGHT}; }`, `.${name}-strong { ${strong} }`);
+    }
+  }
   for (const f of t.type.fonts) {
     const file = f.file.includes('/') ? f.file : 'fonts/' + f.file;
     out.push(`@font-face { font-family: "${f.family}"; src: url("${base}${file}") format("woff2"); font-weight: ${f.weight}; font-style: ${f.style || 'normal'}; font-display: swap; }`);

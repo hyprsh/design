@@ -8,4 +8,4 @@ An inline message that sits in the page flow: a tip, a warning, an error with it
 - Labels are one or two Title Case words that add meaning (“Region Change”), never “Note” or “FYI”.
 - Notes are not dismissible: if the message can go away, it belongs in a Toast or a ProjectBanner.
 - Success notes are blue, not green: the accent stays the accent.
-- `variant="error"` is announced as an alert. `disabled` greys the note and disables the controls in its action.
+- `variant="error"` has `role="alert"` and `variant="success"` has `role="status"`, so a note that appears after an action is announced without a wrapper. Pass `role` to replace that (`role="note"` for one that is there on load), and `aria-label`, `aria-live`, `id` or `data-*` to put them on the note. The other variants have no role. `disabled` greys the note, drops the role and disables the controls in its action.

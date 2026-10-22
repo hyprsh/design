@@ -1,4 +1,4 @@
-export interface NoteProps {
+export interface NoteProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'className'> {
   /** Default 'default' (info icon). success is blue: the accent stays the accent. */
   variant?: 'default' | 'secondary' | 'success' | 'warning' | 'error' | 'violet' | 'cyan';
   /** Older name for `variant`. With `type`, a leading word (“Warning:”) is added unless label={false}. */
@@ -14,6 +14,8 @@ export interface NoteProps {
   label?: string | false;
   /** One inline control, such as a small Button. Or use <Note.Action>. */
   action?: React.ReactNode;
+  /** Defaults to 'status' for `success` and 'alert' for `error` (none for the other variants, or when disabled). Pass any role to replace it. `aria-*`, `id` and `data-*` pass through to the note. */
+  role?: React.AriaRole;
   /** Plain content, or <Note.Content> and <Note.Action> parts. */
   children?: React.ReactNode;
   className?: string;
