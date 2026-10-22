@@ -1449,6 +1449,9 @@ export declare const JsonView: ((props: JsonViewProps) => React.ReactElement) & 
 
 export interface CommandItem { label: string; onSelect?: () => void; keywords?: string[]; shortcut?: React.ReactNode; icon?: React.ReactNode; disabled?: boolean }
 
+/** The event `CommandMenu`'s `onKeyDown` receives: a React keyboard event plus `skipMenu()`. Type-only; write a separate handler as `(e: CommandMenuKeyEvent) => void`. */
+export type CommandMenuKeyEvent = React.KeyboardEvent<HTMLDivElement> & { skipMenu: () => void };
+
 export interface CommandMenuProps {
   open: boolean;
   /** Geist name for the open setter. */
@@ -1483,7 +1486,7 @@ export interface CommandMenuProps {
    * Keys from content other than the input and the list (such as a panel in place of the list) are never handled
    * by the menu; this hook still sees them.
    */
-  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement> & { skipMenu: () => void }) => void;
+  onKeyDown?: (e: CommandMenuKeyEvent) => void;
   /** Receives the search <input> (same element as a ref on CommandMenuInput). Use it to focus the input from outside. */
   inputRef?: React.Ref<HTMLInputElement>;
   className?: string;
