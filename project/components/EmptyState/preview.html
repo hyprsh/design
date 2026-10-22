@@ -1,4 +1,4 @@
-<!-- @dsCard group="Feedback" height=696 subtitle="First-run with actions, and a filtered search with no results" -->
+<!-- @dsCard group="Feedback" height=780 subtitle="First-run with actions, a filtered search with no results, and the small one-line size" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>EmptyState</title></head>
@@ -13,7 +13,10 @@ function Demo() {
       h('a', { href: '#learn' }, 'Learn More')),
     h('div', { 'aria-live': 'polite' },
       h(H.EmptyState, { icon: 'search', title: 'No Results for “billing”', description: 'Try a different search, or clear the filters to see every project.' },
-        h(H.Button, { variant: 'secondary', size: 'small' }, 'Clear Filters'))));
+        h(H.Button, { variant: 'secondary', size: 'small' }, 'Clear Filters'))),
+    h('div', null,
+      h('div', { className: 'label-14', style: { marginBottom: 4 } }, 'Needs Attention'),
+      h(H.EmptyState, { size: 'small', title: 'Nothing needs attention.' }, h(H.Link, { href: '#log' }, 'Open the Log'))));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

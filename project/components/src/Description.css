@@ -5,6 +5,11 @@
 .hy-description--right { align-items: flex-end; text-align: right; }
 .hy-description--right .hy-description__title { justify-content: flex-end; }
 .hy-description--ellipsis .hy-description__content { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* horizontal: term and value on one row. Set --hy-description-term (or termWidth) to line terms up across several. */
+.hy-description--horizontal { flex-direction: row; align-items: baseline; gap: 12px; }
+.hy-description--horizontal .hy-description__title { flex: none; min-width: var(--hy-description-term, 0); line-height: 20px; }
+.hy-description--horizontal .hy-description__content { flex: 1; min-width: 0; }
+.hy-description--horizontal.hy-description--right .hy-description__content { text-align: right; }
 .hy-description__tip {
   /* 24px hit target; the negative margin keeps the 16px visual footprint in the title row */
   position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin: -4px;

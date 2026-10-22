@@ -23,10 +23,12 @@ function Collapse(props) {
     return function () { el.removeEventListener('beforematch', onMatch); };
   }, []);
 
-  var Heading = 'h' + Math.min(6, Math.max(2, props.headingLevel || 3));
-  var rest = omit(props, ['title', 'children', 'defaultExpanded', 'expanded', 'onChange', 'size', 'id', 'className', 'headingLevel', '__locked', '__grouped']);
+  var inline = props.variant === 'inline';
+  /* The inline disclosure is not a section heading, so it has none unless headingLevel asks for one. */
+  var Heading = inline && !props.headingLevel ? 'div' : 'h' + Math.min(6, Math.max(2, props.headingLevel || 3));
+  var rest = omit(props, ['title', 'children', 'defaultExpanded', 'expanded', 'onChange', 'size', 'variant', 'id', 'className', 'headingLevel', '__locked', '__grouped']);
   return h('div', Object.assign({}, rest, {
-    className: cx('hy-collapse', props.size === 'small' && 'hy-collapse--small', props.__grouped && 'is-grouped', open && 'is-open', props.className)
+    className: cx('hy-collapse', inline && 'hy-collapse--inline', props.size === 'small' && 'hy-collapse--small', props.__grouped && 'is-grouped', open && 'is-open', props.className)
   }),
     h(Heading, { className: 'hy-collapse__heading' },
       h('button', {
@@ -34,8 +36,9 @@ function Collapse(props) {
         'aria-expanded': open, 'aria-controls': panelId, 'aria-disabled': locked || undefined,
         onClick: function () { if (!locked) setOpen(!open); }
       },
+        inline ? h('span', { className: 'hy-collapse__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 14 })) : null,
         h('span', { className: 'hy-collapse__title' }, props.title),
-        h('span', { className: 'hy-collapse__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron' })))),
+        inline ? null : h('span', { className: 'hy-collapse__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron' })))),
     h('div', { ref: panelRef, id: panelId, role: 'region', 'aria-labelledby': btnId, className: 'hy-collapse__panel' },
       h('div', { className: 'hy-collapse__body' }, props.children)));
 }

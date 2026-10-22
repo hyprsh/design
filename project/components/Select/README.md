@@ -2,7 +2,7 @@
 
 A native dropdown with a label, an optional hint or error, a prefix icon and three sizes, styled like Input.
 
-**You provide:** a `label` in Title Case (or `aria-label`), `name`, the choices as `<option>` children (or `options` as data), and `value` with `onChange`, or `defaultValue`. Optional: `placeholder` (a disabled first option, gray until something is picked), `prefix` (an icon), `suffix` (replaces the chevron), `hint`, `error`, `size` (`small` 32px, `medium` 36px, `large` 40px), `required` and `disabled`. The ref reaches the `<select>`.
+**You provide:** a `label` in Title Case (or `aria-label`), `name`, the choices as `<option>` children (or `options` as data), and `value` with `onChange`, or `defaultValue`. Optional: `placeholder` (a disabled first option, gray until something is picked), `prefix` (an icon), `suffix` (replaces the chevron), `hint`, `error`, `size` (`small` 32px, `medium` 36px, `large` 40px), `labelPosition="inline"` (the label beside the select instead of above it: “Monitor [select]” in a toolbar), `required` and `disabled`. The ref reaches the `<select>`.
 
 - Use Select for up to about 10 choices. Past that, use Combobox so people can type to filter; group long lists with native `<optgroup>`.
 - For several values, use a multi-select; for 2–3 options that are all worth seeing, use Switch or Radio.

@@ -424,6 +424,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   rounded?: boolean;
   /** HTML type; an alias for `type`, matching Button. */
   typeName?: string;
+  /** 'inline' puts the label beside the field instead of above it, for toolbars (“Monitor [select]”). The hint and error stay under the field. Needs `label`. Default 'top'. */
+  labelPosition?: 'top' | 'inline';
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }
@@ -584,6 +586,8 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
   suffix?: React.ReactNode;
   /** small 32px, medium 36px (default), large 40px. */
   size?: Size;
+  /** 'inline' puts the label beside the field instead of above it, for toolbars (“Monitor [select]”). The hint and error stay under the field. Needs `label`. Default 'top'. */
+  labelPosition?: 'top' | 'inline';
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }
@@ -912,6 +916,8 @@ export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   description?: React.ReactNode;
   /** A Lucide icon name, or any node. Drawn in a bordered tile. */
   icon?: string | React.ReactNode;
+  /** 'small' is one line of text with no border, icon or heading: the `title` (then `description` and actions) inline, for a section of a dense page. `icon` and `headingLevel` are ignored. Default is the bordered block. */
+  size?: 'small' | 'default';
   /** Heading level for the title. Default 3. */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   /** Actions: one primary CTA, at most one secondary (often a link). */
@@ -1177,6 +1183,10 @@ export interface DescriptionProps extends Omit<React.HTMLAttributes<HTMLDListEle
   content?: React.ReactNode;
   /** One-sentence definition shown from an info button next to the title. */
   tooltip?: React.ReactNode;
+  /** 'horizontal' puts the title and value on one row (`term  value`). Default 'vertical' stacks them. */
+  layout?: 'vertical' | 'horizontal';
+  /** Horizontal layout: minimum width of the title column (px or any CSS length), so stacked descriptions line up. It sets `--hy-description-term`, which a wrapper can set once for all of them. */
+  termWidth?: number | string;
   /** Right-align title and content, for the trailing column of a detail header. */
   right?: boolean;
   /** Truncate the content to one line; a string value is kept in the native title. */
@@ -1971,6 +1981,8 @@ export interface CollapseProps extends Omit<React.HTMLAttributes<HTMLDivElement>
   /** Controlled open state. Inside a CollapseGroup the group sets it. */
   expanded?: boolean;
   onChange?: (expanded: boolean) => void;
+  /** 'inline' is a light disclosure for use inside a list or a paragraph of UI: a chevron and a label in body type, no border, the content indented under the label. It renders no heading unless `headingLevel` is set. Default is the bordered section. */
+  variant?: 'default' | 'inline';
   /** 'small' for a 16px title and 14px body. Default is a 24px title. */
   size?: 'small' | 'default';
   /** Base for the trigger and panel ids. */

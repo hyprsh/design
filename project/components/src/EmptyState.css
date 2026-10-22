@@ -15,4 +15,11 @@
 .hy-empty-state__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .hy-empty-state__actions a:not([class]) { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--link); text-decoration: none; border-radius: var(--radius-sm); }
 .hy-empty-state__actions a:not([class]):hover { text-decoration: underline; }
+/* small: one line of text, left-aligned, no border or icon */
+.hy-empty-state--small {
+  flex-direction: row; flex-wrap: wrap; align-items: baseline; justify-content: flex-start; gap: 0 8px;
+  padding: 8px 0; border-radius: 0; box-shadow: none; text-align: left;
+}
+.hy-empty-state--small .hy-empty-state__title { font-size: 14px; line-height: 20px; font-weight: 400; color: var(--gray-900); text-wrap: pretty; }
+.hy-empty-state--small .hy-empty-state__actions { flex-direction: row; align-items: baseline; gap: 8px; }
 .hy-empty-state__actions a:not([class]):focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }

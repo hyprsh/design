@@ -69,6 +69,11 @@ body {
 .hy-input__affix:last-child { border-left: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 .hy-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-color: var(--background-100); color: var(--gray-1000); }
 .hy-select__chevron { position: absolute; right: 12px; pointer-events: none; color: var(--gray-900); }
+/* labelPosition="inline": the label sits beside the frame; hint and error stay under the frame */
+.hy-field--inline-label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 8px; }
+.hy-field--inline-label > .hy-field__label { grid-column: 1; grid-row: 1; white-space: nowrap; }
+.hy-field--inline-label > .hy-input, .hy-field--inline-label > .hy-select { grid-column: 2; grid-row: 1; }
+.hy-field--inline-label > .hy-field__hint, .hy-field--inline-label > .hy-field__error, .hy-field--inline-label > .hy-field__alert > .hy-field__error { grid-column: 2; }
 /* Touch screens: 16px text so iOS doesn't zoom on focus, and no field shorter than 40px. */
 @media (pointer: coarse) {
   .hy-input input, .hy-select select, .hy-textarea textarea { font-size: 16px; }
@@ -1235,6 +1240,13 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-empty-state__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; }
 .hy-empty-state__actions a:not([class]) { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--link); text-decoration: none; border-radius: var(--radius-sm); }
 .hy-empty-state__actions a:not([class]):hover { text-decoration: underline; }
+/* small: one line of text, left-aligned, no border or icon */
+.hy-empty-state--small {
+  flex-direction: row; flex-wrap: wrap; align-items: baseline; justify-content: flex-start; gap: 0 8px;
+  padding: 8px 0; border-radius: 0; box-shadow: none; text-align: left;
+}
+.hy-empty-state--small .hy-empty-state__title { font-size: 14px; line-height: 20px; font-weight: 400; color: var(--gray-900); text-wrap: pretty; }
+.hy-empty-state--small .hy-empty-state__actions { flex-direction: row; align-items: baseline; gap: 8px; }
 .hy-empty-state__actions a:not([class]):focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
 
 /* ---------- Error ---------- */
@@ -1550,6 +1562,11 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-description--right { align-items: flex-end; text-align: right; }
 .hy-description--right .hy-description__title { justify-content: flex-end; }
 .hy-description--ellipsis .hy-description__content { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* horizontal: term and value on one row. Set --hy-description-term (or termWidth) to line terms up across several. */
+.hy-description--horizontal { flex-direction: row; align-items: baseline; gap: 12px; }
+.hy-description--horizontal .hy-description__title { flex: none; min-width: var(--hy-description-term, 0); line-height: 20px; }
+.hy-description--horizontal .hy-description__content { flex: 1; min-width: 0; }
+.hy-description--horizontal.hy-description--right .hy-description__content { text-align: right; }
 .hy-description__tip {
   /* 24px hit target; the negative margin keeps the 16px visual footprint in the title row */
   position: relative; display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; margin: -4px;
@@ -2243,6 +2260,15 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-collapse.is-open .hy-collapse__body { animation: hy-collapse-in .2s cubic-bezier(.4,0,.2,1); }
 .hy-collapse--small .hy-collapse__trigger { padding: 12px 0; font-size: 16px; line-height: 24px; font-weight: 500; letter-spacing: normal; }
 .hy-collapse--small .hy-collapse__body { padding-bottom: 12px; font-size: 14px; line-height: 20px; }
+/* inline: a chevron and a label in body type, no border; the content lines up under the label */
+.hy-collapse--inline, .hy-collapse--inline:not(.is-grouped) { border: 0; }
+.hy-collapse--inline .hy-collapse__trigger {
+  display: inline-flex; justify-content: flex-start; gap: 4px; width: auto; max-width: 100%; min-height: 24px; padding: 2px 4px 2px 0;
+  font-size: 14px; line-height: 20px; font-weight: 500; letter-spacing: normal; color: var(--gray-900); border-radius: var(--radius-sm);
+}
+.hy-collapse--inline .hy-collapse__trigger:hover { color: var(--gray-1000); }
+.hy-collapse--inline .hy-collapse__title { min-width: 0; }
+.hy-collapse--inline .hy-collapse__body { padding: 4px 0 0 18px; font-size: 14px; line-height: 20px; }
 @keyframes hy-collapse-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-collapse__chev { transition: none; }

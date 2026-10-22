@@ -2,7 +2,7 @@
 
 A key and its value, as a definition list: a quiet title over a medium-weight value.
 
-**You provide:** `title` (the key) and `content` (the value, or pass it as children). Optional: `tooltip` for a one-sentence definition behind an info button, `right` to right-align both lines, and `ellipsis` to keep a long value on one line.
+**You provide:** `title` (the key) and `content` (the value, or pass it as children). Optional: `tooltip` for a one-sentence definition behind an info button, `right` to right-align both lines, and `ellipsis` to keep a long value on one line. `layout="horizontal"` puts the title and the value on one row, for version and licence lists or a summary; give each `termWidth` (px or a CSS length), or set the CSS variable `--hy-description-term` once on a wrapper, so the values of stacked descriptions line up.
 
 - Use it for metadata on a detail page: Last Deployed, Region, Plan. For help under a form field, use the field's hint instead. For rows you compare, use Table.
 - It renders `<dl>`, `<dt>` and `<dd>`, so screen readers announce each pair. Don't wrap it in paragraphs that break the list.

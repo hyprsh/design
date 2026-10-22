@@ -5,6 +5,8 @@ export interface EmptyStateProps extends Omit<React.HTMLAttributes<HTMLDivElemen
   description?: React.ReactNode;
   /** A Lucide icon name, or any node. Drawn in a bordered tile. */
   icon?: string | React.ReactNode;
+  /** 'small' is one line of text with no border, icon or heading: the `title` (then `description` and actions) inline, for a section of a dense page. `icon` and `headingLevel` are ignored. Default is the bordered block. */
+  size?: 'small' | 'default';
   /** Heading level for the title. Default 3. */
   headingLevel?: 2 | 3 | 4 | 5 | 6;
   /** Actions: one primary CTA, at most one secondary (often a link). */

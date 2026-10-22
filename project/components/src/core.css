@@ -69,6 +69,11 @@ body {
 .hy-input__affix:last-child { border-left: 1px solid var(--gray-alpha-400); background: var(--background-200); border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 .hy-select select { appearance: none; -webkit-appearance: none; padding-right: 36px; cursor: pointer; background-color: var(--background-100); color: var(--gray-1000); }
 .hy-select__chevron { position: absolute; right: 12px; pointer-events: none; color: var(--gray-900); }
+/* labelPosition="inline": the label sits beside the frame; hint and error stay under the frame */
+.hy-field--inline-label { display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; column-gap: 8px; row-gap: 8px; }
+.hy-field--inline-label > .hy-field__label { grid-column: 1; grid-row: 1; white-space: nowrap; }
+.hy-field--inline-label > .hy-input, .hy-field--inline-label > .hy-select { grid-column: 2; grid-row: 1; }
+.hy-field--inline-label > .hy-field__hint, .hy-field--inline-label > .hy-field__error, .hy-field--inline-label > .hy-field__alert > .hy-field__error { grid-column: 2; }
 /* Touch screens: 16px text so iOS doesn't zoom on focus, and no field shorter than 40px. */
 @media (pointer: coarse) {
   .hy-input input, .hy-select select, .hy-textarea textarea { font-size: 16px; }

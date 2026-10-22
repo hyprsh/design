@@ -1,8 +1,9 @@
 function Description(props) {
-  var rest = omit(props, ['title', 'content', 'tooltip', 'right', 'ellipsis', 'className', 'children']);
+  var rest = omit(props, ['title', 'content', 'tooltip', 'right', 'ellipsis', 'layout', 'termWidth', 'className', 'children']);
   var content = props.content !== undefined ? props.content : props.children;
   var tipLabel = 'About ' + (typeof props.title === 'string' ? props.title : 'this field');
-  return h('dl', Object.assign({}, rest, { className: cx('hy-description', props.right && 'hy-description--right', props.ellipsis && 'hy-description--ellipsis', props.className) }),
+  return h('dl', Object.assign({}, rest, { className: cx('hy-description', props.right && 'hy-description--right', props.layout === 'horizontal' && 'hy-description--horizontal', props.ellipsis && 'hy-description--ellipsis', props.className),
+    style: props.termWidth !== undefined ? Object.assign({ '--hy-description-term': typeof props.termWidth === 'number' ? props.termWidth + 'px' : props.termWidth }, props.style) : props.style }),
     h('dt', { className: 'hy-description__title' },
       h('span', null, props.title),
       props.tooltip ? h(HY.Tooltip, { text: props.tooltip },

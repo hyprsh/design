@@ -21,6 +21,8 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   rounded?: boolean;
   /** HTML type; an alias for `type`, matching Button. */
   typeName?: string;
+  /** 'inline' puts the label beside the field instead of above it, for toolbars (“Monitor [select]”). The hint and error stay under the field. Needs `label`. Default 'top'. */
+  labelPosition?: 'top' | 'inline';
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }

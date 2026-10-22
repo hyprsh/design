@@ -5,7 +5,14 @@ function EmptyStateIcon(props) {
 }
 
 function EmptyState(props) {
-  var rest = omit(props, ['title', 'description', 'icon', 'className', 'children', 'headingLevel']);
+  var rest = omit(props, ['title', 'description', 'icon', 'className', 'children', 'headingLevel', 'size']);
+  if (props.size === 'small') {
+    /* One line: the title, then the description, then the actions. No border, no icon, no heading. */
+    return h('div', Object.assign({}, rest, { className: cx('hy-empty-state', 'hy-empty-state--small', props.className) }),
+      props.title ? h('p', { className: 'hy-empty-state__title' }, props.title) : null,
+      props.description ? h('p', { className: 'hy-empty-state__description' }, props.description) : null,
+      props.children ? h('div', { className: 'hy-empty-state__actions' }, props.children) : null);
+  }
   var Heading = 'h' + (props.headingLevel || 3);
   return h('div', Object.assign({}, rest, { className: cx('hy-empty-state', props.className) }),
     props.icon ? h(EmptyStateIcon, { icon: props.icon }) : null,

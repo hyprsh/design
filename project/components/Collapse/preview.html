@@ -1,4 +1,4 @@
-<!-- @dsCard group="Layout" height=520 subtitle="Accordion group, multiple open, small size" -->
+<!-- @dsCard group="Layout" height=700 subtitle="Accordion group, multiple open, small size, inline disclosure" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Collapse</title></head>
@@ -20,7 +20,13 @@ function Demo() {
       h(C, { title: 'Environment Variables', size: 'small', defaultExpanded: true },
         h('p', null, 'Values are encrypted at rest and only exposed to the environments you pick.')),
       h(C, { title: 'Regions', size: 'small' },
-        h('p', null, 'Builds run in eu-central unless you choose another region.'))));
+        h('p', null, 'Builds run in eu-central unless you choose another region.'))),
+    h('div', null,
+      h('div', { className: 'label-14' }, 'Some.Show.S02E05'),
+      h(C, { variant: 'inline', title: 'Show files', defaultExpanded: true },
+        h('p', null, 'Some.Show.S02E05.mkv')),
+      h(C, { variant: 'inline', title: 'Details' },
+        h('p', null, 'Hidden until opened.'))));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

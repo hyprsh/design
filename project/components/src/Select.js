@@ -19,7 +19,7 @@ var Select = React.forwardRef(function Select(props, ref) {
   var st = useState(initial);
   var current = controlled ? props.value : st[0];
   var empty = !!placeholder && !props.multiple && (current === '' || current == null);
-  var rest = omit(props, ['label', 'hint', 'error', 'options', 'size', 'className', 'wrapperClassName', 'id', 'children', 'placeholder', 'prefix', 'suffix', 'value', 'defaultValue', 'onChange']);
+  var rest = omit(props, ['label', 'hint', 'error', 'options', 'size', 'className', 'wrapperClassName', 'labelPosition', 'id', 'children', 'placeholder', 'prefix', 'suffix', 'value', 'defaultValue', 'onChange']);
 
   var opts = props.options ? props.options.map(function (o) {
     var v = typeof o === 'string' ? o : o.value;
@@ -31,7 +31,7 @@ var Select = React.forwardRef(function Select(props, ref) {
     if (props.onChange) props.onChange(e);
   }
 
-  return h('div', { className: cx('hy-field', 'hy-field--' + size, props.className) },
+  return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.className) },
     props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
     h('div', {
       className: cx('hy-select', 'hy-input--' + size, 'hy-select--' + size, props.error && 'hy-select--error', props.disabled && 'hy-select--disabled',

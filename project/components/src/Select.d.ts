@@ -17,6 +17,8 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
   suffix?: React.ReactNode;
   /** small 32px, medium 36px (default), large 40px. */
   size?: Size;
+  /** 'inline' puts the label beside the field instead of above it, for toolbars (“Monitor [select]”). The hint and error stay under the field. Needs `label`. Default 'top'. */
+  labelPosition?: 'top' | 'inline';
   /** Class for the bordered frame; `className` goes on the outer field. */
   wrapperClassName?: string;
 }

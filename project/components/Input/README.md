@@ -2,7 +2,7 @@
 
 A single-line text field with a label, an optional hint or error, prefix/suffix slots and three sizes.
 
-**You provide:** a `label` in Title Case (or `aria-label` when the context names the field), `name`, `autoComplete`, the right `type` and `inputMode`, and `value` with `onChange`, or `defaultValue`. Optional: `hint`, `error` (a string under the field that also sets `aria-invalid`), `prefix`/`suffix` (text such as `https://` or an icon; pass `prefixStyling={false}` for an icon without the gray tray), `size` (`small` 32px, `medium` 36px, `large` 40px), `rounded`, and `disabled`. The ref reaches the `<input>`.
+**You provide:** a `label` in Title Case (or `aria-label` when the context names the field), `name`, `autoComplete`, the right `type` and `inputMode`, and `value` with `onChange`, or `defaultValue`. Optional: `hint`, `error` (a string under the field that also sets `aria-invalid`), `prefix`/`suffix` (text such as `https://` or an icon; pass `prefixStyling={false}` for an icon without the gray tray), `size` (`small` 32px, `medium` 36px, `large` 40px), `rounded`, `labelPosition="inline"` (the label beside the field instead of above it, for a toolbar; the hint and error stay under the field) and `disabled`. The ref reaches the `<input>`.
 
 - Use Input for one line, Textarea for several, and Combobox when the answer comes from a known list.
 - Placeholders show an example value, like `my-app`, never instructions. A placeholder is never the label.

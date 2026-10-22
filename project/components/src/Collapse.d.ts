@@ -6,6 +6,8 @@ export interface CollapseProps extends Omit<React.HTMLAttributes<HTMLDivElement>
   /** Controlled open state. Inside a CollapseGroup the group sets it. */
   expanded?: boolean;
   onChange?: (expanded: boolean) => void;
+  /** 'inline' is a light disclosure for use inside a list or a paragraph of UI: a chevron and a label in body type, no border, the content indented under the label. It renders no heading unless `headingLevel` is set. Default is the bordered section. */
+  variant?: 'default' | 'inline';
   /** 'small' for a 16px title and 14px body. Default is a 24px title. */
   size?: 'small' | 'default';
   /** Base for the trigger and panel ids. */

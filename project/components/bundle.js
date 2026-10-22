@@ -1606,7 +1606,7 @@
       var errText = isMessage(props.error) ? props.error : null;
       var plainPrefix = props.prefixStyling === false || props.prefixContainer === false;
       var plainSuffix = props.suffixStyling === false || props.suffixContainer === false;
-      var rest = omit(props, ['label', 'hint', 'error', 'prefix', 'suffix', 'prefixStyling', 'suffixStyling', 'prefixContainer', 'suffixContainer', 'size', 'rounded', 'className', 'wrapperClassName', 'id', 'type', 'typeName']);
+      var rest = omit(props, ['label', 'hint', 'error', 'prefix', 'suffix', 'prefixStyling', 'suffixStyling', 'prefixContainer', 'suffixContainer', 'size', 'rounded', 'className', 'wrapperClassName', 'labelPosition', 'id', 'type', 'typeName']);
 
       function affix(node, side, styling, container) {
         if (node == null || node === false) return null;
@@ -1622,7 +1622,7 @@
         el.focus();
       }
 
-      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.className) },
+      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.className) },
         props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
         h('div', {
           className: cx('hy-input', 'hy-input--' + size, props.error && 'hy-input--error', props.disabled && 'hy-input--disabled', props.rounded && 'hy-input--rounded',
@@ -1940,7 +1940,7 @@
       var st = useState(initial);
       var current = controlled ? props.value : st[0];
       var empty = !!placeholder && !props.multiple && (current === '' || current == null);
-      var rest = omit(props, ['label', 'hint', 'error', 'options', 'size', 'className', 'wrapperClassName', 'id', 'children', 'placeholder', 'prefix', 'suffix', 'value', 'defaultValue', 'onChange']);
+      var rest = omit(props, ['label', 'hint', 'error', 'options', 'size', 'className', 'wrapperClassName', 'labelPosition', 'id', 'children', 'placeholder', 'prefix', 'suffix', 'value', 'defaultValue', 'onChange']);
 
       var opts = props.options ? props.options.map(function (o) {
         var v = typeof o === 'string' ? o : o.value;
@@ -1952,7 +1952,7 @@
         if (props.onChange) props.onChange(e);
       }
 
-      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.className) },
+      return h('div', { className: cx('hy-field', 'hy-field--' + size, props.label && props.labelPosition === 'inline' && 'hy-field--inline-label', props.className) },
         props.label ? h('label', { className: 'hy-field__label', htmlFor: id }, props.label) : null,
         h('div', {
           className: cx('hy-select', 'hy-input--' + size, 'hy-select--' + size, props.error && 'hy-select--error', props.disabled && 'hy-select--disabled',
@@ -2648,7 +2648,14 @@
     }
 
     function EmptyState(props) {
-      var rest = omit(props, ['title', 'description', 'icon', 'className', 'children', 'headingLevel']);
+      var rest = omit(props, ['title', 'description', 'icon', 'className', 'children', 'headingLevel', 'size']);
+      if (props.size === 'small') {
+        /* One line: the title, then the description, then the actions. No border, no icon, no heading. */
+        return h('div', Object.assign({}, rest, { className: cx('hy-empty-state', 'hy-empty-state--small', props.className) }),
+          props.title ? h('p', { className: 'hy-empty-state__title' }, props.title) : null,
+          props.description ? h('p', { className: 'hy-empty-state__description' }, props.description) : null,
+          props.children ? h('div', { className: 'hy-empty-state__actions' }, props.children) : null);
+      }
       var Heading = 'h' + (props.headingLevel || 3);
       return h('div', Object.assign({}, rest, { className: cx('hy-empty-state', props.className) }),
         props.icon ? h(EmptyStateIcon, { icon: props.icon }) : null,
@@ -3411,10 +3418,11 @@
   /* ---- Description ---- */
   (function () {
     function Description(props) {
-      var rest = omit(props, ['title', 'content', 'tooltip', 'right', 'ellipsis', 'className', 'children']);
+      var rest = omit(props, ['title', 'content', 'tooltip', 'right', 'ellipsis', 'layout', 'termWidth', 'className', 'children']);
       var content = props.content !== undefined ? props.content : props.children;
       var tipLabel = 'About ' + (typeof props.title === 'string' ? props.title : 'this field');
-      return h('dl', Object.assign({}, rest, { className: cx('hy-description', props.right && 'hy-description--right', props.ellipsis && 'hy-description--ellipsis', props.className) }),
+      return h('dl', Object.assign({}, rest, { className: cx('hy-description', props.right && 'hy-description--right', props.layout === 'horizontal' && 'hy-description--horizontal', props.ellipsis && 'hy-description--ellipsis', props.className),
+        style: props.termWidth !== undefined ? Object.assign({ '--hy-description-term': typeof props.termWidth === 'number' ? props.termWidth + 'px' : props.termWidth }, props.style) : props.style }),
         h('dt', { className: 'hy-description__title' },
           h('span', null, props.title),
           props.tooltip ? h(HY.Tooltip, { text: props.tooltip },
@@ -5654,10 +5662,12 @@
         return function () { el.removeEventListener('beforematch', onMatch); };
       }, []);
 
-      var Heading = 'h' + Math.min(6, Math.max(2, props.headingLevel || 3));
-      var rest = omit(props, ['title', 'children', 'defaultExpanded', 'expanded', 'onChange', 'size', 'id', 'className', 'headingLevel', '__locked', '__grouped']);
+      var inline = props.variant === 'inline';
+      /* The inline disclosure is not a section heading, so it has none unless headingLevel asks for one. */
+      var Heading = inline && !props.headingLevel ? 'div' : 'h' + Math.min(6, Math.max(2, props.headingLevel || 3));
+      var rest = omit(props, ['title', 'children', 'defaultExpanded', 'expanded', 'onChange', 'size', 'variant', 'id', 'className', 'headingLevel', '__locked', '__grouped']);
       return h('div', Object.assign({}, rest, {
-        className: cx('hy-collapse', props.size === 'small' && 'hy-collapse--small', props.__grouped && 'is-grouped', open && 'is-open', props.className)
+        className: cx('hy-collapse', inline && 'hy-collapse--inline', props.size === 'small' && 'hy-collapse--small', props.__grouped && 'is-grouped', open && 'is-open', props.className)
       }),
         h(Heading, { className: 'hy-collapse__heading' },
           h('button', {
@@ -5665,8 +5675,9 @@
             'aria-expanded': open, 'aria-controls': panelId, 'aria-disabled': locked || undefined,
             onClick: function () { if (!locked) setOpen(!open); }
           },
+            inline ? h('span', { className: 'hy-collapse__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 14 })) : null,
             h('span', { className: 'hy-collapse__title' }, props.title),
-            h('span', { className: 'hy-collapse__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron' })))),
+            inline ? null : h('span', { className: 'hy-collapse__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron' })))),
         h('div', { ref: panelRef, id: panelId, role: 'region', 'aria-labelledby': btnId, className: 'hy-collapse__panel' },
           h('div', { className: 'hy-collapse__body' }, props.children)));
     }

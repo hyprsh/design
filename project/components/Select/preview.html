@@ -1,4 +1,4 @@
-<!-- @dsCard group="Forms" height=400 subtitle="Placeholder, label, hint, error, prefix icon, 3 sizes, disabled" -->
+<!-- @dsCard group="Forms" height=480 subtitle="Placeholder, label, inline label, hint, error, prefix icon, 3 sizes, disabled" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Select</title></head>
@@ -16,6 +16,7 @@ function Demo() {
       h(H.Select, { key: 1, size: 'small', 'aria-label': 'Package Manager, Small', placeholder: 'Select a package manager' }, Opts()),
       h(H.Select, { key: 2, 'aria-label': 'Package Manager', placeholder: 'Select a package manager' }, Opts()),
       h(H.Select, { key: 3, size: 'large', 'aria-label': 'Package Manager, Large', defaultValue: 'pnpm' }, Opts())]),
+    h(H.Select, { label: 'Monitor', labelPosition: 'inline', size: 'small', options: ['Wanted', 'All'], hint: 'Which titles to watch.' }),
     h(H.Select, { label: 'Build Region', name: 'region', options: REGIONS, value: region, onChange: function (e) { setRegion(e.target.value); }, prefix: h(H.Icon, { name: 'globe' }), hint: 'Builds run closest to this region.' }),
     h(H.Select, { label: 'Git Branch', name: 'branch', placeholder: 'Select a branch', required: true, error: 'Select a branch to deploy.' },
       h('option', { value: 'main' }, 'main'), h('option', { value: 'preview' }, 'preview')),
