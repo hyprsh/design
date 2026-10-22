@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"Pagination"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Pagination"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -2407,6 +2407,41 @@
     define('Breadcrumbs', Breadcrumbs);
     define('Breadcrumb', Breadcrumbs);
     define('BreadcrumbItem', BreadcrumbItem);
+  })();
+
+  /* ---- CommandMenuTrigger ---- */
+  (function () {
+    /* A <button> that looks like a search field and opens a command menu. Not a read-only input, so
+       screen readers announce a button that opens a dialog. */
+    var CMT_OWN = ['children', 'size', 'prefix', 'shortcut', 'className', 'type', 'aria-haspopup'];
+
+    var CommandMenuTrigger = React.forwardRef(function CommandMenuTrigger(props, ref) {
+      var size = props.size === 'small' ? 'small' : 'medium';
+      var rest = omit(props, CMT_OWN);
+      var label = props.children == null || props.children === false ? 'Search…' : props.children;
+      var showDefaultShortcut = props.shortcut === undefined || props.shortcut === true;
+      var prefix = props.prefix === undefined || props.prefix === true
+        ? h(HY.Icon, { name: 'search', size: 16 })
+        : props.prefix;
+      var shortcut = showDefaultShortcut
+        ? h(HY.KeyboardInput, { small: true, meta: true }, 'K')
+        : props.shortcut;
+      var hasPrefix = prefix != null && prefix !== false;
+      var hasShortcut = shortcut != null && shortcut !== false;
+      return h('button', Object.assign({
+        ref: ref,
+        'aria-keyshortcuts': showDefaultShortcut ? 'Meta+K Control+K' : undefined
+      }, rest, {
+        type: 'button',
+        'aria-haspopup': 'dialog',
+        className: cx('hy-cmdk-trigger', 'hy-cmdk-trigger--' + size, props.className)
+      }),
+        hasPrefix && h('span', { className: 'hy-cmdk-trigger__prefix', 'aria-hidden': 'true' }, prefix),
+        h('span', { className: 'hy-cmdk-trigger__label' }, label),
+        hasShortcut && h('span', { className: 'hy-cmdk-trigger__shortcut', 'aria-hidden': 'true' }, shortcut));
+    });
+
+    define('CommandMenuTrigger', CommandMenuTrigger);
   })();
 
   /* ---- Pagination ---- */

@@ -1,0 +1,30 @@
+<!-- @dsCard group="Navigation" height=240 subtitle="Search-field button: small and medium, no shortcut, disabled, opens a CommandMenu" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CommandMenuTrigger</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var s = React.useState(false), open = s[0], setOpen = s[1];
+  function show() { setOpen(true); }
+  return h(F, null,
+    h(H.CommandMenuTrigger, { size: 'small', onClick: show }),
+    h(H.CommandMenuTrigger, { onClick: show }, 'Search or Run a Command…'),
+    h(H.CommandMenuTrigger, { shortcut: false, onClick: show }, 'Search Deployments…'),
+    h(H.CommandMenuTrigger, { disabled: true }, 'Search…'),
+    h(H.CommandMenu, { open: open, setOpen: setOpen },
+      h(H.CommandMenuInput, { placeholder: 'Search for a command or page…' }),
+      h(H.CommandMenuList, null,
+        h(H.CommandMenuGroup, { heading: 'Projects' },
+          h(H.CommandMenuItem, { callback: function () {} }, 'hyprsh-web'),
+          h(H.CommandMenuItem, { callback: function () {} }, 'hyprsh-api')),
+        h(H.CommandMenuGroup, { heading: 'Actions' },
+          h(H.CommandMenuItem, { callback: function () {} }, 'Create Project…'),
+          h(H.CommandMenuItem, { callback: function () {} }, 'Deploy to Production')))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
