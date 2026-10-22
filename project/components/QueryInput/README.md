@@ -2,7 +2,7 @@
 
 A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter queries such as `is:open label:bug,docs crash`. A hyprsh original: Geist has no page for it.
 
-**You provide:** an accessible name (`aria-label`, `aria-labelledby` or an outside `<label htmlFor>` pointing at `id`), `value` and `onChange(text)`. Then either `qualifiers` (the names and values your screen understands) or `suggestions(text, caret)` to compute completions yourself. Optional: `help={false}` to hide the “?” button, `size` (`small` 32px, `medium` 36px by default, `large` 40px), `placeholder`, `disabled`, `id`, `onKeyDown`, `className`.
+**You provide:** an accessible name (`aria-label`, `aria-labelledby` or an outside `<label htmlFor>` pointing at `id`), `value` and `onChange(text)` (or `defaultValue` to let the field keep the text). Then either `qualifiers` (the names and values your screen understands) or `suggestions(text, caret)` to compute completions yourself. Optional: `help={false}` to hide the “?” button, `size` (`small` 32px, `medium` 36px by default, `large` 40px), `placeholder`, `disabled`, `id`, `onKeyDown`, `className`.
 
 - Use it when the text is the value. For picking one option from a list use Combobox, and for a plain search box SearchInput.
 - The field is controlled and typing is never reverted, not even by Escape.

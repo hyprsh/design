@@ -1,8 +1,10 @@
-export interface QueryBarProps extends Omit<QueryInputProps, 'suggestions' | 'help' | 'qualifiers' | 'size' | 'value' | 'onChange'> {
-  /** The query. The bar keeps no copy: the field and every menu read it, and every edit goes through `onChange`. */
-  value: string;
+export interface QueryBarProps extends Omit<QueryInputProps, 'suggestions' | 'help' | 'qualifiers' | 'size' | 'value' | 'defaultValue' | 'onChange'> {
+  /** The query: the field and every menu read it. Leave it out to let the bar keep the query, starting from `defaultValue`. */
+  value?: string;
+  /** The query to start with when `value` is left out. */
+  defaultValue?: string;
   /** Called once per edit with the whole new query: a keystroke in the field or a change in a menu. */
-  onChange: (query: string) => void;
+  onChange?: (query: string) => void;
   /** The qualifiers the field understands. The menus read them too: `QueryBar.Menu` is excludable, and takes a none row, only where its qualifier allows. */
   qualifiers: readonly Qualifier[];
   /** Sizes the field and its menus. Default medium. */

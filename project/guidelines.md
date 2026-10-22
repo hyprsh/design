@@ -26,9 +26,9 @@ Touch sizing applies under `@media (pointer: coarse), (max-width: 639px)`: a coa
 
 - **Must:** write the touch target as `var(--touch-target)`, never as `44px`. Media queries can't read custom properties, so the query writes `max-width: 639px` itself.
 - **Must:** keep rules that aren't about size (16px field text so iOS doesn't zoom, hover on tap, popovers staying 8px inside the screen) under `(pointer: coarse)` alone.
-- **Must:** these are drawn at the touch target: Button (small and default; icon-only Buttons are 44px wide too), Input, Select, Menu items and Menu's unstyled trigger, Checkbox, Radio and Toggle rows, Switch (every size), secondary Tabs, Combobox, MultiSelect, SearchInput, AddressInput, CommandMenuTrigger, ContextMenu and FilterParams.
-- **Must:** these keep their drawn size and grow only their hit area to the touch target: tiny Button, interactive Pills (links and buttons, every size), the Progress stop trigger, CommandMenu's Esc key, Combobox's clear and chevron buttons, and FilterParams' remove button and Back chip.
-- Large Buttons (48px), primary Tabs (48px) and CommandMenu items (44px) are already at or above the touch target and don't change. Calendar and the Video seek bar still have their own 40px rules under `(pointer: coarse)`.
+- **Must:** these are drawn at the touch target: Button (small and default; icon-only Buttons are 44px wide too), Input, Select, Menu items and Menu's unstyled trigger, Checkbox, Radio and Toggle rows, Switch (every size), secondary Tabs, Combobox, MultiSelect, SearchInput, AddressInput, CommandMenuTrigger, ContextMenu, FilterParams, FilterMenu (its trigger, search box, rows and Exclude action), QueryInput and its suggestion rows, QueryBar, and Table's sortable heads.
+- **Must:** these keep their drawn size and grow only their hit area to the touch target: tiny Button, interactive Pills (links and buttons, every size), the Progress stop trigger, CommandMenu's Esc key, Combobox's clear and chevron buttons, ClearableInput's clear button, and FilterParams' remove button and Back chip.
+- Large Buttons (48px), primary Tabs (48px), TabBar items (48px) and its accessory (56px), and CommandMenu items (44px) are already at or above the touch target and don't change. Calendar and the Video seek bar still have their own 40px rules under `(pointer: coarse)`.
 
 ## Navigation
 

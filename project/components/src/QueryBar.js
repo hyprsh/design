@@ -33,17 +33,18 @@ function QueryBarMenu(props) {
 }
 
 function QueryBar(props) {
-  var value = props.value == null ? '' : String(props.value);
+  var vs = useControllable(props.value, props.defaultValue == null ? '' : String(props.defaultValue), props.onChange);
+  var value = vs[0] == null ? '' : String(vs[0]);
   var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
   var qualifiers = props.qualifiers || [];
-  var rest = omit(props, ['value', 'onChange', 'qualifiers', 'size', 'className', 'children']);
-  var ctx = { value: value, onChange: props.onChange, qualifiers: qualifiers, size: size };
+  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children']);
+  var ctx = { value: value, onChange: vs[1], qualifiers: qualifiers, size: size };
   var menus = React.Children.toArray(props.children);
 
   return h('div', { className: cx('hy-querybar', props.className) },
     h('div', { className: 'hy-querybar__bar' },
       h('div', { className: 'hy-querybar__field' },
-        h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: props.onChange, qualifiers: qualifiers, size: size }))),
+        h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size }))),
       menus.length ? h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
         h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' },
           h(QueryBarContext.Provider, { value: ctx }, menus))) : null));

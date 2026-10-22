@@ -2425,17 +2425,18 @@
     }
 
     function QueryBar(props) {
-      var value = props.value == null ? '' : String(props.value);
+      var vs = useControllable(props.value, props.defaultValue == null ? '' : String(props.defaultValue), props.onChange);
+      var value = vs[0] == null ? '' : String(vs[0]);
       var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
       var qualifiers = props.qualifiers || [];
-      var rest = omit(props, ['value', 'onChange', 'qualifiers', 'size', 'className', 'children']);
-      var ctx = { value: value, onChange: props.onChange, qualifiers: qualifiers, size: size };
+      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children']);
+      var ctx = { value: value, onChange: vs[1], qualifiers: qualifiers, size: size };
       var menus = React.Children.toArray(props.children);
 
       return h('div', { className: cx('hy-querybar', props.className) },
         h('div', { className: 'hy-querybar__bar' },
           h('div', { className: 'hy-querybar__field' },
-            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: props.onChange, qualifiers: qualifiers, size: size }))),
+            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size }))),
           menus.length ? h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
             h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' },
               h(QueryBarContext.Provider, { value: ctx }, menus))) : null));
@@ -2449,7 +2450,7 @@
   /* ---- QueryInput ---- */
   (function () {
     /* QueryInput: a text field whose text is the value, with suggestions that complete the word at the caret. A hyprsh
-       original (no Geist page). Controlled: <QueryInput value onChange qualifiers /> or give it `suggestions(text, caret)`.
+       original (no Geist page). <QueryInput value onChange qualifiers /> (or `defaultValue` to let it keep the text), or give it `suggestions(text, caret)`.
        A suggestion carries the whole query after picking it, so the field knows no syntax: the helper in _query.js
        (suggestQuery, parseQuery) is what `qualifiers` turns into suggestions and problems.
        Keys: the field owns Up, Down, Enter, Tab and Escape only while the list is open; otherwise the app's onKeyDown gets
@@ -2482,7 +2483,8 @@
       var id = props.id || auto;
       var listId = id + '-list';
       var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
-      var value = props.value == null ? '' : String(props.value);
+      var vs = useControllable(props.value, props.defaultValue == null ? '' : String(props.defaultValue), props.onChange);
+      var value = vs[0] == null ? '' : String(vs[0]);
       var qualifiers = props.qualifiers;
       var cs = useState(null), caret = cs[0], setCaret = cs[1];
       var as = useState(0), active = as[0], setActive = as[1];
@@ -2515,7 +2517,7 @@
       var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start', offset: 4 });
 
       function edit(text, at, close) {
-        props.onChange(text);
+        vs[1](text);
         setCaret(at);
         setActive(0);
         setDismissed(close);
@@ -2548,7 +2550,7 @@
       }) : [];
       var problemsId = id + '-problems';
       var showHelp = props.help !== false && qualifiers && qualifiers.length > 0;
-      var rest = omit(props, ['value', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
+      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
 
       return h('div', { className: cx('hy-query', props.className), style: props.style },
         h('div', { className: 'hy-query__row' },
@@ -3312,9 +3314,11 @@
           if (!el || el.nodeType !== 1 || (navRef.current && navRef.current.contains(el))) return;
           /* A dialog or sheet scrolling doesn't move the content behind it. */
           if (el.closest && el.closest('[role="dialog"], [aria-modal="true"]')) return;
-          var top = el.scrollTop, prev = last.has(el) ? last.get(el) : 0;
+          var top = el.scrollTop, seen = last.has(el), prev = last.get(el);
           last.set(el, top);
-          if (top === prev) return;  /* horizontal scrolling leaves scrollTop alone */
+          /* The first event from an element only records where it is, since it may have been scrolled before (a restored
+             position). Horizontal scrolling leaves scrollTop alone. */
+          if (!seen || top === prev) return;
           if (top <= 0) min[1](false);
           else if (top > prev) { if (top >= TABBAR_MIN_AT) min[1](true); }
           else if (top <= el.scrollHeight - el.clientHeight) min[1](false);  /* not the rubber band below the end */
@@ -5305,7 +5309,8 @@
           placeholder: props.placeholder || 'Search for a command or page…',
           value: ctx.query, onChange: function (e) { ctx.setQuery(e.target.value); }
         }),
-        hideClose ? null : h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close }, 'Esc'));
+        hideClose ? null : h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close },
+          h('span', { className: 'hy-cmd__esc-key', 'aria-hidden': 'true' }, 'Esc'), h('span', { className: 'hy-cmd__esc-x', 'aria-hidden': 'true' }, h(Glyph, { name: 'x', size: 14 }))));
     });
     CommandMenuInput.displayName = 'CommandMenuInput';
 

@@ -689,6 +689,8 @@ body {
 }
 .hy-filtermenu__search input::placeholder { color: var(--gray-700); }
 .hy-filtermenu__search:focus-within { border-bottom-color: var(--gray-1000); }
+/* The search box sits flush in the panel, so its focus ring is drawn inside it. */
+.hy-filtermenu__search:has(input:focus-visible) { outline: 2px solid var(--focus-color); outline-offset: -2px; border-radius: var(--radius-md); }
 .hy-filtermenu__list { flex: 1; min-height: 0; overflow-y: auto; outline: 0; }
 .hy-filtermenu__list:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; border-radius: var(--radius-md); }
 .hy-filtermenu__group + .hy-filtermenu__group { margin-top: 4px; }
@@ -2177,6 +2179,13 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 @media (pointer: coarse), (max-width: 639px) { .hy-cmd__esc::after { inset: min(0px, calc((100% - var(--touch-target)) / 2)); } }
 .hy-cmd__esc:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+/* "Esc" is a shortcut hint: on touch-only devices an x takes its place, and the button is drawn as a round icon button. */
+.hy-cmd__esc-x { display: none; }
+@media (hover: none) and (pointer: coarse) {
+  .hy-cmd__esc { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; padding: 0; border-radius: var(--radius-full); }
+  .hy-cmd__esc-key { display: none; }
+  .hy-cmd__esc-x { display: inline-flex; }
+}
 .hy-cmd__list { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 8px; scroll-padding: 8px; }
 .hy-cmd__heading { display: flex; align-items: center; height: 36px; padding: 0 8px; font-size: 13px; line-height: 16px; color: var(--gray-900); }
 .hy-cmd__item {

@@ -1,5 +1,5 @@
 /* QueryInput: a text field whose text is the value, with suggestions that complete the word at the caret. A hyprsh
-   original (no Geist page). Controlled: <QueryInput value onChange qualifiers /> or give it `suggestions(text, caret)`.
+   original (no Geist page). <QueryInput value onChange qualifiers /> (or `defaultValue` to let it keep the text), or give it `suggestions(text, caret)`.
    A suggestion carries the whole query after picking it, so the field knows no syntax: the helper in _query.js
    (suggestQuery, parseQuery) is what `qualifiers` turns into suggestions and problems.
    Keys: the field owns Up, Down, Enter, Tab and Escape only while the list is open; otherwise the app's onKeyDown gets
@@ -32,7 +32,8 @@ function QueryInput(props) {
   var id = props.id || auto;
   var listId = id + '-list';
   var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
-  var value = props.value == null ? '' : String(props.value);
+  var vs = useControllable(props.value, props.defaultValue == null ? '' : String(props.defaultValue), props.onChange);
+  var value = vs[0] == null ? '' : String(vs[0]);
   var qualifiers = props.qualifiers;
   var cs = useState(null), caret = cs[0], setCaret = cs[1];
   var as = useState(0), active = as[0], setActive = as[1];
@@ -65,7 +66,7 @@ function QueryInput(props) {
   var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start', offset: 4 });
 
   function edit(text, at, close) {
-    props.onChange(text);
+    vs[1](text);
     setCaret(at);
     setActive(0);
     setDismissed(close);
@@ -98,7 +99,7 @@ function QueryInput(props) {
   }) : [];
   var problemsId = id + '-problems';
   var showHelp = props.help !== false && qualifiers && qualifiers.length > 0;
-  var rest = omit(props, ['value', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
+  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
 
   return h('div', { className: cx('hy-query', props.className), style: props.style },
     h('div', { className: 'hy-query__row' },

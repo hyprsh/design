@@ -37,7 +37,8 @@ var CommandMenuInput = React.forwardRef(function CommandMenuInput(props, ref) {
       placeholder: props.placeholder || 'Search for a command or page…',
       value: ctx.query, onChange: function (e) { ctx.setQuery(e.target.value); }
     }),
-    hideClose ? null : h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close }, 'Esc'));
+    hideClose ? null : h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close },
+      h('span', { className: 'hy-cmd__esc-key', 'aria-hidden': 'true' }, 'Esc'), h('span', { className: 'hy-cmd__esc-x', 'aria-hidden': 'true' }, h(Glyph, { name: 'x', size: 14 }))));
 });
 CommandMenuInput.displayName = 'CommandMenuInput';
 

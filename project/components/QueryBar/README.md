@@ -2,7 +2,7 @@
 
 A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. A hyprsh original: Geist has no page for it.
 
-**You provide:** `value` and `onChange(query)` (the query text, owned by your screen), `qualifiers` (the same list `QueryInput` takes), an accessible name (`aria-label`) and `placeholder`. Optional: `size` (`small`, `medium` by default, `large`; the menus follow it), `className`, and the other `QueryInput` props such as `id` and `disabled`. Children are `QueryBar.Menu` elements.
+**You provide:** `value` and `onChange(query)` (the query text, owned by your screen; or `defaultValue` to let the bar keep it), `qualifiers` (the same list `QueryInput` takes), an accessible name (`aria-label`) and `placeholder`. Optional: `size` (`small`, `medium` by default, `large`; the menus follow it), `className`, and the other `QueryInput` props such as `id` and `disabled`. Children are `QueryBar.Menu` elements.
 
 - Use it for a list screen whose filters are also typed. A `QueryBar.Menu` takes everything a `FilterMenu` does except `value`, `defaultValue` and `onChange`, plus `qualifier`, the name it edits: `<QueryBar.Menu qualifier="label" label="Labels" items={…} />`. Rows are the menu's own: `items`, `FilterMenu.Section` and `FilterMenu.Item`. For a query field alone use QueryInput, and for filters shown as pills from URL params, FilterParams.
 - A menu is `excludable` when its qualifier is, and `noneLabel` adds a row only when the qualifier has `none: true`. A sort menu is `<QueryBar.Menu qualifier="sort" label="Sort" single defaultOption="newest" items={…} />`.

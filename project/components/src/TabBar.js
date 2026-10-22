@@ -62,9 +62,11 @@ function TabBar(props) {
       if (!el || el.nodeType !== 1 || (navRef.current && navRef.current.contains(el))) return;
       /* A dialog or sheet scrolling doesn't move the content behind it. */
       if (el.closest && el.closest('[role="dialog"], [aria-modal="true"]')) return;
-      var top = el.scrollTop, prev = last.has(el) ? last.get(el) : 0;
+      var top = el.scrollTop, seen = last.has(el), prev = last.get(el);
       last.set(el, top);
-      if (top === prev) return;  /* horizontal scrolling leaves scrollTop alone */
+      /* The first event from an element only records where it is, since it may have been scrolled before (a restored
+         position). Horizontal scrolling leaves scrollTop alone. */
+      if (!seen || top === prev) return;
       if (top <= 0) min[1](false);
       else if (top > prev) { if (top >= TABBAR_MIN_AT) min[1](true); }
       else if (top <= el.scrollHeight - el.clientHeight) min[1](false);  /* not the rubber band below the end */

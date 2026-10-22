@@ -75,9 +75,12 @@ export declare function withoutTerm(text: string, index: number, qualifiers: rea
 export declare function valuesOf<T = string>(query: Query, name: string, each?: (values: string[]) => T[]): T[] | null;
 
 export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size' | 'value' | 'onChange' | 'prefix' | 'defaultValue'> {
-  /** The query. The text is the value, and typing is never reverted. */
-  value: string;
-  onChange: (text: string) => void;
+  /** The query. The text is the value, and typing is never reverted. Leave it out to let the field keep the text. */
+  value?: string;
+  /** The text to start with when `value` is left out. */
+  defaultValue?: string;
+  /** Called with the whole text on every edit. */
+  onChange?: (text: string) => void;
   /** Suggestions for the word at the caret, computed by the app. Synchronous. Wins over `qualifiers`. */
   suggestions?: (text: string, caret: number) => QuerySuggestion[];
   /** The qualifiers the app understands: suggested with `suggestQuery`, explained in the help popover, and checked with `parseQuery` (problems show under the field). */
