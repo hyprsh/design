@@ -51,8 +51,8 @@ export interface TableHeadProps extends Omit<React.ThHTMLAttributes<HTMLTableCel
   wrap?: boolean;
   /** Sets `aria-sort` on the cell. Use `'none'` for a sortable column that isn't the active sort. Without it the cell has no `aria-sort`. */
   sort?: TableSortDirection | 'none';
-  /** Makes the label a button that fills the cell and calls this on click, Enter and Space. The arrow is decorative: the direction is announced through `sort`. Right-aligned heads put the arrow before the label. */
-  onSort?: () => void;
+  /** Makes the label a button that fills the cell and calls this on click, Enter and Space. The arrow is decorative: the direction is announced through `sort`. Right-aligned heads put the arrow before the label. Enter and Space on the native button fire a click whose `event.detail` is `0`, so `event.detail === 0` tells a keyboard press from a pointer click. */
+  onSort?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export interface TableProps<R = Record<string, unknown>> extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'rows'> {
@@ -74,8 +74,8 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
   isCurrent?: (row: R) => boolean;
   /** Data form: the active sort. The table never reorders `rows`; sort them yourself and pass them back. `null` or `undefined` means no active column. */
   sort?: TableSort | null;
-  /** Data form: a sortable column was clicked. A column that isn't active asks for `ascending`; the active one flips. */
-  onSortChange?: (next: TableSort) => void;
+  /** Data form: a sortable column was clicked. A column that isn't active asks for `ascending`; the active one flips. The second argument is the button's click event; Enter and Space fire a click whose `event.detail` is `0`, so `event.detail === 0` tells a keyboard press from a pointer click. */
+  onSortChange?: (next: TableSort, event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Keep the header row visible while an ancestor scrolls (it sticks to the nearest scrolling ancestor). The wrapper then clips sideways instead of scrolling. */
   stickyHeader?: boolean;
   children?: React.ReactNode;

@@ -34,7 +34,7 @@ function TableHead(props) {
   if (props.sort) state['aria-sort'] = props.sort;
   var label = props.children;
   if (props.onSort) {
-    label = h('button', { type: 'button', className: 'hy-table__sort', onClick: function () { props.onSort(); } },
+    label = h('button', { type: 'button', className: 'hy-table__sort', onClick: function (e) { props.onSort(e); } },
       h('span', { className: 'hy-table__sort-label' }, props.children),
       h('svg', { className: cx('hy-table__sort-arrow', props.sort === 'descending' && 'is-desc'), width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true', focusable: 'false' },
         h('path', { d: 'M8 13V3M4 7l4-4 4 4' })));
@@ -51,8 +51,8 @@ function alignOf(c) { return c.align || (c.numeric ? 'right' : undefined); }
 /* Data form: the app owns the order. Clicking a new column asks for ascending, the active one flips. */
 function sortClick(props, key) {
   var cur = props.sort;
-  return function () {
-    props.onSortChange && props.onSortChange({ key: key, direction: cur && cur.key === key && cur.direction === 'ascending' ? 'descending' : 'ascending' });
+  return function (event) {
+    props.onSortChange && props.onSortChange({ key: key, direction: cur && cur.key === key && cur.direction === 'ascending' ? 'descending' : 'ascending' }, event);
   };
 }
 
