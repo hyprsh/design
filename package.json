@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs && node scripts/package.mjs",
+    "test": "node --test",
     "check": "node scripts/build.mjs --check",
     "prepare": "node scripts/package.mjs",
     "dev": "node scripts/dev.mjs",

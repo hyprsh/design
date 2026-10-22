@@ -1,0 +1,26 @@
+<!-- @dsCard group="Forms" height=250 subtitle="Qualifier suggestions, query syntax help, problems" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>QueryInput</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed', 'merged'] },
+  { name: 'label', help: 'Has this label', values: ['bug', 'docs', 'enhancement', 'good first issue'], excludable: true, none: true },
+  { name: 'author', help: 'Opened by', suggestions: ['ada', 'grace', 'linus'], excludable: true },
+  { name: 'assignee', help: 'Assigned to', suggestions: ['ada', 'grace', 'linus'], excludable: true, none: true },
+  { name: 'sort', help: 'Newest, oldest or most commented', values: ['created-desc', 'created-asc', 'comments-desc'] }
+];
+function Demo() {
+  var a = React.useState('la');
+  var b = React.useState('label:nope crash');
+  return h(F, null,
+    h(H.QueryInput, { autoFocus: true, 'aria-label': 'Search issues', placeholder: 'Search issues…', value: a[0], onChange: a[1], qualifiers: qualifiers }),
+    h(H.QueryInput, { 'aria-label': 'Search issues, with a problem', size: 'small', value: b[0], onChange: b[1], qualifiers: qualifiers, style: { marginTop: 64 } }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

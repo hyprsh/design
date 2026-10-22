@@ -10,3 +10,4 @@ A search field that filters a list as you type and picks one option from it, for
 - Arrow keys move through options, Enter picks, Escape closes and puts back the last choice. Enter never submits the form while the list is open.
 - For fewer than about seven options, a Select or Switch is quicker.
 - Under touch sizing options are 44px tall, and the clear and chevron buttons keep their drawn size with a 44px hit area.
+- When the typed text is the value, such as a search or filter query, use QueryInput. Combobox only picks one option from its list.

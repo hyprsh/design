@@ -1,0 +1,14 @@
+# QueryInput
+
+A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter queries such as `is:open label:bug,docs crash`. A hyprsh original: Geist has no page for it.
+
+**You provide:** an accessible name (`aria-label`, `aria-labelledby` or an outside `<label htmlFor>` pointing at `id`), `value` and `onChange(text)`. Then either `qualifiers` (the names and values your screen understands) or `suggestions(text, caret)` to compute completions yourself. Optional: `help={false}` to hide the “?” button, `size` (`small` 32px, `medium` 36px by default, `large` 40px), `placeholder`, `disabled`, `id`, `onKeyDown`, `className`.
+
+- Use it when the text is the value. For picking one option from a list use Combobox, and for a plain search box SearchInput.
+- The field is controlled and typing is never reverted, not even by Escape.
+- A suggestion carries the whole query after picking it (`text`) and where the caret goes (`caret`), so the field has no syntax of its own. `label` is the row, `match` a range of it drawn bold, `description` a muted second line, and `keepOpen` reopens the list at the new caret, which is how a qualifier name leads into its values.
+- With `qualifiers` the field uses the shared syntax: `name:a,b` (values are alternatives), the same qualifier twice must match both, a leading `-` excludes (`excludable: true`), `no:name` finds what has no value (`none: true`), double quotes protect spaces and commas, and unknown qualifiers are free text. An empty field lists every qualifier name on focus; typing `la` suggests `label:`, and picking it lists its values.
+- Problems (a value the qualifier does not take, an exclude it does not allow) show under the field as a warning once the caret leaves the term, tied to the input with `aria-describedby`. The “?” button opens a popover with each qualifier's `help` line and the rules, so write `help` as one short line.
+- Up and Down move through the open list and wrap, Enter or Tab picks, Escape closes it until the next edit, and clicking a row keeps focus in the field. With the list closed the field leaves Enter and Escape to your `onKeyDown`, so submit or run the search there. It never blurs itself.
+- Suggestions are synchronous. Under touch sizing rows are 44px tall.
+- The syntax is also exported for your own code: `parseQuery`, `suggestQuery`, `termText`, `withValue`, `withoutValue`, `withoutTerm`, `valuesOf`, with the types `Qualifier`, `Term`, `Query` and `QuerySuggestion`. Use `parseQuery(value, qualifiers)` to read the query, and `valuesOf(query, name)` for what a qualifier asks for (null when it is absent, an empty list when nothing can match).

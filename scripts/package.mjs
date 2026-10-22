@@ -24,6 +24,9 @@ const themed = (css) => css
   .replaceAll('[data-theme="dark"]', ':is([data-theme="dark"], .dark)')
   .replaceAll('[data-theme="light"]', ':is([data-theme="light"], .light)');
 
+// The query syntax helper (src/_query.js) is bundled after core.js and exported by name next to the components.
+const QUERY_EXPORTS = ['parseQuery', 'suggestQuery', 'termText', 'withValue', 'withoutValue', 'withoutTerm', 'valuesOf'];
+
 const ramps = ['gray', 'gray-alpha', 'blue', 'green', 'amber', 'red', 'purple', 'pink', 'teal', 'accent'];
 // Tailwind radius names that mean the same as the design's, so mapping them changes no pixel.
 const radii = ['sm', 'md', 'lg', 'xl', '2xl'];
@@ -116,13 +119,15 @@ export function buildPackage() {
     "import * as ReactDOM from 'react-dom';",
     '',
     core.trim(),
+    read(join(SRC, '_query.js')).trim(),
     `var ICONS = ${JSON.stringify(subset)};`,
     '',
     ...order.map((n) => `/* ---- ${n} ---- */\n(function () {\n${indent(read(join(SRC, n + '.js')).trim(), '  ')}\n})();\n`),
     // Aliased so that exports such as Error never shadow globals inside this module.
     ...defined.map((n) => `var __hy_${n} = HY.${n};`),
+    ...QUERY_EXPORTS.map((n) => `var __hy_${n} = HY.${n};`),
     `var __hy_registerIcons = HY.Icon.register;`,
-    `export { ${defined.map((n) => `__hy_${n} as ${n}`).join(', ')}, __hy_registerIcons as registerIcons, HY as Hyprsh };`,
+    `export { ${[...defined, ...QUERY_EXPORTS].map((n) => `__hy_${n} as ${n}`).join(', ')}, __hy_registerIcons as registerIcons, HY as Hyprsh };`,
     '',
   ].join('\n');
 
@@ -151,7 +156,7 @@ export function buildPackage() {
     `export declare const Hyprsh: {\n${defined.map((n) => `  ${n}: typeof ${n};`).join('\n')}\n};`,
     '',
   ].join('\n\n');
-  const missing = defined.filter((n) => !new RegExp(`export declare (const|function) ${n}\\b`).test(dts));
+  const missing = [...defined, ...QUERY_EXPORTS].filter((n) => !new RegExp(`export declare (const|function) ${n}\\b`).test(dts));
   if (missing.length) throw new Error('index.d.ts: no declaration for ' + missing.join(', '));
 
   rmSync(DIST, { recursive: true, force: true });

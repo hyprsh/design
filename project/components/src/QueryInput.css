@@ -1,0 +1,38 @@
+/* ---------- QueryInput ---------- */
+.hy-query { display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0; }
+.hy-query__row { display: flex; align-items: center; gap: 8px; }
+.hy-query__field { flex: 1; min-width: 0; }
+.hy-query__help { flex: none; }
+.hy-query__list {
+  /* portalled; position and z-index come from useFloating */
+  box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
+  border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
+  transform-origin: top center; animation: hy-query-in .12s ease-out;
+}
+.hy-query__list--top { transform-origin: bottom center; }
+.hy-query__option {
+  display: flex; flex-direction: column; justify-content: center; gap: 2px; min-height: 36px; padding: 6px 8px;
+  border-radius: var(--radius-md); cursor: pointer;
+}
+.hy-query__option.is-active { background: var(--gray-alpha-100); }
+.hy-query__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-mono); font-size: 13px; line-height: 20px; color: var(--gray-1000); }
+/* The match is bold as well as brighter, so it doesn't rest on colour. */
+.hy-query__match { background: transparent; color: inherit; font-weight: 700; }
+.hy-query__desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 16px; color: var(--gray-900); }
+.hy-query__guide { display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; }
+.hy-query__guide p { margin: 0; padding-top: 8px; border-top: 1px solid var(--gray-alpha-200); color: var(--gray-900); }
+.hy-query__qualifiers { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; }
+.hy-query__qualifiers dt { font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--gray-1000); }
+.hy-query__qualifiers dd { margin: 0; color: var(--gray-900); }
+.hy-query__code { font-family: var(--font-mono); font-size: 12px; color: var(--gray-1000); }
+@keyframes hy-query-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes hy-query-fade { from { opacity: 0; } to { opacity: 1; } }
+
+/* Touch sizing: suggestion rows are drawn at the touch target. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-query__option { min-height: var(--touch-target); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-query__list { animation-name: hy-query-fade; }
+}
