@@ -2,6 +2,24 @@
 
 A design system that ports Geist to plain React components, tokens and guidelines for hyprsh products.
 
+## Components
+
+**hyprsh original**:
+A component with no Geist doc page behind it, built from hyprsh's tokens and guidelines instead of rebuilt from Geist.
+_Avoid_: custom component, non-Geist component
+
+**Tab bar**:
+The floating bottom navigation between an app's screens at phone width.
+_Avoid_: bottom nav, phone nav, tabs
+
+**Tabs**:
+Switches between sections inside one page.
+_Avoid_: tab bar
+
+**Accessory**:
+The round button beside the tab bar capsule, for an action that isn't a screen.
+_Avoid_: FAB, action button
+
 ## Touch
 
 **Touch target**:
