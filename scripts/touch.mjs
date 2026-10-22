@@ -6,8 +6,8 @@ import { openChrome } from './chrome.mjs';
 const BASE = process.env.HY_DEV || 'http://127.0.0.1:4400';
 const TOUCH = 44;  // --touch-target
 
-// Each case: what to mount (an expression over H and h) and the element to measure. `portal` cases render through a
-// portal, so their element is looked up in the whole document.
+// Each case: what to mount (an expression over H and h), the element to measure, and optionally `portal` (it renders
+// through a portal, so it is looked up in the whole document) and an element to click first.
 const CASES = {
   button: ["h(H.Button, null, 'Deploy')", '.hy-btn'],
   buttonSmall: ["h(H.Button, { size: 'small' }, 'Deploy')", '.hy-btn'],
@@ -25,6 +25,9 @@ const CASES = {
   pillSmall: ["h(H.Pill, { href: '#a', size: 'sm' }, 'Changelog')", '.hy-pill'],
   pill: ["h(H.Pill, { href: '#a' }, 'Changelog')", '.hy-pill'],
   progressStop: ["h(H.Progress, { value: 40, 'aria-label': 'Upload', stops: [{ value: 50, tooltip: 'Half' }] })", '.hy-progress__trigger'],
+  comboboxClear: ["h(H.Combobox, { 'aria-label': 'Branch', clearable: true, defaultValue: 'main', options: ['main', 'docs'] })", '.hy-combobox__btn'],
+  filterRemove: ["h(H.FilterParams, { params: [{ key: 'Branch', type: 'select', options: ['main', 'docs'] }], searchParams: 'Branch=main', onSearchParamsChange: function () {} })", '.hy-filter-pill__remove'],
+  filterChip: ["h(H.FilterParams, { params: [{ key: 'Branch', type: 'select', options: ['main', 'docs'] }], searchParams: '', onSearchParamsChange: function () {}, defaultOpen: true })", '.hy-filter-params__chip', 'portal', '.hy-filter-params__option'],
   cmdEsc: ["h(H.CommandMenu, { open: true, inline: true, setOpen: function () {} }, h(H.CommandMenuInput, { placeholder: 'Search…' }))", '.hy-cmd__esc'],
 };
 
@@ -34,6 +37,7 @@ const DESKTOP = {
   input: { h: 36 }, select: { h: 36 }, menuItem: { h: 36 }, checkbox: { h: 24 },
   switch: { h: 36 }, switchSmall: { h: 32 }, switchLarge: { h: 40 }, tabsSecondary: { h: 32 },
   pillSmall: { h: 20 }, pill: { h: 24 }, progressStop: { h: 14, w: 14 }, cmdEsc: { h: 20 },
+  comboboxClear: { h: 24, w: 24 }, filterRemove: { h: 24, w: 24 }, filterChip: { h: 24 },
 };
 const TOUCH_SIZING = {
   button: { h: TOUCH }, buttonSmall: { h: TOUCH }, buttonIcon: { h: TOUCH, w: TOUCH }, buttonLarge: { h: 48 },
@@ -42,6 +46,7 @@ const TOUCH_SIZING = {
   switch: { h: TOUCH }, switchSmall: { h: TOUCH }, switchLarge: { h: TOUCH }, tabsSecondary: { h: TOUCH },
   pillSmall: { h: 20, hit: [0, TOUCH] }, pill: { h: 24, hit: [0, TOUCH] },
   progressStop: { h: 14, w: 14, hit: [TOUCH, TOUCH] }, cmdEsc: { h: 20, hit: [0, TOUCH] },
+  comboboxClear: { h: 32, w: 32, hit: [TOUCH, TOUCH] }, filterRemove: { h: 32, w: 32, hit: [TOUCH, TOUCH] }, filterChip: { h: 32, hit: [0, TOUCH] },
 };
 
 const MODES = [
@@ -61,9 +66,10 @@ const PROBE = `(async () => {
   const root = ReactDOM.createRoot(host);
   const hits = (el, pick, from, to) => { let n = 0; for (let i = from; i <= to; i++) { const t = pick(i); if (t && (t === el || el.contains(t))) n++; } return n; };
   const out = { coarse: matchMedia('(pointer: coarse)').matches };
-  for (const [k, [mount, sel, scope]] of Object.entries(cases)) {
+  for (const [k, [mount, sel, scope, click]] of Object.entries(cases)) {
     root.render(eval(mount));
     await new Promise((r) => setTimeout(r, 300));
+    if (click) { document.querySelector(click)?.click(); await new Promise((r) => setTimeout(r, 300)); }
     const el = (scope === 'portal' ? document : host).querySelector(sel);
     if (!el) { out[k] = null; continue; }
     const b = el.getBoundingClientRect(), cx = b.left + b.width / 2, cy = b.top + b.height / 2;

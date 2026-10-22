@@ -535,13 +535,17 @@ body {
 @keyframes hy-combobox-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-combobox-fade { from { opacity: 0; } to { opacity: 1; } }
 
-/* Touch screens: 16px text (no iOS zoom on focus). Touch sizing: rows are drawn at the touch target. */
+/* Touch screens: 16px text (no iOS zoom on focus). Touch sizing: rows are drawn at the touch target, and the clear
+   and chevron buttons draw 32px with a hit area of the touch target. */
 @media (pointer: coarse) {
   .hy-combobox__field input { font-size: 16px; }
 }
 @media (pointer: coarse), (max-width: 639px) {
   .hy-combobox__option, .hy-combobox__empty { min-height: var(--touch-target); }
-  .hy-combobox__btn { width: 32px; height: 32px; }
+  .hy-combobox__btn { position: relative; width: 32px; height: 32px; }
+  .hy-combobox__btn::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
+  /* The overlays overlap; Clear wins, since tapping the field already opens the list the chevron opens. */
+  .hy-combobox__btn:not(.hy-combobox__chevron) { z-index: 1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1854,11 +1858,14 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 }
 .hy-filter-params__stop:focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
 
-/* Touch sizing: pills, suggestions and options are drawn at the touch target */
+/* Touch sizing: pills, suggestions and options are drawn at the touch target; the remove button and the Back chip
+   draw 32px with a hit area of the touch target */
 @media (pointer: coarse), (max-width: 639px) {
   .hy-filter-pill, .hy-filter-suggestion { height: var(--touch-target); }
+  .hy-filter-pill__remove, .hy-filter-params__chip { position: relative; }
   .hy-filter-pill__remove { width: 32px; height: 32px; }
   .hy-filter-params__chip { height: 32px; }
+  .hy-filter-pill__remove::after, .hy-filter-params__chip::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
   .hy-filter-params__option { min-height: var(--touch-target); }
 }
 

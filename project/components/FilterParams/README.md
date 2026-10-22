@@ -10,4 +10,4 @@ A filter bar whose state lives in the URL: “Add Filter” opens a two-step pic
 - Offer a `suggestion` only when it's a genuinely useful default. It shows as a dashed pill until it's applied or another value is chosen.
 - The picker is a combobox: arrows move, Enter picks, Escape closes and returns focus, and Backspace in an empty box goes back a step.
 - Store date presets by key and resolve them with `resolveDateRange` when you query, so “Last 7 Days” stays relative.
-- The picker floats under the button or pill that opened it, flips when there's no room and stays on screen on phones, where pills and options are 44px tall under touch sizing.
+- The picker floats under the button or pill that opened it, flips when there's no room and stays on screen on phones, where pills and options are 44px tall under touch sizing and the remove button and Back chip keep their drawn size with a 44px hit area.

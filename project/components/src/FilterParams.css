@@ -67,10 +67,13 @@
 }
 .hy-filter-params__stop:focus-visible { outline: none; box-shadow: var(--shadow-focus-ring); }
 
-/* Touch sizing: pills, suggestions and options are drawn at the touch target */
+/* Touch sizing: pills, suggestions and options are drawn at the touch target; the remove button and the Back chip
+   draw 32px with a hit area of the touch target */
 @media (pointer: coarse), (max-width: 639px) {
   .hy-filter-pill, .hy-filter-suggestion { height: var(--touch-target); }
+  .hy-filter-pill__remove, .hy-filter-params__chip { position: relative; }
   .hy-filter-pill__remove { width: 32px; height: 32px; }
   .hy-filter-params__chip { height: 32px; }
+  .hy-filter-pill__remove::after, .hy-filter-params__chip::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
   .hy-filter-params__option { min-height: var(--touch-target); }
 }
