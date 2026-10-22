@@ -1,0 +1,49 @@
+<!-- @dsCard group="Navigation" height=640 subtitle="Floating pill tab bar for phones: selected pill, dot, count and 99+ badges, accessory, a current More item, minimised" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TabBar</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:375px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+/* The bar is fixed to the screen; the demos sit it in the flow so several fit on one card. */
+var inFlow = { position: 'relative', inset: 'auto', padding: '0 0 8px' };
+function icon(name) { return h(H.Icon, { name: name, size: 20 }); }
+function Demo() {
+  var s = React.useState('overview'), screen = s[0], setScreen = s[1];
+  var scroller = React.useRef(null);
+  React.useEffect(function () { var t = setTimeout(function () { scroller.current.scrollTop = 60; }, 200); return function () { clearTimeout(t); }; }, []);
+  return h(F, null,
+    h('p', { className: 'label-13' }, 'Selected, dot, count and 99+ badges, accessory'),
+    h(H.TabBar, { label: 'Screens', hideFrom: false, style: inFlow, value: screen, onValueChange: setScreen,
+      accessory: { label: 'Search', icon: icon('search') } },
+      h(H.TabBar.Item, { value: 'overview', label: 'Overview', icon: icon('inbox'), badge: 3, badgeLabel: '3 need attention' }),
+      h(H.TabBar.Item, { value: 'library', label: 'Library', icon: icon('library'), badge: true, badgeLabel: 'New titles' }),
+      h(H.TabBar.Item, { value: 'upcoming', label: 'Upcoming', icon: icon('calendar-clock') }),
+      h(H.TabBar.Item, { value: 'activity', label: 'Activity', icon: icon('activity'), badge: 120, badgeLabel: 'More than 99 events' }),
+      h(H.TabBar.Item, { label: 'More', icon: icon('ellipsis'), haspopup: true })),
+    h('p', { className: 'label-13' }, 'More is current while a screen inside it is open'),
+    h(H.TabBar, { label: 'Screens', hideFrom: false, style: inFlow },
+      h(H.TabBar.Item, { value: 'overview', label: 'Overview', icon: icon('inbox') }),
+      h(H.TabBar.Item, { value: 'library', label: 'Library', icon: icon('library') }),
+      h(H.TabBar.Item, { value: 'upcoming', label: 'Upcoming', icon: icon('calendar-clock') }),
+      h(H.TabBar.Item, { value: 'activity', label: 'Activity', icon: icon('activity') }),
+      h(H.TabBar.Item, { label: 'More', icon: icon('ellipsis'), haspopup: true, current: true })),
+    h('p', { className: 'label-13' }, 'Minimised after scrolling down (scroll up or tap it to expand)'),
+    h('div', { ref: scroller, tabIndex: 0, role: 'region', 'aria-label': 'Activity feed', className: 'copy-14',
+      style: { height: 72, overflowY: 'auto', border: '1px solid var(--gray-alpha-400)', borderRadius: 8, padding: 8, marginBottom: 8 } },
+      ['Deployed main to production', 'Preview ready for docs', 'Domain verified', 'Build failed on feat/tab-bar', 'Branch merged', 'Preview ready for api'].map(function (t) {
+        return h('p', { key: t, style: { margin: '0 0 24px' } }, t);
+      })),
+    h(H.TabBar, { label: 'Screens', hideFrom: false, style: inFlow, minimizeOnScroll: true, scrollRef: scroller, defaultValue: 'activity',
+      accessory: { label: 'Search', icon: icon('search') } },
+      h(H.TabBar.Item, { value: 'overview', label: 'Overview', icon: icon('inbox') }),
+      h(H.TabBar.Item, { value: 'library', label: 'Library', icon: icon('library') }),
+      h(H.TabBar.Item, { value: 'upcoming', label: 'Upcoming', icon: icon('calendar-clock') }),
+      h(H.TabBar.Item, { value: 'activity', label: 'Activity', icon: icon('activity') }),
+      h(H.TabBar.Item, { label: 'More', icon: icon('ellipsis'), haspopup: true })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

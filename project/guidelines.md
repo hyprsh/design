@@ -29,6 +29,12 @@ Touch sizing applies under `@media (pointer: coarse), (max-width: 639px)`: a coa
 - **Must:** these keep their drawn size and grow only their hit area to the touch target: tiny Button, interactive Pills (links and buttons, every size), the Progress stop trigger, CommandMenu's Esc key, Combobox's clear and chevron buttons, and FilterParams' remove button and Back chip.
 - Large Buttons (48px), primary Tabs (48px) and CommandMenu items (44px) are already at or above the touch target and don't change. Calendar and the Video seek bar still have their own 40px rules under `(pointer: coarse)`.
 
+## Navigation
+
+- **Should:** at phone width, move between an app's main screens with a TabBar: at most five destinations, with a More item (opening a Drawer) for the rest. From `sm` up use a rail or sidebar.
+- **Must:** Tabs switch sections inside one page; a TabBar switches screens. Never use one for the other, and never nest them.
+- **Must:** give a scroll area `padding-bottom: var(--tab-bar-height)` so its last rows never sit under a TabBar.
+
 ## Forms
 
 - **Must:** every control has a `<label>` or an `aria-label`, and clicking a label focuses or toggles its control.

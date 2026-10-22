@@ -91,6 +91,16 @@ One-sentence summary (this becomes the manifest summary).
 - Do's and don'ts, adapted from Geist's best-practice notes in our own words.
 ```
 
+## Components without a Geist page
+
+A hyprsh original (see GLOSSARY.md) has no Geist page to rebuild from, so the rest of this guide applies with these changes:
+
+- Build it from hyprsh's tokens, control scale and `project/guidelines.md`.
+- Take its behaviour from the platform pattern its issue names (TabBar: the iOS 26 tab bar). Never copy Apple's assets or the Liquid Glass material.
+- The originating GitHub issue is the spec: check the component against its acceptance criteria instead of a Geist page.
+- Mark it as a "hyprsh original" in its README and in the doc comment of its `.d.ts`.
+- Files, `h()` style, the preview card and tokens-only styling are the same as for any other component.
+
 ## Checking your work
 
 ```bash
