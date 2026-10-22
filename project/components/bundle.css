@@ -649,6 +649,79 @@ body {
 .hy-fieldset__content:disabled .hy-input, .hy-fieldset__content:disabled .hy-select, .hy-fieldset__content:disabled .hy-textarea { background: var(--gray-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
 .hy-fieldset__content:disabled .hy-field__label { color: var(--gray-700); }
 
+/* ---------- FilterMenu ---------- */
+.hy-filtermenu { position: relative; display: inline-flex; vertical-align: top; }
+.hy-filtermenu__chevron { display: inline-flex; transition: transform .15s ease; }
+.hy-filtermenu__chevron.is-open { transform: rotate(180deg); }
+.hy-filtermenu__trigger.is-active { background: var(--gray-alpha-100); box-shadow: 0 0 0 1px var(--gray-1000); }
+.hy-filtermenu__panel {
+  position: fixed; z-index: var(--z-menu);
+  display: flex; flex-direction: column; min-width: min(260px, calc(100vw - 16px)); max-height: min(380px, calc(100vh - 16px));
+  box-sizing: border-box; padding: 4px; border-radius: var(--radius-xl);
+  background: var(--background-100); box-shadow: var(--shadow-menu);
+  transform-origin: top left; animation: hy-filtermenu-in .12s ease-out;
+}
+.hy-filtermenu__panel--end { transform-origin: top right; }
+.hy-filtermenu__panel--top { transform-origin: bottom left; }
+.hy-filtermenu__panel--top.hy-filtermenu__panel--end { transform-origin: bottom right; }
+.hy-filtermenu__search { display: flex; align-items: center; flex: none; gap: 8px; padding: 0 8px; margin-bottom: 4px; border-bottom: 1px solid var(--gray-alpha-400); }
+.hy-filtermenu__searchicon { display: flex; flex: none; color: var(--gray-700); }
+.hy-filtermenu__search input {
+  flex: 1; min-width: 0; height: 36px; padding: 0; border: 0; outline: 0; background: transparent;
+  font: inherit; font-size: 14px; line-height: 20px; color: var(--gray-1000);
+}
+.hy-filtermenu__search input::placeholder { color: var(--gray-700); }
+.hy-filtermenu__search:focus-within { border-bottom-color: var(--gray-1000); }
+.hy-filtermenu__list { flex: 1; min-height: 0; overflow-y: auto; outline: 0; }
+.hy-filtermenu__list:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; border-radius: var(--radius-md); }
+.hy-filtermenu__group + .hy-filtermenu__group { margin-top: 4px; }
+.hy-filtermenu__title { padding: 8px 8px 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); }
+.hy-filtermenu__option {
+  display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 0 8px; box-sizing: border-box;
+  border-radius: var(--radius-md); font-size: 14px; line-height: 20px; color: var(--gray-1000); cursor: pointer;
+}
+.hy-filtermenu__option.is-active { background: var(--gray-alpha-100); }
+.hy-filtermenu__option.is-disabled { color: var(--gray-700); cursor: not-allowed; }
+.hy-filtermenu__mark {
+  display: grid; place-items: center; flex: none; width: 16px; height: 16px; box-sizing: border-box;
+  border-radius: var(--radius-sm); box-shadow: inset 0 0 0 1px var(--gray-700); color: var(--gray-1000);
+}
+.hy-filtermenu__mark.is-on { background: var(--gray-1000); box-shadow: none; color: var(--background-100); }
+.hy-filtermenu__option.is-excluded .hy-filtermenu__mark { background: var(--background-100); box-shadow: inset 0 0 0 1px var(--gray-1000); color: var(--gray-1000); }
+.hy-filtermenu__mark--single, .hy-filtermenu__mark--single.is-on { background: transparent; box-shadow: none; color: var(--gray-1000); }
+.hy-filtermenu__affix { display: flex; align-items: center; flex: none; color: var(--gray-900); }
+.hy-filtermenu__hint { font-size: 12px; line-height: 16px; }
+.hy-filtermenu__text { display: flex; flex: 1; flex-direction: column; min-width: 0; padding: 6px 0; }
+.hy-filtermenu__label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-filtermenu__option.is-excluded .hy-filtermenu__label { text-decoration: line-through; color: var(--gray-900); }
+.hy-filtermenu__desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 16px; color: var(--gray-900); }
+.hy-filtermenu__exclude {
+  flex: none; align-self: stretch; margin: 4px -4px 4px 0; padding: 0 8px; border: 0; border-radius: var(--radius-sm); background: transparent;
+  font: inherit; font-size: 12px; line-height: 16px; color: var(--gray-900); cursor: pointer; opacity: 0; transition: opacity .1s ease;
+}
+.hy-filtermenu__exclude:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
+.hy-filtermenu__option.is-active .hy-filtermenu__exclude,
+.hy-filtermenu__option:hover .hy-filtermenu__exclude { opacity: 1; }
+.hy-filtermenu__empty { padding: 12px 8px; font-size: 14px; line-height: 20px; color: var(--gray-900); text-align: center; }
+
+/* Touch screens: 16px search text (no iOS zoom on focus) and the Exclude action is always shown. Touch sizing: rows are drawn at the touch target */
+@media (pointer: coarse) {
+  .hy-filtermenu__search input { font-size: 16px; }
+  .hy-filtermenu__exclude { opacity: 1; }
+}
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-filtermenu__search input { height: var(--touch-target); }
+  .hy-filtermenu__option { min-height: var(--touch-target); }
+  .hy-filtermenu__exclude { margin: 0 -8px 0 0; min-width: var(--touch-target); }
+}
+
+@keyframes hy-filtermenu-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@keyframes hy-filtermenu-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .hy-filtermenu__panel { animation-name: hy-filtermenu-fade; }
+  .hy-filtermenu__chevron, .hy-filtermenu__exclude { transition-duration: 0s; }
+}
+
 /* ---------- Input ---------- */
 /* The base field, input and select styles live in core.css. This aligns Input with Geist:
    32/36/40px heights, styled or plain prefix/suffix, a soft error ring and pill corners. */
