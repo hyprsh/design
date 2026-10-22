@@ -18,7 +18,7 @@ For a component named `Name` (PascalCase of the Geist page: `/geist/split-button
 
 ## The JS scope
 
-The build wraps each `src/Name.js` in its own function inside one IIFE, so local names never collide between files. Everything in `src/core.js` and `src/_icons.js` is in scope:
+The build wraps each `src/Name.js` in its own function inside one IIFE, so local names never collide between files. Everything in `src/core.js` and the `src/_*.js` files (`_icons.js`, `_query.js`) is in scope:
 
 - `React`, `ReactDOM`, `h` (createElement), `useState`, `useEffect`, `useRef`, `useId`, `useMemo`, `useLayoutEffect`
 - `cx(...classes)` and `omit(obj, keys)`
@@ -31,6 +31,7 @@ The build wraps each `src/Name.js` in its own function inside one IIFE, so local
 - `fieldIds(id)` and `FieldMessage({ ids, error, hint })` for form fields. The field styles `.hy-field*`, `.hy-input*` and `.hy-select*` are in core.css: reuse them for anything input-like.
 - `HY` is the registry. Use another component at render time with `h(HY.Button, …)`, never by a bare name.
 - `ICONS` holds the Lucide markup that `HY.Icon` renders.
+- The query syntax from `_query.js`: `parseQuery`, `suggestQuery`, `termText`, `withValue`, `withoutValue`, `withoutTerm` and `valuesOf` (also on `HY` and exported by the package), plus the filter-menu mapping `queryMenu`, `withQueryMenu`, `querySingle` and `withQuerySingle` that QueryBar uses. Its tests run the file in `node:vm` (`npm test`).
 
 Don't edit `core.js`, `core.css`, `tokens.json` or another component's files. If you need a shared helper, write it inside your own file. If a token is missing, use the closest existing one and say so in your report.
 

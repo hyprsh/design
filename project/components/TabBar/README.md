@@ -8,7 +8,7 @@ A floating pill tab bar for the main screens of an app at phone width. **hyprsh 
 
 **Badges:** `badge={true}` is a dot, a number is a count (“99+” above 99, nothing for 0), and a node is rendered as given. Add `badgeLabel` (“3 need attention”) so the badge reaches assistive tech: it joins the item's accessible name.
 
-**Minimise on scroll:** with `minimizeOnScroll` the capsule shrinks to the selected item after the content scrolls down 24px. It expands on scrolling up, at the top, or on a tap (the tap doesn't navigate). It watches every scrolling element in the document, except horizontal scrolling and anything inside a dialog or sheet. Pass `scrollRef` to watch one container, which a layout that scrolls an inner container instead of the window needs.
+**Minimise on scroll:** with `minimizeOnScroll` the capsule shrinks to the selected item after the content scrolls down 24px. It expands on scrolling up, at the top, or on a tap (the tap doesn't navigate). It watches every scrolling element in the document, except horizontal scrolling and anything inside a dialog or sheet. That includes a layout that scrolls an inner container instead of the window. Pass `scrollRef` to watch only that one container.
 
 - Use it for the 3–5 main destinations on a phone, with More for the rest. Use Tabs to switch sections inside a page.
 - Keep labels to one short word in Title Case. They are always visible.

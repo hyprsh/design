@@ -21,7 +21,7 @@ export interface FilterMenuSectionProps {
 }
 
 /**
- * A filter dropdown that starts empty and adds values. A hyprsh original: Geist has no page for it.
+ * A filter menu that starts empty and adds values. A hyprsh original: Geist has no page for it.
  * Multiple choice by default: each row is included, or excluded with `excludable`. With `single` it picks one option, like a sort menu.
  */
 export interface FilterMenuProps {
