@@ -25,7 +25,7 @@ project/
     index.d.ts         built: <Name>Props for every component
 scripts/
   build.mjs            builds the bundle and checks every component against the artifact contract
-  package.mjs          builds the npm package into dist/ (ES module, types, styles, tokens, fonts, logo)
+  package.mjs          builds the npm package into dist/ (ES module, types, styles, tokens, Tailwind entry, fonts, logo)
   dev.mjs              local card viewer, light and dark side by side
   shot.mjs             headless Chrome mount check + screenshots into .cache/shots
   icons.mjs            vendors Lucide into src/_icons.js
@@ -73,6 +73,22 @@ import '@hyprsh/design/tokens.css';
 import '@hyprsh/design/styles.css';
 import { Button, Input, Logo } from '@hyprsh/design';
 ```
+
+With Tailwind v4, import the Tailwind entry instead of those two CSS files. It replaces the glue an app would write by hand:
+
+```css
+@import "tailwindcss";
+@import "@hyprsh/design/tailwind.css";
+```
+
+- It carries the tokens and `@font-face` rules (unlayered, so custom properties work as usual) and an `@theme inline` block that names the design's values for Tailwind: `bg-background-100`, `text-gray-900`, `border-gray-alpha-400`, `text-blue-700`… for gray, gray-alpha, blue, green, amber, red, purple, pink, teal and accent (100 to 1000), plus `font-sans` and `font-mono`. These replace Tailwind's own `gray-*`, `blue-*` and the like; its other palette names stay.
+- Radii: `rounded-sm` to `rounded-2xl` are mapped to the design's `--radius-*`. Their values equal Tailwind's defaults, so nothing changes visibly, but they now follow the tokens. `rounded-full` and Tailwind's `xs`, `3xl` and `4xl` are left alone.
+- Shadows: the design's names (`shadow-border`, `shadow-border-inset`, `shadow-small`, `shadow-medium`, `shadow-large`, `shadow-tooltip`, `shadow-menu`, `shadow-modal`, `shadow-fullscreen`, `shadow-focus-ring`) become `shadow-*` utilities. None clashes with Tailwind's `shadow-sm`/`md`/`lg`, which keep their meaning. Spacing and z-index are not mapped: Tailwind's spacing is a multiplier of one step, not a list of names.
+- `dark:` follows `.dark` or `data-theme="dark"` on any ancestor.
+- The type styles are utilities, so they take variants: `label-14`, `md:heading-24`, `copy-13-mono`.
+- The component CSS sits in Tailwind's `components` layer (inside the `hyprsh` layer), so utilities on a component's element win without `!important`: `<Table className="max-w-none">`. The document rules (colour scheme, `body`, `::selection`) are in the `base` layer.
+
+Without Tailwind, `styles.css` is wrapped in `@layer hyprsh`. Your own unlayered CSS beats it whatever the specificity, and layered rules still beat browser defaults. To order it against other layers, declare the order first: `@layer base, hyprsh, app;`.
 
 - React and ReactDOM 18 or newer are peer dependencies.
 - Dark mode follows `data-theme="dark"` or a `.dark` class on any ancestor, so it works with Tailwind's class-based dark variant.

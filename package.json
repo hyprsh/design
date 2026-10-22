@@ -13,6 +13,7 @@
     "./icons": { "types": "./dist/icons.d.ts", "import": "./dist/icons.js" },
     "./styles.css": "./dist/styles.css",
     "./tokens.css": "./dist/tokens.css",
+    "./tailwind.css": "./dist/tailwind.css",
     "./brand/*": "./dist/brand/*",
     "./package.json": "./package.json"
   },
