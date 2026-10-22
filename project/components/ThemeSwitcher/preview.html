@@ -1,4 +1,4 @@
-<!-- @dsCard group="Forms" height=100 subtitle="Theme radios and the compact cycle button" -->
+<!-- @dsCard group="Forms" height=130 subtitle="Theme radios and the compact cycle button" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ThemeSwitcher</title></head>
@@ -11,7 +11,10 @@ function Demo() {
     h(H.ThemeSwitcher, { storageKey: null }),
     h(H.ThemeSwitcher, { storageKey: null, size: 'small' }),
     h(H.ThemeSwitcher, { storageKey: null, defaultValue: 'dark', disabled: true }),
-    h(H.ThemeSwitcher, { storageKey: null, variant: 'cycle' }));
+    h(H.ThemeSwitcher, { storageKey: null, variant: 'cycle' }),
+    h(H.ThemeSwitcher, { storageKey: null, variant: 'cycle', size: 'small' }),
+    h(H.ThemeSwitcher, { storageKey: null, variant: 'cycle', tooltipPosition: 'right' }),
+    h(H.Button, { variant: 'tertiary', svgOnly: true }, h(H.Icon, { name: 'settings', size: 16 })));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

@@ -80,15 +80,17 @@ function ThemeSwitcher(props) {
     var idx = 0;
     THEME_OPTIONS.forEach(function (o, i) { if (o.value === value) idx = i; });
     var cur = THEME_OPTIONS[idx], label = 'Theme: ' + cur.label;
-    return h(HY.Tooltip, { text: label },
-      h(HY.Button, {
-        variant: 'tertiary', svgOnly: true, size: props.size === 'small' ? 'tiny' : 'small',
-        className: cx('hy-theme-cycle', props.className), style: props.style, disabled: props.disabled,
-        'aria-label': label, onClick: function () { ctl[1](THEME_OPTIONS[(idx + 1) % THEME_OPTIONS.length].value); }
-      }, h(HY.Icon, { name: cur.icon, size: props.size === 'small' ? 14 : 16 })));
+    /* size maps straight onto Button's sizes (medium 36px, small 32px); Button draws its icons at 16px at both. */
+    var btn = h(HY.Button, {
+      variant: 'tertiary', svgOnly: true, size: props.size === 'small' ? 'small' : 'medium',
+      className: cx('hy-theme-cycle', props.className), style: props.style, disabled: props.disabled,
+      'aria-label': label, onClick: function () { ctl[1](THEME_OPTIONS[(idx + 1) % THEME_OPTIONS.length].value); }
+    }, h(HY.Icon, { name: cur.icon, size: 16 }));
+    if (props.tooltip === false) return btn;
+    return h(HY.Tooltip, { text: label, position: props.tooltipPosition }, btn);
   }
 
-  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'storageKey', 'attribute', 'variant', 'size', 'disabled', 'className', 'aria-label']);
+  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'storageKey', 'attribute', 'variant', 'size', 'tooltip', 'tooltipPosition', 'disabled', 'className', 'aria-label']);
   return h('fieldset', Object.assign({}, rest, {
     className: cx('hy-theme', props.size === 'small' && 'hy-theme--small', props.disabled && 'is-disabled', props.className),
     disabled: props.disabled

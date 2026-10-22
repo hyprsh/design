@@ -15,8 +15,12 @@ export interface ThemeSwitcherProps {
   attribute?: ThemeSwitcherAttribute;
   /** 'radios' (default) shows System, Light and Dark side by side; 'cycle' is one icon button that cycles System, Light, Dark. */
   variant?: 'radios' | 'cycle';
-  /** medium 32px options (default) or small 24px. */
+  /** Radios: medium 32px options (default) or small 24px. Cycle: the Button sizes, medium 36px (default) or small 32px. */
   size?: 'small' | 'medium';
+  /** Cycle only. Set false to render the bare button with no Tooltip, so the app can wrap it. Default true. */
+  tooltip?: boolean;
+  /** Cycle only. Which side of the button the Tooltip opens on. Default 'top'. */
+  tooltipPosition?: 'top' | 'bottom' | 'left' | 'right';
   disabled?: boolean;
   /** Names the group for screen readers. Default 'Theme'. */
   'aria-label'?: string;
