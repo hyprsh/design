@@ -1,9 +1,9 @@
-<!-- @dsCard group="Overlays" height=540 subtitle="⌘ K palette: compound parts, groups, suffix shortcuts, arrow keys, empty state" -->
+<!-- @dsCard group="Overlays" height=1060 subtitle="⌘ K palette: groups, shortcuts, arrow keys, empty state; async server search with loading and a key hook" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>CommandMenu</title></head>
 <body>
-<div id="root"></div>
+<div id="root" style="display:flex;flex-direction:column;gap:24px"></div>
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 function K(k) { return h(H.KeyboardInput, { small: true }, k); }
@@ -26,7 +26,34 @@ function Demo() {
           h(H.CommandMenuItem, { suffix: h(F, null, K('G'), K('S')), callback: function () {} }, 'Go to Settings'),
           h(H.CommandMenuItem, { suffix: h(F, null, K('G'), K('U')), callback: function () {} }, 'Go to Usage')))));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+var REMOTE = ['hyprsh-web', 'hyprsh-api', 'hyprsh-docs', 'hyprsh-edge', 'hyprsh-billing', 'hyprsh-worker'];
+function fuzzy(name, q) { var i = 0; for (var j = 0; j < name.length && i < q.length; j++) if (name[j] === q[i]) i++; return i === q.length; }
+function Async() {
+  var sq = React.useState(''), query = sq[0], setQuery = sq[1];
+  var sr = React.useState({ list: REMOTE.slice(0, 3), busy: false }), res = sr[0], setRes = sr[1];
+  var sp = React.useState(null), picked = sp[0], setPicked = sp[1];
+  React.useEffect(function () {
+    var q = query.trim().toLowerCase();
+    if (!q) { setRes({ list: REMOTE.slice(0, 3), busy: false }); return; }
+    setRes(function (r) { return { list: r.list, busy: true }; });
+    var t = setTimeout(function () { setRes({ list: REMOTE.filter(function (n) { return fuzzy(n, q); }), busy: false }); }, 700);
+    return function () { clearTimeout(t); };
+  }, [query]);
+  return h(F, null,
+    h('div', { className: 'copy-13', style: { color: 'var(--gray-900)' } }, 'Async: fake server search (700 ms), fuzzy matches such as “hpw” that the built-in filter would hide, Esc on a query clears it first.' + (picked ? ' Picked ' + picked + '.' : '')),
+    h(H.CommandMenu, {
+      open: true, setOpen: function () {}, inline: true, hotkey: false, label: 'Search Projects',
+      query: query, onQueryChange: setQuery, shouldFilter: false,
+      onKeyDown: function (e) { if (e.key === 'Escape' && query) { e.preventDefault(); setQuery(''); } }
+    },
+      h(H.CommandMenuInput, { placeholder: 'Search projects…', prefix: h(H.Badge, { size: 'sm' }, 'Projects'), hideClose: true }),
+      h(H.CommandMenuList, { loading: res.busy },
+        res.list.map(function (n) { return h(H.CommandMenuItem, { key: n, keepOpen: true, callback: function () { setPicked(n); } }, n); }))));
+}
+/* A transformed box becomes the containing block of the fixed overlay, so each inline menu stays in its own frame. */
+function Frame(height, child) { return h('div', { style: { position: 'relative', transform: 'translateZ(0)', height: height } }, child); }
+function Both() { return h(F, null, Frame(620, h(Demo)), Frame(400, h(Async))); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(Both));
 </script>
 </body>
 </html>

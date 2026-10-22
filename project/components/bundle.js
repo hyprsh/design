@@ -4236,15 +4236,22 @@
       if (node.props) return cmdText(node.props.children);
       return '';
     }
-    function cmdMatches(props, needle) {
+    /* ctx.filter (a function) replaces the built-in word match; ctx.needle is '' when filtering is off. */
+    function cmdMatches(props, ctx) {
+      var needle = ctx.needle;
       if (!needle) return true;
+      if (ctx.filter) {
+        return !!ctx.filter({ value: props.value != null ? props.value : cmdText(props.children), keywords: props.keywords || [] }, ctx.query.trim());
+      }
       var hay = [props.value != null ? props.value : cmdText(props.children)].concat(props.keywords || []).join(' ').toLowerCase();
       return needle.split(/\s+/).every(function (w) { return hay.indexOf(w) >= 0; });
     }
 
     function CommandMenuInput(props) {
       var ctx = React.useContext(CmdCtx);
+      var hideClose = props.hideClose || props.closeButton === false;
       return h('div', { className: cx('hy-cmd__search', props.className) },
+        props.prefix ? h('span', { className: 'hy-cmd__prefix' }, props.prefix) : null,
         h('input', {
           className: 'hy-cmd__input', type: 'text', role: 'combobox', 'aria-expanded': 'true', 'aria-controls': ctx.listId,
           'aria-activedescendant': ctx.active || undefined, 'aria-autocomplete': 'list', 'aria-label': props['aria-label'] || ctx.label,
@@ -4252,15 +4259,18 @@
           placeholder: props.placeholder || 'Search for a command or page…',
           value: ctx.query, onChange: function (e) { ctx.setQuery(e.target.value); }
         }),
-        h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close }, 'Esc'));
+        hideClose ? null : h('button', { type: 'button', className: 'hy-cmd__esc', 'aria-label': 'Close', onClick: ctx.close }, 'Esc'));
     }
 
     function CommandMenuList(props) {
       var ctx = React.useContext(CmdCtx);
       var q = ctx.query.trim();
-      return h('div', { ref: ctx.listRef, id: ctx.listId, role: 'listbox', 'aria-label': 'Results', className: cx('hy-cmd__list', props.className) },
+      var loading = !!props.loading;
+      return h('div', { ref: ctx.listRef, id: ctx.listId, role: 'listbox', 'aria-label': 'Results', 'aria-busy': loading || undefined, className: cx('hy-cmd__list', props.className) },
         props.children,
-        ctx.count === 0 && q ? h('div', { className: 'hy-cmd__empty' }, props.empty || 'No results for “' + q + '”. Try a page name or an action like “Deploy”.') : null);
+        loading ? h('div', { className: 'hy-cmd__loading', 'aria-live': 'polite' },
+          h(HY.Spinner, { size: 16 }), h('span', null, props.loadingLabel || 'Searching…')) : null,
+        !loading && ctx.count === 0 && q ? h('div', { className: 'hy-cmd__empty' }, props.empty || 'No results for “' + q + '”. Try a page name or an action like “Deploy”.') : null);
     }
 
     function CommandMenuGroup(props) {
@@ -4272,7 +4282,7 @@
         (function walk(nodes) {
           React.Children.forEach(nodes, function (c) {
             if (any || !c || !c.type) return;
-            if (c.type === CommandMenuItem) { if (cmdMatches(c.props, needle)) any = true; }
+            if (c.type === CommandMenuItem) { if (cmdMatches(c.props, ctx)) any = true; }
             else if (c.type === React.Fragment) walk(c.props.children);
             else any = true;
           });
@@ -4287,7 +4297,7 @@
     function CommandMenuItem(props) {
       var ctx = React.useContext(CmdCtx);
       var id = useId();
-      if (!cmdMatches(props, ctx.needle)) return null;
+      if (!cmdMatches(props, ctx)) return null;
       var isActive = ctx.active === id;
       function select() {
         if (props.disabled) return;
@@ -4323,10 +4333,10 @@
     }
 
     function CommandMenu(props) {
-      var q = useState('');
+      var q = useControllable(props.query, '', props.onQueryChange);
       var act = useState(null);
       var cnt = useState(-1);
-      var box = useRef(null), listRef = useRef(null);
+      var box = useRef(null), listRef = useRef(null), sigRef = useRef('');
       var lid = useId();
       var open = !!props.open;
       var setOpen = props.setOpen || props.onOpenChange;
@@ -4342,7 +4352,7 @@
         window.addEventListener('keydown', onKey);
         return function () { window.removeEventListener('keydown', onKey); };
       }, [open, props.hotkey, setOpen]);
-      useEffect(function () { if (!open) { q[1](''); act[1](null); } }, [open]);
+      useEffect(function () { if (!open) { if (q[0] !== '') q[1](''); act[1](null); } }, [open]);
 
       function options() {
         return listRef.current ? Array.prototype.slice.call(listRef.current.querySelectorAll('[role="option"]:not([aria-disabled="true"])')) : [];
@@ -4353,7 +4363,11 @@
         var opts = options();
         if (cnt[0] !== opts.length) cnt[1](opts.length);
         var ids = opts.map(function (o) { return o.id; });
-        if (ids.indexOf(act[0]) < 0) act[1](ids[0] || null);
+        /* The item set changed (new results, new order): start again from the first option. */
+        var sig = ids.join(' ');
+        var changed = sigRef.current !== sig;
+        sigRef.current = sig;
+        if (ids.indexOf(act[0]) < 0 || (changed && act[0] !== ids[0])) act[1](ids[0] || null);
       });
       useLayoutEffect(function () { act[1](function () { var o = options(); return o[0] ? o[0].id : null; }); }, [q[0]]);
       useLayoutEffect(function () {
@@ -4371,6 +4385,8 @@
         act[1](opts[next].id);
       }
       function onKey(e) {
+        if (props.onKeyDown) props.onKeyDown(e);
+        if (e.defaultPrevented) return;
         if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
         else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
         else if (e.key === 'Home' && e.ctrlKey) { e.preventDefault(); move(-Infinity); }
@@ -4383,16 +4399,17 @@
         else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
         trapTab(e, box.current);
       }
-      var needle = q[0].trim().toLowerCase();
+      var filtering = props.shouldFilter !== false;
+      var needle = filtering ? q[0].trim().toLowerCase() : '';
       var ctx = {
-        query: q[0], needle: needle, setQuery: q[1], active: act[0], setActive: act[1],
+        query: q[0], needle: needle, filter: filtering && typeof props.filter === 'function' ? props.filter : null, setQuery: q[1], active: act[0], setActive: act[1],
         listId: lid, listRef: listRef, count: cnt[0], close: close, label: props.label || 'Command Menu'
       };
       var body = props.children !== undefined ? props.children : [
         h(CommandMenuInput, { key: 'i', placeholder: props.placeholder }),
         h(CommandMenuList, { key: 'l' }, cmdFromGroups(props.groups))
       ];
-      var live = needle && cnt[0] >= 0 ? (cnt[0] === 1 ? '1 result' : cnt[0] + ' results') : '';
+      var live = q[0].trim() && cnt[0] >= 0 ? (cnt[0] === 1 ? '1 result' : cnt[0] + ' results') : '';
       var node = h(CmdCtx.Provider, { value: ctx },
         h('div', { className: 'hy-overlay hy-overlay--top hy-cmd-overlay', onMouseDown: function (e) { if (e.target === e.currentTarget) close(); } },
           h('div', { ref: box, role: 'dialog', 'aria-modal': 'true', 'aria-label': ctx.label, tabIndex: -1, className: cx('hy-cmd', props.className), onKeyDown: onKey },

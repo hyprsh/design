@@ -17,6 +17,7 @@
   font: inherit; font-size: 18px; line-height: 28px; color: var(--gray-1000);
 }
 .hy-cmd__input::placeholder { color: var(--gray-700); opacity: 1; }
+.hy-cmd__prefix { flex: none; display: inline-flex; align-items: center; color: var(--gray-900); font-size: 13px; }
 .hy-cmd__esc {
   flex: none; height: 20px; padding: 0 6px; border: 0; border-radius: var(--radius-sm);
   background: var(--background-100); box-shadow: 0 0 0 1px var(--gray-alpha-400);
@@ -44,3 +45,5 @@
 .hy-cmd__suffix { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--gray-900); font-size: 13px; }
 .hy-cmd__divider { height: 1px; margin: 8px -8px; background: var(--gray-alpha-400); }
 .hy-cmd__empty { padding: 32px 16px; text-align: center; color: var(--gray-900); font-size: 14px; line-height: 20px; text-wrap: balance; }
+.hy-cmd__loading { display: flex; align-items: center; gap: 12px; min-height: 36px; padding: 0 8px; font-size: 14px; line-height: 20px; color: var(--gray-900); }
+.hy-cmd__loading .hy-spinner { flex: none; color: var(--gray-900); }

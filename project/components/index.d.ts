@@ -1443,10 +1443,39 @@ export interface CommandMenuProps {
   hotkey?: boolean;
   /** Render in place instead of in a portal. */
   inline?: boolean;
+  /** Controlled search text. Omit for the built-in state. */
+  query?: string;
+  /** Called with the next search text when the user types (and with "" when the menu closes). */
+  onQueryChange?: (query: string) => void;
+  /** Set false to show every item in the order you render them, so the app does its own search. Default true. */
+  shouldFilter?: boolean;
+  /** Replaces the built-in word match. Return true to show an item. `value` is the item's `value` or text. Ignored when shouldFilter is false. */
+  filter?: (item: { value: string; keywords: string[] }, query: string) => boolean;
+  /** Runs before the built-in arrow, Enter, Escape and Tab handling. Call `e.preventDefault()` to skip it for that key. */
+  onKeyDown?: (e: React.KeyboardEvent<HTMLDivElement>) => void;
   className?: string;
 }
-export interface CommandMenuInputProps { placeholder?: string; 'aria-label'?: string; className?: string }
-export interface CommandMenuListProps { children?: React.ReactNode; /** Replaces the default empty-state copy. */ empty?: React.ReactNode; className?: string }
+export interface CommandMenuInputProps {
+  placeholder?: string;
+  'aria-label'?: string;
+  /** Content before the text field, e.g. a mode badge. */
+  prefix?: React.ReactNode;
+  /** Drop the Esc button. */
+  hideClose?: boolean;
+  /** `false` is the same as hideClose. */
+  closeButton?: boolean;
+  className?: string;
+}
+export interface CommandMenuListProps {
+  children?: React.ReactNode;
+  /** Replaces the default empty-state copy. */
+  empty?: React.ReactNode;
+  /** Show a spinner row (and no empty state) while results load. Marks the list busy and announces the label politely. */
+  loading?: boolean;
+  /** Text of the loading row. Default "Searching…". */
+  loadingLabel?: React.ReactNode;
+  className?: string;
+}
 export interface CommandMenuGroupProps { heading?: React.ReactNode; children?: React.ReactNode; className?: string }
 export interface CommandMenuItemProps {
   children: React.ReactNode;
