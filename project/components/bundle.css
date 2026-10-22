@@ -1232,16 +1232,20 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 
 /* ---------- StatusDot ---------- */
 .hy-status { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 16px; color: var(--gray-1000); }
-.hy-status__dot { width: 10px; height: 10px; border-radius: var(--radius-full); flex: none; background: var(--gray-700); }
+.hy-status__dot { box-sizing: border-box; width: 10px; height: 10px; border-radius: var(--radius-full); flex: none; background: var(--hy-dot, var(--gray-700)); }
 .hy-status__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.hy-status--ready .hy-status__dot, .hy-status--success .hy-status__dot { background: var(--green-700); }
-.hy-status--building .hy-status__dot, .hy-status--warning .hy-status__dot { background: var(--amber-700); }
-.hy-status--error .hy-status__dot { background: var(--red-800); }
+.hy-status--ready .hy-status__dot, .hy-status--success .hy-status__dot { --hy-dot: var(--green-700); }
+.hy-status--building .hy-status__dot, .hy-status--warning .hy-status__dot { --hy-dot: var(--amber-700); }
+.hy-status--error .hy-status__dot { --hy-dot: var(--red-800); }
+.hy-status--info .hy-status__dot { --hy-dot: var(--blue-700); }
 .hy-status--queued .hy-status__dot,
 .hy-status--canceled .hy-status__dot,
 .hy-status--deleted .hy-status__dot,
 .hy-status--neutral .hy-status__dot,
-.hy-status--pending .hy-status__dot { background: var(--gray-700); }
+.hy-status--pending .hy-status__dot { --hy-dot: var(--gray-700); }
+/* Outline and dashed draw a ring in the state's colour. The border stays inside the same 10px box, so the dots line up. */
+.hy-status--outline .hy-status__dot, .hy-status--dashed .hy-status__dot { background: transparent; border: 2px solid var(--hy-dot, var(--gray-700)); }
+.hy-status--dashed .hy-status__dot { border-style: dashed; }
 /* In-flight states pulse; terminal states stay still. */
 .hy-status--building .hy-status__dot,
 .hy-status--queued .hy-status__dot,
