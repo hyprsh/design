@@ -1262,7 +1262,22 @@ export interface SnippetProps {
 }
 export declare function Snippet(props: SnippetProps): React.ReactElement;
 
-export interface TableColumn<R> { key: string; header: React.ReactNode; numeric?: boolean; align?: 'left' | 'right'; mono?: boolean; render?: (row: R) => React.ReactNode }
+type TableAlign = 'left' | 'center' | 'right';
+
+export interface TableColumn<R> {
+  key: string;
+  header: React.ReactNode;
+  /** Right-aligned tabular digits. */
+  numeric?: boolean;
+  /** Text alignment of the column. No column aligns right unless it is `numeric` or sets this. */
+  align?: TableAlign;
+  mono?: boolean;
+  /** Normal white-space and no max width: long text wraps (header and cells). */
+  wrap?: boolean;
+  /** The cells fill the remaining width and end in an ellipsis. Ignored with `wrap`. */
+  truncate?: boolean;
+  render?: (row: R) => React.ReactNode
+}
 
 type TablePart<E> = React.HTMLAttributes<E> & { children?: React.ReactNode };
 
@@ -1275,6 +1290,24 @@ export interface TableBodyProps extends TablePart<HTMLTableSectionElement> {
   interactive?: boolean;
   /** Skip rendering off-screen rows (content-visibility). */
   virtualize?: boolean;
+}
+
+export interface TableRowProps extends TablePart<HTMLTableRowElement> {
+  /** Marks the row as selected: `aria-selected="true"` and the menu-highlight tint. */
+  selected?: boolean;
+  /** Marks the row as the current one (a j/k cursor): `aria-current="true"` (or the given token) and the same tint. */
+  current?: boolean | 'true' | 'page' | 'step' | 'location' | 'date' | 'time';
+}
+export interface TableCellProps extends Omit<React.TdHTMLAttributes<HTMLTableCellElement>, 'align'> {
+  align?: TableAlign;
+  /** Normal white-space and no max width: long text wraps. */
+  wrap?: boolean;
+  /** Fill the remaining width and end in an ellipsis. Ignored with `wrap`. */
+  truncate?: boolean;
+}
+export interface TableHeadProps extends Omit<React.ThHTMLAttributes<HTMLTableCellElement>, 'align'> {
+  align?: TableAlign;
+  wrap?: boolean;
 }
 
 export interface TableProps<R = Record<string, unknown>> extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'rows'> {
@@ -1290,6 +1323,12 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
   striped?: boolean;
   bordered?: boolean;
   interactive?: boolean;
+  /** Data form: mark the rows this returns true for as `selected`. */
+  isSelected?: (row: R) => boolean;
+  /** Data form: mark the row this returns true for as `current`. */
+  isCurrent?: (row: R) => boolean;
+  /** Keep the header row visible while an ancestor scrolls (it sticks to the nearest scrolling ancestor). The wrapper then clips sideways instead of scrolling. */
+  stickyHeader?: boolean;
   children?: React.ReactNode;
 }
 export declare function TableRoot(props: TablePart<HTMLDivElement>): React.ReactElement;
@@ -1298,9 +1337,9 @@ export declare function TableCol(props: React.ColHTMLAttributes<HTMLTableColElem
 export declare function TableHeader(props: TablePart<HTMLTableSectionElement>): React.ReactElement;
 export declare function TableBody(props: TableBodyProps): React.ReactElement;
 export declare function TableFooter(props: TablePart<HTMLTableSectionElement>): React.ReactElement;
-export declare function TableRow(props: TablePart<HTMLTableRowElement>): React.ReactElement;
-export declare function TableHead(props: React.ThHTMLAttributes<HTMLTableCellElement>): React.ReactElement;
-export declare function TableCell(props: React.TdHTMLAttributes<HTMLTableCellElement>): React.ReactElement;
+export declare function TableRow(props: TableRowProps): React.ReactElement;
+export declare function TableHead(props: TableHeadProps): React.ReactElement;
+export declare function TableCell(props: TableCellProps): React.ReactElement;
 export declare const Table: (<R>(props: TableProps<R>) => React.ReactElement) & {
   Root: typeof TableRoot; Colgroup: typeof TableColgroup; Col: typeof TableCol; Header: typeof TableHeader; Body: typeof TableBody;
   Footer: typeof TableFooter; Row: typeof TableRow; Head: typeof TableHead; Cell: typeof TableCell;

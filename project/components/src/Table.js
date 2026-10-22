@@ -8,7 +8,7 @@ function TableRoot(props) {
   return h('div', partProps(props, 'hy-table'), props.children);
 }
 function TableEl(props) {
-  return h('table', partProps(props, 'hy-table__table'), props.children);
+  return h('table', partProps(props, cx('hy-table__table', props.stickyHeader && 'hy-table__table--sticky'), ['stickyHeader']), props.children);
 }
 function TableColgroup(props) { return h('colgroup', partProps(props, null), props.children); }
 function TableCol(props) { return h('col', partProps(props, null)); }
@@ -21,35 +21,41 @@ function TableBody(props) {
     props.virtualize && 'hy-table__body--virtualize'), ['striped', 'bordered', 'interactive', 'virtualize']), props.children);
 }
 function TableFooter(props) { return h('tfoot', partProps(props, 'hy-table__footer'), props.children); }
-function TableRow(props) { return h('tr', partProps(props, 'hy-table__row'), props.children); }
+/* selected -> aria-selected, current -> aria-current; an explicit aria-* prop wins. */
+function TableRow(props) {
+  var state = {};
+  if (props.selected) state['aria-selected'] = true;
+  if (props.current) state['aria-current'] = props.current === true ? 'true' : props.current;
+  return h('tr', Object.assign(state, partProps(props, cx('hy-table__row', props.selected && 'is-selected', props.current && 'is-current'), ['selected', 'current'])), props.children);
+}
 function TableHead(props) {
-  return h('th', Object.assign({ scope: 'col' }, partProps(props, 'hy-table__head')), props.children);
+  return h('th', Object.assign({ scope: 'col' }, partProps(props, cx('hy-table__head', cellClass(props)), ['align', 'wrap', 'truncate'])), props.children);
 }
-function TableCell(props) { return h('td', partProps(props, 'hy-table__cell'), props.children); }
+function TableCell(props) { return h('td', partProps(props, cx('hy-table__cell', cellClass(props)), ['align', 'wrap', 'truncate']), props.children); }
 
-function alignClass(c) {
-  if (c.align === 'right' || (c.numeric && c.align !== 'left')) return 'hy-right';
-  if (c.align === 'left') return 'hy-left';
-  return null;
+/* align: 'left' | 'center' | 'right'. wrap: normal white-space, no max width. truncate: fill the column, end in an ellipsis. */
+function cellClass(c) {
+  return cx(c.align && 'hy-table__cell--' + c.align, c.wrap && 'hy-table__cell--wrap', c.truncate && !c.wrap && 'hy-table__cell--truncate');
 }
+function alignOf(c) { return c.align || (c.numeric ? 'right' : undefined); }
 
 function Table(props) {
   if (!props.columns) {
-    return h(TableEl, omit(props, ['caption', 'empty', 'rows']),
+    return h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent']),
       props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null, props.children);
   }
   var cols = props.columns;
   var rows = props.rows || [];
   return h(TableRoot, { className: props.className },
-    h(TableEl, null,
+    h(TableEl, { stickyHeader: props.stickyHeader },
       props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null,
       h(TableHeader, null, h(TableRow, null, cols.map(function (c) {
-        return h(TableHead, { key: c.key, className: alignClass(c) }, c.header);
+        return h(TableHead, { key: c.key, align: alignOf(c), wrap: c.wrap }, c.header);
       }))),
       h(TableBody, { striped: props.striped, bordered: props.bordered, interactive: props.interactive }, rows.length ? rows.map(function (r, i) {
-        return h(TableRow, { key: r.id || i }, cols.map(function (c) {
+        return h(TableRow, { key: r.id || i, selected: props.isSelected ? props.isSelected(r) : undefined, current: props.isCurrent ? props.isCurrent(r) : undefined }, cols.map(function (c) {
           var v = c.render ? c.render(r) : r[c.key];
-          return h(TableCell, { key: c.key, className: cx(alignClass(c), c.numeric && 'hy-num', c.mono && 'hy-mono') }, v);
+          return h(TableCell, { key: c.key, align: alignOf(c), wrap: c.wrap, truncate: c.truncate, className: cx(c.numeric && 'hy-num', c.mono && 'hy-mono') }, v);
         }));
       }) : h(TableRow, null, h(TableCell, { colSpan: cols.length, className: 'hy-table__empty' }, props.empty || 'Nothing here yet.')))));
 }

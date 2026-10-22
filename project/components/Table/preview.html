@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=448 subtitle="Compound parts, striped interactive body, footer, data form" -->
+<!-- @dsCard group="Content" height=820 subtitle="Compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Table</title></head>
@@ -15,11 +15,11 @@ function Usage() {
   var total = usage.reduce(function (s, r) { return s + r.requests; }, 0);
   return h(H.TableRoot, null, h(H.Table, { caption: 'Usage by project' },
     h(H.TableColgroup, null, h(H.TableCol, { style: { width: '44%' } }), h(H.TableCol, { style: { width: '22%' } }), h(H.TableCol, { style: { width: '22%' } }), h(H.TableCol)),
-    h(H.TableHeader, null, h(H.TableRow, null, h(H.TableHead, null, 'Project'), h(H.TableHead, null, 'Builds'), h(H.TableHead, null, 'Build Time'), h(H.TableHead, null, 'Requests'))),
+    h(H.TableHeader, null, h(H.TableRow, null, h(H.TableHead, null, 'Project'), h(H.TableHead, null, 'Builds'), h(H.TableHead, null, 'Build Time'), h(H.TableHead, { align: 'right' }, 'Requests'))),
     h(H.TableBody, { striped: true, interactive: true }, usage.map(function (r) {
       return h(H.TableRow, { key: r.project }, h(H.TableCell, null, r.project), h(H.TableCell, null, r.builds), h(H.TableCell, null, r.minutes), h(H.TableCell, { className: 'hy-num' }, fmt.format(r.requests)));
     })),
-    h(H.TableFooter, null, h(H.TableRow, null, h(H.TableCell, { colSpan: 3 }, 'Total'), h(H.TableCell, { className: 'hy-num' }, fmt.format(total))))));
+    h(H.TableFooter, null, h(H.TableRow, null, h(H.TableCell, { colSpan: 3 }, 'Total'), h(H.TableCell, { align: 'right', className: 'hy-num' }, fmt.format(total))))));
 }
 function Deployments() {
   return h(H.Table, { caption: 'Recent deployments', bordered: true, columns: [
@@ -32,7 +32,34 @@ function Deployments() {
       { id: 2, commit: '9f8e7d6', status: 'building', branch: 'feat/edge-config', duration: '—' },
       { id: 3, commit: '4c5d6e7', status: 'error', branch: 'fix/env-loading', duration: '1m 03s' }] });
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Usage), h(Deployments)));
+var log = [
+  { id: 1, time: '10:42:01', level: 'info', message: 'Grabbed Some.Show.S02E05.1080p.WEB-DL.DDP5.1.H.264-GROUP from the first indexer after a search that matched two releases' },
+  { id: 2, time: '10:41:37', level: 'warn', message: 'Indexer timed out after 15s, retrying in 60s' },
+  { id: 3, time: '10:40:12', level: 'info', message: 'Library scan finished: 3 new files, 0 removed' },
+  { id: 4, time: '10:39:50', level: 'error', message: 'Could not reach the download client at http://localhost:8080/api' },
+  { id: 5, time: '10:38:09', level: 'info', message: 'Refreshed metadata for 12 titles' },
+  { id: 6, time: '10:37:44', level: 'info', message: 'Search for Some.Show.S02E04 found nothing new' }];
+function Log() {
+  return h('div', { style: { height: 180, overflow: 'auto', border: '1px solid var(--gray-alpha-400)', borderRadius: 8 } },
+    h(H.Table, { caption: 'Log', stickyHeader: true, bordered: true, interactive: true,
+      isSelected: function (r) { return r.id === 2; }, isCurrent: function (r) { return r.id === 4; },
+      columns: [
+        { key: 'time', header: 'Time', mono: true },
+        { key: 'level', header: 'Level' },
+        { key: 'message', header: 'Message', truncate: true },
+        { key: 'id', header: 'Id', align: 'right' }],
+      rows: log }));
+}
+function Wrapped() {
+  return h(H.Table, { caption: 'Releases', columns: [
+    { key: 'release', header: 'Release', wrap: true },
+    { key: 'size', header: 'Size', numeric: true },
+    { key: 'note', header: 'Note', align: 'center' }],
+    rows: [
+      { id: 1, release: 'Some.Show.S02E05.1080p.WEB-DL.DDP5.1.H.264-GROUP and a long description that wraps onto a second line instead of being cut at 320px', size: '2.1 GB', note: '—' },
+      { id: 2, release: 'Some.Show.S02E05.720p.HDTV.x264-OTHER', size: '812 MB', note: '—' }] });
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Usage), h(Deployments), h(Log), h(Wrapped)));
 </script>
 </body>
 </html>

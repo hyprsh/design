@@ -10,18 +10,32 @@
   height: 40px; box-sizing: border-box; padding: 10px 8px; vertical-align: middle;
   max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
-.hy-table__head:last-child, .hy-table__cell:last-child { text-align: right; }
 .hy-table .hy-left { text-align: left; }
 .hy-table .hy-right { text-align: right; }
+/* opt-in per column or cell: align, wrap, truncate */
+.hy-table__table .hy-table__cell--left { text-align: left; }
+.hy-table__table .hy-table__cell--center { text-align: center; }
+.hy-table__table .hy-table__cell--right { text-align: right; }
+.hy-table__table .hy-table__cell--wrap { white-space: normal; max-width: none; overflow-wrap: anywhere; }
+.hy-table__table .hy-table__cell--truncate { width: 100%; max-width: 0; min-width: 0; }
 .hy-table__cell:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
 .hy-table__cell:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
 .hy-table__cell:only-child { border-radius: var(--radius-md); }
+/* Sticks to the nearest scrolling ancestor; the wrapper clips sideways instead of scrolling, which would make it the scroller. */
+.hy-table:has(> .hy-table__table--sticky) { overflow: clip; }
+.hy-table__table--sticky > .hy-table__header > .hy-table__row > .hy-table__head { position: sticky; top: 0; z-index: 1; background-color: var(--background-100); }
 .hy-table__header::after { content: ''; display: table-row; height: 8px; }
 
 .hy-table__body--striped > .hy-table__row:nth-child(odd) > .hy-table__cell { background-color: var(--background-200); }
 .hy-table__body--bordered > .hy-table__row > .hy-table__cell { border-radius: 0; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-table__body--interactive > .hy-table__row > .hy-table__cell { transition: background-color .15s cubic-bezier(.4,0,.2,1); }
 .hy-table__body--interactive > .hy-table__row:hover > .hy-table__cell { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-table__body > .hy-table__row.is-selected > .hy-table__cell,
+.hy-table__body > .hy-table__row.is-current > .hy-table__cell { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-table__body > .hy-table__row.is-selected > .hy-table__cell:first-child,
+.hy-table__body > .hy-table__row.is-current > .hy-table__cell:first-child { box-shadow: inset 2px 0 0 var(--gray-1000); }
+.hy-table__body--bordered > .hy-table__row.is-selected > .hy-table__cell:first-child,
+.hy-table__body--bordered > .hy-table__row.is-current > .hy-table__cell:first-child { box-shadow: inset 2px 0 0 var(--gray-1000), inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-table__body--virtualize > .hy-table__row { content-visibility: auto; contain-intrinsic-size: auto 40px; }
 
 .hy-table__footer .hy-table__cell { color: var(--gray-1000); font-weight: 500; border-radius: 0; box-shadow: inset 0 1px 0 var(--gray-alpha-400); }
