@@ -5391,7 +5391,8 @@
 
       var trigger = props.trigger;
       if (!React.isValidElement(trigger)) trigger = h(HY.Button, { variant: 'secondary' }, trigger);
-      var own = trigger.ref;
+      /* React 19 passes ref as a prop and warns on element.ref; React 18 keeps it on the element. */
+      var own = parseInt(React.version, 10) >= 19 ? trigger.props.ref : trigger.ref;
       var triggerNode = React.cloneElement(trigger, {
         ref: function (el) {
           triggerRef.current = el;
