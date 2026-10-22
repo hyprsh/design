@@ -53,19 +53,17 @@ function themeScript(options) {
 
 /* Three radios (System, Light, Dark), or with variant="cycle" one button that cycles through them, that set data-theme
    and/or the .dark/.light class (attribute) plus color-scheme on <html>. It reads the current theme on
-   mount but changes nothing until the reader picks one; while System is picked it follows the OS setting live. */
+   mount but changes nothing then; after that a pick applies, and while System is the value it follows the OS setting live. */
 function ThemeSwitcher(props) {
   var storageKey = props.storageKey === undefined ? 'theme' : props.storageKey;
   var initial = useState(function () { return props.defaultValue || themeInitial(storageKey); })[0];
   var ctl = useControllable(props.value, initial, props.onChange);
   var value = ctl[0];
-  var took = useRef(false);
   var first = useRef(true);
   var name = 'hy-theme-' + useId();
 
   useEffect(function () {
     if (first.current) { first.current = false; return; }
-    took.current = true;
     themeApply(value, props.attribute);
     if (storageKey) { try { window.localStorage.setItem(storageKey, value); } catch (e) { /* storage blocked */ } }
   }, [value]);
@@ -73,7 +71,7 @@ function ThemeSwitcher(props) {
   useEffect(function () {
     var mql = themeMql();
     if (value !== 'system' || !mql) return;
-    function onChange() { if (took.current) themeApply('system', props.attribute); }
+    function onChange() { themeApply('system', props.attribute); }
     if (mql.addEventListener) mql.addEventListener('change', onChange); else mql.addListener(onChange);
     return function () { if (mql.removeEventListener) mql.removeEventListener('change', onChange); else mql.removeListener(onChange); };
   }, [value]);
