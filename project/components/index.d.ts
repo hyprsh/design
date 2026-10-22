@@ -598,6 +598,38 @@ export declare const MultiSelect: ((props: MultiSelectProps) => React.ReactEleme
   Row: typeof MultiSelectRow;
 };
 
+export interface QueryBarProps extends Omit<QueryInputProps, 'suggestions' | 'help' | 'qualifiers' | 'size' | 'value' | 'onChange'> {
+  /** The query. The bar keeps no copy: the field and every menu read it, and every edit goes through `onChange`. */
+  value: string;
+  /** Called once per edit with the whole new query: a keystroke in the field or a change in a menu. */
+  onChange: (query: string) => void;
+  /** The qualifiers the field understands. The menus read them too: `QueryBar.Menu` is excludable, and takes a none row, only where its qualifier allows. */
+  qualifiers: readonly Qualifier[];
+  /** Sizes the field and its menus. Default medium. */
+  size?: 'small' | 'medium' | 'large';
+  /** Class for the outer element. */
+  className?: string;
+  /** `QueryBar.Menu` elements, shown in a row after the field. */
+  children?: React.ReactNode;
+}
+
+/** Every `FilterMenu` prop except the value, which comes from the query. */
+export interface QueryBarMenuProps extends Omit<FilterMenuProps, 'value' | 'defaultValue' | 'onChange'> {
+  /** The qualifier it edits, such as `label`. With `single` it edits that qualifier's one term, such as `sort`. */
+  qualifier: string;
+}
+
+export declare function QueryBarMenu(props: QueryBarMenuProps): React.ReactElement | null;
+/**
+ * A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. A hyprsh
+ * original: Geist has no page for it. `<QueryBar.Menu qualifier="label" label="Labels">` is checked from the `label:`
+ * terms and writes them back; `qualifier="sort" single defaultOption="newest"` is a sort menu. Terms no menu owns, and
+ * free text, are left alone.
+ */
+export declare const QueryBar: ((props: QueryBarProps) => React.ReactElement) & {
+  Menu: typeof QueryBarMenu;
+};
+
 /** One qualifier an app understands in a query: `label:bug`. */
 export interface Qualifier {
   /** The word before the colon, lowercase: `label`. */
@@ -2508,6 +2540,7 @@ declare global {
       Input: typeof Input;
       Label: typeof Label;
       MultiSelect: typeof MultiSelect;
+      QueryBar: typeof QueryBar;
       QueryInput: typeof QueryInput;
       Radio: typeof Radio;
       SearchInput: typeof SearchInput;

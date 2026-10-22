@@ -4,7 +4,7 @@
 // the groups after them cover what is new: no:name, qualifier-name suggestions and match.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseQuery, suggestQuery, termText, valuesOf, withoutTerm, withoutValue, withValue } from './load-query.mjs';
+import { parseQuery, queryMenu, querySingle, suggestQuery, termText, valuesOf, withoutTerm, withoutValue, withQueryMenu, withQuerySingle, withValue } from './load-query.mjs';
 
 const qualifiers = [
   { name: 'kind', help: 'what happened', values: ['grab', 'grab_failed', 'import_rejected', 'health_raised'], excludable: true },
@@ -254,5 +254,91 @@ describe('suggestion details', () => {
     const [s] = suggestQuery('label:good crash', 10, issues);
     assert.equal(s.text, 'label:"good first issue" crash');
     assert.equal(s.caret, 24);
+  });
+});
+
+describe('reading a query as a filter menu value', () => {
+  const issues = [
+    { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+    { name: 'label', help: 'Has this label', excludable: true, none: true },
+    { name: 'assignee', help: 'Assigned to', none: true },
+    { name: 'sort', help: 'Order', values: ['newest', 'oldest'] },
+  ];
+
+  it('collects the included and the excluded values, and whether no:label is there', () => {
+    assert.deepEqual(queryMenu('is:open label:bug -label:wontfix', 'label', issues), { include: ['bug'], exclude: ['wontfix'], none: false });
+    assert.deepEqual(queryMenu('no:label', 'label', issues), { include: [], exclude: [], none: true });
+    assert.deepEqual(queryMenu('no:assignee,label', 'label', issues), { include: [], exclude: [], none: true });
+    assert.deepEqual(queryMenu('is:open', 'label', issues), { include: [], exclude: [], none: false });
+  });
+
+  it('shows every value of every term of the qualifier, once', () => {
+    assert.deepEqual(queryMenu('label:bug,docs crash label:docs,perf -label:a -label:b,a', 'label', issues),
+      { include: ['bug', 'docs', 'perf'], exclude: ['a', 'b'], none: false });
+  });
+
+  it('keeps values that match no row, and ignores no: when no qualifier takes none', () => {
+    assert.deepEqual(queryMenu('label:nope', 'label', issues).include, ['nope']);
+    assert.deepEqual(queryMenu('no:label', 'label', [{ name: 'label', help: '' }]).none, false);
+  });
+
+  it('reads a single option from the sort term, or the default', () => {
+    assert.equal(querySingle('is:open sort:oldest', 'sort', 'newest', issues), 'oldest');
+    assert.equal(querySingle('is:open', 'sort', 'newest', issues), 'newest');
+    assert.equal(querySingle('sort:oldest sort:newest', 'sort', 'newest', issues), 'newest');
+    assert.equal(querySingle('is:open', 'sort', undefined, issues), '');
+  });
+});
+
+describe('writing a filter menu value into a query', () => {
+  const issues = [
+    { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+    { name: 'label', help: 'Has this label', excludable: true, none: true },
+    { name: 'assignee', help: 'Assigned to', none: true },
+    { name: 'sort', help: 'Order', values: ['newest', 'oldest'] },
+  ];
+  const write = (text, next) => withQueryMenu(text, 'label', { include: [], exclude: [], none: false, ...next }, issues);
+
+  it('adds an included value to the label term, or a new term at the end', () => {
+    assert.equal(write('is:open label:bug sort:newest', { include: ['bug', 'docs'] }), 'is:open label:bug,docs sort:newest');
+    assert.equal(write('is:open sort:newest', { include: ['bug'] }), 'is:open sort:newest label:bug');
+    assert.equal(write('', { include: ['bug'] }), 'label:bug');
+  });
+
+  it('removes a value from the term, and the term when it has no values left', () => {
+    assert.equal(write('is:open label:bug,docs sort:newest', { include: ['docs'] }), 'is:open label:docs sort:newest');
+    assert.equal(write('is:open label:bug sort:newest', {}), 'is:open sort:newest');
+    assert.equal(write('label:bug,docs label:bug', { include: ['docs'] }), 'label:docs');
+  });
+
+  it('excludes and un-excludes the same way on -label:', () => {
+    assert.equal(write('is:open label:bug sort:newest', { include: ['bug'], exclude: ['wontfix'] }), 'is:open label:bug sort:newest -label:wontfix');
+    assert.equal(write('label:bug -label:wontfix', { include: ['bug'], exclude: ['wontfix', 'dup'] }), 'label:bug -label:wontfix,dup');
+    assert.equal(write('label:bug -label:wontfix', { include: ['bug'] }), 'label:bug');
+    assert.equal(write('label:bug', { exclude: ['bug'] }), '-label:bug');
+    assert.equal(write('-label:bug', { include: ['bug'] }), 'label:bug');
+  });
+
+  it('writes no:label and drops the qualifier\'s own terms, then clears no:label when a value is chosen', () => {
+    assert.equal(write('is:open label:bug -label:x sort:newest', { none: true }), 'is:open sort:newest no:label');
+    assert.equal(write('no:assignee', { none: true }), 'no:assignee,label');
+    assert.equal(write('is:open no:label sort:newest', { include: ['bug'] }), 'is:open sort:newest label:bug');
+    assert.equal(write('no:label,assignee', { exclude: ['bug'] }), 'no:assignee -label:bug');
+    assert.equal(write('is:open no:label', {}), 'is:open');
+  });
+
+  it('leaves other terms and free text alone, and returns the same text when nothing changed', () => {
+    const text = 'crash is:open  label:bug  sort:newest "a b"';
+    assert.equal(write(text, { include: ['bug'] }), text);
+    assert.equal(write('crash is:open no:label', { none: true }), 'crash is:open no:label');
+    assert.equal(write('crash is:open label:docs', { include: ['bug', 'docs'] }), 'crash is:open label:docs,bug');
+  });
+
+  it('replaces a single-valued term, and removes it for the default option', () => {
+    assert.equal(withQuerySingle('is:open label:bug sort:newest', 'sort', 'oldest', 'newest', issues), 'is:open label:bug sort:oldest');
+    assert.equal(withQuerySingle('is:open label:bug sort:oldest', 'sort', 'newest', 'newest', issues), 'is:open label:bug');
+    assert.equal(withQuerySingle('is:open', 'sort', 'oldest', 'newest', issues), 'is:open sort:oldest');
+    assert.equal(withQuerySingle('sort:oldest is:open sort:newest', 'sort', 'oldest', 'newest', issues), 'sort:oldest is:open');
+    assert.equal(withQuerySingle('is:open sort:oldest', 'sort', 'oldest', 'newest', issues), 'is:open sort:oldest');
   });
 });

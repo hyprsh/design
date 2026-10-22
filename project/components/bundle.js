@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -366,25 +366,29 @@
 
   function termText(t) { return (t.excluded ? '-' : '') + t.name + ':' + t.values.map(queryQuoted).join(','); }
 
-  function withValue(input, name, value, qualifiers) {
-    var term = parseQuery(input, qualifiers).terms.filter(function (t) { return t.name === name && !t.excluded; })[0];
-    if (!term) return (input.replace(/\s+$/, '') + ' ' + termText({ name: name, values: [value], excluded: false })).replace(/^\s+/, '');
+  /* Adds `value` to the term of `name` that is excluded or not, as the call says; a new term goes at the end. */
+  function queryAdd(input, name, value, excluded, qualifiers) {
+    var term = parseQuery(input, qualifiers).terms.filter(function (t) { return t.name === name && t.excluded === excluded; })[0];
+    if (!term) return (input.replace(/\s+$/, '') + ' ' + termText({ name: name, values: [value], excluded: excluded })).replace(/^\s+/, '');
     if (term.values.indexOf(value) >= 0) return input;
     var next = termText({ name: term.name, values: term.values.concat([value]), excluded: term.excluded });
     return input.slice(0, term.span[0]) + next + input.slice(term.span[1]);
   }
 
-  function withoutValue(input, name, value, qualifiers) {
+  function queryRemove(input, name, value, excluded, qualifiers) {
     var terms = parseQuery(input, qualifiers).terms, out = input;
     /* Right to left, so the spans of the terms still to edit stay where they were. */
     for (var i = terms.length - 1; i >= 0; i--) {
       var t = terms[i];
-      if (t.name !== name || t.excluded || t.values.indexOf(value) < 0) continue;
+      if (t.name !== name || t.excluded !== excluded || t.values.indexOf(value) < 0) continue;
       if (t.values.length === 1) out = withoutTerm(out, i, qualifiers);
       else out = out.slice(0, t.span[0]) + termText({ name: t.name, excluded: t.excluded, values: t.values.filter(function (v) { return v !== value; }) }) + out.slice(t.span[1]);
     }
     return out;
   }
+
+  function withValue(input, name, value, qualifiers) { return queryAdd(input, name, value, false, qualifiers); }
+  function withoutValue(input, name, value, qualifiers) { return queryRemove(input, name, value, false, qualifiers); }
 
   function withoutTerm(input, index, qualifiers) {
     var term = parseQuery(input, qualifiers).terms[index];
@@ -396,7 +400,65 @@
     return input.slice(0, start) + input.slice(end);
   }
 
-  Object.assign(HY, { parseQuery: parseQuery, suggestQuery: suggestQuery, termText: termText, withValue: withValue, withoutValue: withoutValue, withoutTerm: withoutTerm, valuesOf: valuesOf });
+  /* The two-way mapping between a query and one filter menu (QueryBar), pure so the tests run it. It is registered on HY but
+     not exported by the package. A menu value is { include, exclude, none }: the values of the `name:` terms, of the
+     `-name:` terms, and whether `no:name` is there. */
+  function queryAll(q, name, excluded) {
+    var seen = [];
+    q.terms.forEach(function (t) {
+      if (t.name === name && t.excluded === excluded) t.values.forEach(function (v) { if (seen.indexOf(v) < 0) seen.push(v); });
+    });
+    return seen;
+  }
+
+  function queryMenu(input, name, qualifiers) {
+    var q = parseQuery(input, qualifiers);
+    return { include: queryAll(q, name, false), exclude: queryAll(q, name, true), none: queryAll(q, 'no', false).indexOf(name) >= 0 };
+  }
+
+  /* The query after the menu for `name` changed to `next`: only that qualifier's terms are touched, and only where they differ. */
+  function withQueryMenu(input, name, next, qualifiers) {
+    var now = queryMenu(input, name, qualifiers), out = input;
+    if (next.none) {
+      var own = queryFind(qualifiers, name);
+      if (!own || !own.none) return input;
+      /* Everything else this qualifier says goes: nothing has a value for it. */
+      var terms = parseQuery(out, qualifiers).terms;
+      for (var i = terms.length - 1; i >= 0; i--) if (terms[i].name === name) out = withoutTerm(out, i, qualifiers);
+      return queryAdd(out, 'no', name, false, qualifiers);
+    }
+    if (now.none) out = queryRemove(out, 'no', name, false, qualifiers);
+    [false, true].forEach(function (excluded) {
+      var from = excluded ? now.exclude : now.include, to = excluded ? next.exclude : next.include;
+      from.forEach(function (v) { if (to.indexOf(v) < 0) out = queryRemove(out, name, v, excluded, qualifiers); });
+      to.forEach(function (v) { if (from.indexOf(v) < 0) out = queryAdd(out, name, v, excluded, qualifiers); });
+    });
+    return out;
+  }
+
+  /* A single-valued qualifier such as `sort:`: the last term's first value, or `fallback`. */
+  function querySingle(input, name, fallback, qualifiers) {
+    var terms = parseQuery(input, qualifiers).terms.filter(function (t) { return t.name === name && !t.excluded; });
+    return terms.length ? terms[terms.length - 1].values[0] : (fallback == null ? '' : String(fallback));
+  }
+
+  /* Picking the default removes every `name:` term; any other value takes the first one's place and the rest go. */
+  function withQuerySingle(input, name, value, fallback, qualifiers) {
+    var terms = parseQuery(input, qualifiers).terms, out = input, first = -1, i;
+    for (i = 0; i < terms.length; i++) if (terms[i].name === name && !terms[i].excluded) { first = i; break; }
+    if (value === fallback) {
+      for (i = terms.length - 1; i >= 0; i--) if (terms[i].name === name && !terms[i].excluded) out = withoutTerm(out, i, qualifiers);
+      return out;
+    }
+    if (first < 0) return queryAdd(out, name, value, false, qualifiers);
+    for (i = terms.length - 1; i > first; i--) if (terms[i].name === name && !terms[i].excluded) out = withoutTerm(out, i, qualifiers);
+    var t = terms[first];
+    if (t.values.length === 1 && t.values[0] === value) return out;
+    return out.slice(0, t.span[0]) + termText({ name: name, values: [value], excluded: false }) + out.slice(t.span[1]);
+  }
+
+  Object.assign(HY, { parseQuery: parseQuery, suggestQuery: suggestQuery, termText: termText, withValue: withValue, withoutValue: withoutValue, withoutTerm: withoutTerm, valuesOf: valuesOf,
+    queryMenu: queryMenu, withQueryMenu: withQueryMenu, querySingle: querySingle, withQuerySingle: withQuerySingle });
 
   /* ---- Button ---- */
   (function () {
@@ -2298,6 +2360,64 @@
     define('MultiSelectTrigger', MultiSelectTrigger);
     define('MultiSelectContent', MultiSelectContent);
     define('MultiSelectRow', MultiSelectRow);
+  })();
+
+  /* ---- QueryBar ---- */
+  (function () {
+    /* QueryBar: a hyprsh original (no Geist page). A QueryInput with a row of FilterMenus that read and write the same
+       query, like GitHub's issue filters. <QueryBar value onChange qualifiers placeholder><QueryBar.Menu qualifier="label" label="Labels"/></QueryBar>.
+       The query text is the only state: each menu reads its value off it and writes back with the helpers in _query.js
+       (queryMenu, withQueryMenu, querySingle, withQuerySingle), which touch only that qualifier's terms. The announcements
+       come from FilterMenu itself. */
+    var QueryBarContext = React.createContext(null);
+
+    function QueryBarMenu(props) {
+      var bar = React.useContext(QueryBarContext);
+      if (!bar) return null;
+      var name = props.qualifier;
+      var def = null;
+      bar.qualifiers.forEach(function (q) { if (q.name === name) def = q; });
+      var rest = omit(props, ['qualifier', 'value', 'defaultValue', 'onChange', 'excludable', 'noneLabel', 'size', 'children']);
+      var size = props.size || bar.size;
+      function write(next) { if (next !== bar.value) bar.onChange(next); }
+
+      if (props.single) {
+        var fallback = props.defaultOption == null ? '' : String(props.defaultOption);
+        return h(HY.FilterMenu, Object.assign({}, rest, {
+          size: size,
+          value: querySingle(bar.value, name, fallback, bar.qualifiers),
+          onChange: function (v) { write(withQuerySingle(bar.value, name, v, fallback, bar.qualifiers)); }
+        }), props.children);
+      }
+      return h(HY.FilterMenu, Object.assign({}, rest, {
+        size: size,
+        excludable: !!(def && def.excludable) && props.excludable !== false,
+        noneLabel: def && def.none ? props.noneLabel : undefined,
+        value: queryMenu(bar.value, name, bar.qualifiers),
+        onChange: function (v) { write(withQueryMenu(bar.value, name, v, bar.qualifiers)); }
+      }), props.children);
+    }
+
+    function QueryBar(props) {
+      var value = props.value == null ? '' : String(props.value);
+      var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
+      var qualifiers = props.qualifiers || [];
+      var rest = omit(props, ['value', 'onChange', 'qualifiers', 'size', 'className', 'children']);
+      var ctx = { value: value, onChange: props.onChange, qualifiers: qualifiers, size: size };
+      var menus = React.Children.toArray(props.children);
+
+      return h('div', { className: cx('hy-querybar', props.className) },
+        h('div', { className: 'hy-querybar__bar' },
+          h('div', { className: 'hy-querybar__field' },
+            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: props.onChange, qualifiers: qualifiers, size: size }))),
+          menus.length ? h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
+            h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' },
+              h(QueryBarContext.Provider, { value: ctx }, menus))) : null));
+    }
+    QueryBar.Menu = QueryBarMenu;
+
+    define('QueryBar', QueryBar);
+    define('QueryBarMenu', QueryBarMenu);
   })();
 
   /* ---- QueryInput ---- */

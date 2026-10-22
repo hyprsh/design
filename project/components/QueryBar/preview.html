@@ -1,0 +1,30 @@
+<!-- @dsCard group="Forms" height=140 subtitle="Filter menus bound to a query; edit the text or the menus" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>QueryBar</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs', 'enhancement', 'wontfix'], excludable: true, none: true },
+  { name: 'assignee', help: 'Assigned to', suggestions: ['ada', 'grace', 'linus'], excludable: true, none: true },
+  { name: 'sort', help: 'Newest, oldest or most commented', values: ['newest', 'oldest', 'comments'] }
+];
+function Demo() {
+  var q = React.useState('is:open label:bug sort:newest');
+  return h(F, null,
+    h(H.QueryBar, { 'aria-label': 'Search issues', placeholder: 'Search issues…', value: q[0], onChange: q[1], qualifiers: qualifiers },
+      h(H.QueryBar.Menu, { qualifier: 'label', label: 'Labels', noneLabel: 'No labels', items: ['bug', 'docs', 'enhancement', 'wontfix'] }),
+      h(H.QueryBar.Menu, { qualifier: 'assignee', label: 'Assignees', noneLabel: 'Unassigned', items: ['ada', 'grace', 'linus'] }),
+      h(H.QueryBar.Menu, {
+        qualifier: 'sort', label: 'Sort', single: true, defaultOption: 'newest', align: 'end',
+        items: [{ value: 'newest', label: 'Newest' }, { value: 'oldest', label: 'Oldest' }, { value: 'comments', label: 'Most Commented' }]
+      })),
+    h('p', { className: 'copy-13', style: { margin: '16px 0 0' } }, 'Query: ', h('code', null, q[0] || '(empty)')));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

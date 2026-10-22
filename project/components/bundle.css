@@ -835,6 +835,19 @@ body {
   .hy-multiselect__chevron, .hy-multiselect__action { transition-duration: 0s; }
 }
 
+/* ---------- QueryBar ---------- */
+/* The bar is a container, so the menus drop under the field when the bar is narrow, whatever the viewport is. */
+.hy-querybar { container-type: inline-size; width: 100%; min-width: 0; }
+.hy-querybar__bar { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 8px; }
+.hy-querybar__field { flex: 1 1 280px; min-width: 0; }
+.hy-querybar__menus { flex: 0 1 auto; min-width: 0; max-width: 100%; }
+.hy-querybar__row { gap: 8px; align-items: center; }
+/* The scroller clips, so the row keeps room round the triggers for their focus rings. */
+.hy-querybar__menus .hy-scroller__viewport { margin: -3px; padding: 3px; }
+@container (max-width: 560px) {
+  .hy-querybar__menus { flex-basis: 100%; }
+}
+
 /* ---------- QueryInput ---------- */
 .hy-query { display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0; }
 .hy-query__row { display: flex; align-items: center; gap: 8px; }

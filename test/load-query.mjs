@@ -22,3 +22,9 @@ export const withValue = q.withValue;
 export const withoutValue = q.withoutValue;
 export const withoutTerm = q.withoutTerm;
 export const valuesOf = wrap(q.valuesOf);
+
+// The menu mapping QueryBar uses. Registered on the bundle's registry but not part of the package's public exports.
+export const queryMenu = wrap(q.queryMenu);
+export const withQueryMenu = q.withQueryMenu;
+export const querySingle = q.querySingle;
+export const withQuerySingle = q.withQuerySingle;
