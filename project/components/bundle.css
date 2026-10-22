@@ -1720,6 +1720,24 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
   font-weight: 500; color: var(--gray-900); white-space: nowrap;
   box-shadow: inset 0 -1px 0 var(--gray-alpha-400);
 }
+/* Sortable head: the button fills the cell, so the th drops its padding and the button takes it. */
+.hy-table__head--sortable { padding: 0; }
+.hy-table__sort {
+  display: flex; align-items: center; justify-content: flex-start; gap: 4px; width: 100%; height: 36px; box-sizing: border-box; padding: 0 8px;
+  border: 0; background: none; color: inherit; font: inherit; text-align: inherit; white-space: inherit; cursor: pointer; border-radius: var(--radius-sm);
+}
+.hy-table__sort:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }
+.hy-table__head.hy-table__cell--center .hy-table__sort { justify-content: center; }
+.hy-table__head.hy-table__cell--right .hy-table__sort { justify-content: flex-end; }
+.hy-table__head.hy-table__cell--right .hy-table__sort-arrow { order: -1; }
+.hy-table__sort-arrow { flex: none; opacity: 0; color: var(--gray-700); transition: opacity .15s cubic-bezier(.4,0,.2,1), transform .15s cubic-bezier(.4,0,.2,1); }
+.hy-table__sort-arrow.is-desc { transform: rotate(180deg); }
+.hy-table__sort:hover .hy-table__sort-arrow, .hy-table__sort:focus-visible .hy-table__sort-arrow { opacity: 1; }
+.hy-table__head.is-sorted .hy-table__sort-arrow { opacity: 1; color: var(--gray-1000); }
+/* No hover to reveal the arrow on touch-only devices, so sortable heads show it muted at rest. */
+@media (hover: none) { .hy-table__sort-arrow { opacity: 1; } }
+@media (pointer: coarse), (max-width: 639px) { .hy-table__sort { min-height: var(--touch-target); } }
+@media (prefers-reduced-motion: reduce) { .hy-table__sort-arrow { transition: none; } }
 .hy-table__cell {
   height: 40px; box-sizing: border-box; padding: 10px 8px; vertical-align: middle;
   max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;

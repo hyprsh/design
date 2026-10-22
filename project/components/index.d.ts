@@ -1327,8 +1327,13 @@ export interface TableColumn<R> {
   wrap?: boolean;
   /** The cells fill the remaining width and end in an ellipsis. Ignored with `wrap`. */
   truncate?: boolean;
+  /** Makes the header a sort button. The app sorts `rows` itself; see `sort` and `onSortChange` on the table. */
+  sortable?: boolean;
   render?: (row: R) => React.ReactNode
 }
+
+type TableSortDirection = 'ascending' | 'descending';
+export interface TableSort { key: string; direction: TableSortDirection }
 
 type TablePart<E> = React.HTMLAttributes<E> & { children?: React.ReactNode };
 
@@ -1359,6 +1364,10 @@ export interface TableCellProps extends Omit<React.TdHTMLAttributes<HTMLTableCel
 export interface TableHeadProps extends Omit<React.ThHTMLAttributes<HTMLTableCellElement>, 'align'> {
   align?: TableAlign;
   wrap?: boolean;
+  /** Sets `aria-sort` on the cell. Use `'none'` for a sortable column that isn't the active sort. Without it the cell has no `aria-sort`. */
+  sort?: TableSortDirection | 'none';
+  /** Makes the label a button that fills the cell and calls this on click, Enter and Space. The arrow is decorative: the direction is announced through `sort`. Right-aligned heads put the arrow before the label. */
+  onSort?: () => void;
 }
 
 export interface TableProps<R = Record<string, unknown>> extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'rows'> {
@@ -1378,6 +1387,10 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
   isSelected?: (row: R) => boolean;
   /** Data form: mark the row this returns true for as `current`. */
   isCurrent?: (row: R) => boolean;
+  /** Data form: the active sort. The table never reorders `rows`; sort them yourself and pass them back. `null` or `undefined` means no active column. */
+  sort?: TableSort | null;
+  /** Data form: a sortable column was clicked. A column that isn't active asks for `ascending`; the active one flips. */
+  onSortChange?: (next: TableSort) => void;
   /** Keep the header row visible while an ancestor scrolls (it sticks to the nearest scrolling ancestor). The wrapper then clips sideways instead of scrolling. */
   stickyHeader?: boolean;
   children?: React.ReactNode;

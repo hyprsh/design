@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=820 subtitle="Compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
+<!-- @dsCard group="Content" height=1080 subtitle="Sortable headers, compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Table</title></head>
@@ -59,7 +59,44 @@ function Wrapped() {
       { id: 1, release: 'Some.Show.S02E05.1080p.WEB-DL.DDP5.1.H.264-GROUP and a long description that wraps onto a second line instead of being cut at 320px', size: '2.1 GB', note: '—' },
       { id: 2, release: 'Some.Show.S02E05.720p.HDTV.x264-OTHER', size: '812 MB', note: '—' }] });
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Usage), h(Deployments), h(Log), h(Wrapped)));
+var projects = [
+  { id: 1, name: 'api-gateway', region: 'iad1', requests: 1284500 },
+  { id: 2, name: 'docs-site', region: 'fra1', requests: 302110 },
+  { id: 3, name: 'edge-config', region: 'sfo1', requests: 88214 },
+  { id: 4, name: 'web-app', region: 'iad1', requests: 640021 }];
+/* Parts form: the app sorts the rows and owns the direction. A third click on a descending column goes back to the default order. */
+function Sortable() {
+  var st = React.useState({ key: 'name', direction: 'ascending' }), sort = st[0], setSort = st[1];
+  var rows = projects.slice();
+  if (sort) rows.sort(function (a, b) {
+    var d = a[sort.key] < b[sort.key] ? -1 : a[sort.key] > b[sort.key] ? 1 : 0;
+    return sort.direction === 'ascending' ? d : -d;
+  });
+  function head(key, label, props) {
+    var active = sort && sort.key === key;
+    return h(H.TableHead, Object.assign({ sort: active ? sort.direction : 'none', onSort: function () {
+      setSort(active ? (sort.direction === 'ascending' ? { key: key, direction: 'descending' } : null) : { key: key, direction: 'ascending' });
+    } }, props), label);
+  }
+  return h(H.Table, { caption: 'Projects, sortable' },
+    h(H.TableHeader, null, h(H.TableRow, null, head('name', 'Name'), head('region', 'Region'), head('requests', 'Requests', { align: 'right' }))),
+    h(H.TableBody, { bordered: true }, rows.map(function (r) {
+      return h(H.TableRow, { key: r.id }, h(H.TableCell, null, r.name), h(H.TableCell, null, r.region), h(H.TableCell, { align: 'right', className: 'hy-num' }, fmt.format(r.requests)));
+    })));
+}
+/* Data form: sortable columns, sort and onSortChange. */
+function SortableData() {
+  var st = React.useState({ key: 'requests', direction: 'descending' }), sort = st[0], setSort = st[1];
+  var rows = projects.slice().sort(function (a, b) {
+    var d = a[sort.key] < b[sort.key] ? -1 : a[sort.key] > b[sort.key] ? 1 : 0;
+    return sort.direction === 'ascending' ? d : -d;
+  });
+  return h(H.Table, { caption: 'Projects, data form', bordered: true, sort: sort, onSortChange: setSort, columns: [
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'region', header: 'Region' },
+    { key: 'requests', header: 'Requests', numeric: true, sortable: true, render: function (r) { return fmt.format(r.requests); } }], rows: rows });
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Sortable), h(SortableData), h(Usage), h(Deployments), h(Log), h(Wrapped)));
 </script>
 </body>
 </html>

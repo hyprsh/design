@@ -3704,8 +3704,18 @@
       if (props.current) state['aria-current'] = props.current === true ? 'true' : props.current;
       return h('tr', Object.assign(state, partProps(props, cx('hy-table__row', props.selected && 'is-selected', props.current && 'is-current'), ['selected', 'current'])), props.children);
     }
+    /* sort -> aria-sort on the th. onSort -> the label becomes a full-cell button with a decorative arrow (before the label when right-aligned). */
     function TableHead(props) {
-      return h('th', Object.assign({ scope: 'col' }, partProps(props, cx('hy-table__head', cellClass(props)), ['align', 'wrap', 'truncate'])), props.children);
+      var state = { scope: 'col' };
+      if (props.sort) state['aria-sort'] = props.sort;
+      var label = props.children;
+      if (props.onSort) {
+        label = h('button', { type: 'button', className: 'hy-table__sort', onClick: function () { props.onSort(); } },
+          h('span', { className: 'hy-table__sort-label' }, props.children),
+          h('svg', { className: cx('hy-table__sort-arrow', props.sort === 'descending' && 'is-desc'), width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeLinecap: 'round', strokeLinejoin: 'round', 'aria-hidden': 'true', focusable: 'false' },
+            h('path', { d: 'M8 13V3M4 7l4-4 4 4' })));
+      }
+      return h('th', Object.assign(state, partProps(props, cx('hy-table__head', props.onSort && 'hy-table__head--sortable', props.onSort && props.sort && props.sort !== 'none' && 'is-sorted', cellClass(props)), ['align', 'wrap', 'truncate', 'sort', 'onSort'])), label);
     }
     function TableCell(props) { return h('td', partProps(props, cx('hy-table__cell', cellClass(props)), ['align', 'wrap', 'truncate']), props.children); }
 
@@ -3714,10 +3724,17 @@
       return cx(c.align && 'hy-table__cell--' + c.align, c.wrap && 'hy-table__cell--wrap', c.truncate && !c.wrap && 'hy-table__cell--truncate');
     }
     function alignOf(c) { return c.align || (c.numeric ? 'right' : undefined); }
+    /* Data form: the app owns the order. Clicking a new column asks for ascending, the active one flips. */
+    function sortClick(props, key) {
+      var cur = props.sort;
+      return function () {
+        props.onSortChange && props.onSortChange({ key: key, direction: cur && cur.key === key && cur.direction === 'ascending' ? 'descending' : 'ascending' });
+      };
+    }
 
     function Table(props) {
       if (!props.columns) {
-        return h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent']),
+        return h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent', 'sort', 'onSortChange']),
           props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null, props.children);
       }
       var cols = props.columns;
@@ -3726,7 +3743,8 @@
         h(TableEl, { stickyHeader: props.stickyHeader },
           props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null,
           h(TableHeader, null, h(TableRow, null, cols.map(function (c) {
-            return h(TableHead, { key: c.key, align: alignOf(c), wrap: c.wrap }, c.header);
+            var active = props.sort && props.sort.key === c.key ? props.sort.direction : 'none';
+            return h(TableHead, { key: c.key, align: alignOf(c), wrap: c.wrap, sort: c.sortable ? active : undefined, onSort: c.sortable ? sortClick(props, c.key) : undefined }, c.header);
           }))),
           h(TableBody, { striped: props.striped, bordered: props.bordered, interactive: props.interactive }, rows.length ? rows.map(function (r, i) {
             return h(TableRow, { key: r.id || i, selected: props.isSelected ? props.isSelected(r) : undefined, current: props.isCurrent ? props.isCurrent(r) : undefined }, cols.map(function (c) {
