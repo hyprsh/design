@@ -14,6 +14,7 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
 .brand strong { font-weight: 600; }
 .brand span { white-space: nowrap; }
 .top-gap { flex: 1; }
+.top-version { flex: none; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
 .top-link { color: var(--gray-900); text-decoration: none; padding: 6px 8px; border-radius: var(--radius-md); }
 .top-link:hover { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .icon-btn { display: grid; flex: none; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--gray-1000); cursor: pointer; touch-action: manipulation; transition: background-color 150ms cubic-bezier(.4, 0, .2, 1); }
@@ -142,6 +143,10 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
   /* The 44px buttons carry their own space, so the row needs no gap to fit search, Markdown, GitHub and the theme. */
   .top { gap: 0; }
   .theme-btn { margin-right: -8px; }
+}
+/* Below 700px the version gives way to the search field. */
+@media (max-width: 699px) {
+  .top .top-version { display: none; }
 }
 /* Small phones: the Markdown link gives way so the row fits. */
 @media (max-width: 419px) {
