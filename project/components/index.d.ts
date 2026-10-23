@@ -939,7 +939,7 @@ export interface ToggleProps extends Omit<React.InputHTMLAttributes<HTMLInputEle
   disabled?: boolean;
   /** small 28×14 (default), medium 36×20, large 40×24. */
   size?: 'small' | 'medium' | 'large';
-  /** Track colour. Any colour but the accent keeps the track tinted when off. Default 'accent' (pink). */
+  /** Track colour. Any colour but the accent keeps the track tinted when off. Default 'accent' (blue). */
   color?: ToggleColor;
   /** Icons shown inside the thumb for each state. */
   icon?: { checked?: React.ReactNode; unchecked?: React.ReactNode };
@@ -2468,8 +2468,8 @@ export interface LogoProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, '
   variant?: 'lockup' | 'mark' | 'wordmark';
   /** Mark height in px; the wordmark scales with it. Default 24. */
   size?: number;
-  /** nebula (gradient mark, default) or mono (currentColor, for one-colour print, favicons on tinted chrome and dense UI). */
-  tone?: 'nebula' | 'mono';
+  /** accent (the blue mark, default) or mono (currentColor, for one-colour print, favicons on tinted chrome and dense UI). 'nebula' is the old name of accent. */
+  tone?: 'accent' | 'mono' | 'nebula';
   /** Accessible name. Default "hyprsh". */
   'aria-label'?: string;
 }

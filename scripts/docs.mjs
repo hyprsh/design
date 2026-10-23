@@ -229,7 +229,7 @@ hyprsh's design system for React apps: tokens, the Geist fonts, brand assets and
 ## Rules
 
 - Tokens only: \`var(--gray-1000)\`, \`var(--space-4)\`, \`var(--radius-md)\`, \`var(--shadow-menu)\`, and the type classes (\`heading-24\`, \`label-14\`, \`copy-14\`). Never hard-code a hex colour or an ad-hoc font size. Names: ${docs}foundations/tokens.md.
-- Reach anything that shows the accent through \`accent-*\`, never \`pink-*\`. Red is only for errors and destructive actions.
+- Reach anything that shows the accent through \`accent-*\`, never \`blue-*\`. Red is only for errors and destructive actions.
 - Title Case for labels, buttons, tabs and menu items; sentence case for body copy. Buttons name their result (“Deploy Project”, never “Submit” or “OK”).
 - Type \`…\`, never \`...\`. Curly quotes. No emoji, no exclamation marks.
 - Icons come from Lucide only, through \`Icon\` or \`lucide-react\`. Icon-only buttons get an \`aria-label\`.

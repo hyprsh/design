@@ -1,4 +1,4 @@
-hyprsh is built on neutral surfaces, near-black type, one pink accent and a strict scale for everything else. The interface stays out of the way so that content, status and code come first. If you're not sure, use less colour, less weight and less decoration.
+hyprsh is built on neutral surfaces, near-black type, one blue accent and a strict scale for everything else. The interface stays out of the way so that content, status and code come first. If you're not sure, use less colour, less weight and less decoration.
 
 ## Content fundamentals
 
@@ -22,10 +22,9 @@ hyprsh copy sounds like a precise engineer talking to another engineer: short, c
 - **Ten steps per scale, each with a job.** In every scale, steps 100–300 are component backgrounds (default, hover, active), 400–600 are borders (default, hover, active), 700–800 are solid fills (default, hover), 900 is secondary text and 1000 is primary text. Pick the step by its job, not by how it looks.
 - **Text:** use `gray-1000` for primary text and `gray-900` for secondary text, on either background or on `gray-100`–`300`. Use `gray-700` only for placeholders and disabled labels.
 - **Borders are 1px box-shadows in `gray-alpha-400`**, which lets them sit on any surface. Hover is `gray-alpha-500`. The alpha border is under 3:1, so a field always has a visible label as well.
-- **One accent: pink.** Links (`link`), focus (`focus-color`), selection, the “on” state of toggles and sliders, checked choiceboxes and highlighted code lines use the accent. Reach it through `accent-100`…`accent-1000`, which alias the `pink` scale, never through `pink-*` directly. Everything else stays grey.
-- **Pink is not an error.** Red stays the only error and destructive hue, and an error always carries an icon and a word, so the two never depend on hue alone. Don’t put the accent next to a red state.
-- **The nebula gradient is for the logo only.** `nebula-start` (indigo), `nebula-mid` (violet) and `nebula-end` (pink) fill the mark and the cover. Never use them on UI, text or backgrounds.
-- **Hues are semantic.** `red` means errors and destructive actions, `amber` warnings and in-progress states, `green` success and ready, `purple` new or preview. `blue` is informational, `teal` is for data series. Never use a hue for decoration.
+- **One accent: blue.** The logo, links (`link`), focus (`focus-color`), selection, the “on” state of toggles and sliders, checked choiceboxes and highlighted code lines use the accent. Reach it through `accent-100`…`accent-1000`, which alias the `blue` scale, never through `blue-*` directly. Everything else stays grey.
+- **The accent is not a status.** Red stays the only error and destructive hue, and every status carries an icon and a word, so nothing depends on hue alone. Don’t put the accent next to a red state.
+- **Hues are semantic.** `red` means errors and destructive actions, `amber` warnings and in-progress states, `green` success and ready, `purple` new or preview. `blue` is the accent and informational, `teal` is for data series. Never use a hue for decoration.
 - **Tinted surfaces** pair 100/200 with 900 text in the same hue, for example `accent-900` on `accent-100`. **Solid fills** pair a fill with a fixed text colour: `white` on `blue-800`, `red-800`, `purple-700`, `pink-800` or `accent-800`; `black` on `amber-700`, `green-700` or `teal-700`; `background-100` on `gray-900` or `gray-1000`. All of these pairs hold 4.5:1 in both themes.
 - **Never show status by colour alone.** A status dot carries a label, a note carries an icon and a word, and a badge carries text.
 
@@ -103,9 +102,9 @@ Shadows are layered: a 1px translucent border, then an ambient layer, then a 1px
 The mark is a faceted delta starship: hyprsh is a jump to hyperspace. It is one filled path on a 24px grid, drawn in the same angular style as its sibling kestrel, with a canopy cut and a notched tail.
 
 - **Lockup:** the mark, then “hyprsh” in Geist Sans semibold 600, lowercase, `-0.04em` tracking, in `gray-1000`. The gap is 0.3× the mark’s height. Use `<Logo />`; `variant="mark"` or `"wordmark"` gives either part alone.
-- **Colour:** the mark takes the nebula gradient (indigo → violet → pink, top left to bottom right) in both themes. Use `tone="mono"` (`currentColor`) on photos, coloured fills, one-colour print and in dense UI.
+- **Colour:** the mark is solid `accent-700` blue in both themes. Use `tone="mono"` (`currentColor`) on photos, coloured fills, one-colour print and in dense UI.
 - **Sizes:** 16px is the smallest size; at 20–24px it sits in the app bar. Keep clear space of half the mark’s height around it.
-- **Don’t** stretch, rotate, outline, shadow or recolour the mark, put the gradient on anything else, or set the wordmark in another typeface.
+- **Don’t** stretch, rotate, outline, shadow or recolour the mark, or set the wordmark in another typeface.
 - **Files:** `brand/logo-mark.svg`, `brand/logo-mark-mono.svg` and `brand/logo-lockup.svg`.
 
 ## Using this system

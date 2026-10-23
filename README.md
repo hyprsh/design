@@ -15,7 +15,7 @@ project/
   tokens.json          colour (light + dark), shadows, spacing, radius, z-index, type styles, fonts
   design-system.json   manifest
   fonts/               Geist + Geist Mono variable woff2 (SIL OFL 1.1)
-  brand/               logo SVGs: the delta starship mark (nebula and mono) and the lockup
+  brand/               logo SVGs: the delta starship mark (blue and mono) and the lockup
   components/
     src/               component sources (one .js/.css/.d.ts per component, plus core and icons)
     <Name>/            README.md (usage) + preview.html (the live card)
