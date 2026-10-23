@@ -35,7 +35,7 @@ import { Button, Tooltip } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center', padding: '32px 64px' }}>
+    <div style={{ display: 'flex', gap: 72, flexWrap: 'wrap', alignItems: 'center', padding: '32px 64px' }}>
       <Tooltip text="Top" position="top"><Button>Top</Button></Tooltip>
       <Tooltip text="Bottom" position="bottom"><Button>Bottom</Button></Tooltip>
       <Tooltip text="Left" position="left"><Button>Left</Button></Tooltip>

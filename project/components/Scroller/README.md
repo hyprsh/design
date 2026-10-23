@@ -41,8 +41,8 @@ const branches = ['main', 'staging', 'feat/tab-bar', 'feat/search', 'release', '
 
 export default function Example() {
   return (
-    <Scroller aria-label="Branches" overflow="x" withButtons width={360} childrenContainerClassName="hy-row">
-      {branches.map((b) => <span key={b} className="label-14-mono" style={{ whiteSpace: 'nowrap', padding: '4px 8px', boxShadow: 'var(--shadow-border)', borderRadius: 6 }}>{b}</span>)}
+    <Scroller aria-label="Branches" overflow="x" withButtons width={360}>
+      {branches.map((b) => <span key={b} className="label-14-mono" style={{ whiteSpace: 'nowrap', padding: '4px 8px', marginRight: 8, boxShadow: 'var(--shadow-border)', borderRadius: 6 }}>{b}</span>)}
     </Scroller>
   );
 }
@@ -57,9 +57,9 @@ import { Scroller } from '@hyprsh/design';
 export default function Example() {
   return (
     <Scroller aria-label="Wide log" overflow="both" height={120} width={320}>
-      <pre className="label-13-mono" style={{ margin: 0 }}>
+      <div className="label-13-mono" style={{ whiteSpace: 'pre' }}>
         {Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}  GET /api/deployments?page=${i + 1} 200 in ${30 + i}ms from iad1 cache HIT`).join('\n')}
-      </pre>
+      </div>
     </Scroller>
   );
 }

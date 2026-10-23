@@ -67,7 +67,7 @@ export default function Example() {
           right={
             <DotsMenu aria-label="hyprsh.dev Actions">
               <MenuItem onClick={() => setLast('Domain verified')}>Verify Domain</MenuItem>
-              <MenuItem onClick={() => setLast('Domain removed')}>Remove Domain…</MenuItem>
+              <MenuItem onClick={() => setLast('Domain removed')}>Remove Domain</MenuItem>
             </DotsMenu>
           }
         >

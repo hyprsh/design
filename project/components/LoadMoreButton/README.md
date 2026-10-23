@@ -20,7 +20,7 @@ import { LoadMoreButton } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: 360, maxWidth: '100%' }}>
       <LoadMoreButton onClick={() => {}} />
     </div>
   );
@@ -44,7 +44,7 @@ export default function Example() {
   }
 
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: 360, maxWidth: '100%' }}>
       <ul className="copy-14" style={{ margin: 0, padding: 0, listStyle: 'none' }}>
         {Array.from({ length: count }, (_, i) => <li key={i} style={{ padding: '8px 0' }}>Deployment {count - i}</li>)}
       </ul>
@@ -62,7 +62,7 @@ import { LoadMoreButton } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360, border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ width: 360, maxWidth: '100%', border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' }}>
       <div className="copy-14" style={{ padding: 16 }}>marketing-site, docs and api</div>
       <LoadMoreButton noGap noBorderRadius>Show More Projects</LoadMoreButton>
     </div>
@@ -78,7 +78,7 @@ import { LoadMoreButton } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: 360, maxWidth: '100%' }}>
       <LoadMoreButton disabled>No More Deployments</LoadMoreButton>
     </div>
   );

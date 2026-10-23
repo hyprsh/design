@@ -36,7 +36,7 @@ import { ProjectBanner } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
       <ProjectBanner variant="gray" label="This project is archived." callToAction={{ label: 'Restore Project', href: '#restore' }} />
       <ProjectBanner variant="success" label="Domain verified. Traffic now reaches this project." callToAction={{ label: 'View Domain', href: '#domain' }} />
       <ProjectBanner variant="warning" label="This project is close to its build minutes limit." callToAction={{ label: 'Upgrade Plan', href: '#upgrade' }} />
@@ -75,9 +75,9 @@ import { Rocket } from 'lucide-react';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <ProjectBanner variant="success" icon={<Rocket />} label="Deployed to production." callToAction={{ label: 'Visit', href: '#visit' }} />
-      <ProjectBanner variant="gray" icon={null} label="No icon on this one." />
+    <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <ProjectBanner variant="success" icon={<Rocket />} label="Deployed to production." callToAction={{ label: 'Visit Site', href: '#visit' }} />
+      <ProjectBanner variant="gray" icon={null} label="Billing moves to the new team on the first." callToAction={{ label: 'Review Billing', href: '#billing' }} />
     </div>
   );
 }

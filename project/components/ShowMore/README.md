@@ -20,7 +20,7 @@ import { ShowMore } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: '100%', maxWidth: 360 }}>
       <ShowMore />
     </div>
   );
@@ -34,18 +34,18 @@ Keep `expanded` in state and point `aria-controls` at the list.
 import { useState } from 'react';
 import { ShowMore } from '@hyprsh/design';
 
-const domains = ['hyprsh.dev', 'docs.hyprsh.dev', 'api.hyprsh.dev', 'status.hyprsh.dev', 'blog.hyprsh.dev'];
+const domains = ['hyprsh.dev', 'docs.hyprsh.dev', 'api.hyprsh.dev', 'status.hyprsh.dev', 'blog.hyprsh.dev', 'app.hyprsh.dev', 'cdn.hyprsh.dev', 'mail.hyprsh.dev'];
 
 export default function Example() {
   const [expanded, setExpanded] = useState(false);
-  const shown = expanded ? domains : domains.slice(0, 2);
+  const shown = expanded ? domains : domains.slice(0, 5);
 
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <ul id="domain-list" className="copy-14" style={{ margin: 0, padding: 0, listStyle: 'none', display: 'flex', flexDirection: 'column', gap: 8 }}>
         {shown.map((d) => <li key={d}>{d}</li>)}
       </ul>
-      <ShowMore expanded={expanded} onClick={() => setExpanded((e) => !e)} count={domains.length - 2} aria-controls="domain-list" />
+      <ShowMore expanded={expanded} onClick={() => setExpanded((e) => !e)} count={domains.length - 5} aria-controls="domain-list" />
     </div>
   );
 }
@@ -59,7 +59,7 @@ import { ShowMore } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div style={{ width: '100%', maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <ShowMore moreLabel="Show All Branches" lessLabel="Show Fewer Branches" />
       <ShowMore noBorder count={12} />
     </div>

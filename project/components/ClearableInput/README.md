@@ -19,7 +19,7 @@ import { ClearableInput } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: '100%', maxWidth: 360 }}>
       <ClearableInput aria-label="Filter branches" placeholder="Filter branches…" defaultValue="feat/" />
     </div>
   );
@@ -38,7 +38,7 @@ export default function Example() {
   const [cleared, setCleared] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 360 }}>
       <ClearableInput
         aria-label="Filter projects"
         placeholder="Filter projects…"
@@ -60,7 +60,7 @@ import { ClearableInput } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: '100%', maxWidth: 360 }}>
       <ClearableInput aria-label="Filter" placeholder="Filter…" cmdk />
     </div>
   );
@@ -75,7 +75,7 @@ import { ClearableInput } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 360 }}>
       <ClearableInput size="small" aria-label="Small" placeholder="Small…" defaultValue="main" />
       <ClearableInput size="large" aria-label="Large" placeholder="Large…" defaultValue="main" />
       <ClearableInput disabled aria-label="Disabled" placeholder="Disabled…" />

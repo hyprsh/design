@@ -7,6 +7,7 @@ A centred, one-line announcement at the top of a page or section, with a single 
 - One banner per page, about something new. For a problem with the current project, use ProjectBanner; for an inline message next to the thing it concerns, use Note.
 - Keep the text to one line at desktop width. The lead is one or two Title Case words; the link text is a short verb such as “Read More”.
 - Below about 560px of available width, the text and link merge into one rounded button that truncates, so the whole banner stays one tap target.
+- It fills the width of its parent and measures that width, so put it in a block with a width (a block or `width: 100%`), not in a shrink-to-fit flex item.
 - It is not dismissible and doesn't animate in.
 
 ## Examples
@@ -52,7 +53,7 @@ export default function Example() {
   const [opened, setOpened] = useState(false);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%' }}>
       <Banner button={{ content: 'View Changelog', onClick: () => setOpened(true) }} style={{ padding: 12 }}>
         <b>Version 0.9</b> – Query bar menus wrap onto more rows
       </Banner>
@@ -70,7 +71,7 @@ import { Banner } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' }}>
+    <div style={{ width: '100%', border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' }}>
       <Banner button={{ content: 'Upgrade Plan', href: '#' }} style={{ padding: 12 }}>
         <b>Bandwidth</b> – 90% of your monthly limit is used
       </Banner>

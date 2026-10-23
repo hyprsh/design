@@ -51,14 +51,14 @@ export default function Example() {
 ```
 
 ### Row Direction
-`direction="row"` puts the tiles side by side.
+`direction="row"` puts the tiles side by side, sharing the width of the group. They stack again when the group is narrow.
 
 ```jsx
 import { Choicebox, ChoiceboxGroupItem } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <Choicebox label="Region" direction="row" defaultValue="iad1">
+    <Choicebox label="Region" direction="row" defaultValue="iad1" style={{ width: '100%' }}>
       <ChoiceboxGroupItem value="iad1" title="iad1" description="Washington, D.C." />
       <ChoiceboxGroupItem value="fra1" title="fra1" description="Frankfurt" />
       <ChoiceboxGroupItem value="sin1" title="sin1" description="Singapore" />

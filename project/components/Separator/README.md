@@ -19,7 +19,7 @@ import { Separator } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div className="copy-14" style={{ maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="copy-14" style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <span>Deployments</span>
       <Separator />
       <span>Domains</span>
@@ -55,7 +55,7 @@ import { Separator } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 320, boxShadow: 'var(--shadow-border)', borderRadius: 8 }}>
+    <div style={{ width: '100%', maxWidth: 320, boxShadow: 'var(--shadow-border)', borderRadius: 8 }}>
       <div className="copy-14" style={{ padding: 16 }}>marketing-site</div>
       <Separator inset />
       <div className="copy-13" style={{ padding: 16 }}>Deployed from main 2 hours ago.</div>
@@ -72,7 +72,7 @@ import { Separator } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div className="copy-14" style={{ maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="copy-14" style={{ width: '100%', maxWidth: 320, display: 'flex', flexDirection: 'column', gap: 12 }}>
       <span>Production</span>
       <Separator decorative />
       <span>Preview</span>

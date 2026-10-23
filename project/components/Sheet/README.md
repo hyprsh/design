@@ -95,22 +95,24 @@ export default function Example() {
 }
 ```
 
-### Without a Backdrop
-`modal={false}` and `noOverlay` keep the page readable and usable beside the sheet.
+### Modal
+`modal` dims the page, traps focus and locks scroll. Use it only when the sheet owns the screen.
 
 ```jsx
-import { Button, Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@hyprsh/design';
+import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <Sheet modal={false}>
+    <Sheet modal>
       <SheetTrigger asChild><Button variant="secondary">Log Row</Button></SheetTrigger>
-      <SheetContent noOverlay>
+      <SheetContent>
         <SheetHeader>
           <SheetTitle>Log Row</SheetTitle>
           <p className="copy-14">GET /api/deployments 200 in 38ms</p>
         </SheetHeader>
-        <SheetClose asChild><Button variant="secondary">Close</Button></SheetClose>
+        <SheetFooter>
+          <SheetClose asChild><Button variant="secondary">Close</Button></SheetClose>
+        </SheetFooter>
       </SheetContent>
     </Sheet>
   );

@@ -66,7 +66,14 @@ import { Button, EmptyState } from '@hyprsh/design';
 export default function Example() {
   const [query, setQuery] = useState('payments-v2');
 
-  if (!query) return <p className="copy-14">Showing every project.</p>;
+  if (!query) {
+    return (
+      <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+        <p className="copy-14" style={{ margin: 0 }}>Showing every project.</p>
+        <Button size="small" variant="tertiary" onClick={() => setQuery('payments-v2')}>Search Again</Button>
+      </div>
+    );
+  }
 
   return (
     <EmptyState
@@ -103,7 +110,7 @@ import { EmptyState } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <section>
+    <section style={{ width: '100%' }}>
       <h2 className="heading-20" style={{ margin: '0 0 16px' }}>Activity</h2>
       <EmptyState
         headingLevel={3}

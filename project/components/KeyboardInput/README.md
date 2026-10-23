@@ -43,7 +43,7 @@ export default function Example() {
 ```
 
 ### Small and Platform
-`small` fits inside a button. `platform` overrides detection.
+`small` is 20px tall, for dense rows. `platform` overrides detection.
 
 ```jsx
 import { KeyboardInput } from '@hyprsh/design';

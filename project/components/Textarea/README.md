@@ -21,7 +21,7 @@ import { Textarea } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 420 }}>
+    <div style={{ width: '100%', maxWidth: 420 }}>
       <Textarea
         label="Deployment Note"
         name="note"
@@ -42,10 +42,10 @@ import { Textarea } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 420 }}>
-      <Textarea size="small" label="Note (Small)" name="note-s" rows={2} />
-      <Textarea size="medium" label="Note (Medium)" name="note-m" rows={2} />
-      <Textarea size="large" label="Note (Large)" name="note-l" rows={2} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 420 }}>
+      <Textarea size="small" label="Note (Small)" name="note-s" rows={2} defaultValue="Hotfix for the login redirect." />
+      <Textarea size="medium" label="Note (Medium)" name="note-m" rows={2} defaultValue="Hotfix for the login redirect." />
+      <Textarea size="large" label="Note (Large)" name="note-l" rows={2} defaultValue="Hotfix for the login redirect." />
     </div>
   );
 }
@@ -59,7 +59,7 @@ import { Textarea } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 420 }}>
+    <div style={{ width: '100%', maxWidth: 420 }}>
       <Textarea
         mono
         label="Environment Variables"
@@ -89,7 +89,7 @@ export default function Example() {
   const tooLong = text.length > limit;
 
   return (
-    <div style={{ maxWidth: 420 }}>
+    <div style={{ width: '100%', maxWidth: 420 }}>
       <Textarea
         label="Rollback Reason"
         name="reason"
@@ -113,7 +113,7 @@ import { Textarea } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 420 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%', maxWidth: 420 }}>
       <Textarea mono readOnly label="Build Output" name="out" rows={2} defaultValue={'Compiled in 4.2s\nDeployed to iad1'} />
       <Textarea disabled label="Release Notes" name="notes" rows={2} defaultValue="Locked while the deployment is building." />
     </div>

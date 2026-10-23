@@ -79,7 +79,7 @@ export default function Example() {
   return (
     <div style={{ display: 'flex', gap: 24, justifyContent: 'space-between', maxWidth: 420 }}>
       <Description ellipsis title="Deployment URL" content="https://marketing-site-4f2a9c1-platform-team.hyprsh.dev" />
-      <Description right title="Total" content="786 GB" />
+      <Description right style={{ flexShrink: 0 }} title="Total" content="786 GB" />
     </div>
   );
 }

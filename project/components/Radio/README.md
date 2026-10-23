@@ -109,8 +109,8 @@ export default function Example() {
       style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'flex-start' }}
     >
       <fieldset style={{ border: 0, margin: 0, padding: 0 }}>
-        <legend className="label-14" style={{ marginBottom: 12 }}>Production Branch</legend>
-        <RadioGroup label="Production branch" name="branch" required defaultValue="main">
+        <legend id="branch-legend" className="label-14" style={{ marginBottom: 12, padding: 0 }}>Production Branch</legend>
+        <RadioGroup aria-labelledby="branch-legend" name="branch" required defaultValue="main">
           <RadioGroupItem value="main">main</RadioGroupItem>
           <RadioGroupItem value="release">release</RadioGroupItem>
         </RadioGroup>

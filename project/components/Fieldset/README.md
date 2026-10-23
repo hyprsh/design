@@ -17,7 +17,7 @@ A settings card: a title, a subtitle and controls on top, and a gray footer with
 A title, a subtitle and a control on top, and a footer with a status line and one action.
 
 ```jsx
-import { Button, Fieldset, FieldsetContent, FieldsetFooter, FieldsetFooterAction, FieldsetFooterActions, FieldsetFooterStatus, FieldsetSubtitle, FieldsetTitle, Input } from '@hyprsh/design';
+import { Fieldset, FieldsetContent, FieldsetFooter, FieldsetFooterAction, FieldsetFooterActions, FieldsetFooterStatus, FieldsetSubtitle, FieldsetTitle, Input } from '@hyprsh/design';
 
 export default function Example() {
   return (

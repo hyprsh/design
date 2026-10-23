@@ -92,25 +92,3 @@ export default function Example() {
   return <FilterParams aria-label="Filter by date" params={params} searchParams={search} onSearchParamsChange={setSearch} />;
 }
 ```
-
-### Picker Open
-`defaultOpen` starts with the picker open. Use it for docs, not for an app.
-
-```jsx
-import { useState } from 'react';
-import { FilterParams } from '@hyprsh/design';
-
-const params = [
-  { key: 'Branch', param: 'branch', type: 'select', options: ['main', 'staging', 'feat/tab-bar'] },
-];
-
-export default function Example() {
-  const [search, setSearch] = useState(new URLSearchParams());
-
-  return (
-    <div style={{ minHeight: 240 }}>
-      <FilterParams aria-label="Filter branches" params={params} searchParams={search} onSearchParamsChange={setSearch} defaultOpen />
-    </div>
-  );
-}
-```

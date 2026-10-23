@@ -6,7 +6,7 @@ Three softly pulsing dots for a short, indeterminate wait, on their own or after
 
 - Use it inline, in text or a button label, where a Spinner would feel heavy. For a known total use Progress; for whole regions waiting on data use Skeleton.
 - The dots take the current text colour (gray-900 by default) and are hidden from screen readers. The wrapper is a polite live region, so the text is announced once.
-- Under reduced motion the dots stop pulsing and stay half-visible.
+- Under reduced motion the dots stop pulsing and stay at 60% opacity.
 
 ## Examples
 

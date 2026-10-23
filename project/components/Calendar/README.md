@@ -120,7 +120,12 @@ import { Calendar } from '@hyprsh/design';
 export default function Example() {
   return (
     <div style={{ width: 340 }}>
-      <Calendar aria-label="Billing period" disabled placeholder="Billing period" />
+      <Calendar
+        aria-label="Billing period"
+        disabled
+        defaultValue={{ start: new Date(2026, 9, 1), end: new Date(2026, 9, 31) }}
+        showTimeInput={false}
+      />
     </div>
   );
 }

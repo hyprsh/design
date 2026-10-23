@@ -16,7 +16,7 @@ A browser-window frame (window dots, back/forward/reload and an address bar) aro
 These examples draw the page with plain elements, because a component can’t load an image or recording from the network. The frame fills the width it is given, so each one sits in a block wrapper.
 
 ### Default
-A window frame around a page. `address` shows the host and path.
+A window frame around a page. `address` shows the host and path, and the navigation icons appear from 600px wide.
 
 ```jsx
 import { Browser } from '@hyprsh/design';
@@ -27,7 +27,7 @@ function Bar({ w, h = 12, c = 'var(--gray-200)' }) {
 
 export default function Example() {
   return (
-    <div style={{ width: '100%', maxWidth: 560 }}>
+    <div style={{ width: '100%', maxWidth: 640 }}>
       <Browser address="https://hyprsh.dev/deployments">
         <div role="img" aria-label="Project overview with a deployment list" style={{ padding: 24, display: 'grid', gridTemplateColumns: '140px 1fr', gap: 24, height: 180, boxSizing: 'border-box' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -60,7 +60,7 @@ const deployments = [
 
 export default function Example() {
   return (
-    <div style={{ width: '100%', maxWidth: 560 }}>
+    <div style={{ width: '100%', maxWidth: 640 }}>
       <Browser address="https://hyprsh.dev/deployments">
         <div style={{ padding: 16 }}>
           <EntityList aria-label="Deployments">
@@ -78,14 +78,14 @@ export default function Example() {
 ```
 
 ### Without an Address
-Leave out `address` for an empty bar.
+Leave out `address` and the frame has no address bar.
 
 ```jsx
 import { Browser } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ width: '100%', maxWidth: 560 }}>
+    <div style={{ width: '100%', maxWidth: 640 }}>
       <Browser>
         <div className="copy-14" style={{ padding: 24 }}>A blank page.</div>
       </Browser>

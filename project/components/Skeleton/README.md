@@ -19,7 +19,7 @@ import { Skeleton } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxWidth: 320 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 320 }}>
       <Skeleton width="60%" height={20} />
       <Skeleton height={14} />
       <Skeleton height={14} width="80%" />
@@ -29,7 +29,7 @@ export default function Example() {
 ```
 
 ### Shapes
-`pill` rounds the ends, and `squared` removes the corners.
+`pill` rounds the ends, `squared` removes the corners, and `animated={false}` leaves a static block.
 
 ```jsx
 import { Skeleton } from '@hyprsh/design';
@@ -97,7 +97,7 @@ import { Skeleton } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', gap: 12, alignItems: 'center', maxWidth: 360 }}>
+    <div style={{ display: 'flex', gap: 12, alignItems: 'center', width: '100%', maxWidth: 360 }}>
       <Skeleton pill width={40} height={40} />
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 6 }}>
         <Skeleton width="50%" height={16} />

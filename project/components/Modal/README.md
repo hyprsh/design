@@ -96,7 +96,7 @@ export default function Example() {
           <ModalInset>
             <Input ref={nameRef} label="Domain" name="domain" placeholder="hyprsh.dev…" autoComplete="off" spellCheck={false} />
           </ModalInset>
-          <p style={{ margin: '20px 0 0' }}>Point an A record at 76.76.21.21 after you add it.</p>
+          <p style={{ margin: '20px 0 0' }}>Point an A record at 192.0.2.1 after you add it.</p>
         </ModalBody>
         <ModalActions>
           <ModalAction variant="secondary" onClick={() => setOpen(false)}>Cancel</ModalAction>

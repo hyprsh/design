@@ -58,7 +58,7 @@ import { Button, Popover } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
+    <div style={{ width: '100%', display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'space-between' }}>
       <Popover trigger={<Button size="small">Start</Button>} position="bottom-start" label="Start aligned" width={200}>Aligned to the start.</Popover>
       <Popover trigger={<Button size="small">Center</Button>} position="bottom-center" label="Centred" width={200}>Centred under the trigger.</Popover>
       <Popover trigger={<Button size="small">End</Button>} position="bottom-end" label="End aligned" width={200}>Aligned to the end.</Popover>

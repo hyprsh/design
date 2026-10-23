@@ -62,14 +62,14 @@ export default function Example() {
 ```
 
 ### Starting Narrowed
-Pass `defaultValue` to start with some items selected, and `align="end"` to open toward the end.
+Pass `defaultValue` to start with some items selected, and `align="end"` to line the panel up with the trigger's right edge.
 
 ```jsx
 import { MultiSelect } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+    <div style={{ width: '100%', display: 'flex', justifyContent: 'flex-end' }}>
       <MultiSelect align="end" size="small" label="Branches" items={['main', 'staging', 'feat/tab-bar']} defaultValue={['main']} />
     </div>
   );

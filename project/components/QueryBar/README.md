@@ -29,7 +29,7 @@ export default function Example() {
   const [query, setQuery] = useState('label:bug');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
       <QueryBar aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} value={query} onChange={setQuery}>
         <QueryBar.Menu qualifier="label" label="Labels" noneLabel="No labels" items={['bug', 'docs', 'enhancement']} />
       </QueryBar>
@@ -57,7 +57,7 @@ export default function Example() {
   const [query, setQuery] = useState('is:open label:bug');
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
       <QueryBar aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} value={query} onChange={setQuery}>
         <QueryBar.Menu qualifier="label" label="Labels" noneLabel="No labels" items={['bug', 'docs', 'enhancement', 'wontfix']} />
         <QueryBar.Menu qualifier="assignee" label="Assignees" noneLabel="Unassigned" items={['ada', 'grace', 'linus']} />

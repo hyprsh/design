@@ -15,13 +15,13 @@ A 13px form label that names a control by its id, or wraps the control itself.
 Name a control by its id, so clicking the label focuses it.
 
 ```jsx
-import { Label } from '@hyprsh/design';
+import { Input, Label } from '@hyprsh/design';
 
 export default function Example() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 320 }}>
       <Label htmlFor="project-name" value="Project Name" />
-      <input id="project-name" name="project" placeholder="my-app" autoComplete="off" />
+      <Input id="project-name" name="project" placeholder="my-app" autoComplete="off" />
     </div>
   );
 }
@@ -31,12 +31,12 @@ export default function Example() {
 `withInput` wraps the control, which works without ids.
 
 ```jsx
-import { Label } from '@hyprsh/design';
+import { Input, Label } from '@hyprsh/design';
 
 export default function Example() {
   return (
     <Label withInput value="Production Branch">
-      <input name="branch" defaultValue="main" autoComplete="off" spellCheck={false} />
+      <Input name="branch" defaultValue="main" autoComplete="off" spellCheck={false} />
     </Label>
   );
 }

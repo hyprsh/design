@@ -31,14 +31,14 @@ export default function Example() {
 ```
 
 ### Validation
-`getAddressErrors` returns an error for each missing or malformed field.
+`getAddressErrors` returns a message for each missing field. It checks presence only, not format.
 
 ```jsx
 import { useState } from 'react';
 import { AddressInput, getAddressErrors } from '@hyprsh/design';
 
 export default function Example() {
-  const [address, setAddress] = useState({ country: 'US', line1: '123 Market Street', city: '', region: '', postalCode: '941' });
+  const [address, setAddress] = useState({ country: 'US', line1: '123 Market Street', city: '', region: '', postalCode: '94105' });
 
   return (
     <div style={{ maxWidth: 400 }}>

@@ -58,7 +58,7 @@ export default function Example() {
 ```
 
 ### Side and Locale
-`side` places the card, and `locale` formats the date.
+`side` places the card (below, then beside the trigger), and `locale` formats the date.
 
 ```jsx
 import { RelativeTimeCard } from '@hyprsh/design';
@@ -67,7 +67,7 @@ export default function Example() {
   return (
     <div className="copy-14" style={{ display: 'flex', gap: 24, flexWrap: 'wrap', padding: '8px 0 96px' }}>
       <RelativeTimeCard date={Date.now() - 90 * 60 * 1000} side="bottom" />
-      <RelativeTimeCard date={Date.now() - 90 * 60 * 1000} side="bottom" locale="de-DE" />
+      <RelativeTimeCard date={Date.now() - 90 * 60 * 1000} side="right" locale="de-DE" />
     </div>
   );
 }

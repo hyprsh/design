@@ -89,12 +89,12 @@ import { useState } from 'react';
 import { Slider } from '@hyprsh/design';
 
 export default function Example() {
-  const [saved, setSaved] = useState(40);
+  const [saved, setSaved] = useState(null);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       <Slider label="Concurrent Builds" min={1} max={100} defaultValue={40} onValueCommitted={(v) => setSaved(v)} />
-      <span className="copy-13" role="status">Saved {saved}</span>
+      <span className="copy-13" role="status">{saved === null ? 'Not saved yet' : `Saved ${saved}`}</span>
     </div>
   );
 }

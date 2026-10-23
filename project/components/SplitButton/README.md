@@ -71,7 +71,7 @@ import { SplitButton } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+    <div style={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
       <SplitButton
         menuAlignment="bottom-end"
         menuButtonLabel="More Redeploy Options"

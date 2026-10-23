@@ -85,7 +85,7 @@ export default function Example() {
 ```
 
 ### Choosing and Reporting
-Run the choice in `onClick`. Here the last action is shown beside the trigger, and the menu opens toward the end.
+Run the choice in `onClick`. Here the last action is shown beside the trigger.
 
 ```jsx
 import { useState } from 'react';

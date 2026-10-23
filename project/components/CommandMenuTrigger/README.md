@@ -23,7 +23,7 @@ export default function Example() {
   const [open, setOpen] = useState(false);
 
   return (
-    <div style={{ maxWidth: 320 }}>
+    <div style={{ width: '100%', maxWidth: 320 }}>
       <CommandMenuTrigger onClick={() => setOpen(true)} />
       <CommandMenu open={open} setOpen={setOpen}>
         <CommandMenuInput placeholder="Search for a command or page…" />
@@ -45,7 +45,7 @@ import { CommandMenuTrigger } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 320 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
       <CommandMenuTrigger size="small">Search Projects…</CommandMenuTrigger>
       <CommandMenuTrigger>Jump to a Domain…</CommandMenuTrigger>
     </div>
@@ -61,7 +61,7 @@ import { CommandMenuTrigger } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 320 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%', maxWidth: 320 }}>
       <CommandMenuTrigger shortcut={false}>Search…</CommandMenuTrigger>
       <CommandMenuTrigger prefix={null}>Search…</CommandMenuTrigger>
     </div>
@@ -77,7 +77,7 @@ import { CommandMenuTrigger } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 320 }}>
+    <div style={{ width: '100%', maxWidth: 320 }}>
       <CommandMenuTrigger disabled>Search…</CommandMenuTrigger>
     </div>
   );

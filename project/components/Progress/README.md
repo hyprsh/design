@@ -20,7 +20,7 @@ import { Progress } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: 360, maxWidth: '100%' }}>
       <Progress label="Build Minutes" value={64} />
     </div>
   );
@@ -35,7 +35,7 @@ import { Progress } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 360, maxWidth: '100%' }}>
       <Progress label="Default" type="default" value={40} />
       <Progress label="Secondary" type="secondary" value={40} />
       <Progress label="Success" type="success" value={40} />
@@ -57,7 +57,7 @@ export default function Example() {
   const [used, setUsed] = useState(70);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, maxWidth: 360 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 360, maxWidth: '100%' }}>
       <Progress
         label="Bandwidth"
         value={used}
@@ -80,7 +80,7 @@ import { Progress } from '@hyprsh/design';
 
 export default function Example() {
   return (
-    <div style={{ maxWidth: 360 }}>
+    <div style={{ width: 360, maxWidth: '100%' }}>
       <Progress
         aria-label="Function invocations"
         value={620}

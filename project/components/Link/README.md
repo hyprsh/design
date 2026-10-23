@@ -36,7 +36,7 @@ import { Link } from '@hyprsh/design';
 export default function Example() {
   return (
     <p className="copy-14" style={{ margin: 0 }}>
-      Follow the <Link href="https://example.com/status" target="_blank" rel="noreferrer">status page</Link> for incidents.
+      Follow the <Link href="https://example.com/status" target="_blank" rel="noopener noreferrer">status page</Link> for incidents.
     </p>
   );
 }

@@ -2,7 +2,7 @@
 
 A short product clip with a small floating bar: play/pause, the current time, a seek slider and the length.
 
-**You provide:** `src`, plus `aria-label` describing what the clip shows. By default it's muted, loops, plays inline and autoplays once it's near the viewport. Pass `width` and `height` as numbers to set the aspect ratio (16:9 otherwise).
+**You provide:** `src`, plus `aria-label` describing what the clip shows. By default it's muted, loops, plays inline and autoplays once it's near the viewport. Pass `width` and `height` as numbers for a size in px and the aspect ratio that pair makes (16:9 otherwise); a width alone keeps 16:9.
 
 - Use it for silent demos of a flow: a deploy going green, a command palette opening. It isn't a media player for talks or tutorials with sound. Link to those instead.
 - The file only loads when the player comes within 200px of the viewport (`lazy`), so a page full of clips stays light. Give it a `poster` so the frame isn't empty before then.
@@ -32,7 +32,7 @@ export default function Example() {
 ```
 
 ### Aspect Ratio
-Numeric `width` and `height` set the ratio.
+Numeric `width` and `height` set the size in pixels, and together the aspect ratio.
 
 ```jsx
 import { Video } from '@hyprsh/design';
@@ -40,8 +40,8 @@ import { Video } from '@hyprsh/design';
 export default function Example() {
   return (
     <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-      <div style={{ width: 240 }}><Video width={4} height={3} aria-label="Placeholder, 4 by 3" /></div>
-      <div style={{ width: 120 }}><Video width={9} height={16} aria-label="Placeholder, 9 by 16" /></div>
+      <Video width={240} height={180} aria-label="Placeholder, 4 by 3" />
+      <Video width={200} height={200} aria-label="Placeholder, square" />
     </div>
   );
 }
