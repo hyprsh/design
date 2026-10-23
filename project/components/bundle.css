@@ -1952,6 +1952,9 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 /* No hover to reveal the arrow on touch-only devices, so sortable heads show it muted at rest. */
 @media (hover: none) { .hy-table__sort-arrow { opacity: 1; } }
 @media (pointer: coarse), (max-width: 639px) { .hy-table__sort { min-height: var(--touch-target); } }
+/* Loading: sortable heads keep their look but are inert, and the arrow doesn't reveal on hover. */
+.hy-table__sort:disabled { cursor: default; }
+.hy-table__head:not(.is-sorted) .hy-table__sort:disabled:hover .hy-table__sort-arrow { opacity: 0; }
 @media (prefers-reduced-motion: reduce) { .hy-table__sort-arrow { transition: none; } }
 .hy-table__cell {
   height: 40px; box-sizing: border-box; padding: 10px 8px; vertical-align: middle;

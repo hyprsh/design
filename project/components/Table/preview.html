@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=1080 subtitle="Sortable headers, compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
+<!-- @dsCard group="Content" height=1440 subtitle="Loading skeleton rows, sortable headers, compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Table</title></head>
@@ -96,7 +96,19 @@ function SortableData() {
     { key: 'region', header: 'Region' },
     { key: 'requests', header: 'Requests', numeric: true, sortable: true, render: function (r) { return fmt.format(r.requests); } }], rows: rows });
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Sortable), h(SortableData), h(Usage), h(Deployments), h(Log), h(Wrapped)));
+/* Loading: skeleton rows in the table's shape, data form and parts form. */
+function Loading() {
+  var cols = [
+    { key: 'name', header: 'Name', sortable: true },
+    { key: 'region', header: 'Region', mono: true },
+    { key: 'requests', header: 'Requests', numeric: true, sortable: true }];
+  return h(F, null,
+    h(H.Table, { caption: 'Projects', bordered: true, loading: 3, columns: cols, rows: [], sort: { key: 'name', direction: 'ascending' }, onSortChange: function () {} }),
+    h(H.Table, { caption: 'Projects, parts', 'aria-busy': 'true' },
+      h(H.TableHeader, null, h(H.TableRow, null, h(H.TableHead, null, 'Name'), h(H.TableHead, { align: 'right' }, 'Requests'))),
+      h(H.TableBody, { bordered: true }, [0, 1].map(function (i) { return h(H.TableSkeletonRow, { key: i, index: i, columns: [{ key: 'n' }, { key: 'r', numeric: true }] }); }))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Loading), h(Sortable), h(SortableData), h(Usage), h(Deployments), h(Log), h(Wrapped)));
 </script>
 </body>
 </html>

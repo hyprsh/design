@@ -32,6 +32,8 @@ onSortChange: function (next) {
 }
 ```
 
+**Loading:** `loading` on the data form draws skeleton rows under the real header instead of `rows` or `empty`: `true` for 5 rows, or a number. Each cell holds a Skeleton sized to its column: `numeric` columns get a short, right-aligned block, `mono` and `truncate` columns a medium one, the rest widths that vary by row. The rows are the same height as real ones (also under touch sizing), so nothing shifts when data arrives. Sortable headers keep their look but are inert, the table gets `aria-busy="true"`, the skeleton rows are hidden from screen readers and the caption reads “Projects, loading” (“Loading” without a `caption`). With the parts, repeat `TableSkeletonRow` (`Table.SkeletonRow`) with `columns` for the same sizing, or `count` for plain cells, and give it `index` so the widths vary; set `aria-busy` on the table yourself.
+
 **Selected and current rows:** `selected` on `TableRow` sets `aria-selected="true"` and `current` sets `aria-current="true"` (or pass a token such as `current="location"`); both use the same tint as a highlighted menu item and a 2px marker on the first cell, so the state isn't shown by colour alone. Use `selected` for a chosen row and `current` for the keyboard cursor of a j/k list. In the data form pass `isSelected(row)` and `isCurrent(row)`. For a selectable grid, also set `role="grid"` on `Table` and manage focus yourself.
 
 - Use it for rows that share one shape and can be compared or sorted. For one row of content with an action, use Entity. For a key/value block on a detail page, use Description.
@@ -65,6 +67,37 @@ const rows = [
 
 export default function Example() {
   return <Table caption="Projects" columns={columns} rows={rows} />;
+}
+```
+
+### Loading
+`loading` draws skeleton rows in the table's shape under the real header. Pass a number for a different row count.
+
+```jsx
+import { useEffect, useState } from 'react';
+import { Table } from '@hyprsh/design';
+
+const columns = [
+  { key: 'name', header: 'Project', sortable: true },
+  { key: 'branch', header: 'Branch', mono: true },
+  { key: 'requests', header: 'Requests (7d)', numeric: true },
+];
+
+const data = [
+  { id: 1, name: 'marketing-site', branch: 'main', requests: '128,402' },
+  { id: 2, name: 'docs', branch: 'main', requests: '54,310' },
+  { id: 3, name: 'api', branch: 'staging', requests: '9,871' },
+];
+
+export default function Example() {
+  const [rows, setRows] = useState(null);
+
+  useEffect(() => {
+    const t = setTimeout(() => setRows(data), 2000);
+    return () => clearTimeout(t);
+  }, []);
+
+  return <Table caption="Projects" columns={columns} rows={rows || []} loading={rows ? false : 3} />;
 }
 ```
 
