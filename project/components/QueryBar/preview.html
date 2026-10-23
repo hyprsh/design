@@ -1,4 +1,4 @@
-<!-- @dsCard group="Forms" height=140 subtitle="Filter menus bound to a query; edit the text or the menus" -->
+<!-- @dsCard group="Forms" height=340 subtitle="Filter menus bound to a query; edit the text or the menus" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>QueryBar</title></head>
@@ -12,17 +12,31 @@ var qualifiers = [
   { name: 'assignee', help: 'Assigned to', suggestions: ['ada', 'grace', 'linus'], excludable: true, none: true },
   { name: 'sort', help: 'Newest, oldest or most commented', values: ['newest', 'oldest', 'comments'] }
 ];
+/* Labels, Assignees and Sort; the sidebar bar adds a State menu in front. */
+function menus() {
+  return [
+    h(H.QueryBar.Menu, { key: 'label', qualifier: 'label', label: 'Labels', noneLabel: 'No labels', items: ['bug', 'docs', 'enhancement', 'wontfix'] }),
+    h(H.QueryBar.Menu, { key: 'assignee', qualifier: 'assignee', label: 'Assignees', noneLabel: 'Unassigned', items: ['ada', 'grace', 'linus'] }),
+    h(H.QueryBar.Menu, {
+      key: 'sort', qualifier: 'sort', label: 'Sort', single: true, defaultOption: 'newest', align: 'end',
+      items: [{ value: 'newest', label: 'Newest' }, { value: 'oldest', label: 'Oldest' }, { value: 'comments', label: 'Most Commented' }]
+    })
+  ];
+}
 function Demo() {
   var q = React.useState('is:open label:bug sort:newest');
   return h(F, null,
-    h(H.QueryBar, { 'aria-label': 'Search issues', placeholder: 'Search issues…', value: q[0], onChange: q[1], qualifiers: qualifiers },
-      h(H.QueryBar.Menu, { qualifier: 'label', label: 'Labels', noneLabel: 'No labels', items: ['bug', 'docs', 'enhancement', 'wontfix'] }),
-      h(H.QueryBar.Menu, { qualifier: 'assignee', label: 'Assignees', noneLabel: 'Unassigned', items: ['ada', 'grace', 'linus'] }),
-      h(H.QueryBar.Menu, {
-        qualifier: 'sort', label: 'Sort', single: true, defaultOption: 'newest', align: 'end',
-        items: [{ value: 'newest', label: 'Newest' }, { value: 'oldest', label: 'Oldest' }, { value: 'comments', label: 'Most Commented' }]
-      })),
-    h('p', { className: 'copy-13', style: { margin: '16px 0 0' } }, 'Query: ', h('code', null, q[0] || '(empty)')));
+    h(H.QueryBar, { 'aria-label': 'Search issues', placeholder: 'Search issues…', value: q[0], onChange: q[1], qualifiers: qualifiers }, menus()),
+    h('p', { className: 'copy-13', style: { margin: '16px 0 0' } }, 'Query: ', h('code', null, q[0] || '(empty)')),
+    h(Sidebar));
+}
+function Sidebar() {
+  var q = React.useState('is:open label:bug sort:newest');
+  return h(F, null,
+    h('p', { className: 'label-13', style: { margin: '24px 0 8px' } }, 'In a 288px sidebar'),
+    h('div', { style: { width: 288, maxWidth: '100%', boxSizing: 'border-box', border: '1px solid var(--gray-alpha-400)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' } },
+      h(H.QueryBar, { size: 'small', 'aria-label': 'Filter issues', placeholder: 'Filter issues…', value: q[0], onChange: q[1], qualifiers: qualifiers },
+        [h(H.QueryBar.Menu, { key: 'is', qualifier: 'is', label: 'State', single: true, defaultOption: 'open', items: [{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }] })].concat(menus()))));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

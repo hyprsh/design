@@ -2,7 +2,8 @@
    query, like GitHub's issue filters. <QueryBar value onChange qualifiers placeholder><QueryBar.Menu qualifier="label" label="Labels"/></QueryBar>.
    The query text is the only state: each menu reads its value off it and writes back with the helpers in _query.js
    (queryMenu, withQueryMenu, querySingle, withQuerySingle), which touch only that qualifier's terms. The announcements
-   come from FilterMenu itself. */
+   come from FilterMenu itself. The menus wrap onto more rows when they don't fit (wrap, default true); wrap={false}
+   keeps them on one row in a Scroller that scrolls sideways. */
 var QueryBarContext = React.createContext(null);
 
 function QueryBarMenu(props) {
@@ -37,17 +38,24 @@ function QueryBar(props) {
   var value = vs[0] == null ? '' : String(vs[0]);
   var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
   var qualifiers = props.qualifiers || [];
-  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children']);
+  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children', 'wrap']);
   var ctx = { value: value, onChange: vs[1], qualifiers: qualifiers, size: size };
   var menus = React.Children.toArray(props.children);
+  var wrap = props.wrap !== false;
+
+  var menuGroup = null;
+  if (menus.length) {
+    var bound = h(QueryBarContext.Provider, { value: ctx }, menus);
+    menuGroup = h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
+      wrap ? h('div', { className: 'hy-querybar__row' }, bound)
+        : h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' }, bound));
+  }
 
   return h('div', { className: cx('hy-querybar', props.className) },
     h('div', { className: 'hy-querybar__bar' },
       h('div', { className: 'hy-querybar__field' },
         h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size }))),
-      menus.length ? h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
-        h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' },
-          h(QueryBarContext.Provider, { value: ctx }, menus))) : null));
+      menuGroup));
 }
 QueryBar.Menu = QueryBarMenu;
 
