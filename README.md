@@ -94,14 +94,14 @@ Screenshots need Google Chrome installed in `/Applications`.
 Install it with:
 
 ```bash
-npm install github:hyprsh/design#v0.9.0
+npm install github:hyprsh/design#v0.10.0
 ```
 
 The getting started guide, with live examples, is at https://hyprsh.github.io/design/. The same page is in [docs/getting-started.md](docs/getting-started.md).
 
 ## Releasing
 
-Bump `version` in `package.json`, then tag it (`git tag v0.10.0 && git push --tags`) and point apps at the new tag. Pushing the tag also deploys the docs site through GitHub Actions.
+Bump `version` in `package.json`, then tag it (`git tag v0.11.0 && git push --tags`) and point apps at the new tag. Pushing the tag also deploys the docs site through GitHub Actions.
 
 ## Contributing
 
