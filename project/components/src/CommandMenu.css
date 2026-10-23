@@ -29,7 +29,7 @@
 .hy-cmd__esc::after { content: ''; position: absolute; inset: -2px 0; }
 @media (pointer: coarse), (max-width: 639px) { .hy-cmd__esc::after { inset: min(0px, calc((100% - var(--touch-target)) / 2)); } }
 .hy-cmd__esc:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
-.hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-cmd__esc:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 /* "Esc" is a shortcut hint: on touch-only devices an x takes its place, and the button is drawn as a round icon button. */
 .hy-cmd__esc-x { display: none; }
 @media (hover: none) and (pointer: coarse) {

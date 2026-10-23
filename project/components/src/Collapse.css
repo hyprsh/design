@@ -11,7 +11,7 @@
   color: inherit; text-align: left; cursor: pointer;
 }
 .hy-collapse__trigger[aria-disabled="true"] { cursor: default; }
-.hy-collapse__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; border-radius: var(--radius-sm); }
+.hy-collapse__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; border-radius: var(--radius-sm); }
 .hy-collapse__chev { display: grid; flex: none; color: var(--gray-900); transform: rotate(-90deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
 .hy-collapse.is-open .hy-collapse__chev { transform: none; }
 .hy-collapse__body { padding-bottom: 16px; font-size: 16px; line-height: 24px; }

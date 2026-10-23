@@ -18,7 +18,7 @@
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-cb__switch select:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
-.hy-cb__switch select:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-cb__switch select:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-cb__switch .hy-glyph { position: absolute; right: 4px; pointer-events: none; }
 .hy-cb__switch option { background: var(--background-100); color: var(--gray-1000); }
 .hy-cb__copy {
@@ -27,7 +27,7 @@
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-cb__copy:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
-.hy-cb__copy:focus-visible, .hy-cb__pre:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-cb__copy:focus-visible, .hy-cb__pre:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-cb--bare .hy-cb__copy { position: absolute; top: 8px; right: 8px; background: var(--background-100); }
 .hy-cb--bare .hy-cb__copy:hover { background: var(--gray-100); }
 /* Two classes, so a host's `pre` styles (docs prose, an app reset) cannot add margin, padding or a background. */
@@ -73,4 +73,4 @@
 }
 .hy-cb-tabs__tab:hover { color: var(--gray-1000); }
 .hy-cb-tabs__tab[aria-selected="true"] { background: var(--gray-alpha-200); color: var(--gray-1000); font-weight: 500; }
-.hy-cb-tabs__tab:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-cb-tabs__tab:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }

@@ -13,4 +13,4 @@
   font-family: var(--font-mono); font-size: 13px; line-height: 20px; white-space: pre; tab-size: 2;
 }
 .hy-code-block > code { font: inherit; font-feature-settings: "liga" 0; }
-.hy-code-block:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-code-block:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }

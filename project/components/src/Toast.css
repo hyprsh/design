@@ -34,7 +34,7 @@
   transition: background-color .15s cubic-bezier(.4,0,.2,1), opacity .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-toast__close:hover { background: var(--gray-alpha-200); opacity: 1; }
-.hy-toast__close:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-toast__close:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 
 /* types: solid fills with fixed text colours */
 .hy-toast--success { background: var(--blue-800); color: var(--white); }

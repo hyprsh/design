@@ -11,4 +11,4 @@
 .hy-rtc__time { font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--gray-900); font-variant-numeric: tabular-nums; white-space: nowrap; }
 /* 24px tall hit area */
 .hy-rtc__trigger { display: inline-flex; align-items: center; min-height: 24px; font-variant-numeric: tabular-nums; color: inherit; border-radius: var(--radius-sm); cursor: default; }
-.hy-rtc__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-rtc__trigger:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }

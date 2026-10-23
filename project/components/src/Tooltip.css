@@ -1,7 +1,7 @@
 /* ---------- Tooltip ---------- */
 .hy-tooltip { position: relative; display: inline-flex; vertical-align: middle; }
 .hy-tooltip__text { border-radius: var(--radius-sm); }
-.hy-tooltip__text:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-tooltip__text:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-tooltip__box {
   --tip-bg: var(--gray-1000); --tip-fg: var(--background-100); --tip-shift: 4px;
   width: max-content; max-width: min(250px, calc(100vw - 16px)); box-sizing: border-box; padding: 6px 8px;

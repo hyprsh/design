@@ -11,7 +11,7 @@
   cursor: pointer; transition: background-color .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-showmore__btn:hover { background: var(--gray-100); }
-.hy-showmore__btn:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-showmore__btn:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-showmore__chev { display: grid; color: var(--gray-900); transition: transform .15s cubic-bezier(.4,0,.2,1); }
 .hy-showmore__chev.is-up { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {

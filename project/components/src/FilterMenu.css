@@ -22,9 +22,8 @@
 .hy-filtermenu__search input::placeholder { color: var(--gray-700); }
 .hy-filtermenu__search:focus-within { border-bottom-color: var(--gray-1000); }
 /* The search box sits flush in the panel, so its focus ring is drawn inside it. */
-.hy-filtermenu__search:has(input:focus-visible) { outline: 2px solid var(--focus-color); outline-offset: -2px; border-radius: var(--radius-md); }
 .hy-filtermenu__list { flex: 1; min-height: 0; overflow-y: auto; outline: 0; }
-.hy-filtermenu__list:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; border-radius: var(--radius-md); }
+.hy-filtermenu__list:focus-visible { outline: none; }
 .hy-filtermenu__group + .hy-filtermenu__group { margin-top: 4px; }
 .hy-filtermenu__title { padding: 8px 8px 4px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); }
 .hy-filtermenu__option {

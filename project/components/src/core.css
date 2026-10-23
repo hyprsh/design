@@ -22,14 +22,14 @@ body {
 .hy-right { text-align: right; }
 .hy-mono { font-family: var(--font-mono); font-size: 13px; }
 
-/* focus: one ring everywhere */
+/* focus: one ring everywhere, flush on the edge (it covers a 1px border). Items in a list show focus with their background instead. */
 .hy-btn:focus-visible, .hy-tabs__tab:focus-visible, .hy-tabs__panel:focus-visible,
-.hy-snippet__copy:focus-visible, .hy-toast__close:focus-visible, .hy-menu__item:focus-visible, .hy-modal:focus-visible,
+.hy-snippet__copy:focus-visible, .hy-toast__close:focus-visible, .hy-modal:focus-visible,
 .hy-check__input:focus-visible + .hy-check__box {
   outline: 2px solid var(--focus-color);
-  outline-offset: 2px;
+  outline-offset: 0;
 }
-.hy-modal:focus:not(:focus-visible), .hy-menu__item:focus:not(:focus-visible) { outline: none; }
+.hy-modal:focus:not(:focus-visible) { outline: none; }
 
 /* ---------- Fields ---------- */
 .hy-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
@@ -47,7 +47,7 @@ body {
 .hy-input:hover, .hy-select:hover { box-shadow: 0 0 0 1px var(--gray-alpha-500); }
 .hy-input:focus-within, .hy-select:focus-within {
   box-shadow: 0 0 0 1px var(--gray-alpha-600);
-  outline: 2px solid var(--focus-color); outline-offset: 2px;
+  outline: 2px solid var(--focus-color); outline-offset: 0;
 }
 .hy-input--small { height: 32px; }
 .hy-input--large { height: 48px; border-radius: var(--radius-lg); }

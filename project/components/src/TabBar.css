@@ -30,7 +30,7 @@
 }
 .hy-tabbar__item:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-tabbar__item.is-selected, .hy-tabbar__item.is-selected:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
-.hy-tabbar__item:focus-visible, .hy-tabbar__accessory:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; border-radius: var(--radius-full); }
+.hy-tabbar__item:focus-visible, .hy-tabbar__accessory:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; border-radius: var(--radius-full); }
 .hy-tabbar__item.is-hidden { display: none; }
 .hy-tabbar__capsule.is-min .hy-tabbar__item { flex: none; width: 48px; min-width: 0; }
 .hy-tabbar__capsule.is-min .hy-tabbar__label { display: none; }

@@ -9,7 +9,7 @@
 .hy-breadcrumbs__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-breadcrumbs__affix { display: inline-flex; flex: none; }
 a.hy-breadcrumbs__item:hover { color: var(--gray-1000); }
-a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-breadcrumbs__item.is-active { color: var(--gray-1000); }
 .hy-breadcrumbs__item.is-disabled { color: var(--gray-700); cursor: not-allowed; }
 

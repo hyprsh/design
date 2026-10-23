@@ -22,7 +22,7 @@
   background: var(--background-100);
   box-shadow: 0 0 0 1px var(--gray-alpha-400), 0 1px 2px var(--gray-alpha-200);
 }
-.hy-theme__input:focus-visible + .hy-theme__option { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-theme__input:focus-visible + .hy-theme__option { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-theme.is-disabled .hy-theme__option { cursor: not-allowed; color: var(--gray-700); }
 .hy-theme.is-disabled .hy-theme__input:checked + .hy-theme__option { color: var(--gray-700); background: var(--background-200); }
 @media (prefers-reduced-motion: reduce) {

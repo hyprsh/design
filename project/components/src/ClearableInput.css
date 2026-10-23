@@ -6,7 +6,7 @@
   border: 0; border-radius: var(--radius-sm); background: transparent;
   font: inherit; color: inherit; cursor: pointer;
 }
-.hy-clearable__clear:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-clearable__clear:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-clearable__clear .hy-kbd { margin: 0; transition: color .15s cubic-bezier(.4,0,.2,1), background-color .15s cubic-bezier(.4,0,.2,1); }
 .hy-clearable__clear:hover .hy-kbd { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .hy-clearable__cmdk { display: inline-flex; align-items: center; gap: 4px; }

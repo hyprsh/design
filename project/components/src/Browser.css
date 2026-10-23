@@ -39,7 +39,7 @@
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-browser__copy:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
-.hy-browser__copy:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-browser__copy:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-browser__view { position: relative; min-height: var(--space-6); }
 .hy-browser__view > img, .hy-browser__view > video { display: block; width: 100%; height: auto; }
 

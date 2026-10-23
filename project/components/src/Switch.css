@@ -28,7 +28,7 @@
 .hy-switch__control:hover .hy-switch__face { color: var(--gray-1000); }
 .hy-switch__input:checked + .hy-switch__face { background: var(--gray-100); color: var(--gray-1000); }
 [data-theme="dark"] .hy-switch__input:checked + .hy-switch__face { background: var(--gray-300); }
-.hy-switch__input:focus-visible + .hy-switch__face { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-switch__input:focus-visible + .hy-switch__face { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-switch__control.is-disabled { cursor: not-allowed; }
 .hy-switch__control.is-disabled .hy-switch__face,
 .hy-switch__control.is-disabled:hover .hy-switch__face { color: var(--gray-700); }

@@ -4,7 +4,7 @@
   display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 24px;
   margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; border-radius: var(--radius-md);
 }
-.hy-menu__unstyled:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-menu__unstyled:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 
 .hy-menu__list {
   position: fixed; z-index: var(--z-menu); box-sizing: border-box;
@@ -31,8 +31,7 @@
   text-decoration: none; cursor: pointer; user-select: none; outline: none;
   transition: background-color .1s cubic-bezier(.4,0,.2,1);
 }
-.hy-menu__item:focus, .hy-menu__item:hover { background: var(--gray-alpha-100); }
-.hy-menu__list .hy-menu__item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }
+.hy-menu__item:focus, .hy-menu__item:hover { background: var(--gray-alpha-100); outline: none; }
 .hy-menu__item[aria-disabled="true"] { color: var(--gray-700); cursor: not-allowed; background: none; }
 .hy-menu__item[aria-disabled="true"]:focus { background: var(--gray-alpha-100); }
 .hy-menu__item--error { color: var(--red-900); }

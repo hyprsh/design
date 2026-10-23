@@ -6,7 +6,7 @@
   transition: box-shadow .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-textarea:hover { box-shadow: 0 0 0 1px var(--gray-alpha-500); }
-.hy-textarea:focus-within { box-shadow: 0 0 0 1px var(--gray-alpha-600); outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-textarea:focus-within { box-shadow: 0 0 0 1px var(--gray-alpha-600); outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-textarea textarea {
   flex: 1; min-width: 0; margin: 0; padding: 10px 12px;
   font: inherit; font-size: 14px; line-height: 20px; color: var(--gray-1000);

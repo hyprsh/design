@@ -10,7 +10,7 @@
 a.hy-pill, button.hy-pill { cursor: pointer; touch-action: manipulation; }
 a.hy-pill:hover, button.hy-pill:hover { background: var(--gray-200); }
 a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
-.hy-pill:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-pill:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-pill__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 .hy-pill__icon { display: inline-flex; flex: none; margin-left: -4px; }
 .hy-pill__icon svg { width: 14px; height: 14px; }

@@ -5,7 +5,7 @@
   padding: 4px 8px 4px 28px; border-radius: var(--radius-md); text-decoration: none; color: var(--gray-1000);
 }
 .hy-pagination__link--next { padding: 4px 28px 4px 8px; align-items: flex-end; text-align: right; }
-.hy-pagination__link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-pagination__link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-pagination__icon {
   position: absolute; top: 50%; left: 2px; display: inline-flex; color: var(--gray-900);
   transform: translateY(-50%); transition: transform .15s cubic-bezier(.4,0,.2,1);

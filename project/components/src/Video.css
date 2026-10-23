@@ -47,7 +47,7 @@ video.hy-video__media { cursor: pointer; }
   transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
 }
 .hy-video__play:hover:not(:disabled) { background: var(--gray-alpha-200); }
-.hy-video__play:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-video__play:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-video__play:disabled { cursor: default; color: var(--gray-700); }
 
 .hy-video__time {
@@ -76,7 +76,7 @@ video.hy-video__media { cursor: pointer; }
 .hy-video__seek::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: var(--radius-full); background: var(--gray-1000); }
 .hy-video__seek:disabled::-webkit-slider-thumb { background: var(--gray-500); }
 .hy-video__seek:disabled::-moz-range-thumb { background: var(--gray-500); }
-.hy-video__seek:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; border-radius: var(--radius-sm); }
+.hy-video__seek:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; border-radius: var(--radius-sm); }
 
 @media (prefers-reduced-motion: reduce) {
   .hy-video__bar, .hy-video__play { transition-duration: 0s; }

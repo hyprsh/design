@@ -71,7 +71,7 @@ Shadows are layered: a 1px translucent border, then an ambient layer, then a 1px
 - **Pressed** goes one more step, to 300 or `gray-alpha-600`.
 - **Disabled** controls get a `gray-100` fill, a `gray-700` label and `cursor: not-allowed`.
 - **Touch:** under a coarse pointer or at phone width (`@media (pointer: coarse), (max-width: 639px)`) buttons and fields are at least 44px tall (48px for large buttons), menu rows are 44px, and tiny controls keep their drawn size with a 44px hit area. Under a coarse pointer only, text fields use 16px text so iOS doesn't zoom, anything shown on hover also opens on tap, and every popover stays 8px inside the screen.
-- **Focus** is a ring: `outline: 2px solid var(--focus-color); outline-offset: 2px`, shown on `:focus-visible` only. `focus-color` is `accent-700` in light and `accent-900` in dark, and holds at least 3:1 on both backgrounds. Never remove an outline without replacing it. Group the ring with `:focus-within` on compound controls. Sticky headers must never cover a focused element.
+- **Focus** is a ring: `outline: 2px solid var(--focus-color); outline-offset: 0`, flush on the control’s edge so it covers the 1px border, shown on `:focus-visible` only. Items in a list (menus, listboxes, the command menu) show focus with their highlight background instead of a ring. `focus-color` is `accent-700` in light and `accent-900` in dark, and holds at least 3:1 on both backgrounds. Never remove an outline without replacing it. Group the ring with `:focus-within` on compound controls. Sticky headers must never cover a focused element.
 - **Selection** uses the `selection` token behind `gray-1000` text.
 
 ### Motion

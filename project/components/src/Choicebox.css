@@ -11,7 +11,7 @@
   transition: background-color .15s ease, box-shadow .15s ease;
 }
 .hy-choicebox__item:hover { background: var(--gray-alpha-100); }
-.hy-choicebox__item:has(.hy-choicebox__input:focus-visible) { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-choicebox__item:has(.hy-choicebox__input:focus-visible) { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-choicebox__header { position: relative; display: flex; align-items: flex-start; gap: 12px; padding: 12px; cursor: pointer; }
 .hy-choicebox__input {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;

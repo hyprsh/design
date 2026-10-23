@@ -45,7 +45,7 @@ Don't edit `core.js`, `core.css`, `tokens.json` or another component's files. If
 - **Accessibility** (from `project/guidelines.md`):
   - native elements first
   - full keyboard support following the WAI-ARIA pattern
-  - a visible focus ring: `outline: 2px solid var(--focus-color); outline-offset: 2px` on `:focus-visible`
+  - a visible focus ring: `outline: 2px solid var(--focus-color); outline-offset: 0` on `:focus-visible`, flush on the edge. Items in a list (menus, listboxes) show focus with their highlight background, not a ring
   - hit targets of 24px or more
   - labels on every control
   - `aria-live` for async status

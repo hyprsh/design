@@ -21,14 +21,13 @@
 .hy-multiselect__row { display: flex; align-items: center; gap: 4px; min-height: 28px; }
 .hy-multiselect__checkcell { display: grid; place-items: center; flex: none; width: 28px; height: 28px; }
 .hy-multiselect__checkcell .hy-check { min-height: 0; width: 100%; height: 100%; justify-content: center; }
-.hy-multiselect__checkcell .hy-check__input:focus-visible + .hy-check__box { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+.hy-multiselect__checkcell .hy-check__input:focus-visible + .hy-check__box { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-multiselect__name {
   display: flex; flex: 1; align-items: center; justify-content: space-between; gap: 12px; min-width: 0; height: 28px;
   padding: 0 8px; border: 0; border-radius: var(--radius-sm); background: transparent;
   font: inherit; font-size: 14px; line-height: 20px; color: var(--gray-1000); text-align: left; cursor: pointer;
 }
-.hy-multiselect__name:hover { background: var(--gray-100); }
-.hy-multiselect__name:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-multiselect__name:hover, .hy-multiselect__name:focus-visible { background: var(--gray-100); outline: none; }
 .hy-multiselect__name:disabled { color: var(--gray-700); cursor: not-allowed; background: transparent; }
 .hy-multiselect__text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-multiselect__action { flex: none; font-size: 12px; line-height: 16px; color: var(--gray-900); opacity: 0; transition: opacity .1s ease; }

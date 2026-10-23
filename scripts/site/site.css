@@ -3,7 +3,7 @@ html { scroll-padding-top: 72px; }
 body { min-height: 100vh; }
 a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1px; }
 /* Zero specificity, so the components' own focus styles win inside live examples. */
-:where(a, button, input, iframe, [tabindex]):focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+:where(a, button, input, iframe, [tabindex]):focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .muted { color: var(--gray-900); }
 
 /* ---------- Chrome ---------- */
