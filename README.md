@@ -1,12 +1,101 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/cover-dark.png">
+  <img alt="hyprsh: quiet surfaces, sharp type, one blue accent." src="docs/images/cover-light.png">
+</picture>
+
 # hyprsh design system
 
-hyprsh’s design system: a colour scale, the Geist Sans and Geist Mono fonts, type and control scales, materials, interface guidelines and a catalogue of React components.
+80+ accessible React components, design tokens, the Geist fonts and the hyprsh brand, in one package with no dependencies of its own. Light and dark themes, touch sizing and keyboard support are built in.
 
-The docs, with live examples, are at https://hyprsh.github.io/design/.
+**[Docs and live examples](https://hyprsh.github.io/design/)** · **[Releases](https://github.com/hyprsh/design/releases)** · **[Getting started](docs/getting-started.md)**
 
-It is published as a Design System artifact. The `project/` folder is exactly what gets published.
+## Get started
 
-## Layout
+**1. Install** a release tag (React 18 or newer is a peer dependency):
+
+```bash
+npm install github:hyprsh/design#v0.11.0
+```
+
+**2. Import the styles** once, at your app's entry:
+
+```tsx
+import '@hyprsh/design/tokens.css';
+import '@hyprsh/design/styles.css';
+```
+
+Using Tailwind v4? Import the Tailwind entry instead of those two files. It also gives you the design's colours, radii, shadows and type styles as utilities (`bg-background-100`, `text-gray-900`, `label-14`…):
+
+```css
+@import "tailwindcss";
+@import "@hyprsh/design/tailwind.css";
+```
+
+**3. Use the components:**
+
+```tsx
+import { Button, Input, Toast, useToasts } from '@hyprsh/design';
+
+export default function App() {
+  const toasts = useToasts();
+
+  return (
+    <>
+      <form onSubmit={(e) => { e.preventDefault(); toasts.success('Domain added'); }}>
+        <Input label="Domain" placeholder="example.com" hint="Point its DNS at your project first." />
+        <Button typeName="submit" variant="primary">Add Domain</Button>
+      </form>
+      {/* Mount one <Toast /> at the app root; toasts from anywhere show here. */}
+      <Toast />
+    </>
+  );
+}
+```
+
+**Dark mode:** set `data-theme="dark"` (or a `.dark` class) on `<html>` or any ancestor. Without it, the light theme applies.
+
+Every component has a page with live examples you can copy at **https://hyprsh.github.io/design/**.
+
+## What's inside
+
+| | |
+|---|---|
+| **Components** | Forms (Input, Select, Combobox, Checkbox, Toggle, Slider…), overlays (Modal, Drawer, Popover, Menu, Command Menu, Tooltip), data (Table, Query Bar, File Tree, JSON View), feedback (Toast, Banner, Note, Progress, Skeleton), navigation, layout and media. Each one ships its TypeScript types. |
+| **Tokens** | A colour scale for light and dark, spacing, radii, shadows, z-index and type styles, as CSS variables and classes (`.heading-24`, `.copy-14`). |
+| **Fonts** | Geist Sans and Geist Mono, loaded by `tokens.css`. |
+| **Icons** | Pass any [Lucide](https://lucide.dev) icon: `<Icon icon={GitBranch} />` from `lucide-react`. `import '@hyprsh/design/icons'` registers the full set for `<Icon name="…">` (about 450 KB). |
+| **Brand** | The logo SVGs: `@hyprsh/design/brand/logo-mark.svg`, `logo-mark-mono.svg` and `logo-lockup.svg`. |
+| **Guidelines** | Interface rules for accessibility, forms, motion and copy in [project/guidelines.md](project/guidelines.md), and the brand book in [project/README.md](project/README.md). |
+
+## Using it with coding agents
+
+The package ships an `AGENTS.md` with the setup, the hard rules and an index of every component, plus one markdown file per component that matches the installed version. Add this line to your app's `CLAUDE.md` or `AGENTS.md`:
+
+```
+UI comes from @hyprsh/design. Read node_modules/@hyprsh/design/AGENTS.md before writing UI.
+```
+
+The docs site also serves `llms.txt`, `llms-full.txt` and a `.md` version of every page.
+
+## Without a bundler
+
+`project/components/bundle.js` is a classic script that puts every component on `window.Hyprsh`, for plain HTML pages. See [Using the bundle in plain HTML](docs/getting-started.md#using-the-bundle-in-plain-html).
+
+## Upgrading
+
+Each version is a git tag with a [GitHub release](https://github.com/hyprsh/design/releases) listing its features, fixes and breaking changes. To upgrade, point the install at the new tag:
+
+```bash
+npm install github:hyprsh/design#v0.11.0
+```
+
+---
+
+## Working on the design system
+
+The design system is also published as a Design System artifact; the `project/` folder is exactly what gets published. Node 20 or newer is all you need (22 or newer for the scripts that drive Chrome). There is nothing to install.
+
+### Layout
 
 ```
 project/
@@ -33,84 +122,33 @@ scripts/
   site.mjs             builds the docs site into .cache/site (--serve to view it)
   examples.mjs         mounts every docs example in headless Chrome
   smoke.mjs            loads dist/index.js against React 18 and 19 in headless Chrome
+  release-notes.mjs    writes a tag's GitHub release notes from the commits since the previous tag
 docs/
   getting-started.md   the docs site home page, also shipped to coding agents
   adr/                 architecture decisions
 ```
 
-## Commands
+### Commands
 
-Node 20 or newer (22 or newer for the scripts that drive Chrome, which use its built-in WebSocket). There are no dependencies to install.
+| Command | What it does |
+|---|---|
+| `npm run build` | Builds the artifact bundle and the package in `dist/`. |
+| `npm test` | Runs the unit tests. |
+| `npm run dev` | The card viewer at http://127.0.0.1:4400. Add `?only=Button,Toggle` to show just those cards. |
+| `npm run site` | Builds the docs site into `.cache/site`. Add `-- --serve` to serve it at http://127.0.0.1:4401. |
+| `node scripts/examples.mjs` | Checks that every docs example mounts. |
+| `npm run shots -- Button Toggle` | Mount check and light and dark screenshots of those cards. Needs `npm run dev` running. |
+| `node scripts/mobile.mjs Button Toggle` | Renders cards at 375px with touch, flags anything wider than the screen and tap targets under 24px, and saves screenshots to `.cache/mobile`. |
+| `node scripts/touch.mjs` | Measures touch sizing at 1280px with a mouse, at 375px and with a coarse pointer, and fails when a drawn size or hit area is off (see Touch sizing in `project/guidelines.md`). |
+| `node scripts/smoke.mjs [18\|19]` | Loads `dist/index.js` the way an app does, on React 18 and 19 from esm.sh, and fails on an error, a `console.error`, a component that didn't render or a missing toast. Run `npm run build` first; it needs network access. |
 
-```bash
-npm run build
-```
+The Chrome scripts need Google Chrome installed in `/Applications`, or `CHROME_PATH` set.
 
-This builds the artifact bundle and the package in `dist/`.
+### Releasing
 
-```bash
-npm run dev
-```
+Bump `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, then tag it (`git tag v0.12.0 && git push origin main v0.12.0`). Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with notes grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes).
 
-The viewer runs at http://127.0.0.1:4400. Add `?only=Button,Toggle` to show just those cards.
-
-```bash
-npm run site
-```
-
-This builds the docs site into `.cache/site`.
-
-```bash
-npm run site -- --serve
-```
-
-This serves it at http://127.0.0.1:4401.
-
-```bash
-node scripts/examples.mjs
-```
-
-This checks that every example mounts.
-
-```bash
-npm run shots -- Button Toggle
-```
-
-```bash
-node scripts/mobile.mjs Button Toggle
-```
-
-The phone check renders cards at 375px with touch, flags anything wider than the screen and tap targets under 24px, and saves screenshots to `.cache/mobile`.
-
-```bash
-node scripts/touch.mjs
-```
-
-The touch sizing check measures the controls touch sizing covers at 1280px with a mouse, at 375px with a mouse and with a coarse pointer, and fails when a drawn size or hit area is off (see Touch sizing in `project/guidelines.md`).
-
-```bash
-node scripts/smoke.mjs [18|19]
-```
-
-The smoke test loads `dist/index.js` the way an app does, with import maps onto React 18 and React 19 from esm.sh, mounts a few components and calls `useToasts()` with no `<Toast />`. It fails on an uncaught error, a `console.error`, a component that didn't render or a missing toast. Run `npm run build` first; it needs network access. The React versions are pinned at the top of the script.
-
-Screenshots need Google Chrome installed in `/Applications`.
-
-## Using it
-
-Install it with:
-
-```bash
-npm install github:hyprsh/design#v0.11.0
-```
-
-The getting started guide, with live examples, is at https://hyprsh.github.io/design/. The same page is in [docs/getting-started.md](docs/getting-started.md).
-
-## Releasing
-
-Bump `version` in `package.json`, then tag it (`git tag v0.12.0 && git push --tags`) and point apps at the new tag. Pushing the tag also deploys the docs site through GitHub Actions.
-
-## Contributing
+### Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the component conventions, the preview and README formats, and how to check your work.
 
