@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Book"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -6952,67 +6952,6 @@
     define('Avatar', Avatar);
     define('AvatarGroup', AvatarGroup);
     define('AvatarWithIcon', AvatarWithIcon);
-  })();
-
-  /* ---- Book ---- */
-  (function () {
-    function bookPx(v) { return typeof v === 'number' ? v + 'px' : v; }
-
-    function BookMark() {
-      /* Default art for the simple variant: two interlocking rings in the text colour. */
-      return h('svg', { className: 'hy-book__mark', viewBox: '0 0 40 40', fill: 'none', stroke: 'currentColor', strokeWidth: 2, 'aria-hidden': 'true', focusable: 'false' },
-        h('circle', { cx: 15, cy: 20, r: 11 }),
-        h('circle', { cx: 25, cy: 20, r: 11, opacity: 0.55 }));
-    }
-
-    function Book(props) {
-      var variant = props.variant === 'simple' ? 'simple' : 'stripe';
-      var w = props.width !== undefined ? props.width : 196;
-      var o = w !== null && typeof w === 'object' ? w : { sm: w };
-      var sm = o.sm !== undefined ? o.sm : (o.md !== undefined ? o.md : (o.lg !== undefined ? o.lg : 196));
-      var md = o.md !== undefined ? o.md : sm;
-      var lg = o.lg !== undefined ? o.lg : md;
-      var style = Object.assign({ '--hy-book-w-sm': bookPx(sm), '--hy-book-w-md': bookPx(md), '--hy-book-w-lg': bookPx(lg) }, props.style);
-      if (props.color) style['--hy-book-color'] = props.color;
-      if (props.textColor) style['--hy-book-text'] = props.textColor;
-
-      var title = h('span', { className: 'hy-book__title' }, props.title);
-      var cover;
-      if (variant === 'stripe') {
-        cover = [
-          h('div', { key: 'band', className: 'hy-book__band' },
-            props.illustration ? h('div', { className: 'hy-book__art', 'aria-hidden': 'true' }, props.illustration) : null,
-            h('span', { className: 'hy-book__bind', 'aria-hidden': 'true' })),
-          h('div', { key: 'body', className: 'hy-book__body' },
-            h('span', { className: 'hy-book__bind hy-book__bind--soft', 'aria-hidden': 'true' }),
-            h('div', { className: 'hy-book__text' },
-              title,
-              h('span', { className: 'hy-book__icon', 'aria-hidden': 'true' },
-                props.icon !== undefined ? props.icon : h(HY.Icon, { name: 'book-open', size: 16 }))))
-        ];
-      } else {
-        cover = [
-          h('span', { key: 'bind', className: 'hy-book__bind', 'aria-hidden': 'true' }),
-          h('div', { key: 'text', className: 'hy-book__text' },
-            title,
-            h('div', { className: 'hy-book__art', 'aria-hidden': 'true' }, props.illustration !== undefined ? props.illustration : h(BookMark)))
-        ];
-      }
-
-      return h('div', {
-        className: cx('hy-book', 'hy-book--' + variant, props.textured && 'hy-book--textured', props.className),
-        style: style
-      },
-        h('div', { className: 'hy-book__rotate' },
-          h('div', { className: 'hy-book__cover' },
-            cover,
-            props.textured ? h('span', { className: 'hy-book__texture', 'aria-hidden': 'true' }) : null,
-            h('span', { className: 'hy-book__sheen', 'aria-hidden': 'true' })),
-          h('span', { className: 'hy-book__pages', 'aria-hidden': 'true' }),
-          h('span', { className: 'hy-book__back', 'aria-hidden': 'true' })));
-    }
-
-    define('Book', Book);
   })();
 
   /* ---- Browser ---- */
