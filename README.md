@@ -32,6 +32,7 @@ scripts/
   tokens-css.mjs       compiles tokens.json to CSS the way the artifact does
   site.mjs             builds the docs site into .cache/site (--serve to view it)
   examples.mjs         mounts every docs example in headless Chrome
+  smoke.mjs            loads dist/index.js against React 18 and 19 in headless Chrome
 docs/
   getting-started.md   the docs site home page, also shipped to coding agents
   adr/                 architecture decisions
@@ -86,6 +87,12 @@ node scripts/touch.mjs
 ```
 
 The touch sizing check measures the controls touch sizing covers at 1280px with a mouse, at 375px with a mouse and with a coarse pointer, and fails when a drawn size or hit area is off (see Touch sizing in `project/guidelines.md`).
+
+```bash
+node scripts/smoke.mjs [18|19]
+```
+
+The smoke test loads `dist/index.js` the way an app does, with import maps onto React 18 and React 19 from esm.sh, mounts a few components and calls `useToasts()` with no `<Toast />`. It fails on an uncaught error, a `console.error`, a component that didn't render or a missing toast. Run `npm run build` first; it needs network access. The React versions are pinned at the top of the script.
 
 Screenshots need Google Chrome installed in `/Applications`.
 
