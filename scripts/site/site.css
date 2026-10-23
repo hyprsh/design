@@ -50,33 +50,34 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
 .main { min-width: 0; padding: 40px 48px 96px; }
 
 /* ---------- Prose ---------- */
+/* Prose element rules skip the live examples (:where keeps their specificity), so components render there as in an app. */
 .prose { max-width: 760px; }
 .prose.wide { max-width: 1080px; }
-.prose h1 { margin: 0 0 12px; }
-.prose h2 { margin: 48px 0 12px; }
-.prose h3 { margin: 32px 0 8px; }
-.prose h4 { margin: 24px 0 8px; }
+.prose h1:where(:not(.example-box *)) { margin: 0 0 12px; }
+.prose h2:where(:not(.example-box *)) { margin: 48px 0 12px; }
+.prose h3:where(:not(.example-box *)) { margin: 32px 0 8px; }
+.prose h4:where(:not(.example-box *)) { margin: 24px 0 8px; }
 .prose h1 + .lead { margin-top: 0; }
-.prose p { margin: 0 0 16px; }
-.prose ul, .prose ol { margin: 0 0 16px; padding-left: 24px; }
-.prose li { margin: 4px 0; }
-.prose li > ul, .prose li > ol { margin: 4px 0 0; }
-.prose li > pre { margin-top: 8px; }
-.prose strong { font-weight: 600; }
-.prose code { font-family: var(--font-mono); font-size: 0.875em; padding: 1px 4px; border-radius: var(--radius-sm); background: var(--gray-alpha-100); overflow-wrap: anywhere; }
-.prose h1 code, .prose h2 code, .prose h3 code { font-size: 1em; padding: 0; background: none; }
+.prose p:where(:not(.example-box *)) { margin: 0 0 16px; }
+.prose ul:where(:not(.example-box *)), .prose ol:where(:not(.example-box *)) { margin: 0 0 16px; padding-left: 24px; }
+.prose li:where(:not(.example-box *)) { margin: 4px 0; }
+.prose li > ul:where(:not(.example-box *)), .prose li > ol:where(:not(.example-box *)) { margin: 4px 0 0; }
+.prose li > pre:where(:not(.example-box *)) { margin-top: 8px; }
+.prose strong:where(:not(.example-box *)) { font-weight: 600; }
+.prose code:where(:not(.example-box *)) { font-family: var(--font-mono); font-size: 0.875em; padding: 1px 4px; border-radius: var(--radius-sm); background: var(--gray-alpha-100); overflow-wrap: anywhere; }
+.prose h1 code:where(:not(.example-box *)), .prose h2 code:where(:not(.example-box *)), .prose h3 code:where(:not(.example-box *)) { font-size: 1em; padding: 0; background: none; }
 .lead { color: var(--gray-900); margin: 0 0 24px; }
 .eyebrow { margin: 0 0 4px; color: var(--gray-900); }
-.prose pre { position: relative; margin: 0 0 16px; padding: 16px 72px 16px 16px; overflow-x: auto; border-radius: var(--radius-lg); background: var(--background-200); box-shadow: var(--shadow-border-inset); color: var(--gray-1000); }
-.prose pre code { padding: 0; background: none; font-size: inherit; overflow-wrap: normal; }
+.prose pre:where(:not(.example-box *)) { position: relative; margin: 0 0 16px; padding: 16px 72px 16px 16px; overflow-x: auto; border-radius: var(--radius-lg); background: var(--background-200); box-shadow: var(--shadow-border-inset); color: var(--gray-1000); }
+.prose pre code:where(:not(.example-box *)) { padding: 0; background: none; font-size: inherit; overflow-wrap: normal; }
 .copy { position: absolute; top: 8px; right: 8px; height: 24px; padding: 0 8px; border: 0; border-radius: var(--radius-md); background: var(--background-100); color: var(--gray-900); box-shadow: var(--shadow-border); cursor: pointer; font-family: inherit; transition: color 150ms cubic-bezier(.4, 0, .2, 1); }
 .copy:hover { color: var(--gray-1000); }
 .copy::after { content: ""; position: absolute; inset: -4px; }
 
 .table-wrap { margin: 0 0 16px; overflow-x: auto; border-radius: var(--radius-lg); box-shadow: var(--shadow-border); }
-.prose table { width: 100%; border-collapse: collapse; }
-.prose th { padding: 8px 12px; text-align: left; font-weight: 500; color: var(--gray-900); background: var(--background-200); white-space: nowrap; }
-.prose td { padding: 10px 12px; vertical-align: top; box-shadow: inset 0 1px 0 var(--gray-alpha-400); }
+.prose table:where(:not(.example-box *)) { width: 100%; border-collapse: collapse; }
+.prose th:where(:not(.example-box *)) { padding: 8px 12px; text-align: left; font-weight: 500; color: var(--gray-900); background: var(--background-200); white-space: nowrap; }
+.prose td:where(:not(.example-box *)) { padding: 10px 12px; vertical-align: top; box-shadow: inset 0 1px 0 var(--gray-alpha-400); }
 .props td:first-child { white-space: nowrap; }
 .props code.type { background: none; padding: 0; color: var(--gray-900); overflow-wrap: normal; }
 .props td:nth-child(2) { min-width: 96px; }
@@ -84,8 +85,9 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
 
 /* ---------- Examples and cards ---------- */
 .example { margin: 0 0 40px; }
-.example-box { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; min-height: 64px; padding: 32px 24px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: var(--background-100); box-shadow: var(--shadow-border); }
-.example-box > * { min-width: 0; max-width: 100%; }
+/* A block container, as most app layouts are: block components fill the width and inline ones sit at the start. */
+.example-box { display: flow-root; min-height: 64px; padding: 32px 24px; border-radius: var(--radius-lg) var(--radius-lg) 0 0; background: var(--background-100); box-shadow: var(--shadow-border); }
+.example-box > * { max-width: 100%; }
 .example-box + pre { border-top-left-radius: 0; border-top-right-radius: 0; }
 .example-error { width: 100%; margin: 0; padding: 12px; border-radius: var(--radius-md); background: var(--red-100); color: var(--red-900); white-space: pre-wrap; }
 .card { display: block; width: 100%; margin: 0 0 16px; border: 0; border-radius: var(--radius-lg); background: var(--background-100); box-shadow: var(--shadow-border); }
