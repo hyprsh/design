@@ -1,5 +1,5 @@
 export interface ShowMoreProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
-  /** Controlled state. Pass it with onClick, as in Geist, or with onChange. */
+  /** Controlled state. Pass it with onClick, or with onChange. */
   expanded?: boolean;
   /** hyprsh: uncontrolled starting state. */
   defaultExpanded?: boolean;

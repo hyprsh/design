@@ -19,3 +19,20 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+
+---
+
+Third-party material
+
+hyprsh's design started from Vercel's Geist design system
+(https://vercel.com/geist). hyprsh is not affiliated with or endorsed by
+Vercel. Geist is Vercel's name for its design system and typeface. No Vercel
+implementation code, CSS, icons or brand assets are included.
+
+Parts by others keep their own licences:
+
+- Geist and Geist Mono fonts: SIL Open Font License 1.1, project/fonts/OFL.txt
+- Lucide icons: ISC, project/components/src/LUCIDE-LICENSE.txt
+- project/guidelines.md is adapted from Vercel Labs' Web Interface Guidelines
+  (https://github.com/vercel-labs/web-interface-guidelines), MIT, with its
+  notice at the end of that file

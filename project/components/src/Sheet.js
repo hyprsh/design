@@ -1,4 +1,4 @@
-/* Sheet: a side panel (Geist/radix-style compound API). Non-modal by default: the page stays usable. */
+/* Sheet: a side panel (radix-style compound API). Non-modal by default: the page stays usable. */
 var SheetCtx = React.createContext(null);
 
 function useSheetPresence(open, ms) {

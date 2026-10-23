@@ -5,7 +5,7 @@ export type CommandMenuKeyEvent = React.KeyboardEvent<HTMLDivElement> & { skipMe
 
 export interface CommandMenuProps {
   open: boolean;
-  /** Geist name for the open setter. */
+  /** Alias for the open setter. */
   setOpen?: (open: boolean) => void;
   /** Alias of setOpen. */
   onOpenChange?: (open: boolean) => void;

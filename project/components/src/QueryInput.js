@@ -1,5 +1,4 @@
-/* QueryInput: a text field whose text is the value, with suggestions that complete the word at the caret. A hyprsh
-   original (no Geist page). <QueryInput value onChange qualifiers /> (or `defaultValue` to let it keep the text), or give it `suggestions(text, caret)`.
+/* QueryInput: a text field whose text is the value, with suggestions that complete the word at the caret. <QueryInput value onChange qualifiers /> (or `defaultValue` to let it keep the text), or give it `suggestions(text, caret)`.
    A suggestion carries the whole query after picking it, so the field knows no syntax: the helper in _query.js
    (suggestQuery, parseQuery) is what `qualifiers` turns into suggestions and problems.
    Keys: the field owns Up, Down, Enter, Tab and Escape only while the list is open; otherwise the app's onKeyDown gets

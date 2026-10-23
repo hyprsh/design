@@ -1,4 +1,4 @@
-/* ContextCard (Geist: ContextCardTrigger): a floating card with richer content than a tooltip,
+/* ContextCard (alias ContextCardTrigger): a floating card with richer content than a tooltip,
    shown on hover or focus of its trigger. On touch screens a tap on the trigger toggles it (the first
    tap on a link opens the card instead of following it) and a tap outside closes it.
    The card is portaled to <body> while open and placed with useFloating, so it stays on screen. */

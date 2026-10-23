@@ -1,5 +1,5 @@
 /* ---------- Select ---------- */
-/* Base frame and chevron live in core.css. This aligns sizes, prefix/suffix, placeholder, error and disabled with Geist. */
+/* Base frame and chevron live in core.css. This aligns sizes, prefix/suffix, placeholder, error and disabled to the design. */
 .hy-select--medium { height: 36px; }
 .hy-select--large { height: 40px; border-radius: var(--radius-lg); }
 .hy-select select { padding: 0 36px 0 12px; background-color: transparent; }

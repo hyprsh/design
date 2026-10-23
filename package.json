@@ -3,7 +3,7 @@
   "version": "0.9.0",
   "private": true,
   "type": "module",
-  "description": "hyprsh design system: Geist-based tokens, brand and React components. Published as a Design System artifact and installable as a package.",
+  "description": "hyprsh design system: tokens, brand and React components. Published as a Design System artifact and installable as a package.",
   "license": "MIT",
   "repository": "github:hyprsh/design",
   "main": "./dist/index.js",

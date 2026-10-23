@@ -11,7 +11,7 @@ export interface ChoiceboxProps {
   disabled?: boolean;
   /** Lay tiles out side by side ('row') or stacked ('column', default). */
   direction?: 'row' | 'column';
-  /** Extra class for the tile list; Geist's "flex-row" is read as direction="row". */
+  /** Extra class for the tile list; "flex-row" is read as direction="row". */
   listClassName?: string;
   /** Input name; generated if left out. */
   name?: string;

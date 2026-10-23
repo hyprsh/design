@@ -486,11 +486,11 @@
 
   /* ---- Button ---- */
   (function () {
-    /* Geist's `variant` values plus our older names. 'default' and 'primary' are the same solid fill. */
+    /* The `variant` values plus our older names. 'default' and 'primary' are the same solid fill. */
     var BTN_VARIANTS = ['default', 'primary', 'secondary', 'tertiary', 'error', 'warning'];
     var BTN_SIZES = ['tiny', 'small', 'medium', 'large'];
 
-    /* `type` is a visual variant when it names one (Geist's older API) and the HTML type otherwise; `typeName` is always the HTML type. */
+    /* `type` is a visual variant when it names one (the older API) and the HTML type otherwise; `typeName` is always the HTML type. */
     function btnVariant(props) {
       var v = props.variant || (BTN_VARIANTS.indexOf(props.type) >= 0 ? props.type : null) || 'secondary';
       return v === 'default' ? 'primary' : v;
@@ -537,7 +537,7 @@
     });
     Button.displayName = 'Button';
 
-    /* ButtonLink: Geist's link that looks like a Button. Same props, plus `href`. */
+    /* ButtonLink: a link that looks like a Button. Same props, plus `href`. */
     var ButtonLink = React.forwardRef(function ButtonLink(props, ref) {
       return renderButton(props, ref, true);
     });
@@ -1250,7 +1250,7 @@
 
   /* ---- Checkbox ---- */
   (function () {
-    /* Checkbox: Geist's 16px checkbox with a label. Checked, indeterminate (a dash in an empty box) and disabled. */
+    /* Checkbox: a 16px checkbox with a label. Checked, indeterminate (a dash in an empty box) and disabled. */
     function Checkbox(props) {
       var ref = useRef(null);
       var indeterminate = !!props.indeterminate || props.checked === 'indeterminate';
@@ -1780,7 +1780,7 @@
 
   /* ---- Fieldset ---- */
   (function () {
-    /* Fieldset: Geist's settings card. Content (title, subtitle, controls) over a gray footer with a status line and actions. */
+    /* Fieldset: a settings card. Content (title, subtitle, controls) over a gray footer with a status line and actions. */
     var FieldsetCtx = React.createContext(null);
 
     function FieldsetContent(props) {
@@ -1859,7 +1859,7 @@
 
   /* ---- FilterMenu ---- */
   (function () {
-    /* FilterMenu: a hyprsh original (no Geist page). A filter menu that starts empty and adds values: each row is
+    /* FilterMenu: a filter menu that starts empty and adds values: each row is
        included, or excluded with `excludable`; it can search, group rows in sections and offer a "none" row.
        <FilterMenu label="Labels" value onChange items noneLabel excludable searchable/>, or rows as parts:
        <FilterMenu label><FilterMenu.Section title><FilterMenu.Item value label description prefix suffix/></FilterMenu.Section></FilterMenu>.
@@ -2147,7 +2147,7 @@
 
   /* ---- Input ---- */
   (function () {
-    /* Input: Geist's text field. Prefix/suffix slots (styled, plain or bare), three sizes, label, hint and error. */
+    /* Input: a text field. Prefix/suffix slots (styled, plain or bare), three sizes, label, hint and error. */
     function setRef(ref, el) {
       if (typeof ref === 'function') ref(el);
       else if (ref) ref.current = el;
@@ -2206,7 +2206,7 @@
 
   /* ---- Label ---- */
   (function () {
-    /* Label: Geist's form label. 13px gray text, Title Case by default, optionally wrapping its control. */
+    /* Label: a form label. 13px gray text, Title Case by default, optionally wrapping its control. */
     function Label(props) {
       var text = props.value != null ? props.value : (props.withInput ? null : props.children);
       var control = props.value != null || props.withInput ? props.children : null;
@@ -2388,7 +2388,7 @@
 
   /* ---- QueryBar ---- */
   (function () {
-    /* QueryBar: a hyprsh original (no Geist page). A QueryInput with a row of FilterMenus that read and write the same
+    /* QueryBar: a QueryInput with a row of FilterMenus that read and write the same
        query, like GitHub's issue filters. <QueryBar value onChange qualifiers placeholder><QueryBar.Menu qualifier="label" label="Labels"/></QueryBar>.
        The query text is the only state: each menu reads its value off it and writes back with the helpers in _query.js
        (queryMenu, withQueryMenu, querySingle, withQuerySingle), which touch only that qualifier's terms. The announcements
@@ -2455,8 +2455,7 @@
 
   /* ---- QueryInput ---- */
   (function () {
-    /* QueryInput: a text field whose text is the value, with suggestions that complete the word at the caret. A hyprsh
-       original (no Geist page). <QueryInput value onChange qualifiers /> (or `defaultValue` to let it keep the text), or give it `suggestions(text, caret)`.
+    /* QueryInput: a text field whose text is the value, with suggestions that complete the word at the caret. <QueryInput value onChange qualifiers /> (or `defaultValue` to let it keep the text), or give it `suggestions(text, caret)`.
        A suggestion carries the whole query after picking it, so the field knows no syntax: the helper in _query.js
        (suggestQuery, parseQuery) is what `qualifiers` turns into suggestions and problems.
        Keys: the field owns Up, Down, Enter, Tab and Escape only while the list is open; otherwise the app's onKeyDown gets
@@ -2597,7 +2596,7 @@
 
   /* ---- Radio ---- */
   (function () {
-    /* Radio: Geist's radio. A standalone Radio, or RadioGroup with RadioGroupItem (or useRadio) sharing one name and value. */
+    /* Radio: a radio. A standalone Radio, or RadioGroup with RadioGroupItem (or useRadio) sharing one name and value. */
     var RadioContext = React.createContext(null);
 
     function RadioGroup(props) {
@@ -2686,7 +2685,7 @@
 
   /* ---- Select ---- */
   (function () {
-    /* Select: Geist's native select. Three sizes, prefix, a suffix that replaces the chevron, placeholder, label, hint and error. */
+    /* Select: a native select. Three sizes, prefix, a suffix that replaces the chevron, placeholder, label, hint and error. */
     function setRef(ref, el) {
       if (typeof ref === 'function') ref(el);
       else if (ref) ref.current = el;
@@ -2750,7 +2749,7 @@
     /* Slider: pick a number (one thumb) or a range (two thumbs) on a track, with optional number fields.
        Each thumb is a native <input type="range">, so keyboard, screen-reader and form behaviour come for free;
        the visible rail, fill and thumbs are drawn on top and follow the inputs.
-       Values may be a number or an array (Geist passes [50]); onValueChange returns the same shape. */
+       Values may be a number or an array (such as [50]); onValueChange returns the same shape. */
     var SLIDER_HIT = 16; /* width of the native thumb hit area, in px */
 
     function sliderSnap(v, min, max, step) {
@@ -2938,7 +2937,7 @@
 
   /* ---- Textarea ---- */
   (function () {
-    /* Textarea: Geist's multi-line field. Three sizes, label, hint and error, matching Input. */
+    /* Textarea: a multi-line field. Three sizes, label, hint and error, matching Input. */
     function setRef(ref, el) {
       if (typeof ref === 'function') ref(el);
       else if (ref) ref.current = el;
@@ -3092,7 +3091,7 @@
   (function () {
     /* Toggle: a single on/off setting that takes effect immediately.
        A native checkbox with role="switch" inside a <label>, so the label toggles it and forms see it.
-       Geist API: checked, onChange, size (small default | medium | large), color, icon {checked, unchecked},
+       Props: checked, onChange, size (small default | medium | large), color, icon {checked, unchecked},
        direction ('label-first' default | 'switch-first'), labelCasing ('title' | 'normal'), disabled, children.
        Old hyprsh props still work: defaultChecked (uncontrolled) and onChange(next) with the new boolean. */
     var TOGGLE_HUES = ['accent', 'blue', 'amber', 'red', 'green', 'teal', 'purple', 'pink', 'gray'];
@@ -3141,7 +3140,7 @@
   (function () {
     /*
      * Breadcrumbs: the path from the top of the app to the current page.
-     * Geist calls it Breadcrumb (type 'text' | 'menu') with BreadcrumbItem children; both names work.
+     * Also exported as Breadcrumb (type 'text' | 'menu') with BreadcrumbItem children; both names work.
      */
     function Breadcrumbs(props) {
       var type = props.type === 'menu' ? 'menu' : 'text';
@@ -3257,7 +3256,7 @@
   /* ---- TabBar ---- */
   (function () {
     /*
-     * TabBar: a hyprsh original, the floating pill tab bar for phones (no Geist page). Fixed to the bottom, takes no layout
+     * TabBar: the floating pill tab bar for phones. Fixed to the bottom, takes no layout
      * space, and exposes its height as --tab-bar-height in CSS. Items are buttons or links; the selected one carries
      * aria-current="page". With minimizeOnScroll it shrinks to the selected item while the content scrolls down.
      */
@@ -3389,7 +3388,7 @@
   /* ---- Tabs ---- */
   (function () {
     /*
-     * Tabs: WAI-ARIA tabs. Geist's API (`selected` + `setSelected`, `tabs` with title/value/icon/disabled/tooltip,
+     * Tabs: WAI-ARIA tabs. The API (`selected` + `setSelected`, `tabs` with title/value/icon/disabled/tooltip,
      * `disabled`, `variant="secondary"`) plus our `onChange`, `defaultSelected` and per-tab `content` panels.
      * A list wider than the screen scrolls sideways; tab tooltips are portalled, so the scroll doesn't clip them.
      */
@@ -3442,7 +3441,7 @@
 
   /* ---- Badge ---- */
   (function () {
-    /* Geist sizes are sm | md | lg; the older small | medium | large still work. */
+    /* Sizes are sm | md | lg; the older small | medium | large still work. */
     var BADGE_SIZE = { sm: 'small', md: 'medium', lg: 'large', small: 'small', medium: 'medium', large: 'large' };
 
     function Badge(props) {
@@ -3498,7 +3497,7 @@
     /* Semantic states for any health or status, not only deployments. `error` belongs to both sets. */
     var STATUS_SEMANTIC = { success: 'Success', warning: 'Warning', neutral: 'Neutral', pending: 'Pending', info: 'Info' };
 
-    /* state takes the semantic states (success | warning | error | neutral | pending) or Geist's deployment states
+    /* state takes the semantic states (success | warning | error | neutral | pending) or deployment states
        (QUEUED | BUILDING | READY | ERROR | CANCELED | DELETED), in any case. variant is filled (default), outline or dashed. */
     function StatusDot(props) {
       var state = String(props.state || 'ready').toLowerCase();
@@ -3660,7 +3659,7 @@
     }
 
     function Note(props) {
-      /* `variant` is Geist's name; the older `type` still works and keeps its leading word (“Warning:”). */
+      /* `variant` is the current name; the older `type` still works and keeps its leading word (“Warning:”). */
       var variant = props.variant || props.type || 'default';
       if (!NOTE_GLYPH[variant]) variant = 'default';
       var legacyWord = !props.variant && props.type ? NOTE_WORD[variant] : null;
@@ -3708,7 +3707,7 @@
 
   /* ---- Progress ---- */
   (function () {
-    /* Geist's `type` names; the older `variant` hues map onto them. */
+    /* The `type` names; the older `variant` hues map onto them. */
     var PROGRESS_TYPES = ['default', 'secondary', 'success', 'warning', 'error'];
     var PROGRESS_LEGACY = { blue: 'success', amber: 'warning', red: 'error', green: 'green' };
 
@@ -3816,7 +3815,7 @@
 
   /* ---- Spinner ---- */
   (function () {
-    /* Geist's sizes: box px, bar count, bar width and height, cycle ms. */
+    /* Sizes: box px, bar count, bar width and height, cycle ms. */
     var SPINNER_SIZES = {
       sm: [12, 8, 3, 1.5, 1000], md: [16, 10, 4, 1.5, 1000], lg: [20, 12, 5, 2, 1200], xl: [24, 12, 6, 2.5, 1200],
       '2xl': [32, 15, 8, 2.5, 1200], '3xl': [40, 15, 10, 3, 1200], '4xl': [56, 18, 14, 3.5, 1300]
@@ -3854,7 +3853,7 @@
 
   /* ---- Toast ---- */
   (function () {
-    /* Toast: Geist's imperative useToasts() API plus the original controlled
+    /* Toast: an imperative useToasts() API plus the original controlled
        <Toast toasts onDismiss> component. Toasts stack at the bottom right and expand on hover. */
     var TOAST_GAP = 8, TOAST_PEEK = 12, TOAST_VISIBLE = 3;
     var TOAST_WORD = { success: 'Success', error: 'Error', warning: 'Warning' };
@@ -3992,7 +3991,7 @@
 
   /* ---- Code ---- */
   (function () {
-    /* Inline code by default. A multi-line string, `block` or `syntax` renders the bordered block Geist shows. */
+    /* Inline code by default. A multi-line string, `block` or `syntax` renders a bordered block. */
     function Code(props) {
       var text = props.children;
       var block = !!props.block || props.syntax != null || (typeof text === 'string' && text.indexOf('\n') >= 0);
@@ -4401,7 +4400,7 @@
 
   /* ---- Icon ---- */
   (function () {
-    /* Lucide paths drawn on Geist's grid: 16px by default with a 1.5px stroke at any size. */
+    /* Lucide paths drawn at 16px by default with a 1.5px stroke at any size. */
     function Icon(props) {
       var size = props.size || 16;
       var label = props['aria-label'] || props.label;
@@ -5278,7 +5277,7 @@
 
   /* ---- CommandMenu ---- */
   (function () {
-    /* CommandMenu: Geist's compound API (CommandMenu + CommandMenuInput/List/Group/Item/Divider)
+    /* CommandMenu: a compound API (CommandMenu + CommandMenuInput/List/Group/Item/Divider)
        plus the original data shorthand (groups/open/onOpenChange/inline). */
     var CmdCtx = React.createContext(null);
 
@@ -5504,7 +5503,7 @@
 
   /* ---- ContextCard ---- */
   (function () {
-    /* ContextCard (Geist: ContextCardTrigger): a floating card with richer content than a tooltip,
+    /* ContextCard (alias ContextCardTrigger): a floating card with richer content than a tooltip,
        shown on hover or focus of its trigger. On touch screens a tap on the trigger toggles it (the first
        tap on a link opens the card instead of following it) and a tap outside closes it.
        The card is portaled to <body> while open and placed with useFloating, so it stays on screen. */
@@ -5880,7 +5879,7 @@
   /* ---- Menu ---- */
   (function () {
     /*
-     * Menu follows Geist's compound API:
+     * Menu uses a compound API:
      *   MenuContainer > MenuButton + Menu > MenuItem | MenuLink | MenuItemLocked | MenuSection | MenuDivider
      * The older one-piece API (<Menu label items>) still works and renders the same parts.
      * MenuContainer.Context is shared with DotsMenu, SplitButton and ContextMenu.
@@ -6151,7 +6150,7 @@
 
   /* ---- Modal ---- */
   (function () {
-    /* Modal: Geist's compound API (Modal + ModalBody/Header/Title/Subtitle/Inset/Actions/Action)
+    /* Modal: a compound API (Modal + ModalBody/Header/Title/Subtitle/Inset/Actions/Action)
        plus the original shorthand props (open/onClose/title/description/actions). */
     var ModalCtx = React.createContext(null);
 
@@ -6395,7 +6394,7 @@
 
   /* ---- Sheet ---- */
   (function () {
-    /* Sheet: a side panel (Geist/radix-style compound API). Non-modal by default: the page stays usable. */
+    /* Sheet: a side panel (radix-style compound API). Non-modal by default: the page stays usable. */
     var SheetCtx = React.createContext(null);
 
     function useSheetPresence(open, ms) {

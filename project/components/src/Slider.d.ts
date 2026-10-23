@@ -1,5 +1,5 @@
 export interface SliderProps {
-  /** One number, or [start, end] for a range. Geist's single-value [50] also works. */
+  /** One number, or [start, end] for a range. A single-value [50] also works. */
   value?: number | number[];
   defaultValue?: number | number[];
   /** Called while dragging or typing, with the same shape as value. */

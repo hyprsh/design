@@ -1,6 +1,6 @@
 /*
  * Breadcrumbs: the path from the top of the app to the current page.
- * Geist calls it Breadcrumb (type 'text' | 'menu') with BreadcrumbItem children; both names work.
+ * Also exported as Breadcrumb (type 'text' | 'menu') with BreadcrumbItem children; both names work.
  */
 function Breadcrumbs(props) {
   var type = props.type === 'menu' ? 'menu' : 'text';

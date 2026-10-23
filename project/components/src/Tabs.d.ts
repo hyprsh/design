@@ -14,7 +14,7 @@ export interface TabsProps {
   /** The selected value (controlled). */
   selected?: string;
   defaultSelected?: string;
-  /** Geist's change handler. */
+  /** Change handler. */
   setSelected?: (value: string) => void;
   /** Same as setSelected; both are called. */
   onChange?: (value: string) => void;

@@ -1,10 +1,10 @@
 # Adding or changing a component
 
-hyprsh ports Geist (vercel.com/geist). Vercel doesn't publish Geist's component source, so every component here is rebuilt from its public doc page. Match what the page shows: its examples, variants, sizes, states, best-practice notes and the prop names in its "Show code" samples. Never copy Vercel's implementation code, CSS or icons. The usage samples are fine to mirror as an API.
+Every component is built from hyprsh's tokens, control scale and `project/guidelines.md`. Never copy another design system's implementation code, CSS, icons or assets.
 
 ## Files
 
-For a component named `Name` (PascalCase of the Geist page: `/geist/split-button` → `SplitButton`):
+For a component named `Name` (PascalCase: `SplitButton`):
 
 | File | What |
 |---|---|
@@ -37,10 +37,10 @@ Don't edit `core.js`, `core.css`, `tokens.json` or another component's files. If
 
 ## Conventions
 
-- **API:** mirror Geist's prop names and values from the page's code samples, including compound parts. For `<Switch><SwitchControl/></Switch>`, export `Switch` and attach the part as `Switch.Control`. Also define it as its own component when the samples import it separately (`define('SwitchControl', SwitchControl)`). Support controlled and uncontrolled use (`value`/`defaultValue`, `checked`/`defaultChecked`, `onChange`).
-- **Renamed or aligned props:** when you change an existing component's API to match Geist, keep the old prop names working as aliases. Other cards use them.
+- **API:** follow the prop names the existing components use, including compound parts. For `<Switch><SwitchControl/></Switch>`, export `Switch` and attach the part as `Switch.Control`. Also define it as its own component when apps may import it separately (`define('SwitchControl', SwitchControl)`). Support controlled and uncontrolled use (`value`/`defaultValue`, `checked`/`defaultChecked`, `onChange`).
+- **Renamed or aligned props:** when you change an existing component's API, keep the old prop names working as aliases. Other cards use them.
 - **Class names:** prefix with `hy-` and use BEM-ish names (`hy-split-btn__menu`, `--small`, `is-open`).
-- **Values:** use tokens only: `var(--gray-…)`, `var(--accent-…)` for anything that shows the accent (never `--pink-…` directly), `var(--space-…)`, `var(--radius-…)`, `var(--shadow-…)`, `var(--font-sans|mono)`, `var(--z-…)`, `var(--touch-target)` for touch sizing and `var(--focus-color)`. Fixed sizes such as control heights (32/40/48) and font sizes (12/13/14/16) are fine as px, because they come from Geist's type and control scale. Never hard-code hex colours.
+- **Values:** use tokens only: `var(--gray-…)`, `var(--accent-…)` for anything that shows the accent (never `--pink-…` directly), `var(--space-…)`, `var(--radius-…)`, `var(--shadow-…)`, `var(--font-sans|mono)`, `var(--z-…)`, `var(--touch-target)` for touch sizing and `var(--focus-color)`. Fixed sizes such as control heights (32/40/48) and font sizes (12/13/14/16) are fine as px, because they come from the type and control scale. Never hard-code hex colours.
 - **Both themes:** every colour must come from a token so dark mode works on its own. Check that dark mode is legible.
 - **Accessibility** (from `project/guidelines.md`):
   - native elements first
@@ -52,7 +52,7 @@ Don't edit `core.js`, `core.css`, `tokens.json` or another component's files. If
   - no state shown by colour alone
   - `prefers-reduced-motion` respected
   - move things only with transform and opacity (short colour and box-shadow transitions on hover are fine), and never `transition: all`
-- **Copy:** Title Case for labels, buttons and menu items. Use `…` (never `...`), curly quotes and no emoji. Demo content is neutral developer-tool content (projects, deployments, domains, branches). Never use Vercel's name, logo or brand assets. Avatars show initials or generic shapes, never photos of real people.
+- **Copy:** Title Case for labels, buttons and menu items. Use `…` (never `...`), curly quotes and no emoji. Demo content is neutral developer-tool content (projects, deployments, domains, branches). Never use a real company's name, logo or brand assets. Avatars show initials or generic shapes, never photos of real people.
 - **Media:** no network fetches or external images. Draw placeholder media with CSS or inline SVG.
 
 ## preview.html
@@ -77,7 +77,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 - `height` is the card height in px: fit the content without clipping or leaving a big empty band.
 - Exactly one `<script>`, with no `<style>` blocks, `<link>` tags or external scripts. The frame already loads tokens.css, bundle.css, React 18 and bundle.js, and sets `data-theme` on `<html>`.
 - Layout helpers: `.hy-row` (wrapping row with padding), `.hy-col` (column, max 420px; add `style="max-width:none"` for wide demos), and text-style classes such as `.label-13`, `.copy-14` and `.heading-20`.
-- Show the variants the Geist page shows (sizes, states, types), compactly. Overlays should render open (`defaultOpen` or `inline`) so the card shows them.
+- Show the variants the component has (sizes, states, types), compactly. Overlays should render open (`defaultOpen` or `inline`) so the card shows them.
 
 ## README.md
 
@@ -89,18 +89,8 @@ One-sentence summary (this becomes the manifest summary).
 **You provide:** the props, with defaults, in prose.
 
 - When to use it, and what to use instead.
-- Do's and don'ts, adapted from Geist's best-practice notes in our own words.
+- Do's and don'ts.
 ```
-
-## Components without a Geist page
-
-A hyprsh original (see GLOSSARY.md) has no Geist page to rebuild from, so the rest of this guide applies with these changes:
-
-- Build it from hyprsh's tokens, control scale and `project/guidelines.md`.
-- Take its behaviour from the platform pattern its issue names (TabBar: the iOS 26 tab bar). Never copy Apple's assets or the Liquid Glass material.
-- The originating GitHub issue is the spec: check the component against its acceptance criteria instead of a Geist page.
-- Mark it as a "hyprsh original" in its README and in the doc comment of its `.d.ts`.
-- Files, `h()` style, the preview card and tokens-only styling are the same as for any other component.
 
 ## Checking your work
 
@@ -112,4 +102,4 @@ node scripts/mobile.mjs Name Other     # phone: 375px with touch, reports overfl
 node scripts/touch.mjs                 # touch sizing: drawn sizes and hit areas at desktop, phone width and coarse pointer
 ```
 
-Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 44px tall under touch sizing (`@media (pointer: coarse), (max-width: 639px)`, sized with `var(--touch-target)`). Then compare with the Geist page: either open it in a browser or read its text and code samples.
+Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 44px tall under touch sizing (`@media (pointer: coarse), (max-width: 639px)`, sized with `var(--touch-target)`).

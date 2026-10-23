@@ -1,4 +1,4 @@
-/* QueryBar: a hyprsh original (no Geist page). A QueryInput with a row of FilterMenus that read and write the same
+/* QueryBar: a QueryInput with a row of FilterMenus that read and write the same
    query, like GitHub's issue filters. <QueryBar value onChange qualifiers placeholder><QueryBar.Menu qualifier="label" label="Labels"/></QueryBar>.
    The query text is the only state: each menu reads its value off it and writes back with the helpers in _query.js
    (queryMenu, withQueryMenu, querySingle, withQuerySingle), which touch only that qualifier's terms. The announcements

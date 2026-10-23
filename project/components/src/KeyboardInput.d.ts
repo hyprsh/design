@@ -18,5 +18,5 @@ export interface KeyboardInputProps {
   className?: string;
 }
 export declare function KeyboardInput(props: KeyboardInputProps): React.ReactElement;
-/** Geist's name for the same component. */
+/** Alias for the same component. */
 export declare const Kbd: typeof KeyboardInput;

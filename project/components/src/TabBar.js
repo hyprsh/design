@@ -1,5 +1,5 @@
 /*
- * TabBar: a hyprsh original, the floating pill tab bar for phones (no Geist page). Fixed to the bottom, takes no layout
+ * TabBar: the floating pill tab bar for phones. Fixed to the bottom, takes no layout
  * space, and exposes its height as --tab-bar-height in CSS. Items are buttons or links; the selected one carries
  * aria-current="page". With minimizeOnScroll it shrinks to the selected item while the content scrolls down.
  */

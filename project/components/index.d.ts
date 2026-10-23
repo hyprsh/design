@@ -20,7 +20,7 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
   svgOnly?: boolean;
   /** HTML type ('button' by default). */
   typeName?: 'button' | 'submit' | 'reset';
-  /** HTML type, or a visual variant name (Geist's older API). Prefer `variant` + `typeName`. */
+  /** HTML type, or a visual variant name (the older API). Prefer `variant` + `typeName`. */
   type?: 'button' | 'submit' | 'reset' | 'default' | 'primary' | 'secondary' | 'tertiary' | 'error' | 'warning';
   /** Renders an `<a>` instead of a `<button>`, as ButtonLink does. */
   href?: string;
@@ -170,7 +170,7 @@ export interface CalendarProps {
   popoverAlignment?: 'start' | 'center' | 'end';
   /** small 32px, medium 40px (default). */
   size?: 'small' | 'medium';
-  /** Quick ranges shown in a "Select Period" select, as a keyed object (Geist) or an array. */
+  /** Quick ranges shown in a "Select Period" select, as a keyed object or an array. */
   presets?: Record<string, CalendarPreset> | CalendarPreset[];
   /** Preset to show selected while no value is set. */
   presetIndex?: number;
@@ -224,7 +224,7 @@ export interface ChoiceboxProps {
   disabled?: boolean;
   /** Lay tiles out side by side ('row') or stacked ('column', default). */
   direction?: 'row' | 'column';
-  /** Extra class for the tile list; Geist's "flex-row" is read as direction="row". */
+  /** Extra class for the tile list; "flex-row" is read as direction="row". */
   listClassName?: string;
   /** Input name; generated if left out. */
   name?: string;
@@ -373,7 +373,7 @@ export interface FieldsetContentProps extends React.FieldsetHTMLAttributes<HTMLF
 }
 export interface FieldsetPartProps { className?: string; children?: React.ReactNode; id?: string }
 export interface FieldsetTitleProps extends FieldsetPartProps {
-  /** Heading level; h4 by default, as in Geist. Pick the one that fits the page outline. */
+  /** Heading level; h4 by default. Pick the one that fits the page outline. */
   as?: 'h2' | 'h3' | 'h4' | 'h5';
 }
 export interface FieldsetFooterProps extends FieldsetPartProps {
@@ -426,7 +426,7 @@ export interface FilterMenuSectionProps {
 }
 
 /**
- * A filter menu that starts empty and adds values. A hyprsh original: Geist has no page for it.
+ * A filter menu that starts empty and adds values.
  * Multiple choice by default: each row is included, or excluded with `excludable`. With `single` it picks one option, like a sort menu.
  */
 export interface FilterMenuProps {
@@ -625,8 +625,7 @@ export interface QueryBarMenuProps extends Omit<FilterMenuProps, 'value' | 'defa
 
 export declare function QueryBarMenu(props: QueryBarMenuProps): React.ReactElement | null;
 /**
- * A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. A hyprsh
- * original: Geist has no page for it. `<QueryBar.Menu qualifier="label" label="Labels">` is checked from the `label:`
+ * A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. `<QueryBar.Menu qualifier="label" label="Labels">` is checked from the `label:`
  * terms and writes them back; `qualifier="sort" single defaultOption="newest"` is a sort menu. Terms no menu owns, and
  * free text, are left alone.
  */
@@ -732,7 +731,7 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
 }
 /**
  * A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter
- * queries such as `is:open label:bug,docs crash`. A hyprsh original: Geist has no page for it. Give it `qualifiers` for
+ * queries such as `is:open label:bug,docs crash`. Give it `qualifiers` for
  * the built-in syntax (`parseQuery`, `suggestQuery`) or `suggestions` for your own. The ARIA 1.2 combobox pattern.
  */
 export declare function QueryInput(props: QueryInputProps): React.ReactElement;
@@ -746,7 +745,7 @@ export interface RadioProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   children?: React.ReactNode;
 }
 export interface RadioGroupProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'> {
-  /** Names the group for assistive tech (visually hidden, as in Geist). Or pass aria-label. */
+  /** Names the group for assistive tech (visually hidden). Or pass aria-label. */
   label?: React.ReactNode;
   value?: string;
   defaultValue?: string;
@@ -809,7 +808,7 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
 export declare const Select: React.ForwardRefExoticComponent<SelectProps & React.RefAttributes<HTMLSelectElement>>;
 
 export interface SliderProps {
-  /** One number, or [start, end] for a range. Geist's single-value [50] also works. */
+  /** One number, or [start, end] for a range. A single-value [50] also works. */
   value?: number | number[];
   defaultValue?: number | number[];
   /** Called while dragging or typing, with the same shape as value. */
@@ -980,7 +979,7 @@ export declare function Breadcrumbs(props: BreadcrumbsProps): React.ReactElement
 export declare namespace Breadcrumbs {
   const Item: typeof BreadcrumbItem;
 }
-/** Geist's name for Breadcrumbs. */
+/** Alias for Breadcrumbs. */
 export declare const Breadcrumb: typeof Breadcrumbs;
 export declare function BreadcrumbItem(props: BreadcrumbItemProps): React.ReactElement;
 
@@ -1066,7 +1065,7 @@ export interface TabBarItemProps {
 export declare const TabBarItem: (props: TabBarItemProps) => React.ReactElement;
 
 /**
- * hyprsh original: the floating pill tab bar for phones, with no Geist page behind it. Fixed to the bottom and out of
+ * The floating pill tab bar for phones. Fixed to the bottom and out of
  * layout; while one is visible, the CSS variable `--tab-bar-height` holds its height (safe area included).
  */
 export interface TabBarProps {
@@ -1108,7 +1107,7 @@ export interface TabsProps {
   /** The selected value (controlled). */
   selected?: string;
   defaultSelected?: string;
-  /** Geist's change handler. */
+  /** Change handler. */
   setSelected?: (value: string) => void;
   /** Same as setSelected; both are called. */
   onChange?: (value: string) => void;
@@ -1555,7 +1554,7 @@ export interface KeyboardInputProps {
   className?: string;
 }
 export declare function KeyboardInput(props: KeyboardInputProps): React.ReactElement;
-/** Geist's name for the same component. */
+/** Alias for the same component. */
 export declare const Kbd: typeof KeyboardInput;
 
 export interface MiddleTruncateProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'children'> {
@@ -1573,7 +1572,7 @@ export interface SnippetProps {
   prompt?: string | false;
   /** Inverted: light text on a dark fill. */
   dark?: boolean;
-  /** Tinted variants. 'success' is blue, as in Geist. */
+  /** Tinted variants. 'success' is blue. */
   type?: 'default' | 'success' | 'error' | 'warning';
   /** Width of the snippet, e.g. '300px' or '100%'. Defaults to its content (fit-content). */
   width?: string | number;
@@ -1833,7 +1832,7 @@ export type CommandMenuKeyEvent = React.KeyboardEvent<HTMLDivElement> & { skipMe
 
 export interface CommandMenuProps {
   open: boolean;
-  /** Geist name for the open setter. */
+  /** Alias for the open setter. */
   setOpen?: (open: boolean) => void;
   /** Alias of setOpen. */
   onOpenChange?: (open: boolean) => void;
@@ -1936,7 +1935,7 @@ export interface ContextCardProps {
   contentClassName?: string;
   children?: React.ReactNode;
 }
-/** Geist's name for the same component. */
+/** Alias for the same component. */
 export declare const ContextCardTrigger: typeof ContextCard;
 export declare const ContextCard: ((props: ContextCardProps) => React.ReactElement) & { Trigger: (props: ContextCardProps) => React.ReactElement };
 
@@ -2032,7 +2031,7 @@ export interface DotsMenuProps {
 export declare function DotsMenu(props: DotsMenuProps): React.ReactElement;
 
 export interface DrawerProps {
-  /** Geist name for open. */
+  /** Alias for open. */
   show: boolean;
   /** Called on a backdrop tap, Escape or a downward swipe. */
   onDismiss: () => void;
@@ -2136,7 +2135,7 @@ export declare function MenuSection(props: MenuSectionProps): React.ReactElement
 export declare function MenuDivider(): React.ReactElement;
 
 export interface ModalProps {
-  /** Geist name for `open`. */
+  /** Alias for `open`. */
   active?: boolean;
   /** Alias of `active`. */
   open?: boolean;
@@ -2319,7 +2318,7 @@ export interface GridSystemProps {
   dashedGuides?: boolean;
   /** Draws the guides in amber, for checking a layout. */
   debug?: boolean;
-  /** Accepted for Geist parity; Grid always measures its own container. */
+  /** Accepted for compatibility; Grid always measures its own container. */
   unstable_useContainer?: boolean;
   children?: React.ReactNode;
   className?: string;
@@ -2393,7 +2392,7 @@ export interface SeparatorProps extends React.HTMLAttributes<HTMLDivElement> {
 export declare function Separator(props: SeparatorProps): React.ReactElement;
 
 export interface ShowMoreProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onChange'> {
-  /** Controlled state. Pass it with onClick, as in Geist, or with onChange. */
+  /** Controlled state. Pass it with onClick, or with onChange. */
   expanded?: boolean;
   /** hyprsh: uncontrolled starting state. */
   defaultExpanded?: boolean;

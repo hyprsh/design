@@ -1,5 +1,5 @@
 export interface DrawerProps {
-  /** Geist name for open. */
+  /** Alias for open. */
   show: boolean;
   /** Called on a backdrop tap, Escape or a downward swipe. */
   onDismiss: () => void;

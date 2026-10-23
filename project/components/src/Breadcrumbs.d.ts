@@ -23,6 +23,6 @@ export declare function Breadcrumbs(props: BreadcrumbsProps): React.ReactElement
 export declare namespace Breadcrumbs {
   const Item: typeof BreadcrumbItem;
 }
-/** Geist's name for Breadcrumbs. */
+/** Alias for Breadcrumbs. */
 export declare const Breadcrumb: typeof Breadcrumbs;
 export declare function BreadcrumbItem(props: BreadcrumbItemProps): React.ReactElement;

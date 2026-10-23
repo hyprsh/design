@@ -1,4 +1,4 @@
-/* Geist's sizes: box px, bar count, bar width and height, cycle ms. */
+/* Sizes: box px, bar count, bar width and height, cycle ms. */
 var SPINNER_SIZES = {
   sm: [12, 8, 3, 1.5, 1000], md: [16, 10, 4, 1.5, 1000], lg: [20, 12, 5, 2, 1200], xl: [24, 12, 6, 2.5, 1200],
   '2xl': [32, 15, 8, 2.5, 1200], '3xl': [40, 15, 10, 3, 1200], '4xl': [56, 18, 14, 3.5, 1300]

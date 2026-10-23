@@ -1,4 +1,4 @@
-/* FilterMenu: a hyprsh original (no Geist page). A filter menu that starts empty and adds values: each row is
+/* FilterMenu: a filter menu that starts empty and adds values: each row is
    included, or excluded with `excludable`; it can search, group rows in sections and offer a "none" row.
    <FilterMenu label="Labels" value onChange items noneLabel excludable searchable/>, or rows as parts:
    <FilterMenu label><FilterMenu.Section title><FilterMenu.Item value label description prefix suffix/></FilterMenu.Section></FilterMenu>.

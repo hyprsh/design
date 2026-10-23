@@ -9,7 +9,7 @@ export interface FieldsetContentProps extends React.FieldsetHTMLAttributes<HTMLF
 }
 export interface FieldsetPartProps { className?: string; children?: React.ReactNode; id?: string }
 export interface FieldsetTitleProps extends FieldsetPartProps {
-  /** Heading level; h4 by default, as in Geist. Pick the one that fits the page outline. */
+  /** Heading level; h4 by default. Pick the one that fits the page outline. */
   as?: 'h2' | 'h3' | 'h4' | 'h5';
 }
 export interface FieldsetFooterProps extends FieldsetPartProps {

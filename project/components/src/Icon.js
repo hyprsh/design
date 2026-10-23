@@ -1,4 +1,4 @@
-/* Lucide paths drawn on Geist's grid: 16px by default with a 1.5px stroke at any size. */
+/* Lucide paths drawn at 16px by default with a 1.5px stroke at any size. */
 function Icon(props) {
   var size = props.size || 16;
   var label = props['aria-label'] || props.label;

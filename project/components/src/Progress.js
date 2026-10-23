@@ -1,4 +1,4 @@
-/* Geist's `type` names; the older `variant` hues map onto them. */
+/* The `type` names; the older `variant` hues map onto them. */
 var PROGRESS_TYPES = ['default', 'secondary', 'success', 'warning', 'error'];
 var PROGRESS_LEGACY = { blue: 'success', amber: 'warning', red: 'error', green: 'green' };
 

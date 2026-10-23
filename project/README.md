@@ -1,4 +1,4 @@
-hyprsh is built on Geist: neutral surfaces, near-black type, one pink accent and a strict scale for everything else. The interface stays out of the way so that content, status and code come first. If you're not sure, use less colour, less weight and less decoration.
+hyprsh is built on neutral surfaces, near-black type, one pink accent and a strict scale for everything else. The interface stays out of the way so that content, status and code come first. If you're not sure, use less colour, less weight and less decoration.
 
 ## Content fundamentals
 
@@ -37,7 +37,7 @@ hyprsh copy sounds like a precise engineer talking to another engineer: short, c
   - **Labels** (`label-20` … `label-12`) are for single lines.
   - **Copy** (`copy-24` … `copy-13`) is for paragraphs.
   - **Buttons** (`button-16`/`14`/`12`) are only for buttons.
-- **Strong type.** Labels and copy are weight 400. For emphasis inside one, wrap the words in `<strong>` (or `<b>`): in a `label-*` or `copy-*` class it renders at 500, Geist's own convention, so a row title in `label-14` is `<span class="label-14"><strong>Some Show</strong> · S02E05</span>`. To make a whole line strong, use the `-strong` variant: `label-14-strong`, `copy-14-strong`, `label-13-mono-strong`. Don't use 600 or bold for body text; 600 is for headings.
+- **Strong type.** Labels and copy are weight 400. For emphasis inside one, wrap the words in `<strong>` (or `<b>`): in a `label-*` or `copy-*` class it renders at 500, so a row title in `label-14` is `<span class="label-14"><strong>Some Show</strong> · S02E05</span>`. To make a whole line strong, use the `-strong` variant: `label-14-strong`, `copy-14-strong`, `label-13-mono-strong`. Don't use 600 or bold for body text; 600 is for headings.
 - The product defaults are `label-14` for UI text, `copy-14` for descriptions, `heading-24`/`20` for section and card titles and `heading-32` for page titles. Marketing pages use 40 and above.
 - Use `font-variant-numeric: tabular-nums` wherever numbers are compared: tables, counters, prices and durations.
 - Put `text-wrap: balance` on headings. Never set text below 12px. Inputs are 16px on touch devices, so iOS doesn't zoom in.
@@ -72,7 +72,7 @@ Shadows are layered: a 1px translucent border, then an ambient layer, then a 1px
 - **Pressed** goes one more step, to 300 or `gray-alpha-600`.
 - **Disabled** controls get a `gray-100` fill, a `gray-700` label and `cursor: not-allowed`.
 - **Touch:** under a coarse pointer or at phone width (`@media (pointer: coarse), (max-width: 639px)`) buttons and fields are at least 44px tall (48px for large buttons), menu rows are 44px, and tiny controls keep their drawn size with a 44px hit area. Under a coarse pointer only, text fields use 16px text so iOS doesn't zoom, anything shown on hover also opens on tap, and every popover stays 8px inside the screen.
-- **Focus** is the Geist ring: `outline: 2px solid var(--focus-color); outline-offset: 2px`, shown on `:focus-visible` only. `focus-color` is `accent-700` in light and `accent-900` in dark, and holds at least 3:1 on both backgrounds. Never remove an outline without replacing it. Group the ring with `:focus-within` on compound controls. Sticky headers must never cover a focused element.
+- **Focus** is a ring: `outline: 2px solid var(--focus-color); outline-offset: 2px`, shown on `:focus-visible` only. `focus-color` is `accent-700` in light and `accent-900` in dark, and holds at least 3:1 on both backgrounds. Never remove an outline without replacing it. Group the ring with `:focus-within` on compound controls. Sticky headers must never cover a focused element.
 - **Selection** uses the `selection` token behind `gray-1000` text.
 
 ### Motion
@@ -93,8 +93,8 @@ Shadows are layered: a 1px translucent border, then an ambient layer, then a 1px
 
 ## Iconography
 
-- hyprsh uses **Lucide** (ISC licence, vendored at `components/src/_icons.js` with `LUCIDE-LICENSE.txt`). Render any of its ~2,100 icons with `<Icon name="git-branch" />`. Geist’s own icons aren’t published under an open licence, so they aren’t used.
-- Icons sit on a 16px grid with a constant 1.5px visual stroke in `currentColor` (the Icon component scales the stroke with size), matching the weight of Geist’s icons. Use 16px inline, 20–24px for empty states and banners.
+- hyprsh uses **Lucide** (ISC licence, vendored at `components/src/_icons.js` with `LUCIDE-LICENSE.txt`). Render any of its ~2,100 icons with `<Icon name="git-branch" />`.
+- Icons sit on a 16px grid with a constant 1.5px visual stroke in `currentColor` (the Icon component scales the stroke with size). Use 16px inline, 20–24px for empty states and banners.
 - Decorative icons get `aria-hidden="true"`. Icon-only buttons get an `aria-label` (“Copy to Clipboard”, not “Copy”).
 - No emoji in the UI.
 

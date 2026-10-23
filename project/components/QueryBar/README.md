@@ -1,6 +1,6 @@
 # QueryBar
 
-A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. A hyprsh original: Geist has no page for it.
+A query field with a row of filter menus that read and write the same query, like GitHub's issue filters.
 
 **You provide:** `value` and `onChange(query)` (the query text, owned by your screen; or `defaultValue` to let the bar keep it), `qualifiers` (the same list `QueryInput` takes), an accessible name (`aria-label`) and `placeholder`. Optional: `size` (`small`, `medium` by default, `large`; the menus follow it), `wrap` (`true` by default: the menus wrap onto more rows when they don't fit; `false` keeps them on one row that scrolls sideways), `className`, and the other `QueryInput` props such as `id` and `disabled`. Children are `QueryBar.Menu` elements.
 

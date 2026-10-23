@@ -1,6 +1,6 @@
 # TabBar
 
-A floating pill tab bar for the main screens of an app at phone width. **hyprsh original**: there is no Geist page behind it; it follows the iOS 26 tab bar pattern, built from hyprsh's tokens (an opaque surface, no blur).
+A floating pill tab bar for the main screens of an app at phone width. It follows the iOS 26 tab bar pattern, built from hyprsh's tokens (an opaque surface, no blur).
 
 **You provide:** `label` (the name of the `<nav>`) and `TabBar.Item` children, each with a `label` and an `icon`. Use `value` with `onChange` or `onValueChange` (controlled; both are called), or `defaultValue`. Optional: `accessory` (`{ label, icon, onClick?, href? }`), `minimizeOnScroll` with `scrollRef`, and `hideFrom` (`'sm'` by default; `false` shows it at every width). `TabBar.Item` is also exported as `TabBarItem`.
 

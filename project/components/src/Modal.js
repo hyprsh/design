@@ -1,4 +1,4 @@
-/* Modal: Geist's compound API (Modal + ModalBody/Header/Title/Subtitle/Inset/Actions/Action)
+/* Modal: a compound API (Modal + ModalBody/Header/Title/Subtitle/Inset/Actions/Action)
    plus the original shorthand props (open/onClose/title/description/actions). */
 var ModalCtx = React.createContext(null);
 

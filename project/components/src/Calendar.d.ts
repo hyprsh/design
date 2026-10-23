@@ -23,7 +23,7 @@ export interface CalendarProps {
   popoverAlignment?: 'start' | 'center' | 'end';
   /** small 32px, medium 40px (default). */
   size?: 'small' | 'medium';
-  /** Quick ranges shown in a "Select Period" select, as a keyed object (Geist) or an array. */
+  /** Quick ranges shown in a "Select Period" select, as a keyed object or an array. */
   presets?: Record<string, CalendarPreset> | CalendarPreset[];
   /** Preset to show selected while no value is set. */
   presetIndex?: number;

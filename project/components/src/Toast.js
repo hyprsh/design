@@ -1,4 +1,4 @@
-/* Toast: Geist's imperative useToasts() API plus the original controlled
+/* Toast: an imperative useToasts() API plus the original controlled
    <Toast toasts onDismiss> component. Toasts stack at the bottom right and expand on hover. */
 var TOAST_GAP = 8, TOAST_PEEK = 12, TOAST_VISIBLE = 3;
 var TOAST_WORD = { success: 'Success', error: 'Error', warning: 'Warning' };

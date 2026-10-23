@@ -1,6 +1,6 @@
 # QueryInput
 
-A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter queries such as `is:open label:bug,docs crash`. A hyprsh original: Geist has no page for it.
+A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter queries such as `is:open label:bug,docs crash`.
 
 **You provide:** an accessible name (`aria-label`, `aria-labelledby` or an outside `<label htmlFor>` pointing at `id`), `value` and `onChange(text)` (or `defaultValue` to let the field keep the text). Then either `qualifiers` (the names and values your screen understands) or `suggestions(text, caret)` to compute completions yourself. Optional: `help={false}` to hide the “?” button, `size` (`small` 32px, `medium` 36px by default, `large` 40px), `placeholder`, `disabled`, `id`, `onKeyDown`, `className`.
 

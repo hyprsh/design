@@ -1,4 +1,4 @@
-/* Fieldset: Geist's settings card. Content (title, subtitle, controls) over a gray footer with a status line and actions. */
+/* Fieldset: a settings card. Content (title, subtitle, controls) over a gray footer with a status line and actions. */
 var FieldsetCtx = React.createContext(null);
 
 function FieldsetContent(props) {

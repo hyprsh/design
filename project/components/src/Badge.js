@@ -1,4 +1,4 @@
-/* Geist sizes are sm | md | lg; the older small | medium | large still work. */
+/* Sizes are sm | md | lg; the older small | medium | large still work. */
 var BADGE_SIZE = { sm: 'small', md: 'medium', lg: 'large', small: 'small', medium: 'medium', large: 'large' };
 
 function Badge(props) {

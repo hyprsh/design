@@ -1,4 +1,4 @@
-/* Checkbox: Geist's 16px checkbox with a label. Checked, indeterminate (a dash in an empty box) and disabled. */
+/* Checkbox: a 16px checkbox with a label. Checked, indeterminate (a dash in an empty box) and disabled. */
 function Checkbox(props) {
   var ref = useRef(null);
   var indeterminate = !!props.indeterminate || props.checked === 'indeterminate';

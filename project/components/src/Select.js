@@ -1,4 +1,4 @@
-/* Select: Geist's native select. Three sizes, prefix, a suffix that replaces the chevron, placeholder, label, hint and error. */
+/* Select: a native select. Three sizes, prefix, a suffix that replaces the chevron, placeholder, label, hint and error. */
 function setRef(ref, el) {
   if (typeof ref === 'function') ref(el);
   else if (ref) ref.current = el;

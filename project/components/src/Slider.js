@@ -1,7 +1,7 @@
 /* Slider: pick a number (one thumb) or a range (two thumbs) on a track, with optional number fields.
    Each thumb is a native <input type="range">, so keyboard, screen-reader and form behaviour come for free;
    the visible rail, fill and thumbs are drawn on top and follow the inputs.
-   Values may be a number or an array (Geist passes [50]); onValueChange returns the same shape. */
+   Values may be a number or an array (such as [50]); onValueChange returns the same shape. */
 var SLIDER_HIT = 16; /* width of the native thumb hit area, in px */
 
 function sliderSnap(v, min, max, step) {

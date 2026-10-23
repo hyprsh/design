@@ -25,8 +25,7 @@ export interface QueryBarMenuProps extends Omit<FilterMenuProps, 'value' | 'defa
 
 export declare function QueryBarMenu(props: QueryBarMenuProps): React.ReactElement | null;
 /**
- * A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. A hyprsh
- * original: Geist has no page for it. `<QueryBar.Menu qualifier="label" label="Labels">` is checked from the `label:`
+ * A query field with a row of filter menus that read and write the same query, like GitHub's issue filters. `<QueryBar.Menu qualifier="label" label="Labels">` is checked from the `label:`
  * terms and writes them back; `qualifier="sort" single defaultOption="newest"` is a sort menu. Terms no menu owns, and
  * free text, are left alone.
  */

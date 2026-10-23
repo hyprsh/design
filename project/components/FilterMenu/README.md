@@ -1,6 +1,6 @@
 # FilterMenu
 
-A filter menu that starts empty and adds values: each row is included, or excluded, and the menu can search, group rows into sections and offer a “none” row. A hyprsh original, with no Geist page.
+A filter menu that starts empty and adds values: each row is included, or excluded, and the menu can search, group rows into sections and offer a “none” row.
 
 **You provide:** `label` (a plural noun such as “Labels”) and the rows, either `items` (strings or `{ value, label, description, prefix, suffix, disabled }`) or `FilterMenu.Item` and `FilterMenu.Section title` parts (also `FilterMenuItem`, `FilterMenuSection`). The value is `{ include: string[], exclude: string[], none: boolean }`, empty by default, controlled with `value` + `onChange(value)` or uncontrolled with `defaultValue`. Optional: `noneLabel` (adds a none row, e.g. “No labels”), `excludable`, `searchable` (on by default above 8 rows), `size`, `align="end"`, `width`, `open`/`defaultOpen`/`onOpenChange`, `disabled`. With `single` the value is one string, `defaultOption` names the value that counts as nothing chosen, and picking a row closes the menu.
 

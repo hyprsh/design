@@ -19,7 +19,7 @@ function disableAll(children) {
 }
 
 function Note(props) {
-  /* `variant` is Geist's name; the older `type` still works and keeps its leading word (“Warning:”). */
+  /* `variant` is the current name; the older `type` still works and keeps its leading word (“Warning:”). */
   var variant = props.variant || props.type || 'default';
   if (!NOTE_GLYPH[variant]) variant = 'default';
   var legacyWord = !props.variant && props.type ? NOTE_WORD[variant] : null;

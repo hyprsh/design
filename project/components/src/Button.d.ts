@@ -15,7 +15,7 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
   svgOnly?: boolean;
   /** HTML type ('button' by default). */
   typeName?: 'button' | 'submit' | 'reset';
-  /** HTML type, or a visual variant name (Geist's older API). Prefer `variant` + `typeName`. */
+  /** HTML type, or a visual variant name (the older API). Prefer `variant` + `typeName`. */
   type?: 'button' | 'submit' | 'reset' | 'default' | 'primary' | 'secondary' | 'tertiary' | 'error' | 'warning';
   /** Renders an `<a>` instead of a `<button>`, as ButtonLink does. */
   href?: string;

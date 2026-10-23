@@ -1,4 +1,4 @@
-/* hyprsh components — loaded after tokens.css. Every value is a token or a Geist-exact constant. */
+/* hyprsh components — loaded after tokens.css. Every value is a token or a fixed constant from the type and control scale. */
 :root { color-scheme: light; }
 [data-theme="dark"] { color-scheme: dark; }
 body {

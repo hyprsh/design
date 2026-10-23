@@ -1,4 +1,4 @@
-/* Input: Geist's text field. Prefix/suffix slots (styled, plain or bare), three sizes, label, hint and error. */
+/* Input: a text field. Prefix/suffix slots (styled, plain or bare), three sizes, label, hint and error. */
 function setRef(ref, el) {
   if (typeof ref === 'function') ref(el);
   else if (ref) ref.current = el;

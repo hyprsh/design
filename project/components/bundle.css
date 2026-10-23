@@ -1,4 +1,4 @@
-/* hyprsh components — loaded after tokens.css. Every value is a token or a Geist-exact constant. */
+/* hyprsh components — loaded after tokens.css. Every value is a token or a fixed constant from the type and control scale. */
 :root { color-scheme: light; }
 [data-theme="dark"] { color-scheme: dark; }
 body {
@@ -742,7 +742,7 @@ body {
 }
 
 /* ---------- Input ---------- */
-/* The base field, input and select styles live in core.css. This aligns Input with Geist:
+/* The base field, input and select styles live in core.css. This sets up Input:
    32/36/40px heights, styled or plain prefix/suffix, a soft error ring and pill corners. */
 .hy-input { overflow: hidden; }
 .hy-input--medium { height: 36px; }
@@ -767,7 +767,7 @@ body {
 .hy-input--plain-suffix input { padding-right: 8px; }
 .hy-input--disabled .hy-input__prefix--plain, .hy-input--disabled .hy-input__suffix--plain { color: var(--gray-700); }
 
-/* Error text grows with the field, as in Geist. */
+/* Error text grows with the field. */
 .hy-field__alert { display: contents; }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }
@@ -928,7 +928,7 @@ body {
 }
 
 /* ---------- Select ---------- */
-/* Base frame and chevron live in core.css. This aligns sizes, prefix/suffix, placeholder, error and disabled with Geist. */
+/* Base frame and chevron live in core.css. This aligns sizes, prefix/suffix, placeholder, error and disabled to the design. */
 .hy-select--medium { height: 36px; }
 .hy-select--large { height: 40px; border-radius: var(--radius-lg); }
 .hy-select select { padding: 0 36px 0 12px; background-color: transparent; }

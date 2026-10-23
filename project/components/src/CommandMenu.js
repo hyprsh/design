@@ -1,4 +1,4 @@
-/* CommandMenu: Geist's compound API (CommandMenu + CommandMenuInput/List/Group/Item/Divider)
+/* CommandMenu: a compound API (CommandMenu + CommandMenuInput/List/Group/Item/Divider)
    plus the original data shorthand (groups/open/onOpenChange/inline). */
 var CmdCtx = React.createContext(null);
 

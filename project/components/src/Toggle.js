@@ -1,6 +1,6 @@
 /* Toggle: a single on/off setting that takes effect immediately.
    A native checkbox with role="switch" inside a <label>, so the label toggles it and forms see it.
-   Geist API: checked, onChange, size (small default | medium | large), color, icon {checked, unchecked},
+   Props: checked, onChange, size (small default | medium | large), color, icon {checked, unchecked},
    direction ('label-first' default | 'switch-first'), labelCasing ('title' | 'normal'), disabled, children.
    Old hyprsh props still work: defaultChecked (uncontrolled) and onChange(next) with the new boolean. */
 var TOGGLE_HUES = ['accent', 'blue', 'amber', 'red', 'green', 'teal', 'purple', 'pink', 'gray'];

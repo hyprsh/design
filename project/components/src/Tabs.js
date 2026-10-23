@@ -1,5 +1,5 @@
 /*
- * Tabs: WAI-ARIA tabs. Geist's API (`selected` + `setSelected`, `tabs` with title/value/icon/disabled/tooltip,
+ * Tabs: WAI-ARIA tabs. The API (`selected` + `setSelected`, `tabs` with title/value/icon/disabled/tooltip,
  * `disabled`, `variant="secondary"`) plus our `onChange`, `defaultSelected` and per-tab `content` panels.
  * A list wider than the screen scrolls sideways; tab tooltips are portalled, so the scroll doesn't clip them.
  */

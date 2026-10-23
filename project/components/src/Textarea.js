@@ -1,4 +1,4 @@
-/* Textarea: Geist's multi-line field. Three sizes, label, hint and error, matching Input. */
+/* Textarea: a multi-line field. Three sizes, label, hint and error, matching Input. */
 function setRef(ref, el) {
   if (typeof ref === 'function') ref(el);
   else if (ref) ref.current = el;

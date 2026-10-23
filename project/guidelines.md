@@ -1,6 +1,6 @@
 # Interface guidelines
 
-These are the rules every hyprsh interface follows. They are adapted from Vercel's Web Interface Guidelines. **Must** is required, **should** is the default unless you have a reason, and **never** is a defect. When you review UI, check it against this list and report findings as `file:line — issue`.
+These are the rules every hyprsh interface follows. **Must** is required, **should** is the default unless you have a reason, and **never** is a defect. When you review UI, check it against this list and report findings as `file:line — issue`.
 
 ## Keyboard and focus
 

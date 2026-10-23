@@ -5,7 +5,7 @@ export interface SnippetProps {
   prompt?: string | false;
   /** Inverted: light text on a dark fill. */
   dark?: boolean;
-  /** Tinted variants. 'success' is blue, as in Geist. */
+  /** Tinted variants. 'success' is blue. */
   type?: 'default' | 'success' | 'error' | 'warning';
   /** Width of the snippet, e.g. '300px' or '100%'. Defaults to its content (fit-content). */
   width?: string | number;

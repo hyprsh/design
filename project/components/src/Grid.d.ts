@@ -7,7 +7,7 @@ export interface GridSystemProps {
   dashedGuides?: boolean;
   /** Draws the guides in amber, for checking a layout. */
   debug?: boolean;
-  /** Accepted for Geist parity; Grid always measures its own container. */
+  /** Accepted for compatibility; Grid always measures its own container. */
   unstable_useContainer?: boolean;
   children?: React.ReactNode;
   className?: string;

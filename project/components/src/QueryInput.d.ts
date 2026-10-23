@@ -96,7 +96,7 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
 }
 /**
  * A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter
- * queries such as `is:open label:bug,docs crash`. A hyprsh original: Geist has no page for it. Give it `qualifiers` for
+ * queries such as `is:open label:bug,docs crash`. Give it `qualifiers` for
  * the built-in syntax (`parseQuery`, `suggestQuery`) or `suggestions` for your own. The ARIA 1.2 combobox pattern.
  */
 export declare function QueryInput(props: QueryInputProps): React.ReactElement;

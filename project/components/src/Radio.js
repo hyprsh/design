@@ -1,4 +1,4 @@
-/* Radio: Geist's radio. A standalone Radio, or RadioGroup with RadioGroupItem (or useRadio) sharing one name and value. */
+/* Radio: a radio. A standalone Radio, or RadioGroup with RadioGroupItem (or useRadio) sharing one name and value. */
 var RadioContext = React.createContext(null);
 
 function RadioGroup(props) {

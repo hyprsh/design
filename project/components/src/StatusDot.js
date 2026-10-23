@@ -3,7 +3,7 @@ var STATUS_MESSAGE = { ready: 'is ready', building: 'is building', error: 'had a
 /* Semantic states for any health or status, not only deployments. `error` belongs to both sets. */
 var STATUS_SEMANTIC = { success: 'Success', warning: 'Warning', neutral: 'Neutral', pending: 'Pending', info: 'Info' };
 
-/* state takes the semantic states (success | warning | error | neutral | pending) or Geist's deployment states
+/* state takes the semantic states (success | warning | error | neutral | pending) or deployment states
    (QUEUED | BUILDING | READY | ERROR | CANCELED | DELETED), in any case. variant is filled (default), outline or dashed. */
 function StatusDot(props) {
   var state = String(props.state || 'ready').toLowerCase();

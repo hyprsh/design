@@ -1,4 +1,4 @@
-/* Label: Geist's form label. 13px gray text, Title Case by default, optionally wrapping its control. */
+/* Label: a form label. 13px gray text, Title Case by default, optionally wrapping its control. */
 function Label(props) {
   var text = props.value != null ? props.value : (props.withInput ? null : props.children);
   var control = props.value != null || props.withInput ? props.children : null;

@@ -1,5 +1,5 @@
 /* ---------- Input ---------- */
-/* The base field, input and select styles live in core.css. This aligns Input with Geist:
+/* The base field, input and select styles live in core.css. This sets up Input:
    32/36/40px heights, styled or plain prefix/suffix, a soft error ring and pill corners. */
 .hy-input { overflow: hidden; }
 .hy-input--medium { height: 36px; }
@@ -24,7 +24,7 @@
 .hy-input--plain-suffix input { padding-right: 8px; }
 .hy-input--disabled .hy-input__prefix--plain, .hy-input--disabled .hy-input__suffix--plain { color: var(--gray-700); }
 
-/* Error text grows with the field, as in Geist. */
+/* Error text grows with the field. */
 .hy-field__alert { display: contents; }
 .hy-field--large .hy-field__error, .hy-field--large .hy-field__hint { font-size: 16px; line-height: 24px; }
 .hy-field--large .hy-field__error .hy-glyph { margin-top: 5px; }

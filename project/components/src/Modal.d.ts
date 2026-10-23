@@ -1,5 +1,5 @@
 export interface ModalProps {
-  /** Geist name for `open`. */
+  /** Alias for `open`. */
   active?: boolean;
   /** Alias of `active`. */
   open?: boolean;

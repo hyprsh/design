@@ -1,4 +1,4 @@
-/* Inline code by default. A multi-line string, `block` or `syntax` renders the bordered block Geist shows. */
+/* Inline code by default. A multi-line string, `block` or `syntax` renders a bordered block. */
 function Code(props) {
   var text = props.children;
   var block = !!props.block || props.syntax != null || (typeof text === 'string' && text.indexOf('\n') >= 0);

@@ -19,6 +19,6 @@ export interface ContextCardProps {
   contentClassName?: string;
   children?: React.ReactNode;
 }
-/** Geist's name for the same component. */
+/** Alias for the same component. */
 export declare const ContextCardTrigger: typeof ContextCard;
 export declare const ContextCard: ((props: ContextCardProps) => React.ReactElement) & { Trigger: (props: ContextCardProps) => React.ReactElement };

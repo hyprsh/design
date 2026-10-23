@@ -35,7 +35,7 @@ export interface TabBarItemProps {
 export declare const TabBarItem: (props: TabBarItemProps) => React.ReactElement;
 
 /**
- * hyprsh original: the floating pill tab bar for phones, with no Geist page behind it. Fixed to the bottom and out of
+ * The floating pill tab bar for phones. Fixed to the bottom and out of
  * layout; while one is visible, the CSS variable `--tab-bar-height` holds its height (safe area included).
  */
 export interface TabBarProps {

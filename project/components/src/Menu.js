@@ -1,5 +1,5 @@
 /*
- * Menu follows Geist's compound API:
+ * Menu uses a compound API:
  *   MenuContainer > MenuButton + Menu > MenuItem | MenuLink | MenuItemLocked | MenuSection | MenuDivider
  * The older one-piece API (<Menu label items>) still works and renders the same parts.
  * MenuContainer.Context is shared with DotsMenu, SplitButton and ContextMenu.

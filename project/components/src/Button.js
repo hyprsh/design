@@ -1,8 +1,8 @@
-/* Geist's `variant` values plus our older names. 'default' and 'primary' are the same solid fill. */
+/* The `variant` values plus our older names. 'default' and 'primary' are the same solid fill. */
 var BTN_VARIANTS = ['default', 'primary', 'secondary', 'tertiary', 'error', 'warning'];
 var BTN_SIZES = ['tiny', 'small', 'medium', 'large'];
 
-/* `type` is a visual variant when it names one (Geist's older API) and the HTML type otherwise; `typeName` is always the HTML type. */
+/* `type` is a visual variant when it names one (the older API) and the HTML type otherwise; `typeName` is always the HTML type. */
 function btnVariant(props) {
   var v = props.variant || (BTN_VARIANTS.indexOf(props.type) >= 0 ? props.type : null) || 'secondary';
   return v === 'default' ? 'primary' : v;
@@ -49,7 +49,7 @@ var Button = React.forwardRef(function Button(props, ref) {
 });
 Button.displayName = 'Button';
 
-/* ButtonLink: Geist's link that looks like a Button. Same props, plus `href`. */
+/* ButtonLink: a link that looks like a Button. Same props, plus `href`. */
 var ButtonLink = React.forwardRef(function ButtonLink(props, ref) {
   return renderButton(props, ref, true);
 });

@@ -7,7 +7,7 @@ export interface RadioProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
   children?: React.ReactNode;
 }
 export interface RadioGroupProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'> {
-  /** Names the group for assistive tech (visually hidden, as in Geist). Or pass aria-label. */
+  /** Names the group for assistive tech (visually hidden). Or pass aria-label. */
   label?: React.ReactNode;
   value?: string;
   defaultValue?: string;
