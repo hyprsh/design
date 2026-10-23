@@ -50,7 +50,7 @@
 .hy-table__body--striped > .hy-table__row:nth-child(odd) > .hy-table__cell { background-color: var(--background-200); }
 .hy-table__body--bordered > .hy-table__row > .hy-table__cell { border-radius: 0; box-shadow: inset 0 -1px 0 var(--gray-alpha-400); }
 .hy-table__body--interactive > .hy-table__row > .hy-table__cell { transition: background-color .15s cubic-bezier(.4,0,.2,1); }
-.hy-table__body--interactive > .hy-table__row:hover > .hy-table__cell { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-table__body--interactive > .hy-table__row:not(.hy-table__row--skeleton):hover > .hy-table__cell { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-table__body > .hy-table__row.is-selected > .hy-table__cell,
 .hy-table__body > .hy-table__row.is-current > .hy-table__cell { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
 .hy-table__body > .hy-table__row.is-selected > .hy-table__cell:first-child,
