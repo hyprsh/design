@@ -6,12 +6,16 @@
 
   /* ---------- Theme ---------- */
   var themeBtn = document.querySelector('.theme-btn');
-  function apply(t) {
-    root.setAttribute('data-theme', t);
+  /* Runs on every data-theme change, including one a ThemeSwitcher example makes, so the toggle and the cards follow. */
+  function sync() {
+    var t = root.getAttribute('data-theme');
     if (themeBtn) themeBtn.setAttribute('aria-label', t === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme');
     document.querySelectorAll('iframe.card').forEach(function (f) { try { f.contentWindow.postMessage({ theme: t }, '*'); } catch (e) {} });
   }
+  function apply(t) { root.setAttribute('data-theme', t); }
   apply(root.getAttribute('data-theme') || 'light');
+  sync();
+  new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
   if (themeBtn) themeBtn.addEventListener('click', function () {
     var t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     try { localStorage.setItem(KEY, t); } catch (e) {}
