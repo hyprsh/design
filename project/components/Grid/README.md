@@ -10,3 +10,83 @@ A two-dimensional cell layout with visible guide lines, solid cells that hide th
 - Make a cell `solid` when its content needs an opaque tile. Without it the guides run through the cell.
 - Hide row or column guides only when one axis carries the layout. If you'd hide both, you want a plain grid.
 - Guides and crosses are decorative and `aria-hidden`. Meaning lives in the cell content, in reading order. If a cell is clickable, put a real link or button in it so it gets the focus ring.
+
+## Examples
+
+### Default
+A grid with visible guide lines. Place cells by line.
+
+```jsx
+import { Grid, GridCell, GridSystem } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <GridSystem>
+      <Grid columns={3} rows={2}>
+        <GridCell column="1/3" row="1"><div className="copy-14" style={{ padding: 16 }}>Deployments</div></GridCell>
+        <GridCell column="3" row="1/3"><div className="copy-14" style={{ padding: 16 }}>Activity</div></GridCell>
+        <GridCell column="1" row="2"><div className="copy-14" style={{ padding: 16 }}>Domains</div></GridCell>
+        <GridCell column="2" row="2"><div className="copy-14" style={{ padding: 16 }}>Usage</div></GridCell>
+      </Grid>
+    </GridSystem>
+  );
+}
+```
+
+### Solid Cells and Crosses
+`solid` hides the guides behind a cell, and `GridCross` marks an intersection.
+
+```jsx
+import { Grid, GridCell, GridCross, GridSystem } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <GridSystem>
+      <Grid columns={3} rows={2}>
+        <GridCell column="1/3" row="1" solid><div className="copy-14" style={{ padding: 16 }}>Solid cell</div></GridCell>
+        <GridCell column="3" row="2"><div className="copy-14" style={{ padding: 16 }}>Open cell</div></GridCell>
+        <GridCross column={2} row={2} />
+        <GridCross column={3} row={3} />
+      </Grid>
+    </GridSystem>
+  );
+}
+```
+
+### Dashed Guides
+`dashedGuides` and `guideWidth` set the lines.
+
+```jsx
+import { Grid, GridCell, GridSystem } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <GridSystem dashedGuides guideWidth={1}>
+      <Grid columns={4} rows={1}>
+        {['Build', 'Test', 'Deploy', 'Verify'].map((step, i) => (
+          <GridCell key={step} column={i + 1} row={1}><div className="label-14" style={{ padding: 16 }}>{step}</div></GridCell>
+        ))}
+      </Grid>
+    </GridSystem>
+  );
+}
+```
+
+### Hidden Guides
+`hideGuides` drops one direction of lines.
+
+```jsx
+import { Grid, GridCell, GridSystem } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <GridSystem>
+      <Grid columns={3} rows={1} hideGuides="row">
+        {['Fast', 'Safe', 'Simple'].map((word, i) => (
+          <GridCell key={word} column={i + 1} row={1}><div className="heading-20" style={{ padding: 16 }}>{word}</div></GridCell>
+        ))}
+      </Grid>
+    </GridSystem>
+  );
+}
+```

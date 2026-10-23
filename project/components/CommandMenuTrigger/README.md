@@ -9,3 +9,77 @@ A button that looks like a small search field and opens the command menu, with t
 - The label names what the menu does: "Search or Run a Command…". Keep it short, it shares the row with the shortcut.
 - Pair it with CommandMenu, which already listens for ⌘K / Ctrl + K. If you replace the shortcut or turn the menu's hotkey off, change the hint to match.
 - Use SearchInput when people type a query in place. Use this when the click opens a separate palette.
+
+## Examples
+
+### Default
+A button that looks like a small search field. It fills its container.
+
+```jsx
+import { useState } from 'react';
+import { CommandMenu, CommandMenuInput, CommandMenuItem, CommandMenuList, CommandMenuTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div style={{ maxWidth: 320 }}>
+      <CommandMenuTrigger onClick={() => setOpen(true)} />
+      <CommandMenu open={open} setOpen={setOpen}>
+        <CommandMenuInput placeholder="Search for a command or page…" />
+        <CommandMenuList>
+          <CommandMenuItem callback={() => {}}>Create Project…</CommandMenuItem>
+          <CommandMenuItem callback={() => {}}>Deploy to Production</CommandMenuItem>
+        </CommandMenuList>
+      </CommandMenu>
+    </div>
+  );
+}
+```
+
+### Label and Size
+Change the label, and pick `small` for a dense toolbar.
+
+```jsx
+import { CommandMenuTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 320 }}>
+      <CommandMenuTrigger size="small">Search Projects…</CommandMenuTrigger>
+      <CommandMenuTrigger>Jump to a Domain…</CommandMenuTrigger>
+    </div>
+  );
+}
+```
+
+### Without the Hint or Icon
+`shortcut={false}` hides the key, and `prefix={null}` hides the icon.
+
+```jsx
+import { CommandMenuTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 320 }}>
+      <CommandMenuTrigger shortcut={false}>Search…</CommandMenuTrigger>
+      <CommandMenuTrigger prefix={null}>Search…</CommandMenuTrigger>
+    </div>
+  );
+}
+```
+
+### Disabled
+A disabled trigger can’t open the menu.
+
+```jsx
+import { CommandMenuTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ maxWidth: 320 }}>
+      <CommandMenuTrigger disabled>Search…</CommandMenuTrigger>
+    </div>
+  );
+}
+```

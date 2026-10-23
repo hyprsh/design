@@ -31,3 +31,65 @@ import { themeScript } from '@hyprsh/design';
 ```
 
 In a plain `index.html`, call `Hyprsh.themeScript({ attribute: 'class' })` while building the page, or paste its output into a `<script>` in `<head>`. Pass the same `storageKey` and `attribute` you give the component (defaults `'theme'` and `'data-theme'`).
+
+## Examples
+
+Picking a theme in these examples changes this page’s own theme, because the component sets `data-theme` on `<html>`. They pass `storageKey={null}` so nothing is saved, and the page’s own saved choice comes back on the next load.
+
+### Radios
+Three icon radios: System, Light and Dark.
+
+```jsx
+import { ThemeSwitcher } from '@hyprsh/design';
+
+export default function Example() {
+  return <ThemeSwitcher storageKey={null} />;
+}
+```
+
+### Cycle
+One icon button that cycles through the choices.
+
+```jsx
+import { ThemeSwitcher } from '@hyprsh/design';
+
+export default function Example() {
+  return <ThemeSwitcher storageKey={null} variant="cycle" />;
+}
+```
+
+### Sizes and Disabled
+Small and medium, and a disabled switcher.
+
+```jsx
+import { ThemeSwitcher } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+      <ThemeSwitcher storageKey={null} size="small" />
+      <ThemeSwitcher storageKey={null} size="medium" />
+      <ThemeSwitcher storageKey={null} disabled defaultValue="dark" />
+    </div>
+  );
+}
+```
+
+### Driven by Your Own State
+`value` and `onChange` keep the choice in your state.
+
+```jsx
+import { useState } from 'react';
+import { ThemeSwitcher } from '@hyprsh/design';
+
+export default function Example() {
+  const [theme, setTheme] = useState('system');
+
+  return (
+    <div className="copy-14" style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+      <ThemeSwitcher storageKey={null} value={theme} onChange={setTheme} />
+      <span role="status">Choice: {theme}</span>
+    </div>
+  );
+}
+```

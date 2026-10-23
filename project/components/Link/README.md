@@ -2,7 +2,7 @@
 
 An inline text link in the design's link colour, underlined, with a focus ring.
 
-**You provide:** the text as `children` and an `href`. Optional: `as="button"` for an action that reads as a link (“Show notices”), `disabled`, and any anchor attributes such as `target` and `rel`. It takes a `ref`.
+**You provide:** the text as `children` and an `href`. Optional: `as="button"` for an action that reads as a link (“Show notices”), `disabled` for a link that can't be followed right now (it is greyed, takes no focus or clicks, and gets `aria-disabled`; say why nearby), and any anchor attributes such as `target` and `rel`. It takes a `ref`.
 
 - Use a link to go somewhere and a button to do something. When a sentence points at an action rather than a page, use `as="button"` so it is a real `<button>` with Enter and Space, not an `<a>` without an `href`.
 - Navigation uses an `<a>` with an `href`, so Cmd/Ctrl-click and middle-click work. Pass your router's navigation through `onClick` and keep the `href`.

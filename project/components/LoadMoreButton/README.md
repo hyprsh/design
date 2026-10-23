@@ -9,3 +9,78 @@ A full-width button at the end of a list that appends the next page of results.
 - Hide the button once there is nothing left to load, rather than disabling it, and say “No More Deployments” or similar if the end needs stating.
 - After loading, keep focus on the button so keyboard users can keep going, and announce the new count nearby if it matters.
 - The label is Title Case: “Load More”, or “Load More Deployments” when the page has several lists.
+
+## Examples
+
+### Default
+A full-width button at the end of a list.
+
+```jsx
+import { LoadMoreButton } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ maxWidth: 360 }}>
+      <LoadMoreButton onClick={() => {}} />
+    </div>
+  );
+}
+```
+
+### Loading Pages
+`loading` while the request runs. Each press appends the next page.
+
+```jsx
+import { useState } from 'react';
+import { LoadMoreButton } from '@hyprsh/design';
+
+export default function Example() {
+  const [count, setCount] = useState(3);
+  const [loading, setLoading] = useState(false);
+
+  function load() {
+    setLoading(true);
+    setTimeout(() => { setCount((c) => c + 3); setLoading(false); }, 800);
+  }
+
+  return (
+    <div style={{ maxWidth: 360 }}>
+      <ul className="copy-14" style={{ margin: 0, padding: 0, listStyle: 'none' }}>
+        {Array.from({ length: count }, (_, i) => <li key={i} style={{ padding: '8px 0' }}>Deployment {count - i}</li>)}
+      </ul>
+      <LoadMoreButton loading={loading} onClick={load}>Load More Deployments</LoadMoreButton>
+    </div>
+  );
+}
+```
+
+### Closing a Bordered List
+`noGap` and `noBorderRadius` attach it to a bordered container.
+
+```jsx
+import { LoadMoreButton } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ maxWidth: 360, border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' }}>
+      <div className="copy-14" style={{ padding: 16 }}>marketing-site, docs and api</div>
+      <LoadMoreButton noGap noBorderRadius>Show More Projects</LoadMoreButton>
+    </div>
+  );
+}
+```
+
+### Disabled
+At the end of the list there is nothing more to load.
+
+```jsx
+import { LoadMoreButton } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ maxWidth: 360 }}>
+      <LoadMoreButton disabled>No More Deployments</LoadMoreButton>
+    </div>
+  );
+}
+```

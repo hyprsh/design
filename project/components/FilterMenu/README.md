@@ -13,3 +13,102 @@ A filter menu that starts empty and adds values: each row is included, or exclud
 - `single` suits sort menus: the trigger reads “Sort: Newest” and is only styled as active when the option isn't `defaultOption`.
 - The search box is a combobox over a listbox: focus stays in it, `aria-activedescendant` follows the highlight, and without search focus goes to the listbox itself. Arrow keys, Home and End move the highlight; Escape closes and returns focus to the trigger; Tab closes. Each change is announced (“bug included”, “bug excluded”, “bug removed”, “No labels selected”).
 - The panel floats above the page, flips above the trigger when there's no room below and stays 8px inside the screen on phones, where rows are 44px tall under touch sizing.
+
+## Examples
+
+### Default
+A menu that starts empty. Each row you check is included.
+
+```jsx
+import { FilterMenu } from '@hyprsh/design';
+
+export default function Example() {
+  return <FilterMenu label="Labels" items={['bug', 'docs', 'enhancement', 'wontfix']} />;
+}
+```
+
+### Controlled
+The value is `{ include, exclude, none }`. Excluding and a none row are optional.
+
+```jsx
+import { useState } from 'react';
+import { FilterMenu } from '@hyprsh/design';
+
+export default function Example() {
+  const [value, setValue] = useState({ include: ['bug'], exclude: [], none: false });
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+      <FilterMenu label="Labels" excludable noneLabel="No labels" items={['bug', 'docs', 'enhancement', 'wontfix']} value={value} onChange={setValue} />
+      <span className="copy-13" role="status">
+        Include: {value.include.join(', ') || 'none'} · Exclude: {value.exclude.join(', ') || 'none'}{value.none ? ' · No labels' : ''}
+      </span>
+    </div>
+  );
+}
+```
+
+### Sections and Rows
+Group rows into sections and give each a description.
+
+```jsx
+import { FilterMenu } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <FilterMenu label="Environments">
+      <FilterMenu.Section title="Primary">
+        <FilterMenu.Item value="production" label="Production" description="Serves live traffic" />
+      </FilterMenu.Section>
+      <FilterMenu.Section title="Other">
+        <FilterMenu.Item value="preview" label="Preview" />
+        <FilterMenu.Item value="development" label="Development" />
+      </FilterMenu.Section>
+    </FilterMenu>
+  );
+}
+```
+
+### Single Choice
+`single` picks one option, like a sort menu. `defaultOption` is the value that counts as nothing chosen.
+
+```jsx
+import { useState } from 'react';
+import { FilterMenu } from '@hyprsh/design';
+
+export default function Example() {
+  const [sort, setSort] = useState('newest');
+
+  return (
+    <FilterMenu
+      single
+      label="Sort"
+      defaultOption="newest"
+      value={sort}
+      onChange={setSort}
+      items={[
+        { value: 'newest', label: 'Newest' },
+        { value: 'oldest', label: 'Oldest' },
+        { value: 'comments', label: 'Most Commented' },
+      ]}
+    />
+  );
+}
+```
+
+### Sizes and Disabled
+`size` follows the control scale.
+
+```jsx
+import { FilterMenu } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <FilterMenu size="small" label="Branches" items={['main', 'staging']} />
+      <FilterMenu size="large" label="Branches" items={['main', 'staging']} />
+      <FilterMenu disabled label="Branches" items={['main', 'staging']} />
+    </div>
+  );
+}
+```

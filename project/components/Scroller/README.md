@@ -11,3 +11,56 @@ A scroll area for an overflowing list of peer items on one axis (or both), with 
 - Keep item widths and gaps even on a horizontal rail, so it steps with a steady rhythm.
 - Put items in reading order: tab order follows the DOM, and focusing an off-screen item scrolls it into view. When the content overflows, the scroll area itself takes focus so the arrow keys can scroll it.
 - Name the buttons by their content with `aria-label` (“Scroll Deployments Right”), not a bare “Next”.
+
+## Examples
+
+### Vertical
+A scroll area with edge fades. Give it a height.
+
+```jsx
+import { Scroller } from '@hyprsh/design';
+
+const events = ['Deployed main to production', 'Preview ready for docs', 'Domain verified', 'Build failed on feat/tab-bar', 'Branch merged', 'Preview ready for api', 'Cache cleared'];
+
+export default function Example() {
+  return (
+    <Scroller aria-label="Activity" height={140} width={320}>
+      {events.map((e) => <p key={e} className="copy-14" style={{ margin: '0 0 12px' }}>{e}</p>)}
+    </Scroller>
+  );
+}
+```
+
+### Horizontal with Buttons
+`overflow="x"` with `withButtons` steps between children.
+
+```jsx
+import { Scroller } from '@hyprsh/design';
+
+const branches = ['main', 'staging', 'feat/tab-bar', 'feat/search', 'release', 'docs/search', 'fix/cache'];
+
+export default function Example() {
+  return (
+    <Scroller aria-label="Branches" overflow="x" withButtons width={360} childrenContainerClassName="hy-row">
+      {branches.map((b) => <span key={b} className="label-14-mono" style={{ whiteSpace: 'nowrap', padding: '4px 8px', boxShadow: 'var(--shadow-border)', borderRadius: 6 }}>{b}</span>)}
+    </Scroller>
+  );
+}
+```
+
+### Both Axes
+`overflow="both"` scrolls either way.
+
+```jsx
+import { Scroller } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <Scroller aria-label="Wide log" overflow="both" height={120} width={320}>
+      <pre className="label-13-mono" style={{ margin: 0 }}>
+        {Array.from({ length: 12 }, (_, i) => `${String(i + 1).padStart(2, '0')}  GET /api/deployments?page=${i + 1} 200 in ${30 + i}ms from iad1 cache HIT`).join('\n')}
+      </pre>
+    </Scroller>
+  );
+}
+```

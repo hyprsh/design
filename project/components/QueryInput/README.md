@@ -12,3 +12,103 @@ A text field whose text is the value, with suggestions that complete the word at
 - Up and Down move through the open list and wrap, Enter or Tab picks, Escape closes it until the next edit, and clicking a row keeps focus in the field. With the list closed the field leaves Enter and Escape to your `onKeyDown`, so submit or run the search there. It never blurs itself.
 - Suggestions are synchronous. Under touch sizing rows are 44px tall.
 - The syntax is also exported for your own code: `parseQuery`, `suggestQuery`, `termText`, `withValue`, `withoutValue`, `withoutTerm`, `valuesOf`, with the types `Qualifier`, `Term`, `Query` and `QuerySuggestion`. Use `parseQuery(value, qualifiers)` to read the query, and `valuesOf(query, name)` for what a qualifier asks for (null when it is absent, an empty list when nothing can match).
+
+## Examples
+
+### Default
+Suggestions complete the word at the caret. Type `is:` or `label:` to see them.
+
+```jsx
+import { useState } from 'react';
+import { QueryInput } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs', 'enhancement'], excludable: true, none: true },
+];
+
+export default function Example() {
+  const [query, setQuery] = useState('is:open label:bug');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 480 }}>
+      <QueryInput aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} value={query} onChange={setQuery} />
+      <span className="copy-13">Query: <code>{query || '(empty)'}</code></span>
+    </div>
+  );
+}
+```
+
+### Reading the Query
+`parseQuery` turns the text into terms and free text.
+
+```jsx
+import { useState } from 'react';
+import { QueryInput, parseQuery } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs'], excludable: true },
+];
+
+export default function Example() {
+  const [query, setQuery] = useState('is:open -label:docs crash');
+  const parsed = parseQuery(query, qualifiers);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 480 }}>
+      <QueryInput aria-label="Search issues" qualifiers={qualifiers} value={query} onChange={setQuery} />
+      <span className="copy-13" role="status">
+        {parsed.terms.length} {parsed.terms.length === 1 ? 'term' : 'terms'}, free text “{parsed.text}”
+      </span>
+    </div>
+  );
+}
+```
+
+### Your Own Suggestions
+`suggestions(text, caret)` computes completions yourself.
+
+```jsx
+import { useState } from 'react';
+import { QueryInput } from '@hyprsh/design';
+
+const branches = ['main', 'staging', 'feat/tab-bar'];
+
+export default function Example() {
+  const [query, setQuery] = useState('');
+
+  function suggestions(text) {
+    const word = text.split(/\s+/).pop().toLowerCase();
+    if (!word) return [];
+    return branches
+      .filter((b) => b.includes(word))
+      .map((b) => ({ label: b, text: `${text.slice(0, text.length - word.length)}${b}`, caret: text.length - word.length + b.length }));
+  }
+
+  return (
+    <div style={{ maxWidth: 480 }}>
+      <QueryInput aria-label="Find a branch" placeholder="Find a branch…" help={false} suggestions={suggestions} value={query} onChange={setQuery} />
+    </div>
+  );
+}
+```
+
+### Sizes
+Small, medium and large.
+
+```jsx
+import { QueryInput } from '@hyprsh/design';
+
+const qualifiers = [{ name: 'is', help: 'Open or closed', values: ['open', 'closed'] }];
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 480 }}>
+      <QueryInput size="small" aria-label="Small query" qualifiers={qualifiers} defaultValue="is:open" />
+      <QueryInput size="medium" aria-label="Medium query" qualifiers={qualifiers} defaultValue="is:open" />
+      <QueryInput size="large" aria-label="Large query" qualifiers={qualifiers} defaultValue="is:open" />
+    </div>
+  );
+}
+```
