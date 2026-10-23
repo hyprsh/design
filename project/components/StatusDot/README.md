@@ -25,3 +25,87 @@ For a row of dots that share one meaning, such as a set of versions or slots, us
 ```
 
 Give each dot a visible caption if the reader needs to see which dot is which, and set `aria-hidden` on the captions too.
+
+## Examples
+
+### Deployment States
+A dot and a word for a deployment’s lifecycle.
+
+```jsx
+import { StatusDot } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <StatusDot state="queued" />
+      <StatusDot state="building" />
+      <StatusDot state="ready" />
+      <StatusDot state="error" />
+      <StatusDot state="canceled" />
+    </div>
+  );
+}
+```
+
+### Semantic States
+Any health or result, with a label of your own.
+
+```jsx
+import { StatusDot } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <StatusDot state="success" label="Healthy" />
+      <StatusDot state="warning" label="Degraded" />
+      <StatusDot state="error" label="Down" />
+      <StatusDot state="pending" label="Checking…" />
+      <StatusDot state="info" label="Maintenance" />
+      <StatusDot state="neutral" label="Idle" />
+    </div>
+  );
+}
+```
+
+### Outline and Dashed
+A ring for a dot that is wanted or not yet there. Say what it means in the label.
+
+```jsx
+import { StatusDot } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <StatusDot state="success" label="Verified" />
+      <StatusDot state="success" variant="outline" label="Verifying" />
+      <StatusDot state="neutral" variant="dashed" label="Not Configured" />
+    </div>
+  );
+}
+```
+
+### In a List
+`label={false}` leaves a dot alone in a dense column. Give it a `title` so it keeps a name.
+
+```jsx
+import { StatusDot } from '@hyprsh/design';
+
+const domains = [
+  { name: 'hyprsh.dev', state: 'success', title: 'hyprsh.dev: Verified' },
+  { name: 'docs.hyprsh.dev', state: 'pending', title: 'docs.hyprsh.dev: Pending' },
+  { name: 'api.hyprsh.dev', state: 'error', title: 'api.hyprsh.dev: Misconfigured' },
+];
+
+export default function Example() {
+  return (
+    <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: 12 }}>
+      {domains.map((d) => (
+        <li key={d.name} className="label-14" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <StatusDot state={d.state} label={false} title={d.title} />
+          {d.name}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```

@@ -15,3 +15,138 @@ A ⌘ K palette for jumping to pages and running actions. It is a modal dialog h
 - The default empty state echoes the query: “No results for “q”.” It makes no assumption about what you search; pass `empty` on `CommandMenuList` to suggest what to try.
 - Every command must also be reachable without the palette.
 - With `shouldFilter={false}` the empty state still shows when the query is set and no items render. Show `loading` while a search is in flight so an empty list isn't mistaken for “No results”.
+
+## Examples
+
+### Default
+Open it from a trigger. ⌘ K also opens it unless `hotkey={false}`.
+
+```jsx
+import { useState } from 'react';
+import { Button, CommandMenu, CommandMenuGroup, CommandMenuInput, CommandMenuItem, CommandMenuList, KeyboardInput } from '@hyprsh/design';
+
+export default function Example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button variant="secondary" size="small" onClick={() => setOpen(true)} suffix={<KeyboardInput meta small>K</KeyboardInput>}>Search…</Button>
+      <CommandMenu open={open} setOpen={setOpen}>
+        <CommandMenuInput placeholder="Search for a command or page…" />
+        <CommandMenuList>
+          <CommandMenuGroup heading="Projects">
+            <CommandMenuItem callback={() => {}}>marketing-site</CommandMenuItem>
+            <CommandMenuItem callback={() => {}}>docs</CommandMenuItem>
+          </CommandMenuGroup>
+          <CommandMenuGroup heading="Actions">
+            <CommandMenuItem keywords={['new']} callback={() => {}}>Create Project…</CommandMenuItem>
+            <CommandMenuItem keywords={['ship', 'release']} callback={() => {}}>Deploy to Production</CommandMenuItem>
+          </CommandMenuGroup>
+        </CommandMenuList>
+      </CommandMenu>
+    </>
+  );
+}
+```
+
+### Shorthand Groups
+Pass `groups` instead of the parts for a simple palette.
+
+```jsx
+import { useState } from 'react';
+import { Button, CommandMenu } from '@hyprsh/design';
+import { GitBranch, Settings } from 'lucide-react';
+
+export default function Example() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button variant="secondary" onClick={() => setOpen(true)}>Open Command Menu</Button>
+      <CommandMenu
+        open={open}
+        setOpen={setOpen}
+        placeholder="Search for a command…"
+        groups={[
+          { heading: 'Navigation', items: [
+            { label: 'Go to Settings', icon: <Settings />, keywords: ['preferences'] },
+            { label: 'Go to Branches', icon: <GitBranch /> },
+          ] },
+          { heading: 'Actions', items: [
+            { label: 'Switch Theme', shortcut: '⌘ ⇧ L', keywords: ['dark', 'light'] },
+            { label: 'Delete Project', disabled: true },
+          ] },
+        ]}
+      />
+    </>
+  );
+}
+```
+
+### Running an Item
+The menu closes before an item’s `callback` runs.
+
+```jsx
+import { useState } from 'react';
+import { Button, CommandMenu, CommandMenuInput, CommandMenuItem, CommandMenuList } from '@hyprsh/design';
+
+export default function Example() {
+  const [open, setOpen] = useState(false);
+  const [last, setLast] = useState('Nothing yet');
+
+  return (
+    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Button variant="secondary" onClick={() => setOpen(true)}>Run a Command</Button>
+      <span className="copy-14" role="status">Last command: {last}</span>
+      <CommandMenu open={open} setOpen={setOpen} hotkey={false}>
+        <CommandMenuInput placeholder="Run a command…" />
+        <CommandMenuList empty="No commands match.">
+          <CommandMenuItem callback={() => setLast('Redeploy')}>Redeploy</CommandMenuItem>
+          <CommandMenuItem callback={() => setLast('Rollback')}>Roll Back Deployment</CommandMenuItem>
+          <CommandMenuItem callback={() => setLast('Clear Cache')}>Clear Build Cache</CommandMenuItem>
+        </CommandMenuList>
+      </CommandMenu>
+    </div>
+  );
+}
+```
+
+### Loading Results
+`loading` on the list shows a spinner while results load.
+
+```jsx
+import { useEffect, useState } from 'react';
+import { Button, CommandMenu, CommandMenuInput, CommandMenuItem, CommandMenuList } from '@hyprsh/design';
+
+const all = ['hyprsh-web', 'hyprsh-api', 'hyprsh-docs', 'hyprsh-edge', 'hyprsh-billing'];
+
+export default function Example() {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [results, setResults] = useState(all.slice(0, 3));
+
+  useEffect(() => {
+    if (!open) return undefined;
+    setLoading(true);
+    const t = setTimeout(() => {
+      const q = query.trim().toLowerCase();
+      setResults(q ? all.filter((n) => n.includes(q)) : all.slice(0, 3));
+      setLoading(false);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [open, query]);
+
+  return (
+    <>
+      <Button variant="secondary" onClick={() => setOpen(true)}>Find Repository</Button>
+      <CommandMenu open={open} setOpen={setOpen} query={query} onQueryChange={setQuery} shouldFilter={false}>
+        <CommandMenuInput placeholder="Search repositories…" />
+        <CommandMenuList loading={loading} loadingLabel="Searching…" empty="No repositories match.">
+          {results.map((name) => <CommandMenuItem key={name} callback={() => {}}>{name}</CommandMenuItem>)}
+        </CommandMenuList>
+      </CommandMenu>
+    </>
+  );
+}
+```

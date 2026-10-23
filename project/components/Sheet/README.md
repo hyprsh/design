@@ -9,3 +9,110 @@ A side panel that slides in from an edge to show associated context, such as dep
 - Pick the side from where the trigger lives: a row inspector from the right, a global filter from the left. Don't switch sides mid-session.
 - Outside clicks don't close it, so always render a visible `SheetClose` labelled “Close”. Escape closes it.
 - The title names the entity in Title Case (“Deployment Details”). Don't repeat the page header inside the sheet.
+
+## Examples
+
+### Default
+A side panel with a title, body and footer. `SheetTrigger asChild` reuses your Button.
+
+```jsx
+import { Button, Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <Sheet>
+      <SheetTrigger asChild><Button>Deployment Details</Button></SheetTrigger>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>Deployment Details</SheetTitle>
+          <p className="copy-14">marketing-site on main, promoted to production.</p>
+        </SheetHeader>
+        <SheetDescription>
+          <p className="copy-14">Built in 42s from commit 4f2a9c1.</p>
+        </SheetDescription>
+        <SheetFooter>
+          <SheetClose asChild><Button variant="secondary">Close</Button></SheetClose>
+          <Button variant="default">Redeploy</Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+```
+
+### Floating
+`floating` insets the panel with the fullscreen material.
+
+```jsx
+import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <Sheet>
+      <SheetTrigger asChild><Button variant="secondary">Member Profile</Button></SheetTrigger>
+      <SheetContent floating>
+        <SheetHeader>
+          <SheetTitle>Member Profile</SheetTitle>
+          <p className="copy-14">Ada Lovelace · Owner · Joined Oct 3</p>
+        </SheetHeader>
+        <SheetFooter>
+          <SheetClose asChild><Button variant="secondary">Close</Button></SheetClose>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
+  );
+}
+```
+
+### Sides
+`side` picks the edge it slides in from.
+
+```jsx
+import { useState } from 'react';
+import { Button, Sheet, SheetClose, SheetContent, SheetFooter, SheetHeader, SheetTitle } from '@hyprsh/design';
+
+export default function Example() {
+  const [side, setSide] = useState(null);
+
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+      {['left', 'right', 'top', 'bottom'].map((s) => (
+        <Button key={s} variant="secondary" onClick={() => setSide(s)}>{s[0].toUpperCase() + s.slice(1)}</Button>
+      ))}
+      <Sheet open={side !== null} onOpenChange={(o) => { if (!o) setSide(null); }}>
+        <SheetContent side={side || 'right'}>
+          <SheetHeader>
+            <SheetTitle>From the {side}</SheetTitle>
+            <p className="copy-14">The sheet slides in from the {side} edge.</p>
+          </SheetHeader>
+          <SheetFooter>
+            <SheetClose asChild><Button variant="secondary">Close</Button></SheetClose>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+    </div>
+  );
+}
+```
+
+### Without a Backdrop
+`modal={false}` and `noOverlay` keep the page readable and usable beside the sheet.
+
+```jsx
+import { Button, Sheet, SheetClose, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <Sheet modal={false}>
+      <SheetTrigger asChild><Button variant="secondary">Log Row</Button></SheetTrigger>
+      <SheetContent noOverlay>
+        <SheetHeader>
+          <SheetTitle>Log Row</SheetTitle>
+          <p className="copy-14">GET /api/deployments 200 in 38ms</p>
+        </SheetHeader>
+        <SheetClose asChild><Button variant="secondary">Close</Button></SheetClose>
+      </SheetContent>
+    </Sheet>
+  );
+}
+```

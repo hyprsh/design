@@ -11,3 +11,107 @@ A bordered, centred block that fills a view with nothing to show yet, explaining
 - For an empty search, quote the query with curly quotes: No results for “billing”. Suggest clearing filters.
 - When filters change what's shown, put the empty state in an `aria-live="polite"` region so the change is announced.
 - For a failed load, say what went wrong, give a copyable request ID if you have one, and offer Try Again. Use ErrorCard when the failure is the main message.
+
+## Examples
+
+### Default
+A title, one or two sentences on why it is empty, and one primary action.
+
+```jsx
+import { Button, EmptyState } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <EmptyState
+      icon="rocket"
+      title="No Deployments Yet"
+      description="Push to your production branch or deploy from the CLI to create the first one."
+    >
+      <Button variant="default">Deploy Project</Button>
+    </EmptyState>
+  );
+}
+```
+
+### Primary and Secondary
+At most one secondary action, often a link.
+
+```jsx
+import { Button, EmptyState } from '@hyprsh/design';
+import { Globe } from 'lucide-react';
+
+export default function Example() {
+  return (
+    <EmptyState
+      icon={<Globe />}
+      title="No Domains Connected"
+      description="Add a domain you own to serve this project from your own address."
+    >
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', justifyContent: 'center' }}>
+        <Button variant="default">Add Domain</Button>
+        <Button variant="tertiary">Read the Docs</Button>
+      </div>
+    </EmptyState>
+  );
+}
+```
+
+### No Results
+For a search or filter that matches nothing, offer the way back.
+
+```jsx
+import { useState } from 'react';
+import { Button, EmptyState } from '@hyprsh/design';
+
+export default function Example() {
+  const [query, setQuery] = useState('payments-v2');
+
+  if (!query) return <p className="copy-14">Showing every project.</p>;
+
+  return (
+    <EmptyState
+      icon="search"
+      title="No Projects Found"
+      description={`Nothing matches “${query}”. Check the spelling or clear the search.`}
+    >
+      <Button onClick={() => setQuery('')}>Clear Search</Button>
+    </EmptyState>
+  );
+}
+```
+
+### Small
+`size="small"` is a single line for a section of a dense page.
+
+```jsx
+import { Button, EmptyState } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <EmptyState size="small" title="No environment variables yet.">
+      <Button size="small" variant="tertiary">Add Variable</Button>
+    </EmptyState>
+  );
+}
+```
+
+### Heading Level
+`headingLevel` fits the title into the page outline.
+
+```jsx
+import { EmptyState } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <section>
+      <h2 className="heading-20" style={{ margin: '0 0 16px' }}>Activity</h2>
+      <EmptyState
+        headingLevel={3}
+        icon="activity"
+        title="No Activity Yet"
+        description="Deployments, domain changes and member updates appear here."
+      />
+    </section>
+  );
+}
+```
