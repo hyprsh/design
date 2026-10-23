@@ -11,9 +11,9 @@
 .hy-status--deleted .hy-status__dot,
 .hy-status--neutral .hy-status__dot,
 .hy-status--pending .hy-status__dot { --hy-dot: var(--gray-700); }
-/* Outline and dashed draw a ring in the state's colour. The border stays inside the same 10px box, so the dots line up. */
-.hy-status--outline .hy-status__dot, .hy-status--dashed .hy-status__dot { background: transparent; border: 2px solid var(--hy-dot, var(--gray-700)); }
-.hy-status--dashed .hy-status__dot { border-style: dashed; }
+/* Outline and dashed draw an SVG ring in the state's colour (see ring() in StatusDot.js). It fills the same 10px box, so the dots line up. */
+.hy-status--outline .hy-status__dot, .hy-status--dashed .hy-status__dot { background: transparent; color: var(--hy-dot, var(--gray-700)); }
+.hy-status__ring { display: block; width: 10px; height: 10px; }
 /* In-flight states pulse; terminal states stay still. */
 .hy-status--building .hy-status__dot,
 .hy-status--queued .hy-status__dot,

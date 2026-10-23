@@ -18,9 +18,15 @@ function Demo() {
       sem.map(function (s) { return h(H.StatusDot, { key: s, state: s, label: false, titlePrefix: 'Indexer' }); })),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, states.map(function (s) { return h(H.StatusDot, { key: s, state: s }); })),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } }, states.map(function (s) { return h(H.StatusDot, { key: s, state: s, label: false, titlePrefix: 'api-gateway production' }); })),
-    variants.map(function (v) {
-      return h('div', { key: v, className: 'hy-row', style: { padding: 0, gap: 24 } }, ['info', 'success', 'warning', 'error', 'pending'].map(function (s) { return h(H.StatusDot, { key: s, state: s, variant: v }); }));
-    }),
+    /* Every state in all three variants, at 1x and, in the second group, zoomed to 2x. */
+    h('div', { className: 'hy-row', style: { padding: 0, gap: '12px 32px' } }, sem.concat(['building', 'queued', 'ready', 'canceled', 'deleted']).map(function (s) {
+      function trio(zoom) {
+        return h('span', { style: { display: 'inline-flex', gap: 8, zoom: zoom } }, variants.map(function (v) {
+          return h(H.StatusDot, { key: v, state: s, variant: v, label: false, titlePrefix: s + ' ' + v });
+        }));
+      }
+      return h('span', { key: s, style: { display: 'inline-flex', alignItems: 'center', gap: 12 } }, trio(1), trio(2));
+    })),
     h('span', { role: 'img', 'aria-label': '4K: wanted, 1080p: on disk, 720p: downloading', className: 'hy-row', style: { padding: 0, gap: 8 } },
       h(H.StatusDot, { state: 'info', variant: 'outline', label: false, 'aria-hidden': true }), h('span', { 'aria-hidden': 'true', style: { fontSize: 14, marginRight: 12 } }, '4K'),
       h(H.StatusDot, { state: 'success', label: false, 'aria-hidden': true }), h('span', { 'aria-hidden': 'true', style: { fontSize: 14, marginRight: 12 } }, '1080p'),
