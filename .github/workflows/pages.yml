@@ -1,0 +1,41 @@
+# Builds the docs site and deploys it to GitHub Pages (https://hyprsh.github.io/design/) on a version tag or by hand.
+# Every check runs first; any failure stops the deploy.
+name: Pages
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm test
+      - run: node scripts/build.mjs --check
+      - run: node scripts/site.mjs
+      - run: node scripts/examples.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .cache/site
+      - id: deployment
+        uses: actions/deploy-pages@v4

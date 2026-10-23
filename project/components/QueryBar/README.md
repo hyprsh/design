@@ -11,3 +11,116 @@ A query field with a row of filter menus that read and write the same query, lik
 - **Layout.** The field grows to fill the bar, with the menus in a row after it. The bar is a container: when it is narrower than about 560px (whatever the viewport is) the menus move to their own row under the field, where they wrap onto more rows when they don't fit, so a Sort menu at the end of the row stays visible. `wrap={false}` keeps one row that scrolls sideways (Scroller) instead, and each menu's panel stays on screen. The row is a group named “Filters”.
 - The bar adds no announcements of its own: each FilterMenu announces its changes. Problems in the query show under the field, as in QueryInput.
 - Syncing the query to the URL, saving queries and folding the menus into a sheet on phones are left to your app.
+
+## Examples
+
+### Default
+A query field with a menu for one qualifier. Checking a value writes it into the query, and typing updates the menu.
+
+```jsx
+import { useState } from 'react';
+import { QueryBar } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs', 'enhancement'], excludable: true, none: true },
+];
+
+export default function Example() {
+  const [query, setQuery] = useState('label:bug');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <QueryBar aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} value={query} onChange={setQuery}>
+        <QueryBar.Menu qualifier="label" label="Labels" noneLabel="No labels" items={['bug', 'docs', 'enhancement']} />
+      </QueryBar>
+      <span className="copy-13">Query: <code>{query || '(empty)'}</code></span>
+    </div>
+  );
+}
+```
+
+### Several Menus and Sort
+A `single` menu picks one option, and its default doesn’t add a term. Terms no menu owns, like `is:open`, are left alone.
+
+```jsx
+import { useState } from 'react';
+import { QueryBar } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs', 'enhancement', 'wontfix'], excludable: true, none: true },
+  { name: 'assignee', help: 'Assigned to', suggestions: ['ada', 'grace', 'linus'], excludable: true, none: true },
+  { name: 'sort', help: 'Newest, oldest or most commented', values: ['newest', 'oldest', 'comments'] },
+];
+
+export default function Example() {
+  const [query, setQuery] = useState('is:open label:bug');
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <QueryBar aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} value={query} onChange={setQuery}>
+        <QueryBar.Menu qualifier="label" label="Labels" noneLabel="No labels" items={['bug', 'docs', 'enhancement', 'wontfix']} />
+        <QueryBar.Menu qualifier="assignee" label="Assignees" noneLabel="Unassigned" items={['ada', 'grace', 'linus']} />
+        <QueryBar.Menu
+          qualifier="sort"
+          label="Sort"
+          single
+          defaultOption="newest"
+          align="end"
+          items={[
+            { value: 'newest', label: 'Newest' },
+            { value: 'oldest', label: 'Oldest' },
+            { value: 'comments', label: 'Most Commented' },
+          ]}
+        />
+      </QueryBar>
+      <span className="copy-13">Query: <code>{query || '(empty)'}</code></span>
+    </div>
+  );
+}
+```
+
+### Uncontrolled
+Leave out `value` to let the bar keep the query, starting from `defaultValue`.
+
+```jsx
+import { QueryBar } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'branch', help: 'Built from this branch', suggestions: ['main', 'staging', 'feat/tab-bar'], excludable: true },
+];
+
+export default function Example() {
+  return (
+    <QueryBar aria-label="Search deployments" placeholder="Search deployments…" qualifiers={qualifiers} defaultValue="branch:main">
+      <QueryBar.Menu qualifier="branch" label="Branches" excludable items={['main', 'staging', 'feat/tab-bar']} />
+    </QueryBar>
+  );
+}
+```
+
+### Small, in a Sidebar
+`size` follows through to the menus, and the menus wrap under the field when the bar is narrow.
+
+```jsx
+import { useState } from 'react';
+import { QueryBar } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs'], excludable: true },
+];
+
+export default function Example() {
+  const [query, setQuery] = useState('is:open');
+
+  return (
+    <div style={{ width: 288, maxWidth: '100%', boxSizing: 'border-box', border: '1px solid var(--gray-alpha-400)', borderRadius: 'var(--radius-md)', padding: 'var(--space-3)' }}>
+      <QueryBar size="small" aria-label="Filter issues" placeholder="Filter issues…" qualifiers={qualifiers} value={query} onChange={setQuery}>
+        <QueryBar.Menu qualifier="is" label="State" single defaultOption="open" items={[{ value: 'open', label: 'Open' }, { value: 'closed', label: 'Closed' }]} />
+        <QueryBar.Menu qualifier="label" label="Labels" items={['bug', 'docs']} />
+      </QueryBar>
+    </div>
+  );
+}
+```

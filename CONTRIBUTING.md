@@ -81,7 +81,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 
 ## README.md
 
-```markdown
+````markdown
 # Name
 
 One-sentence summary (this becomes the manifest summary).
@@ -90,7 +90,30 @@ One-sentence summary (this becomes the manifest summary).
 
 - When to use it, and what to use instead.
 - Do's and don'ts.
+
+## Examples
+
+### Title Case Title
+One optional sentence on what the example shows.
+
+```jsx
+import { Button } from '@hyprsh/design';
+
+export default function Example() {
+  return <Button variant="default">Deploy Project</Button>;
+}
 ```
+````
+
+After its bullets, a README ends with an `## Examples` section. The docs site renders each Example live next to its JSX, and coding agents copy it, so the format is fixed:
+
+- Each Example is a `###` heading in Title Case, an optional one-sentence description and one `jsx` code block. The generator reads exactly this.
+- A block is either imports and one JSX expression, or imports, any code you need and `export default function Example() { … }`. Use the second form whenever there is state or more than one element.
+- Import only from `'@hyprsh/design'`, `'react'` (`useState` and friends) and `'lucide-react'` (icons, passed as `<Icon icon={GitBranch} />` or `prefix={<GitBranch />}`). Import every name the block uses, so it can be pasted into an app as it is.
+- Lay out with plain elements and inline styles: `<div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>`. Don't use the card helpers `.hy-row` and `.hy-col`. Type classes such as `copy-14` are fine.
+- Write 3–6 Examples, each one real use: the default first, then variants, sizes and states, a controlled use with state, and the typical composition (an Input with label, hint and error in a form, a Modal opened from a Button, a Menu from its trigger, a Toast from its hook). Open overlays from a button rather than forcing them open, and keep each Example short.
+- Use only props that exist in `Name.d.ts`, with their current names, and follow the copy rules above.
+- The docs site checks that every Example mounts without errors. A component without Examples shows its card instead.
 
 ## Checking your work
 

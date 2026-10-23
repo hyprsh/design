@@ -17,3 +17,114 @@ A button that opens a list of actions, with typeahead and full keyboard support 
 **Disabled items and the keyboard:** a disabled item is `aria-disabled` and never runs on click, Enter or Space. A disabled item with a `description` still takes focus from the arrow keys, Home, End and typeahead, so keyboard users can read why (WAI-ARIA allows focusable disabled menu items); a disabled item without one is skipped, as before. There is no separate prop: add the description. When the menu opens, focus goes to the first (or last) enabled item.
 
 **Keys stay inside:** the open list stops the keys it handles itself (arrows, Home, End, Enter, Space, Escape, Tab, and plain letters for typeahead) from bubbling out of the portal, through the React tree and to the document. A page's own j/k list or Escape-closes-the-pane handler does not react while the menu is open; Escape closes the menu only. Keys pressed on the trigger button are not stopped.
+
+## Examples
+
+### Default
+A button that opens a short list of actions.
+
+```jsx
+import { Menu, MenuButton, MenuContainer, MenuItem } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <MenuContainer>
+      <MenuButton variant="secondary" showChevron>Actions</MenuButton>
+      <Menu>
+        <MenuItem>Rename Project</MenuItem>
+        <MenuItem>Duplicate Deployment</MenuItem>
+        <MenuItem>Transfer Project…</MenuItem>
+      </Menu>
+    </MenuContainer>
+  );
+}
+```
+
+### Sections, Shortcuts and Destructive Items
+Group longer lists with sections. Destructive items go last, after a divider, with a full label.
+
+```jsx
+import { Menu, MenuButton, MenuContainer, MenuDivider, MenuItem, MenuSection } from '@hyprsh/design';
+import { Copy, GitBranch, Trash2 } from 'lucide-react';
+
+export default function Example() {
+  return (
+    <MenuContainer>
+      <MenuButton variant="secondary" showChevron>Deployment</MenuButton>
+      <Menu width={240}>
+        <MenuSection title="Share">
+          <MenuItem prefix={<Copy />} shortcut="⌘ C">Copy Deployment URL</MenuItem>
+          <MenuItem prefix={<GitBranch />}>View Branch</MenuItem>
+        </MenuSection>
+        <MenuDivider />
+        <MenuItem type="error" prefix={<Trash2 />}>Delete Deployment…</MenuItem>
+      </Menu>
+    </MenuContainer>
+  );
+}
+```
+
+### Descriptions and Locked Items
+A description says why an item is disabled. A locked item shows the permission is missing.
+
+```jsx
+import { Menu, MenuButton, MenuContainer, MenuItem, MenuItemLocked } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <MenuContainer>
+      <MenuButton variant="secondary" showChevron>Domain</MenuButton>
+      <Menu width={260}>
+        <MenuItem>Verify Domain</MenuItem>
+        <MenuItem disabled description="No certificate to renew">Renew Certificate</MenuItem>
+        <MenuItemLocked>Remove Domain</MenuItemLocked>
+      </Menu>
+    </MenuContainer>
+  );
+}
+```
+
+### Choosing and Reporting
+Run the choice in `onClick`. Here the last action is shown beside the trigger, and the menu opens toward the end.
+
+```jsx
+import { useState } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem } from '@hyprsh/design';
+
+export default function Example() {
+  const [last, setLast] = useState('Nothing yet');
+
+  return (
+    <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
+      <MenuContainer position="bottom-start">
+        <MenuButton variant="secondary" showChevron>Redeploy</MenuButton>
+        <Menu>
+          <MenuItem onClick={() => setLast('Redeployed with cache')}>Redeploy with Cache</MenuItem>
+          <MenuItem onClick={() => setLast('Redeployed without cache')}>Redeploy without Cache</MenuItem>
+        </Menu>
+      </MenuContainer>
+      <span className="copy-14" role="status">Last action: {last}</span>
+    </div>
+  );
+}
+```
+
+### Icon Trigger
+An icon-only trigger needs `svgOnly` and an `aria-label`.
+
+```jsx
+import { Menu, MenuButton, MenuContainer, MenuItem } from '@hyprsh/design';
+import { Ellipsis } from 'lucide-react';
+
+export default function Example() {
+  return (
+    <MenuContainer position="bottom-end">
+      <MenuButton variant="tertiary" svgOnly aria-label="Project Actions"><Ellipsis /></MenuButton>
+      <Menu>
+        <MenuItem>Rename Project</MenuItem>
+        <MenuItem>Archive Project…</MenuItem>
+      </Menu>
+    </MenuContainer>
+  );
+}
+```

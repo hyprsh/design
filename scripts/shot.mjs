@@ -7,8 +7,8 @@ import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { build } from './build.mjs';
+import { CHROME, CHROME_FLAGS } from './chrome.mjs';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, '.cache/shots');
 const BASE = process.env.HY_DEV || 'http://127.0.0.1:4400';
@@ -17,7 +17,7 @@ mkdirSync(OUT, { recursive: true });
 const r = build();
 const names = process.argv.slice(2).length ? process.argv.slice(2) : ['Cover', ...r.order];
 const profile = mkdtempSync(join(tmpdir(), 'hy-chrome-'));
-const flags = ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--virtual-time-budget=5000'];
+const flags = [...CHROME_FLAGS, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--virtual-time-budget=5000'];
 let failed = 0;
 for (const n of names) {
   const height = n === 'Cover' ? 288 : (r.meta[n]?.height || 200);

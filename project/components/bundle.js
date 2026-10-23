@@ -2480,7 +2480,7 @@
             return h(React.Fragment, { key: q.name }, h('dt', null, q.name + ':'), h('dd', null, q.help));
           })),
           h('p', null, code('a,b'), ' matches either value. Different qualifiers must all match, and so must the same one typed twice. A leading ', code('-'), ' leaves values out, where a qualifier allows it. Double quotes keep spaces and commas in a value.',
-            hasNone ? [' ', code('no:name'), ' matches what has no value for that qualifier.'] : null, ' Other words are free text.')));
+            hasNone ? h(React.Fragment, null, ' ', code('no:name'), ' matches what has no value for that qualifier.') : null, ' Other words are free text.')));
     }
 
     function QueryInput(props) {

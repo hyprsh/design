@@ -1,16 +1,19 @@
 // Headless Chrome over the DevTools protocol, for the scripts that drive a page (mobile.mjs, touch.mjs).
 // Usage: const { send, goto, evaluate, close } = await openChrome(); await send('Page.enable'); await goto(url); …; await close();
+// CHROME_PATH overrides where Chrome is: the macOS app by default, /usr/bin/google-chrome on Linux.
 import { spawn } from 'node:child_process';
 import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
-const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+export const CHROME = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : '/usr/bin/google-chrome');
+// CI runners can't give Chrome's sandbox the namespaces it wants.
+export const CHROME_FLAGS = process.env.CI && process.platform === 'linux' ? ['--no-sandbox'] : [];
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
 export async function openChrome() {
   const profile = mkdtempSync(join(tmpdir(), 'hy-chrome-'));
-  const chrome = spawn(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
+  const chrome = spawn(CHROME, [...CHROME_FLAGS, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
     `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: 'ignore' });
   let port;
   for (let i = 0; i < 100 && !port; i++) {

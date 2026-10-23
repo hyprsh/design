@@ -16,6 +16,20 @@ _Avoid_: tab bar
 The round button beside the tab bar capsule, for an action that isn't a screen.
 _Avoid_: FAB, action button
 
+## Documentation
+
+**Card**:
+The live demo of one component showing its variants together, as the artifact and the dev viewer show it.
+_Avoid_: preview, demo, story
+
+**Example**:
+One live use of a component shown with the JSX that produces it, for an app to copy.
+_Avoid_: snippet (that is the Snippet component), demo, sample
+
+**Pattern**:
+A whole screen composed from several components, such as a settings page.
+_Avoid_: template, recipe, layout (that is a card group)
+
 ## Queries
 
 **Query**:

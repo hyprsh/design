@@ -9,3 +9,73 @@ An on/off control for a single setting that takes effect immediately; it's a nat
 - Use Checkbox for picking items in a list, and Switch (the segmented control) to choose between 2–3 views.
 - Disable a toggle only when the change is impossible, and say why nearby.
 - The thumb moves as well as changing colour, so state isn't shown by colour alone.
+
+## Examples
+
+### Default
+A single setting that takes effect immediately.
+
+```jsx
+import { Toggle } from '@hyprsh/design';
+
+export default function Example() {
+  return <Toggle defaultChecked>Auto-Assign Domains</Toggle>;
+}
+```
+
+### Controlled
+Keep the state yourself and confirm the change nearby.
+
+```jsx
+import { useState } from 'react';
+import { Toggle } from '@hyprsh/design';
+
+export default function Example() {
+  const [enabled, setEnabled] = useState(false);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
+      <Toggle checked={enabled} onChange={setEnabled}>Preview Deployments</Toggle>
+      <span className="copy-14" role="status">
+        {enabled ? 'Every pull request gets a preview URL.' : 'Pull requests are not deployed.'}
+      </span>
+    </div>
+  );
+}
+```
+
+### Sizes and Colors
+Small is the default. A colour other than the accent keeps the track tinted when the toggle is off.
+
+```jsx
+import { Toggle } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 24, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Toggle size="small" defaultChecked>Small</Toggle>
+      <Toggle size="medium" defaultChecked>Medium</Toggle>
+      <Toggle size="large" defaultChecked>Large</Toggle>
+      <Toggle size="medium" color="blue" defaultChecked>Blue</Toggle>
+      <Toggle size="medium" color="green">Green</Toggle>
+    </div>
+  );
+}
+```
+
+### Switch First
+Put the switch before the label, as in a settings list.
+
+```jsx
+import { Toggle } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+      <Toggle direction="switch-first" defaultChecked>Automatic Rollbacks</Toggle>
+      <Toggle direction="switch-first">Skew Protection</Toggle>
+      <Toggle direction="switch-first" disabled>Edge Caching</Toggle>
+    </div>
+  );
+}
+```

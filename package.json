@@ -31,7 +31,8 @@
     "dev": "node scripts/dev.mjs",
     "shots": "node scripts/shot.mjs",
     "icons": "node scripts/icons.mjs",
-    "tokens:css": "node scripts/tokens-css.mjs"
+    "tokens:css": "node scripts/tokens-css.mjs",
+    "site": "node scripts/site.mjs"
   },
   "engines": { "node": ">=20" }
 }

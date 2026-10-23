@@ -21,3 +21,114 @@ A floating pill tab bar for the main screens of an app at phone width. It follow
 - The accessory is for an action that isn't a screen, such as Search. It is an icon-only button, so its `label` is its accessible name.
 - Every item and the accessory are at least `--touch-target` in both directions.
 - Don't put a desktop navigation in it: from `sm` up use a rail or sidebar.
+- TabBar has no inline or contained mode: it is always fixed to the viewport. The Examples sit it in a frame by passing `style={{ position: 'relative', inset: 'auto', padding: 0 }}` and `hideFrom={false}`. In an app, leave both off.
+
+## Examples
+
+### Phone Navigation
+Three to five destinations, each with a short Title Case label and an icon.
+
+```jsx
+import { useState } from 'react';
+import { TabBar } from '@hyprsh/design';
+import { Activity, Globe, Layers } from 'lucide-react';
+
+export default function Example() {
+  const [screen, setScreen] = useState('projects');
+
+  return (
+    <div style={{ width: 375, maxWidth: '100%', border: '1px solid var(--gray-alpha-400)', borderRadius: 24, padding: '24px 0 8px', boxSizing: 'border-box' }}>
+      <p className="heading-20" style={{ margin: '0 24px 24px', textTransform: 'capitalize' }}>{screen}</p>
+      <TabBar label="Screens" hideFrom={false} style={{ position: 'relative', inset: 'auto', padding: 0 }} value={screen} onValueChange={setScreen}>
+        <TabBar.Item value="projects" label="Projects" icon={<Layers />} />
+        <TabBar.Item value="domains" label="Domains" icon={<Globe />} />
+        <TabBar.Item value="activity" label="Activity" icon={<Activity />} />
+      </TabBar>
+    </div>
+  );
+}
+```
+
+### Badges and Accessory
+A count, a dot, or a tone for a count that is worse than news. `badgeLabel` reaches assistive tech. The accessory is for an action that isn’t a screen.
+
+```jsx
+import { TabBar } from '@hyprsh/design';
+import { Activity, Inbox, Layers, Search } from 'lucide-react';
+
+export default function Example() {
+  return (
+    <div style={{ width: 375, maxWidth: '100%', border: '1px solid var(--gray-alpha-400)', borderRadius: 24, padding: '24px 0 8px', boxSizing: 'border-box' }}>
+      <TabBar
+        label="Screens"
+        hideFrom={false}
+        style={{ position: 'relative', inset: 'auto', padding: 0 }}
+        defaultValue="inbox"
+        accessory={{ label: 'Search', icon: <Search /> }}
+      >
+        <TabBar.Item value="inbox" label="Inbox" icon={<Inbox />} badge={3} badgeLabel="3 need attention" />
+        <TabBar.Item value="projects" label="Projects" icon={<Layers />} badge badgeTone="warning" badgeLabel="Needs review" />
+        <TabBar.Item value="activity" label="Activity" icon={<Activity />} badge={2} badgeTone="error" badgeLabel="2 blocking" />
+      </TabBar>
+    </div>
+  );
+}
+```
+
+### More Item
+An item with only `onClick` is an action. Mark it with `haspopup`, and give it `current` while a screen that lives in More is open.
+
+```jsx
+import { useState } from 'react';
+import { TabBar } from '@hyprsh/design';
+import { Ellipsis, Globe, Layers } from 'lucide-react';
+
+export default function Example() {
+  const [screen, setScreen] = useState('projects');
+
+  return (
+    <div style={{ width: 375, maxWidth: '100%', border: '1px solid var(--gray-alpha-400)', borderRadius: 24, padding: '24px 0 8px', boxSizing: 'border-box' }}>
+      <TabBar label="Screens" hideFrom={false} style={{ position: 'relative', inset: 'auto', padding: 0 }} value={screen} onValueChange={setScreen}>
+        <TabBar.Item value="projects" label="Projects" icon={<Layers />} />
+        <TabBar.Item value="domains" label="Domains" icon={<Globe />} />
+        <TabBar.Item label="More" icon={<Ellipsis />} haspopup onClick={() => setScreen('settings')} current={screen === 'settings'} />
+      </TabBar>
+    </div>
+  );
+}
+```
+
+### Minimise on Scroll
+With `minimizeOnScroll` and a `scrollRef`, the bar shrinks to the selected item as the content scrolls down, and expands on scrolling up or a tap.
+
+```jsx
+import { useRef } from 'react';
+import { TabBar } from '@hyprsh/design';
+import { Activity, Globe, Layers } from 'lucide-react';
+
+const events = ['Deployed main to production', 'Preview ready for docs', 'Domain verified', 'Build failed on feat/tab-bar', 'Branch merged', 'Preview ready for api'];
+
+export default function Example() {
+  const scroller = useRef(null);
+
+  return (
+    <div style={{ width: 375, maxWidth: '100%', border: '1px solid var(--gray-alpha-400)', borderRadius: 24, padding: '16px 0 8px', boxSizing: 'border-box' }}>
+      <div ref={scroller} tabIndex={0} role="region" aria-label="Activity feed" className="copy-14" style={{ height: 96, overflowY: 'auto', padding: '0 24px' }}>
+        {events.map((text) => <p key={text} style={{ margin: '0 0 24px' }}>{text}</p>)}
+      </div>
+      <TabBar
+        label="Screens"
+        hideFrom={false}
+        style={{ position: 'relative', inset: 'auto', padding: '8px 0 0' }}
+        minimizeOnScroll
+        scrollRef={scroller}
+        defaultValue="activity"
+      >
+        <TabBar.Item value="projects" label="Projects" icon={<Layers />} />
+        <TabBar.Item value="domains" label="Domains" icon={<Globe />} />
+        <TabBar.Item value="activity" label="Activity" icon={<Activity />} />
+      </TabBar>
+    </div>
+  );
+}
+```

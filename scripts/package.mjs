@@ -6,6 +6,8 @@
 //   dist/tailwind.css Tailwind v4 entry: tokens, @theme mapping, dark variant, type utilities, components, base
 //   dist/icons.js     opt-in: registers the full Lucide set for <Icon name="…">
 //   dist/brand/       logo SVGs
+//   dist/AGENTS.md    for coding agents: setup, rules and a component index (scripts/docs.mjs, shared with the docs site)
+//   dist/docs/        markdown per component with a Props table, getting started, foundations, guidelines, components.json
 // Dark mode follows [data-theme="dark"] or a .dark class on any ancestor.
 // Usage: node scripts/package.mjs
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, copyFileSync, existsSync } from 'node:fs';
@@ -13,6 +15,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build } from './build.mjs';
 import { compileTokens, typeStyles, STRONG_WEIGHT } from './tokens-css.mjs';
+import { componentDocs, writeAgentDocs } from './docs.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PROJECT = join(ROOT, 'project');
@@ -99,7 +102,7 @@ function tailwindEntry(t, { tokens, components, base }) {
 }
 
 export function buildPackage() {
-  const { order, errors } = build({ write: false });
+  const { order, meta, errors } = build({ write: false });
   if (errors.length) throw new Error(errors.join('\n'));
 
   const core = read(join(SRC, 'core.js')).replace(/^var React = window\.React;\nvar ReactDOM = window\.ReactDOM;\n/m, '');
@@ -172,11 +175,12 @@ export function buildPackage() {
   for (const f of readdirSync(join(PROJECT, 'fonts'))) copyFileSync(join(PROJECT, 'fonts', f), join(DIST, 'fonts', f));
   for (const f of readdirSync(join(PROJECT, 'brand'))) copyFileSync(join(PROJECT, 'brand', f), join(DIST, 'brand', f));
   copyFileSync(join(SRC, 'LUCIDE-LICENSE.txt'), join(DIST, 'LUCIDE-LICENSE.txt'));
+  const docs = writeAgentDocs(DIST, 'package', componentDocs({ order, meta }));
   if (!existsSync(join(DIST, 'index.js'))) throw new Error('dist/index.js was not written');
-  return { components: defined.length, icons: used.size, js: js.length, css: css.length, tailwind: tailwind.length };
+  return { components: defined.length, icons: used.size, js: js.length, css: css.length, tailwind: tailwind.length, docs: docs.length };
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const r = buildPackage();
-  console.log(`dist/ · ${r.components} exports · ${r.icons} icons in the main entry · index.js ${(r.js / 1024).toFixed(1)} KB · styles.css ${(r.css / 1024).toFixed(1)} KB · tailwind.css ${(r.tailwind / 1024).toFixed(1)} KB`);
+  console.log(`dist/ · ${r.components} exports · ${r.icons} icons in the main entry · index.js ${(r.js / 1024).toFixed(1)} KB · styles.css ${(r.css / 1024).toFixed(1)} KB · tailwind.css ${(r.tailwind / 1024).toFixed(1)} KB · ${r.docs} agent docs`);
 }

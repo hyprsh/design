@@ -12,3 +12,98 @@ Triggers an action such as submitting a form, starting a deploy or opening a dia
 - Icon-only buttons need `svgOnly` and an `aria-label` that names the action and its target (“Copy Deployment URL”, not “Copy”). Don't add an `aria-label` to a button that already has visible text.
 - `shape="rounded"` with `shadow` is a marketing look; keep product UI square.
 - Under touch sizing `small` and `medium` buttons are 44px tall (icon-only ones 44px wide too), `large` stays 48px, and `tiny` keeps its drawn size with a 44px hit area.
+
+## Examples
+
+### Primary Action
+One solid button per view, for the thing the page is for.
+
+```jsx
+import { Button } from '@hyprsh/design';
+
+export default function Example() {
+  return <Button variant="default">Deploy Project</Button>;
+}
+```
+
+### Variants
+Solid for the main action, secondary for supporting ones, tertiary in toolbars and rows, error and warning for destructive or risky actions.
+
+```jsx
+import { Button } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Button variant="default">Deploy Project</Button>
+      <Button variant="secondary">View Logs</Button>
+      <Button variant="tertiary">Copy Link</Button>
+      <Button variant="warning">Rotate Key</Button>
+      <Button variant="error">Delete Project</Button>
+    </div>
+  );
+}
+```
+
+### Sizes
+Tiny is for icons only; small, medium and large share the control scale with Input and Select.
+
+```jsx
+import { Button } from '@hyprsh/design';
+import { Plus } from 'lucide-react';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Button size="tiny" svgOnly aria-label="Add Domain"><Plus /></Button>
+      <Button size="small">Small</Button>
+      <Button size="medium">Medium</Button>
+      <Button size="large">Large</Button>
+    </div>
+  );
+}
+```
+
+### With Icons
+Pass an icon as `prefix` or `suffix`. An icon-only button needs `svgOnly` and an `aria-label` that names the action and its target.
+
+```jsx
+import { Button } from '@hyprsh/design';
+import { ArrowRight, Copy, GitBranch } from 'lucide-react';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Button prefix={<GitBranch />}>Create Branch</Button>
+      <Button variant="default" suffix={<ArrowRight />}>Continue to Domains</Button>
+      <Button svgOnly aria-label="Copy Deployment URL"><Copy /></Button>
+    </div>
+  );
+}
+```
+
+### Loading and Disabled
+`loading` keeps the label, shows a spinner and blocks a second press. Disable only when the action is impossible right now.
+
+```jsx
+import { useState } from 'react';
+import { Button } from '@hyprsh/design';
+
+export default function Example() {
+  const [deploying, setDeploying] = useState(false);
+
+  function deploy() {
+    setDeploying(true);
+    setTimeout(() => setDeploying(false), 2000);
+  }
+
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Button variant="default" loading={deploying} onClick={deploy}>
+        {deploying ? 'Deploying…' : 'Deploy Project'}
+      </Button>
+      <Button disabled>Promote to Production</Button>
+    </div>
+  );
+}
+```
