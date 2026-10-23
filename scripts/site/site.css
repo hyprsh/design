@@ -16,7 +16,7 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
 .top-gap { flex: 1; }
 .top-link { color: var(--gray-900); text-decoration: none; padding: 6px 8px; border-radius: var(--radius-md); }
 .top-link:hover { color: var(--gray-1000); background: var(--gray-alpha-100); }
-.icon-btn { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--gray-1000); cursor: pointer; touch-action: manipulation; transition: background-color 150ms cubic-bezier(.4, 0, .2, 1); }
+.icon-btn { display: grid; flex: none; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--gray-1000); cursor: pointer; touch-action: manipulation; transition: background-color 150ms cubic-bezier(.4, 0, .2, 1); }
 .icon-btn:hover { background: var(--gray-alpha-100); }
 .menu-btn { display: none; }
 [data-theme="dark"] .when-light, :root:not([data-theme="dark"]) .when-dark { display: none; }
@@ -139,6 +139,13 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
   .search-open .search-close { display: grid; }
   .search-list { position: fixed; top: 64px; left: 8px; right: 8px; width: auto; max-width: none; max-height: calc(100vh - 72px); }
   .top-link { padding: 6px 4px; }
+  /* The 44px buttons carry their own space, so the row needs no gap to fit search, Markdown, GitHub and the theme. */
+  .top { gap: 0; }
+  .theme-btn { margin-right: -8px; }
+}
+/* Small phones: the Markdown link gives way so the row fits. */
+@media (max-width: 419px) {
+  .top .top-link { display: none; }
 }
 @media (pointer: coarse) {
   .hy-input.search-field input { font-size: 16px; }
