@@ -29,6 +29,10 @@ jobs:
           node-version: 22
       - run: npm test
       - run: node scripts/build.mjs --check
+      - run: npm run build
+      - run: node scripts/smoke.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
       - run: node scripts/site.mjs
       - run: node scripts/examples.mjs
         env:

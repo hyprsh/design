@@ -1,0 +1,24 @@
+# Runs the tests, the build checks and the browser smoke test of the npm entry on every push and pull request.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - run: npm test
+      - run: node scripts/build.mjs --check
+      - run: npm run build
+      - run: node scripts/smoke.mjs
+        env:
+          CHROME_PATH: /usr/bin/google-chrome
