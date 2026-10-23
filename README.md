@@ -39,7 +39,7 @@ docs/
 
 ## Commands
 
-Node 20 or newer. There are no dependencies to install.
+Node 20 or newer (22 or newer for the scripts that drive Chrome, which use its built-in WebSocket). There are no dependencies to install.
 
 ```bash
 npm run build
