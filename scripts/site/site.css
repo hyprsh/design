@@ -2,7 +2,8 @@
 html { scroll-padding-top: 72px; }
 body { min-height: 100vh; }
 a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1px; }
-a:focus-visible, button:focus-visible, input:focus-visible, iframe:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
+/* Zero specificity, so the components' own focus styles win inside live examples. */
+:where(a, button, input, iframe, [tabindex]):focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .muted { color: var(--gray-900); }
 
 /* ---------- Chrome ---------- */
@@ -28,7 +29,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, iframe:focus-visible
 .search-field { width: 240px; }
 .search-field .search-icon { margin-left: 10px; color: var(--gray-900); }
 .hy-input.search-field input { padding: 0 8px; }
-.hy-input.search-field input:focus-visible { outline: none; } /* the field draws the ring */
 .search-hint { margin-right: 6px; color: var(--gray-900); }
 .search-field:focus-within .search-hint { display: none; }
 .search-list { position: absolute; top: calc(100% + 8px); right: 0; width: 400px; max-width: calc(100vw - 16px); max-height: min(560px, calc(100vh - 80px)); }
