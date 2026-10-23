@@ -651,7 +651,7 @@ body {
 .hy-fieldset__footer--highlight { background: var(--gray-100); }
 .hy-fieldset__status { display: flex; align-items: flex-start; gap: 8px; min-width: 0; }
 .hy-fieldset__status-icon { flex: none; margin-top: 2px; }
-.hy-fieldset__status a { color: var(--link); text-decoration: none; }
+.hy-fieldset__status a { color: var(--link); text-decoration: underline; text-underline-offset: 3px; }
 .hy-fieldset__status a:hover { text-decoration: underline; }
 .hy-fieldset__actions { display: flex; align-items: center; gap: 8px; flex: none; margin-left: auto; }
 .hy-fieldset--error { box-shadow: 0 0 0 1px var(--red-400); }
@@ -1495,8 +1495,8 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-empty-state__title { margin: 0; font-size: 16px; line-height: 24px; font-weight: 600; color: var(--gray-1000); text-wrap: balance; }
 .hy-empty-state__description { margin: 0; font-size: 14px; line-height: 20px; color: var(--gray-900); text-wrap: pretty; }
 .hy-empty-state__actions { display: flex; flex-direction: column; align-items: center; gap: 16px; }
-.hy-empty-state__actions a:not([class]) { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--link); text-decoration: none; border-radius: var(--radius-sm); }
-.hy-empty-state__actions a:not([class]):hover { text-decoration: underline; }
+.hy-empty-state__actions a:not([class]) { font-size: 14px; line-height: 20px; font-weight: 500; color: var(--link); text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1px; border-radius: var(--radius-sm); }
+.hy-empty-state__actions a:not([class]):hover { text-decoration-thickness: 2px; }
 /* small: one line of text, left-aligned, no border or icon */
 .hy-empty-state--small {
   flex-direction: row; flex-wrap: wrap; align-items: baseline; justify-content: flex-start; gap: 0 8px;
