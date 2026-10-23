@@ -29,7 +29,7 @@
 }
 .hy-toggle__icon { display: inline-flex; line-height: 0; }
 .hy-toggle__icon svg { width: calc(var(--hy-tg-thumb) - 4px); height: calc(var(--hy-tg-thumb) - 4px); }
-.hy-toggle.is-on .hy-toggle__track { background: var(--hy-tg-fill); }
+.hy-toggle.is-on:not(.hy-toggle--disabled) .hy-toggle__track { background: var(--hy-tg-fill); }
 .hy-toggle.is-on .hy-toggle__thumb { transform: translateX(var(--hy-tg-travel)); box-shadow: 0 1px 2px var(--gray-alpha-400); }
 .hy-toggle__input:focus-visible + .hy-toggle__track { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-toggle__label { font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); }
@@ -37,18 +37,15 @@
 .hy-toggle__label--title { text-transform: capitalize; }
 .hy-toggle:hover:not(.hy-toggle--disabled) .hy-toggle__label { color: var(--gray-1000); }
 
-/* custom colour: the track keeps its hue when off, and the icon is tinted */
-.hy-toggle--blue   { --hy-tg-fill: var(--blue-700);   --hy-tg-ink: var(--blue-900); }
-.hy-toggle--amber  { --hy-tg-fill: var(--amber-700);  --hy-tg-ink: var(--amber-900); }
-.hy-toggle--red    { --hy-tg-fill: var(--red-700);    --hy-tg-ink: var(--red-900); }
-.hy-toggle--green  { --hy-tg-fill: var(--green-700);  --hy-tg-ink: var(--green-900); }
-.hy-toggle--teal   { --hy-tg-fill: var(--teal-700);   --hy-tg-ink: var(--teal-900); }
-.hy-toggle--purple { --hy-tg-fill: var(--purple-700); --hy-tg-ink: var(--purple-900); }
-.hy-toggle--pink   { --hy-tg-fill: var(--pink-700);   --hy-tg-ink: var(--pink-900); }
-.hy-toggle--gray   { --hy-tg-fill: var(--gray-700);   --hy-tg-ink: var(--gray-900); }
-.hy-toggle--blue .hy-toggle__track, .hy-toggle--amber .hy-toggle__track, .hy-toggle--red .hy-toggle__track, .hy-toggle--green .hy-toggle__track,
-.hy-toggle--teal .hy-toggle__track, .hy-toggle--purple .hy-toggle__track, .hy-toggle--pink .hy-toggle__track,
-.hy-toggle--gray .hy-toggle__track { background: var(--hy-tg-fill); }
+/* custom colour: only an enabled toggle that is on takes the hue (its fill and icon ink); off and disabled look like the default */
+.hy-toggle--blue.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--blue-700); --hy-tg-ink: var(--blue-900); }
+.hy-toggle--amber.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--amber-700); --hy-tg-ink: var(--amber-900); }
+.hy-toggle--red.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--red-700); --hy-tg-ink: var(--red-900); }
+.hy-toggle--green.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--green-700); --hy-tg-ink: var(--green-900); }
+.hy-toggle--teal.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--teal-700); --hy-tg-ink: var(--teal-900); }
+.hy-toggle--purple.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--purple-700); --hy-tg-ink: var(--purple-900); }
+.hy-toggle--pink.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--pink-700); --hy-tg-ink: var(--pink-900); }
+.hy-toggle--gray.is-on:not(.hy-toggle--disabled) { --hy-tg-fill: var(--gray-700); --hy-tg-ink: var(--gray-900); }
 
 .hy-toggle--disabled { cursor: not-allowed; }
 .hy-toggle--disabled .hy-toggle__track { background: var(--gray-200); }
@@ -59,8 +56,13 @@
 
 [data-theme="dark"] .hy-toggle { --hy-tg-ink: var(--gray-100); }
 [data-theme="dark"] .hy-toggle__thumb { background: var(--gray-1000); box-shadow: 0 1px 2px var(--gray-alpha-400); }
-[data-theme="dark"] .hy-toggle--blue, [data-theme="dark"] .hy-toggle--amber, [data-theme="dark"] .hy-toggle--red, [data-theme="dark"] .hy-toggle--green,
-[data-theme="dark"] .hy-toggle--teal, [data-theme="dark"] .hy-toggle--purple, [data-theme="dark"] .hy-toggle--pink { --hy-tg-ink: var(--gray-100); }
+[data-theme="dark"] .hy-toggle--blue.is-on:not(.hy-toggle--disabled),
+[data-theme="dark"] .hy-toggle--amber.is-on:not(.hy-toggle--disabled),
+[data-theme="dark"] .hy-toggle--red.is-on:not(.hy-toggle--disabled),
+[data-theme="dark"] .hy-toggle--green.is-on:not(.hy-toggle--disabled),
+[data-theme="dark"] .hy-toggle--teal.is-on:not(.hy-toggle--disabled),
+[data-theme="dark"] .hy-toggle--purple.is-on:not(.hy-toggle--disabled),
+[data-theme="dark"] .hy-toggle--pink.is-on:not(.hy-toggle--disabled) { --hy-tg-ink: var(--gray-100); }
 [data-theme="dark"] .hy-toggle--disabled .hy-toggle__thumb { background: var(--gray-500); box-shadow: none; }
 [data-theme="dark"] .hy-toggle--disabled.is-on .hy-toggle__track { background: var(--gray-400); }
 [data-theme="dark"] .hy-toggle--disabled.is-on .hy-toggle__thumb { background: var(--gray-600); }

@@ -15,7 +15,7 @@ function Demo() {
       h(H.Toggle, { size: 'large', defaultChecked: true, 'aria-label': 'Analytics' })),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
       h(H.Toggle, { color: 'amber', defaultChecked: true, direction: 'switch-first', icon: { checked: h(H.Icon, { name: 'moon', size: 8 }), unchecked: h(H.Icon, { name: 'sun', size: 8 }) } }, 'Dark Mode'),
-      h(H.Toggle, { color: 'red', size: 'medium' }, 'Maintenance Mode')),
+      h(H.Toggle, { color: 'red', size: 'medium', defaultChecked: true }, 'Maintenance Mode')),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 24 } },
       h(H.Toggle, { disabled: true }, 'Disabled Off'),
       h(H.Toggle, { disabled: true, defaultChecked: true }, 'Disabled On')));
