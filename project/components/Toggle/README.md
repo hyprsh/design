@@ -2,7 +2,7 @@
 
 An on/off control for a single setting that takes effect immediately; it's a native checkbox with `role="switch"`, so the label toggles it too.
 
-**You provide:** the label as `children` (or `aria-label`), and `checked` + `onChange(next)` or `defaultChecked`. Optional: `size` (`small` by default, or `medium`, `large`), `color` (`accent`, blue, by default; other hues, `blue` among them, tint the track even when off), `icon={{ checked, unchecked }}` for the thumb, `direction="switch-first"` to put the switch before the label (the label comes first by default), `labelCasing="normal"` to stop title-casing, and `disabled`.
+**You provide:** the label as `children` (or `aria-label`), and `checked` + `onChange(next)` or `defaultChecked`. Optional: `size` (`small` by default, or `medium`, `large`), `color` (`accent`, blue, by default; other hues fill the track only when the toggle is on, and an off or disabled toggle looks the same whatever the hue), `icon={{ checked, unchecked }}` for the thumb, `direction="switch-first"` to put the switch before the label (the label comes first by default), `labelCasing="normal"` to stop title-casing, and `disabled`.
 
 - Name the “on” state with a short Title Case noun phrase (“Auto-Assign Domains”), not a question or a sentence.
 - Apply the change right away and confirm it (a toast works). If it needs a Save button, use Checkbox instead.
@@ -45,7 +45,7 @@ export default function Example() {
 ```
 
 ### Sizes and Colors
-Small is the default. A colour other than the accent keeps the track tinted when the toggle is off.
+Small is the default. A colour other than the accent fills the track only when the toggle is on; off, it looks like the default.
 
 ```jsx
 import { Toggle } from '@hyprsh/design';
@@ -56,8 +56,8 @@ export default function Example() {
       <Toggle size="small" defaultChecked>Small</Toggle>
       <Toggle size="medium" defaultChecked>Medium</Toggle>
       <Toggle size="large" defaultChecked>Large</Toggle>
-      <Toggle size="medium" color="blue" defaultChecked>Blue</Toggle>
-      <Toggle size="medium" color="green">Green</Toggle>
+      <Toggle size="medium" color="purple" defaultChecked>Purple On</Toggle>
+      <Toggle size="medium" color="purple">Purple Off</Toggle>
     </div>
   );
 }
