@@ -3505,11 +3505,13 @@
     var STATUS_SEMANTIC = { success: 'Success', warning: 'Warning', neutral: 'Neutral', pending: 'Pending', info: 'Info' };
 
     /* The rings are SVG so the dash pattern is ours, not the browser's. A 10px box, r = 4.25 and a 1.5px stroke put the outer edge at 10px.
-       pathLength 16 with dasharray "1 1" gives exactly 8 equal dashes and 8 equal gaps; the -101.25deg turn (-90 to start at the top, -11.25 to centre half a dash) puts a dash on each axis. */
+       The dasharray splits the circumference (2πr) into exactly 8 equal dashes and 8 equal gaps, in user units rather than pathLength, which older WebKit ignores;
+       the -101.25deg turn (-90 to start at the top, -11.25 to centre half a dash) puts a dash on each axis. */
+    var RING_DASH = String(2 * Math.PI * 4.25 / 16);
     function ring(dashed) {
       return h('svg', { className: 'hy-status__ring', width: 10, height: 10, viewBox: '0 0 10 10', 'aria-hidden': 'true', focusable: 'false' },
         h('circle', dashed
-          ? { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, pathLength: 16, strokeDasharray: '1 1', transform: 'rotate(-101.25 5 5)' }
+          ? { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeDasharray: RING_DASH + ' ' + RING_DASH, transform: 'rotate(-101.25 5 5)' }
           : { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 }));
     }
 
@@ -3891,15 +3893,18 @@
       };
     }
     function toastEmit() { toastStore.subs.forEach(function (fn) { fn(toastStore.list); }); }
-    // Mounts a <Toast /> of its own for useToasts() when the app has none. React 19's react-dom has no createRoot (it is
-    // only in react-dom/client), so the package entry imports a `createRoot` binding from there; the browser bundle has no
-    // such binding and takes it off the ReactDOM global. Without either the toast is queued but nothing shows, so say so once.
+    /* Mounts a <Toast /> of its own for useToasts() when the app has none. React 19's react-dom has no createRoot (it is
+       only in react-dom/client), so the package entry imports a `createRoot` binding from there; the browser bundle has no
+       such binding and takes it off the ReactDOM global. Without either the toast is queued but nothing shows, so say so once.
+       Bundlers replace `process.env.NODE_ENV` as text, so it is read bare: a typeof process guard would be undefined in
+       their browser builds and keep the warning in production. Where nothing replaces it, the throw means development. */
     function toastMountHost() {
       if (typeof document === 'undefined') return;
       var mount = typeof createRoot === 'function' ? createRoot : ReactDOM && ReactDOM.createRoot;
       if (typeof mount !== 'function') {
         toastStore.auto = true;
-        var prod = typeof process !== 'undefined' && process && process.env && process.env.NODE_ENV === 'production';
+        var prod = false;
+        try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
         if (!prod && typeof console !== 'undefined') console.warn('hyprsh: useToasts() could not mount a toast host, so toasts will not show. Mount <Toast /> once at the app root.');
         return;
       }

@@ -4,11 +4,13 @@ var STATUS_MESSAGE = { ready: 'is ready', building: 'is building', error: 'had a
 var STATUS_SEMANTIC = { success: 'Success', warning: 'Warning', neutral: 'Neutral', pending: 'Pending', info: 'Info' };
 
 /* The rings are SVG so the dash pattern is ours, not the browser's. A 10px box, r = 4.25 and a 1.5px stroke put the outer edge at 10px.
-   pathLength 16 with dasharray "1 1" gives exactly 8 equal dashes and 8 equal gaps; the -101.25deg turn (-90 to start at the top, -11.25 to centre half a dash) puts a dash on each axis. */
+   The dasharray splits the circumference (2πr) into exactly 8 equal dashes and 8 equal gaps, in user units rather than pathLength, which older WebKit ignores;
+   the -101.25deg turn (-90 to start at the top, -11.25 to centre half a dash) puts a dash on each axis. */
+var RING_DASH = String(2 * Math.PI * 4.25 / 16);
 function ring(dashed) {
   return h('svg', { className: 'hy-status__ring', width: 10, height: 10, viewBox: '0 0 10 10', 'aria-hidden': 'true', focusable: 'false' },
     h('circle', dashed
-      ? { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, pathLength: 16, strokeDasharray: '1 1', transform: 'rotate(-101.25 5 5)' }
+      ? { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, strokeDasharray: RING_DASH + ' ' + RING_DASH, transform: 'rotate(-101.25 5 5)' }
       : { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 }));
 }
 
