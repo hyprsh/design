@@ -3882,15 +3882,27 @@
       };
     }
     function toastEmit() { toastStore.subs.forEach(function (fn) { fn(toastStore.list); }); }
+    // Mounts a <Toast /> of its own for useToasts() when the app has none. React 19's react-dom has no createRoot (it is
+    // only in react-dom/client), so the package entry imports a `createRoot` binding from there; the browser bundle has no
+    // such binding and takes it off the ReactDOM global. Without either the toast is queued but nothing shows, so say so once.
+    function toastMountHost() {
+      if (typeof document === 'undefined') return;
+      var mount = typeof createRoot === 'function' ? createRoot : ReactDOM && ReactDOM.createRoot;
+      if (typeof mount !== 'function') {
+        toastStore.auto = true;
+        var prod = typeof process !== 'undefined' && process && process.env && process.env.NODE_ENV === 'production';
+        if (!prod && typeof console !== 'undefined') console.warn('hyprsh: useToasts() could not mount a toast host, so toasts will not show. Mount <Toast /> once at the app root.');
+        return;
+      }
+      toastStore.auto = true;
+      var el = document.createElement('div');
+      el.setAttribute('data-hy-toaster', '');
+      document.body.appendChild(el);
+      mount(el).render(h(HY.Toast));
+    }
     function toastAdd(input, type) {
       var t = toastNormalize(input, type);
-      if (!toastStore.hosts && !toastStore.auto && ReactDOM && ReactDOM.createRoot) {
-        toastStore.auto = true;
-        var el = document.createElement('div');
-        el.setAttribute('data-hy-toaster', '');
-        document.body.appendChild(el);
-        ReactDOM.createRoot(el).render(h(HY.Toast));
-      }
+      if (!toastStore.hosts && !toastStore.auto) toastMountHost();
       toastStore.list = toastStore.list.filter(function (x) { return x.id !== t.id; }).concat(t);
       toastEmit();
       return t.id;
