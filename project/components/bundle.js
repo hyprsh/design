@@ -3504,6 +3504,15 @@
     /* Semantic states for any health or status, not only deployments. `error` belongs to both sets. */
     var STATUS_SEMANTIC = { success: 'Success', warning: 'Warning', neutral: 'Neutral', pending: 'Pending', info: 'Info' };
 
+    /* The rings are SVG so the dash pattern is ours, not the browser's. A 10px box, r = 4.25 and a 1.5px stroke put the outer edge at 10px.
+       pathLength 16 with dasharray "1 1" gives exactly 8 equal dashes and 8 equal gaps; the -101.25deg turn (-90 to start at the top, -11.25 to centre half a dash) puts a dash on each axis. */
+    function ring(dashed) {
+      return h('svg', { className: 'hy-status__ring', width: 10, height: 10, viewBox: '0 0 10 10', 'aria-hidden': 'true', focusable: 'false' },
+        h('circle', dashed
+          ? { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5, pathLength: 16, strokeDasharray: '1 1', transform: 'rotate(-101.25 5 5)' }
+          : { cx: 5, cy: 5, r: 4.25, fill: 'none', stroke: 'currentColor', strokeWidth: 1.5 }));
+    }
+
     /* state takes the semantic states (success | warning | error | neutral | pending) or deployment states
        (QUEUED | BUILDING | READY | ERROR | CANCELED | DELETED), in any case. variant is filled (default), outline or dashed. */
     function StatusDot(props) {
@@ -3528,7 +3537,7 @@
         'aria-label': label ? undefined : name,
         'aria-hidden': props['aria-hidden']
       },
-        h('span', { className: 'hy-status__dot', 'aria-hidden': 'true' }),
+        h('span', { className: 'hy-status__dot', 'aria-hidden': 'true' }, variant === 'filled' ? null : ring(variant === 'dashed')),
         label ? h('span', { className: 'hy-status__label' }, label) : null);
     }
 
