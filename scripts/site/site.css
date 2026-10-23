@@ -20,18 +20,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, iframe:focus-visible
 .menu-btn { display: none; }
 [data-theme="dark"] .when-light, :root:not([data-theme="dark"]) .when-dark { display: none; }
 
+/* Search: the field and its listbox reuse the library's .hy-input and .hy-menu__* styles. */
+.search { display: none; }
+.js .search { display: block; }
+.search-toggle, .search-close { display: none; }
+.search-box { position: relative; }
+.search-field { width: 240px; }
+.search-field .search-icon { margin-left: 10px; color: var(--gray-900); }
+.hy-input.search-field input { padding: 0 8px; }
+.hy-input.search-field input:focus-visible { outline: none; } /* the field draws the ring */
+.search-hint { margin-right: 6px; color: var(--gray-900); }
+.search-field:focus-within .search-hint { display: none; }
+.search-list { position: absolute; top: calc(100% + 8px); right: 0; width: 400px; max-width: calc(100vw - 16px); max-height: min(560px, calc(100vh - 80px)); }
+.search-list[hidden] { display: none; }
+.search-opt { cursor: pointer; }
+.search-opt[aria-selected="true"] { background: var(--gray-alpha-100); }
+.search-opt strong { font-weight: 600; }
+.search-opt .hy-menu__desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+.search-empty { padding: 12px 8px; color: var(--gray-900); overflow-wrap: anywhere; }
+
 .layout { display: grid; grid-template-columns: 264px minmax(0, 1fr); }
 .nav { position: sticky; top: 56px; height: calc(100vh - 56px); overflow-y: auto; overscroll-behavior: contain; padding: 12px 12px 48px; background: var(--background-200); box-shadow: 1px 0 0 var(--gray-alpha-400); box-sizing: border-box; }
 .nav a { display: block; padding: 6px 8px; border-radius: var(--radius-md); color: var(--gray-900); text-decoration: none; }
 .nav a:hover { color: var(--gray-1000); background: var(--gray-alpha-100); }
 .nav a[aria-current="page"] { color: var(--gray-1000); background: var(--gray-alpha-200); font-weight: 500; }
-.nav [hidden] { display: none; }
 .nav-h { margin: 20px 8px 4px; color: var(--gray-900); font-weight: 500; }
 .nav-group .nav-h { margin-top: 12px; color: var(--gray-700); }
-.nav-filter { display: block; width: 100%; height: 32px; margin: 4px 0; padding: 0 8px; box-sizing: border-box; border: 0; border-radius: var(--radius-md); background: var(--background-100); color: var(--gray-1000); box-shadow: 0 0 0 1px var(--gray-alpha-400); font-family: inherit; }
-.nav-filter:hover { box-shadow: 0 0 0 1px var(--gray-alpha-500); }
-.nav-filter::placeholder { color: var(--gray-700); }
-.nav-empty { margin: 8px; color: var(--gray-900); }
 
 .main { min-width: 0; padding: 40px 48px 96px; }
 
@@ -114,15 +128,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, iframe:focus-visible
   .prose h2 { margin-top: 40px; }
   .example-box { padding: 24px 16px; }
 }
+/* Phone width: the search folds into an icon button that opens the field over the header. */
+@media (max-width: 639px) {
+  .js .search-toggle { display: grid; }
+  .search-box { display: none; }
+  .search-open .search-box { display: flex; align-items: center; gap: 4px; position: fixed; top: 0; left: 0; right: 0; z-index: 25; height: 56px; padding: 0 4px 0 16px; box-sizing: border-box; background: var(--background-100); box-shadow: 0 1px 0 var(--gray-alpha-400); }
+  .search-open .search-field { flex: 1; width: auto; }
+  .search-open .search-close { display: grid; }
+  .search-list { position: fixed; top: 64px; left: 8px; right: 8px; width: auto; max-width: none; max-height: calc(100vh - 72px); }
+  .top-link { padding: 6px 4px; }
+}
+@media (pointer: coarse) {
+  .hy-input.search-field input { font-size: 16px; }
+}
 @media (pointer: coarse), (max-width: 639px) {
   .icon-btn { width: var(--touch-target); height: var(--touch-target); }
   .nav a { display: flex; align-items: center; min-height: var(--touch-target); box-sizing: border-box; }
-  .nav-filter { height: var(--touch-target); }
   .copy::after { inset: -10px -4px; }
   .top-link { display: flex; align-items: center; min-height: var(--touch-target); box-sizing: border-box; }
-}
-@media (pointer: coarse) {
-  .nav-filter { font-size: 16px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .icon-btn, .copy, .comp-grid a { transition: none; }

@@ -1,6 +1,6 @@
 // Builds the static docs site into .cache/site (wiped each run) for GitHub Pages at https://hyprsh.github.io/design/.
 // Every link is relative, so the same files work under /design/ and locally. Pages are plain HTML; JavaScript only runs
-// the live examples, the theme toggle, the nav filter and the copy buttons. See docs/adr/0001-docs-site-without-dependencies.md.
+// the live examples, the theme toggle, the search field and the copy buttons. See docs/adr/0001-docs-site-without-dependencies.md.
 // Usage: node scripts/site.mjs [--serve [port]]   (--serve builds, then serves at http://127.0.0.1:4401)
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, copyFileSync, existsSync, statSync } from 'node:fs';
@@ -43,27 +43,50 @@ const THEME_SCRIPT = `window.__pageErrors=[];addEventListener('error',function(e
 (function(d){var t;try{t=localStorage.getItem('hyprsh-docs-theme')}catch(e){}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);d.className='js'})(document.documentElement);`;
 
 function nav(ctx, current) {
-  const a = (href, label, extra = '') => `<a href="${ctx.rel}${href}"${href === current ? ' aria-current="page"' : ''}${extra}>${esc(label)}</a>`;
+  const a = (href, label) => `<a href="${ctx.rel}${href}"${href === current ? ' aria-current="page"' : ''}>${esc(label)}</a>`;
   const groups = GROUPS.map((g) => {
     const list = ctx.comps.filter((c) => c.group === g);
-    return list.length ? `<div class="nav-group" data-group><p class="nav-h label-12">${g}</p>${list.map((c) => a(`components/${c.kebab}/`, c.name, ` data-name="${c.name.toLowerCase()}"`)).join('')}</div>` : '';
+    return list.length ? `<div class="nav-group"><p class="nav-h label-12">${g}</p>${list.map((c) => a(`components/${c.kebab}/`, c.name)).join('')}</div>` : '';
   }).join('');
   return `<nav id="nav" class="nav label-14" aria-label="Docs">
 ${a('', 'Getting started')}
 <p class="nav-h label-12">Foundations</p>${a('foundations/', 'Overview')}${ctx.foundations.map((f) => a(f.path + '/', f.title)).join('')}
 <p class="nav-h label-12">Guidelines</p>${a('guidelines/', 'Interface guidelines')}
 <p class="nav-h label-12">Components</p>${a('components/', 'All Components')}
-<input class="nav-filter label-14" type="search" placeholder="Filter…" aria-label="Filter components" autocomplete="off" spellcheck="false">
-${groups}<p class="nav-empty copy-13" hidden>No components match.</p>
+${groups}
 <p class="nav-h label-12">Patterns</p>${a('patterns/', 'Patterns')}
 </nav>`;
 }
+
+// The header's search field: a combobox over search-index.json, which site.js loads on first focus. At phone width
+// it folds into an icon button that opens it over the header.
+const search = (rel) => `<div class="search" data-base="${rel}">
+<button class="icon-btn search-toggle" type="button" aria-label="Search" aria-expanded="false" aria-controls="search-box">${icon('search')}</button>
+<div class="search-box" id="search-box">
+<div class="hy-input hy-input--small search-field">${icon('search', 'search-icon')}<input id="search-input" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="search-list" aria-label="Search the docs" placeholder="Search…" autocomplete="off" autocapitalize="off" spellcheck="false" enterkeyhint="go"><kbd class="hy-kbd hy-kbd--small search-hint" aria-hidden="true">/</kbd></div>
+<button class="icon-btn search-close" type="button" aria-label="Close Search">${icon('x')}</button>
+<ul id="search-list" class="hy-menu__list search-list" role="listbox" aria-label="Search results" hidden></ul>
+<p class="hy-sr" aria-live="polite" id="search-status"></p>
+</div>
+</div>`;
+
+// What a page belongs to, as the search results group it: Getting started, Foundations, Guidelines, Components, Patterns.
+const sectionOf = (path) => ({ foundations: 'Foundations', guidelines: 'Guidelines', components: 'Components', patterns: 'Patterns' })[path.split('/')[0]] || 'Getting started';
+const GENERIC = new Set(['Examples', 'Card', 'Props', 'Usage']);
+const text = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').trim();
 
 // One page. path is its folder ('' for the root, 'components/button/'), markdown the path of its .md copy.
 function page(ctx, { path, title, description = '', body, markdown, live = false }) {
   const rel = '../'.repeat(path.split('/').filter(Boolean).length);
   const c = { ...ctx, rel };
   const mdHref = markdown && rel + markdown;
+  const main = body(c);
+  // Every h2 and h3 goes into the search index, except the headings every component page repeats.
+  for (const m of main.matchAll(/<h([23]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    const name = text(m[3]);
+    if (path.startsWith('components/') && path !== 'components/' && GENERIC.has(name)) continue;
+    ctx.index.push({ type: 'heading', name, page: title === 'hyprsh design' ? 'Getting started' : title, section: sectionOf(path), url: `${path}#${m[2]}` });
+  }
   const html = `<!doctype html>
 <html lang="en">
 <head>
@@ -82,13 +105,14 @@ ${mdHref ? `<link rel="alternate" type="text/markdown" href="${mdHref}">\n` : ''
 <button class="icon-btn menu-btn" type="button" aria-label="Menu" aria-controls="nav" aria-expanded="false">${icon('menu')}</button>
 <a class="brand label-16" href="${rel || './'}"><img src="${rel}brand/logo-mark.svg" width="20" height="20" alt=""><span><strong>hyprsh</strong> design</span></a>
 <span class="top-gap"></span>
+${search(rel)}
 ${mdHref ? `<a class="top-link label-14" href="${mdHref}">Markdown</a>` : ''}
 <button class="icon-btn theme-btn" type="button" aria-label="Switch Theme">${icon('moon', 'when-light')}${icon('sun', 'when-dark')}</button>
 </header>
 <div class="layout">
 ${nav(c, path)}
 <main id="main" class="main">
-${body(c)}
+${main}
 </main>
 </div>
 ${live ? [...REACT, `${rel}bundle.js`, BABEL].map((s) => `<script src="${s}"></script>`).join('\n') + '\n' : ''}<script src="${rel}site.js"></script>
@@ -215,7 +239,8 @@ export function buildSite() {
   const docs = pages();
   const files = writeAgentDocs(OUT, 'site', comps);
   const foundations = docs.pages.filter((p) => p.path.startsWith('foundations/'));
-  const ctx = { comps, foundations };
+  const index = [];
+  const ctx = { comps, foundations, index };
   const byPath = Object.fromEntries(docs.pages.map((p) => [p.path, p]));
 
   const start = byPath['getting-started'];
@@ -241,7 +266,16 @@ export function buildSite() {
   page(ctx, { path: 'patterns/', title: 'Patterns', description: 'Whole screens composed from several components.',
     body: () => `<article class="prose"><h1 class="heading-32">Patterns</h1><p class="lead copy-18">A pattern is a whole screen composed from several components, such as a settings page.</p><p class="copy-16">No patterns yet.</p></article>` });
 
-  return { comps: comps.length, examples: comps.reduce((n, c) => n + c.examples.length, 0), withExamples: comps.filter((c) => c.examples.length).length, files: files.length };
+  // The search index: components and pages first, then the headings page() collected as it wrote each page.
+  const entries = [
+    ...comps.map((c) => ({ type: 'component', name: c.name, group: c.group, summary: c.summary.replace(/`/g, ''), section: 'Components', url: `components/${c.kebab}/` })),
+    ...[['', 'Getting started', start.note], ...docs.pages.filter((p) => p.path !== 'getting-started').map((p) => [p.path + '/', p.title, p.note]), ['patterns/', 'Patterns', 'Whole screens composed from several components.']]
+      .map(([url, name, summary]) => ({ type: 'page', name, summary: (summary || '').replace(/`/g, ''), section: sectionOf(url), url })),
+    ...index,
+  ];
+  writeFileSync(join(OUT, 'search-index.json'), JSON.stringify(entries));
+
+  return { search: entries.length, comps: comps.length, examples: comps.reduce((n, c) => n + c.examples.length, 0), withExamples: comps.filter((c) => c.examples.length).length, files: files.length };
 }
 
 // ---------- Serving ----------
@@ -266,7 +300,7 @@ export function serve(dir = OUT, port = 4401) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const r = buildSite();
-  console.log(`.cache/site · ${r.comps} components · ${r.examples} examples on ${r.withExamples} pages · ${r.files} agent docs`);
+  console.log(`.cache/site · ${r.comps} components · ${r.examples} examples on ${r.withExamples} pages · ${r.files} agent docs · ${r.search} search entries`);
   const at = process.argv.indexOf('--serve');
   if (at > -1) {
     const server = await serve(OUT, +(process.argv[at + 1] || 4401));
