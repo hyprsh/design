@@ -1710,7 +1710,7 @@
 
     function FeedbackPopover(props) {
       var open = useState(!!props.defaultOpen);
-      var wrapRef = useRef(null), triggerRef = useRef(null), textRef = useRef(null);
+      var wrapRef = useRef(null), triggerRef = useRef(null), panelRef = useRef(null), textRef = useRef(null);
       var userOpened = useRef(false);
       var uid = useId();
       var ids = { panel: uid + '-panel', text: uid + '-text', error: uid + '-error', title: uid + '-title' };
@@ -1719,10 +1719,14 @@
         open[1](false);
         if (returnFocus !== false && triggerRef.current) triggerRef.current.focus({ preventScroll: true });
       }
-      useDismiss(open[0], [wrapRef], function (why) { close(why === 'escape'); });
-      useEffect(function () {
-        if (open[0] && userOpened.current && textRef.current) textRef.current.focus({ preventScroll: true });
-      }, [open[0]]);
+      /* Placed with useFloating like Popover, so the panel flips and stays 8px inside the screen. */
+      var pos = useFloating(open[0], triggerRef, panelRef, { side: 'bottom', align: 'center', offset: 8 });
+      var placed = !!pos;
+      useDismiss(open[0], [wrapRef, panelRef], function (why) { close(why === 'escape'); });
+      /* Focus the note once the panel is placed: it is hidden until then. */
+      useLayoutEffect(function () {
+        if (placed && userOpened.current && textRef.current) textRef.current.focus({ preventScroll: true });
+      }, [placed]);
       var sent = form.status[0] === 'sent';
       var sentRef = useRef(null);
       useEffect(function () { if (sent && sentRef.current) sentRef.current.focus({ preventScroll: true }); }, [sent]);
@@ -1732,7 +1736,10 @@
           'aria-expanded': open[0], 'aria-controls': open[0] ? ids.panel : undefined, 'aria-haspopup': 'dialog',
           onClick: function () { if (open[0]) close(false); else { if (form.status[0] === 'sent') form.reset(); userOpened.current = true; open[1](true); } }
         }, props.label || 'Feedback'),
-        open[0] ? h('div', { id: ids.panel, role: 'dialog', 'aria-labelledby': ids.title, className: 'hy-feedback__panel' },
+        open[0] ? portal(h('div', {
+          ref: panelRef, id: ids.panel, role: 'dialog', 'aria-labelledby': ids.title, className: 'hy-feedback__panel', style: floatingStyle(pos, { width: 340 }),
+          onKeyDown: function (e) { if (e.key === 'Escape') { e.stopPropagation(); close(true); return; } if (e.key === 'Tab') e.stopPropagation(); trapTab(e, panelRef.current); }
+        },
           sent ? h('div', { ref: sentRef, tabIndex: -1, className: 'hy-feedback__sent', role: 'status' },
             h('span', { className: 'hy-feedback__sent-icon' }, h(HY.Icon, { name: 'check', size: 16 })),
             h('p', { id: ids.title, className: 'hy-feedback__sent-title' }, 'Your feedback has been received!'),
@@ -1742,7 +1749,7 @@
             h('div', { className: 'hy-feedback__body' }, h(FeedbackFields, { form: form, ids: ids, textRef: textRef, topics: props.showTopics ? props.topics : null })),
             h('div', { className: 'hy-feedback__footer' },
               h(FeedbackEmotions, { name: uid + '-emotion', legend: 'How did it feel?', value: form.emotion[0], onChange: form.emotion[1], disabled: form.status[0] === 'sending' }),
-              h(FeedbackSend, { form: form })))) : null);
+              h(FeedbackSend, { form: form }))))) : null);
     }
 
     function FeedbackInline(props) {

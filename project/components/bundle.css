@@ -573,8 +573,7 @@ body {
 /* ---------- Feedback ---------- */
 .hy-feedback { position: relative; display: inline-flex; }
 .hy-feedback__panel {
-  position: absolute; z-index: var(--z-menu); top: calc(100% + 8px); left: 50%; margin-left: -170px;
-  box-sizing: border-box; width: 340px; overflow: hidden; text-align: left;
+  box-sizing: border-box; overflow: hidden; text-align: left;
   border-radius: var(--radius-xl); background: var(--background-100); box-shadow: var(--shadow-menu);
   transform-origin: top center; animation: hy-pop .12s cubic-bezier(.4,0,.2,1);
 }
