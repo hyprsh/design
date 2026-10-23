@@ -342,7 +342,7 @@ export interface FeedbackProps {
   type?: 'popover' | 'inline';
   /** Trigger text (popover) or form name (inline). Title Case, no question mark. Default “Feedback”. */
   label?: string;
-  /** The question, in sentence case. Default “Was this helpful?”. */
+  /** The question, in sentence case. Default “Was this helpful?”. Shown beside the reactions when inline; in the popover it only names the dialog for assistive tech. */
   copy?: string;
   /** Called on Send. Return a Promise to show a loading state; a rejection shows a retry message. Nothing is sent over the network for you. */
   onSubmit?: (payload: FeedbackPayload) => void | Promise<unknown>;
@@ -863,7 +863,7 @@ export interface SwitchControlProps {
   value?: string;
   /** Shows only this icon (label read by screen readers). Pair with a Tooltip. */
   icon?: React.ReactNode;
-  /** Show the label next to the icon instead of hiding it. */
+  /** With `icon`, the label is read by screen readers only. Set `false` to show it next to the icon. Default true. */
   hideLabel?: boolean;
   defaultChecked?: boolean;
   checked?: boolean;
@@ -986,7 +986,7 @@ export declare function BreadcrumbItem(props: BreadcrumbItemProps): React.ReactE
 export interface CommandMenuTriggerProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'prefix' | 'type'> {
   /** The label, also the accessible name. Default "Search…". */
   children?: React.ReactNode;
-  /** medium 36px (default), small 32px. Matches Input; both are 40px on touch screens. */
+  /** medium 36px (default), small 32px. Matches Input; both are 44px under touch sizing. */
   size?: 'small' | 'medium';
   /** Before the label. Defaults to the search icon; null or false hides it. */
   prefix?: React.ReactNode;
@@ -1519,7 +1519,7 @@ export interface IconProps {
   /** A Lucide icon name in kebab case: 'arrow-right', 'git-branch', 'circle-check'. Unknown names render nothing. */
   name?: string;
   /** An icon component to draw instead of a name, such as lucide-react's GitBranch. It gets size, color and a constant strokeWidth. */
-  icon?: React.ComponentType<{ size?: number; color?: string; strokeWidth?: number; absoluteStrokeWidth?: boolean; className?: string; style?: React.CSSProperties }>;
+  icon?: React.ElementType;
   /** Pixel size. Default 16. */
   size?: number;
   /** Visual stroke in px, kept constant across sizes. Default 1.5. */
@@ -2009,7 +2009,7 @@ export declare function DestructiveActionModal(props: DestructiveActionModalProp
 export interface DotsMenuProps {
   /** MenuItem, MenuLink, MenuItemLocked, MenuSection and MenuDivider elements. */
   children: React.ReactNode;
-  /** Dot icon size in px: 10, 12 or 18 (default). The button stays 32px. */
+  /** Dot icon size in px: 10, 12 or 18 (default). The button keeps the size set by `size`. */
   iconSize?: 10 | 12 | 18;
   /** Button size. Default 'small' (32px). */
   size?: 'tiny' | 'small' | 'medium';
@@ -2031,8 +2031,10 @@ export interface DotsMenuProps {
 export declare function DotsMenu(props: DotsMenuProps): React.ReactElement;
 
 export interface DrawerProps {
-  /** Alias for open. */
-  show: boolean;
+  /** Whether the drawer is open. */
+  show?: boolean;
+  /** Alias for show. */
+  open?: boolean;
   /** Called on a backdrop tap, Escape or a downward swipe. */
   onDismiss: () => void;
   /** Fixed panel height: a number in px or any CSS length. Default: fits the content, up to 90dvh. */

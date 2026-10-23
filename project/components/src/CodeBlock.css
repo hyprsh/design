@@ -30,8 +30,10 @@
 .hy-cb__copy:focus-visible, .hy-cb__pre:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 2px; }
 .hy-cb--bare .hy-cb__copy { position: absolute; top: 8px; right: 8px; background: var(--background-100); }
 .hy-cb--bare .hy-cb__copy:hover { background: var(--gray-100); }
-.hy-cb__pre {
+/* Two classes, so a host's `pre` styles (docs prose, an app reset) cannot add margin, padding or a background. */
+.hy-cb .hy-cb__pre {
   margin: 0; padding: var(--space-4) 0; overflow-x: auto; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: none; box-shadow: none;
   font-family: var(--font-mono); font-size: 13px; line-height: 20px; color: var(--gray-1000); tab-size: 2;
 }
 .hy-cb__pre:focus-visible { outline-offset: -2px; }

@@ -1,7 +1,7 @@
 export interface CommandMenuTriggerProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'prefix' | 'type'> {
   /** The label, also the accessible name. Default "Search…". */
   children?: React.ReactNode;
-  /** medium 36px (default), small 32px. Matches Input; both are 40px on touch screens. */
+  /** medium 36px (default), small 32px. Matches Input; both are 44px under touch sizing. */
   size?: 'small' | 'medium';
   /** Before the label. Defaults to the search icon; null or false hides it. */
   prefix?: React.ReactNode;

@@ -10,7 +10,7 @@ export interface FeedbackProps {
   type?: 'popover' | 'inline';
   /** Trigger text (popover) or form name (inline). Title Case, no question mark. Default “Feedback”. */
   label?: string;
-  /** The question, in sentence case. Default “Was this helpful?”. */
+  /** The question, in sentence case. Default “Was this helpful?”. Shown beside the reactions when inline; in the popover it only names the dialog for assistive tech. */
   copy?: string;
   /** Called on Send. Return a Promise to show a loading state; a rejection shows a retry message. Nothing is sent over the network for you. */
   onSubmit?: (payload: FeedbackPayload) => void | Promise<unknown>;

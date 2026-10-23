@@ -3,6 +3,7 @@
   --hy-guide: var(--gray-alpha-400);
   --hy-guide-cross: var(--gray-alpha-700);
 }
+.hy-grid-system { width: 100%; } /* the Grid is a size container, so it collapses to 0 wide in a shrink-wrapping parent such as a flex row */
 .hy-grid { --hy-guide-w: 1px; }
 .hy-grid-system .hy-grid { --hy-guide-w: inherit; }
 .hy-grid-system--debug .hy-grid { --hy-guide: var(--amber-500); }

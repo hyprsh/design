@@ -1,7 +1,7 @@
 export interface DotsMenuProps {
   /** MenuItem, MenuLink, MenuItemLocked, MenuSection and MenuDivider elements. */
   children: React.ReactNode;
-  /** Dot icon size in px: 10, 12 or 18 (default). The button stays 32px. */
+  /** Dot icon size in px: 10, 12 or 18 (default). The button keeps the size set by `size`. */
   iconSize?: 10 | 12 | 18;
   /** Button size. Default 'small' (32px). */
   size?: 'tiny' | 'small' | 'medium';

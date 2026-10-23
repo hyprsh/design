@@ -9,3 +9,8 @@
 .hy-gauge--medium .hy-gauge__number { font-size: 18px; line-height: 1; font-weight: 500; }
 .hy-gauge--large .hy-gauge__number { font-size: 32px; line-height: 1; font-weight: 600; letter-spacing: -.02em; }
 .hy-gauge.is-indeterminate .hy-gauge__centre { color: var(--gray-900); }
+/* An svg passed as children (a Lucide icon) takes the size and the 1.5px visual stroke of the built-in icon. */
+.hy-gauge--tiny .hy-gauge__centre > svg:not(.hy-gauge__icon) { width: 10px; height: 10px; }
+.hy-gauge--small .hy-gauge__centre > svg:not(.hy-gauge__icon) { width: 16px; height: 16px; stroke-width: 2.25; }
+.hy-gauge--medium .hy-gauge__centre > svg:not(.hy-gauge__icon) { width: 32px; height: 32px; stroke-width: 1.125; }
+.hy-gauge--large .hy-gauge__centre > svg:not(.hy-gauge__icon) { width: 64px; height: 64px; stroke-width: .5625; }

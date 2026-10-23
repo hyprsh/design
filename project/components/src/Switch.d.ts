@@ -21,7 +21,7 @@ export interface SwitchControlProps {
   value?: string;
   /** Shows only this icon (label read by screen readers). Pair with a Tooltip. */
   icon?: React.ReactNode;
-  /** Show the label next to the icon instead of hiding it. */
+  /** With `icon`, the label is read by screen readers only. Set `false` to show it next to the icon. Default true. */
   hideLabel?: boolean;
   defaultChecked?: boolean;
   checked?: boolean;

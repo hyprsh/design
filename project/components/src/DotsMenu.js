@@ -1,7 +1,7 @@
 /* DotsMenu: a compact "more actions" Menu behind a three-dot icon button. Children are MenuItems. */
 function DotsIcon(p) {
   var s = p.size;
-  return h('svg', { className: 'hy-dots-menu__icon', width: s, height: s, viewBox: '0 0 18 18', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false' },
+  return h('svg', { className: 'hy-dots-menu__icon', width: s, height: s, style: { width: s, height: s }, viewBox: '0 0 18 18', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false' },
     h('circle', { cx: 3.5, cy: 9, r: 1.5 }), h('circle', { cx: 9, cy: 9, r: 1.5 }), h('circle', { cx: 14.5, cy: 9, r: 1.5 }));
 }
 

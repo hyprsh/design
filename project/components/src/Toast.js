@@ -74,7 +74,7 @@ function ToastItem(p) {
       glyph ? h(Glyph, { name: glyph, className: 'hy-toast__glyph' }) : null,
       h('div', { className: 'hy-toast__text' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
       t.action && !t.onUndoAction ? h(HY.Button, { size: 'small', variant: 'secondary', onClick: function () { if (t.action.onClick) t.action.onClick(); dismiss(); } }, t.action.label) : null,
-      !t.onUndoAction && !t.action && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
+      !t.onUndoAction && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
     t.onUndoAction ? h('div', { className: 'hy-toast__actions' },
       h(HY.Button, { size: 'small', variant: 'tertiary', onClick: dismiss }, 'Dismiss'),
       h(HY.Button, { size: 'small', variant: 'primary', onClick: function () { t.onUndoAction(); dismiss(); } }, (t.action && t.action.label) || 'Undo')) : null));

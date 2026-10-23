@@ -11,10 +11,10 @@ function gaugeThreshold(colors, value) {
 }
 
 /* One arc on a circle whose length is normalised to 100, starting `start` percent clockwise from 12 o'clock. */
-function gaugeArc(r, sw, start, len, color, cls) {
+function gaugeArc(r, sw, start, len, color, cls, key) {
   if (len <= 0) return null;
   return h('circle', {
-    className: cls, cx: 50, cy: 50, r: r, fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round',
+    key: key, className: cls, cx: 50, cy: 50, r: r, fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round',
     pathLength: 100, strokeDasharray: len + ' ' + (100 - len), strokeDashoffset: -start, transform: 'rotate(-90 50 50)'
   });
 }
@@ -40,11 +40,11 @@ function Gauge(props) {
   } else {
     var gap = value >= 100 || value <= 0 ? 0 : GAUGE_GAP[size];
     if (props.arcPriority === 'equal') {
-      arcs = [gaugeArc(r, sw, gap / 2, value - gap, primary, 'hy-gauge__value'),
-        gaugeArc(r, sw, value + gap / 2, 100 - value - gap, secondary, 'hy-gauge__track')];
+      arcs = [gaugeArc(r, sw, gap / 2, value - gap, primary, 'hy-gauge__value', 'value'),
+        gaugeArc(r, sw, value + gap / 2, 100 - value - gap, secondary, 'hy-gauge__track', 'track')];
     } else {
-      arcs = [gaugeArc(r, sw, 0, value, primary, 'hy-gauge__value'),
-        gaugeArc(r, sw, value + gap, 100 - value - 2 * gap, secondary, 'hy-gauge__track')];
+      arcs = [gaugeArc(r, sw, 0, value, primary, 'hy-gauge__value', 'value'),
+        gaugeArc(r, sw, value + gap, 100 - value - 2 * gap, secondary, 'hy-gauge__track', 'track')];
     }
     if (props.children) centre = props.children;
     else if (props.showValue && !tiny) centre = h('span', { className: 'hy-gauge__number', 'aria-hidden': 'true' }, fmt.format(value));

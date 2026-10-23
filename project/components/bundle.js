@@ -3227,7 +3227,7 @@
       if (isButton) {
         return h('button', Object.assign({ type: 'button' }, rest, { ref: ref, disabled: props.disabled, className: cls }), props.children);
       }
-      if (props.disabled) rest.href = undefined;
+      if (props.disabled) { rest.href = undefined; rest.onClick = function (e) { e.preventDefault(); }; }
       return h('a', Object.assign(rest, { ref: ref, 'aria-disabled': props.disabled || undefined, className: cls }), props.children);
     });
 
@@ -3936,7 +3936,7 @@
           glyph ? h(Glyph, { name: glyph, className: 'hy-toast__glyph' }) : null,
           h('div', { className: 'hy-toast__text' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
           t.action && !t.onUndoAction ? h(HY.Button, { size: 'small', variant: 'secondary', onClick: function () { if (t.action.onClick) t.action.onClick(); dismiss(); } }, t.action.label) : null,
-          !t.onUndoAction && !t.action && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
+          !t.onUndoAction && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
         t.onUndoAction ? h('div', { className: 'hy-toast__actions' },
           h(HY.Button, { size: 'small', variant: 'tertiary', onClick: dismiss }, 'Dismiss'),
           h(HY.Button, { size: 'small', variant: 'primary', onClick: function () { t.onUndoAction(); dismiss(); } }, (t.action && t.action.label) || 'Undo')) : null));
@@ -5070,10 +5070,10 @@
     }
 
     /* One arc on a circle whose length is normalised to 100, starting `start` percent clockwise from 12 o'clock. */
-    function gaugeArc(r, sw, start, len, color, cls) {
+    function gaugeArc(r, sw, start, len, color, cls, key) {
       if (len <= 0) return null;
       return h('circle', {
-        className: cls, cx: 50, cy: 50, r: r, fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round',
+        key: key, className: cls, cx: 50, cy: 50, r: r, fill: 'none', stroke: color, strokeWidth: sw, strokeLinecap: 'round',
         pathLength: 100, strokeDasharray: len + ' ' + (100 - len), strokeDashoffset: -start, transform: 'rotate(-90 50 50)'
       });
     }
@@ -5099,11 +5099,11 @@
       } else {
         var gap = value >= 100 || value <= 0 ? 0 : GAUGE_GAP[size];
         if (props.arcPriority === 'equal') {
-          arcs = [gaugeArc(r, sw, gap / 2, value - gap, primary, 'hy-gauge__value'),
-            gaugeArc(r, sw, value + gap / 2, 100 - value - gap, secondary, 'hy-gauge__track')];
+          arcs = [gaugeArc(r, sw, gap / 2, value - gap, primary, 'hy-gauge__value', 'value'),
+            gaugeArc(r, sw, value + gap / 2, 100 - value - gap, secondary, 'hy-gauge__track', 'track')];
         } else {
-          arcs = [gaugeArc(r, sw, 0, value, primary, 'hy-gauge__value'),
-            gaugeArc(r, sw, value + gap, 100 - value - 2 * gap, secondary, 'hy-gauge__track')];
+          arcs = [gaugeArc(r, sw, 0, value, primary, 'hy-gauge__value', 'value'),
+            gaugeArc(r, sw, value + gap, 100 - value - 2 * gap, secondary, 'hy-gauge__track', 'track')];
         }
         if (props.children) centre = props.children;
         else if (props.showValue && !tiny) centre = h('span', { className: 'hy-gauge__number', 'aria-hidden': 'true' }, fmt.format(value));
@@ -5778,7 +5778,7 @@
     /* DotsMenu: a compact "more actions" Menu behind a three-dot icon button. Children are MenuItems. */
     function DotsIcon(p) {
       var s = p.size;
-      return h('svg', { className: 'hy-dots-menu__icon', width: s, height: s, viewBox: '0 0 18 18', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false' },
+      return h('svg', { className: 'hy-dots-menu__icon', width: s, height: s, style: { width: s, height: s }, viewBox: '0 0 18 18', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false' },
         h('circle', { cx: 3.5, cy: 9, r: 1.5 }), h('circle', { cx: 9, cy: 9, r: 1.5 }), h('circle', { cx: 14.5, cy: 9, r: 1.5 }));
     }
 
@@ -6344,9 +6344,9 @@
       var rtf = new Intl.RelativeTimeFormat(locale, { style: 'narrow', numeric: 'auto' });
       var sign = diff < 0 ? -1 : 1;
       if (abs < 45) return rtcCap(rtf.format(sign * Math.max(1, Math.round(abs)), 'second'));
-      if (abs < 3600) return rtcCap(rtf.format(sign * Math.round(abs / 60), 'minute'));
-      if (abs < 86400) return rtcCap(rtf.format(sign * Math.round(abs / 3600), 'hour'));
-      if (abs < 7 * 86400) return rtcCap(rtf.format(sign * Math.round(abs / 86400), 'day'));
+      if (abs < 3600) return rtcCap(rtf.format(sign * Math.max(1, Math.floor(abs / 60)), 'minute'));
+      if (abs < 86400) return rtcCap(rtf.format(sign * Math.floor(abs / 3600), 'hour'));
+      if (abs < 7 * 86400) return rtcCap(rtf.format(sign * Math.floor(abs / 86400), 'day'));
       var sameYear = date.getFullYear() === new Date(now).getFullYear();
       return new Intl.DateTimeFormat(locale, sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
     }

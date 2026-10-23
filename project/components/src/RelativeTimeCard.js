@@ -10,9 +10,9 @@ function rtcShort(date, now, locale) {
   var rtf = new Intl.RelativeTimeFormat(locale, { style: 'narrow', numeric: 'auto' });
   var sign = diff < 0 ? -1 : 1;
   if (abs < 45) return rtcCap(rtf.format(sign * Math.max(1, Math.round(abs)), 'second'));
-  if (abs < 3600) return rtcCap(rtf.format(sign * Math.round(abs / 60), 'minute'));
-  if (abs < 86400) return rtcCap(rtf.format(sign * Math.round(abs / 3600), 'hour'));
-  if (abs < 7 * 86400) return rtcCap(rtf.format(sign * Math.round(abs / 86400), 'day'));
+  if (abs < 3600) return rtcCap(rtf.format(sign * Math.max(1, Math.floor(abs / 60)), 'minute'));
+  if (abs < 86400) return rtcCap(rtf.format(sign * Math.floor(abs / 3600), 'hour'));
+  if (abs < 7 * 86400) return rtcCap(rtf.format(sign * Math.floor(abs / 86400), 'day'));
   var sameYear = date.getFullYear() === new Date(now).getFullYear();
   return new Intl.DateTimeFormat(locale, sameYear ? { month: 'short', day: 'numeric' } : { month: 'short', day: 'numeric', year: 'numeric' }).format(date);
 }

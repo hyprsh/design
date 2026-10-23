@@ -6,7 +6,7 @@ var Link = React.forwardRef(function Link(props, ref) {
   if (isButton) {
     return h('button', Object.assign({ type: 'button' }, rest, { ref: ref, disabled: props.disabled, className: cls }), props.children);
   }
-  if (props.disabled) rest.href = undefined;
+  if (props.disabled) { rest.href = undefined; rest.onClick = function (e) { e.preventDefault(); }; }
   return h('a', Object.assign(rest, { ref: ref, 'aria-disabled': props.disabled || undefined, className: cls }), props.children);
 });
 

@@ -1,4 +1,6 @@
 /* ---------- Collapse ---------- */
+.hy-collapse, .hy-collapse-group { box-sizing: border-box; width: 100%; }
+.hy-collapse--inline { width: auto; }
 .hy-collapse { border-bottom: 1px solid var(--gray-alpha-400); color: var(--gray-1000); }
 .hy-collapse:not(.is-grouped), .hy-collapse-group { border-top: 1px solid var(--gray-alpha-400); }
 .hy-collapse__heading { margin: 0; font: inherit; }

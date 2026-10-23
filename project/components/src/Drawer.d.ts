@@ -1,6 +1,8 @@
 export interface DrawerProps {
-  /** Alias for open. */
-  show: boolean;
+  /** Whether the drawer is open. */
+  show?: boolean;
+  /** Alias for show. */
+  open?: boolean;
   /** Called on a backdrop tap, Escape or a downward swipe. */
   onDismiss: () => void;
   /** Fixed panel height: a number in px or any CSS length. Default: fits the content, up to 90dvh. */

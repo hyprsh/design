@@ -9,8 +9,8 @@
 .hy-snippet--success { --hy-snippet-fg: var(--blue-900); --hy-snippet-bg: var(--blue-100); --hy-snippet-border: var(--blue-400); }
 .hy-snippet--error { --hy-snippet-fg: var(--red-900); --hy-snippet-bg: var(--red-100); --hy-snippet-border: var(--red-400); }
 .hy-snippet--warning { --hy-snippet-fg: var(--amber-900); --hy-snippet-bg: var(--amber-100); --hy-snippet-border: var(--amber-400); }
-.hy-snippet__pre { margin: 0; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; font-family: var(--font-mono); font-size: 13px; line-height: 20px; text-align: left; }
-.hy-snippet__pre::-webkit-scrollbar { display: none; }
+.hy-snippet .hy-snippet__pre { margin: 0; padding: 0; border-radius: 0; background: none; box-shadow: none; color: inherit; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; font-family: var(--font-mono); font-size: 13px; line-height: 20px; text-align: left; }
+.hy-snippet .hy-snippet__pre::-webkit-scrollbar { display: none; }
 .hy-snippet__line { display: block; color: inherit; white-space: pre; font-family: inherit; font-feature-settings: "liga" 0; }
 .hy-snippet__prompt { color: inherit; user-select: none; -webkit-user-select: none; }
 .hy-snippet__placeholder { margin: 0; flex: 1; min-width: 0; font-size: 13px; line-height: 20px; color: var(--gray-900); }
