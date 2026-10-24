@@ -11,10 +11,35 @@ export const CHROME = process.env.CHROME_PATH || (process.platform === 'darwin' 
 export const CHROME_FLAGS = process.env.CI && process.platform === 'linux' ? ['--no-sandbox'] : [];
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
+// Cleanup. Every Chrome (and profile) a script opens is registered, and killed and removed when the Node process exits:
+// normally, on an uncaught error, or on SIGINT, SIGTERM and SIGHUP (re-raised afterwards, so the exit status is the usual one).
+const live = new Set();
+export function register(proc, profile) {
+  const entry = { proc, profile };
+  live.add(entry);
+  return () => live.delete(entry);
+}
+function cleanup() {
+  for (const { proc, profile } of live) {
+    try { if (proc && proc.exitCode === null) proc.kill('SIGKILL'); } catch {}
+    try { if (profile) rmSync(profile, { recursive: true, force: true, maxRetries: 3 }); } catch {}
+  }
+  live.clear();
+}
+process.on('exit', cleanup);
+for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
+  process.on(sig, () => {
+    cleanup();
+    process.removeAllListeners(sig);
+    process.kill(process.pid, sig);
+  });
+}
+
 export async function openChrome() {
   const profile = mkdtempSync(join(tmpdir(), 'hy-chrome-'));
   const chrome = spawn(CHROME, [...CHROME_FLAGS, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
     `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+  const unregister = register(chrome, profile);
   // Keep the end of Chrome's stderr, so a failed start says why.
   let stderr = '';
   chrome.stderr.on('data', (d) => { stderr = (stderr + d).slice(-2000); });
@@ -27,6 +52,8 @@ export async function openChrome() {
   }
   if (!port) {
     chrome.kill();
+    unregister();
+    rmSync(profile, { recursive: true, force: true });
     const why = chrome.exitCode !== null ? `Chrome exited with code ${chrome.exitCode}` : 'Chrome did not open a debugging port within 30s';
     throw new Error(`${why} (${CHROME})${stderr.trim() ? '\n' + stderr.trim() : ''}`);
   }
@@ -58,6 +85,7 @@ export async function openChrome() {
       return r.result.value;
     },
     async close() {
+      unregister();
       ws.close();
       chrome.kill();
       await sleep(300);
