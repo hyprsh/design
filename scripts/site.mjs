@@ -54,6 +54,7 @@ function nav(ctx, current) {
   }).join('');
   return `<nav id="nav" class="nav label-14" aria-label="Docs">
 ${a('', 'Getting started')}
+${a('changelog/', 'Changelog')}
 <p class="nav-h label-12">Foundations</p>${a('foundations/', 'Overview')}${ctx.foundations.map((f) => a(f.path + '/', f.title)).join('')}
 <p class="nav-h label-12">Guidelines</p>${a('guidelines/', 'Interface guidelines')}
 <p class="nav-h label-12">Components</p>${a('components/', 'All Components')}
@@ -74,8 +75,8 @@ const search = (rel) => `<div class="search" data-base="${rel}">
 </div>
 </div>`;
 
-// What a page belongs to, as the search results group it: Getting started, Foundations, Guidelines, Components, Patterns.
-const sectionOf = (path) => ({ foundations: 'Foundations', guidelines: 'Guidelines', components: 'Components', patterns: 'Patterns' })[path.split('/')[0]] || 'Getting started';
+// What a page belongs to, as the search results group it: Getting started, Changelog, Foundations, Guidelines, Components, Patterns.
+const sectionOf = (path) => ({ foundations: 'Foundations', changelog: 'Changelog', guidelines: 'Guidelines', components: 'Components', patterns: 'Patterns' })[path.split('/')[0]] || 'Getting started';
 const GENERIC = new Set(['Examples', 'Card', 'Props', 'Usage']);
 const text = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').trim();
 
@@ -89,6 +90,7 @@ function page(ctx, { path, title, description = '', body, markdown, live = false
   for (const m of main.matchAll(/<h([23]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
     const name = text(m[3]);
     if (path.startsWith('components/') && path !== 'components/' && GENERIC.has(name)) continue;
+    if (path === 'changelog/' && m[1] === '3') continue; // Features, Fixes… repeat under every version
     ctx.index.push({ type: 'heading', name, page: title === 'hyprsh design' ? 'Getting started' : title, section: sectionOf(path), url: `${path}#${m[2]}` });
   }
   const html = `<!doctype html>
@@ -252,6 +254,9 @@ export function buildSite() {
   const start = byPath['getting-started'];
   page(ctx, { path: '', title: 'hyprsh design', description: start.note, markdown: 'getting-started.md',
     body: (c) => `<article class="prose">${prose(start.markdown, 'docs/getting-started.md', c.rel)}</article>` });
+  const log = byPath.changelog;
+  page(ctx, { path: 'changelog/', title: log.title, description: log.note, markdown: 'changelog.md',
+    body: (c) => `<article class="prose">${prose(log.markdown, 'CHANGELOG.md', c.rel)}</article>` });
   page(ctx, { path: 'foundations/', title: 'Foundations', description: docs.intro.split('\n')[0],
     body: () => `<article class="prose"><h1 class="heading-32">Foundations</h1>${prose(docs.intro, 'project/README.md', '../')}
 <ul class="link-list">${foundations.map((f) => `<li><a class="label-16" href="${f.path.slice(12)}/"><strong>${esc(f.title)}</strong></a><span class="copy-14 muted">${inline(f.note)}</span></li>`).join('')}</ul></article>` });

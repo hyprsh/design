@@ -1,6 +1,6 @@
 // The docs for coding agents, shared by the docs site (scripts/site.mjs) and the package (scripts/package.mjs), so both
 // write identical files: a markdown page per component (its README plus a Props table generated from src/<Name>.d.ts),
-// markdown copies of Getting started, the foundations and the guidelines, components.json and AGENTS.md.
+// markdown copies of Getting started, the foundations, the guidelines and the changelog, components.json and AGENTS.md.
 // Usage: import { componentDocs, writeAgentDocs } from './docs.mjs';
 //   writeAgentDocs(dir, 'package')  dir/AGENTS.md and dir/docs/…
 //   writeAgentDocs(dir, 'site')     dir/AGENTS.md, dir/llms.txt, dir/llms-full.txt and the rest at dir/…
@@ -178,6 +178,9 @@ export function pages() {
   out.push({ path: 'foundations/tokens', title: 'Tokens', markdown: tokensMarkdown(), note: 'Every token by name: colours per theme, space, radius, shadows, z-index and type styles.' });
   const guide = read(join(PROJECT, 'guidelines.md')).trim() + '\n';
   out.push({ path: 'guidelines', title: 'Interface guidelines', markdown: guide, note: sentence(guide) });
+  // The changelog is committed, not built from git: the package may be built from a checkout without tags.
+  const log = read(join(ROOT, 'CHANGELOG.md')).trim() + '\n';
+  out.push({ path: 'changelog', title: 'Changelog', markdown: log, note: 'What changed in each version, newest first, with the date of each tag.' });
   return { intro: brand[0].body.trim(), pages: out };
 }
 
@@ -225,6 +228,7 @@ hyprsh's design system for React apps: tokens, the Geist fonts, brand assets and
 - Themes: \`data-theme="dark"\` (or a \`.dark\` class) on an ancestor, usually \`<html>\`. Light is the default.
 - Icons: \`<Icon icon={GitBranch} />\` with \`GitBranch\` from \`lucide-react\`, or Lucide components directly.
 - Setup in full: ${docs}getting-started.md.
+- Upgrading: ${docs}changelog.md lists what changed in each version, including breaking changes.
 
 ## Rules
 
@@ -259,7 +263,7 @@ ${intro.split('\n')[0]}
 
 ## Getting started
 
-${by('getting-started').map(link).join('\n')}
+${[...by('getting-started'), ...by('changelog')].map(link).join('\n')}
 - [AGENTS.md](AGENTS.md): the setup, the hard rules and an index of every component, as the package ships it.
 
 ## Foundations
