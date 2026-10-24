@@ -296,6 +296,10 @@ html:not(.js) .theme-wrap { display: none; }
   .top-link { display: flex; align-items: center; min-height: var(--touch-target); box-sizing: border-box; }
   .licence summary, .pager .hy-pagination__link { min-height: var(--touch-target); }
 }
+/* On a phone a code line runs under a top-right Copy button, so the button gets its own strip above the code. */
+@media (max-width: 639px) {
+  .prose pre:where(:not(.example-box *)) { padding: 44px 16px 16px; }
+}
 @media (prefers-reduced-motion: reduce) {
   .icon-btn, .copy, .comp-grid a, .theme-tip, .toc a, .inside-card, .licence-chevron { transition: none; }
 }
