@@ -14,14 +14,22 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 export async function openChrome() {
   const profile = mkdtempSync(join(tmpdir(), 'hy-chrome-'));
   const chrome = spawn(CHROME, [...CHROME_FLAGS, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
-    `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: 'ignore' });
+    `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
+  // Keep the end of Chrome's stderr, so a failed start says why.
+  let stderr = '';
+  chrome.stderr.on('data', (d) => { stderr = (stderr + d).slice(-2000); });
   let port;
-  for (let i = 0; i < 100 && !port; i++) {
+  // A cold CI runner can take well over 10s to start Chrome, so wait up to 30s.
+  for (let i = 0; i < 300 && !port && chrome.exitCode === null; i++) {
     await sleep(100);
     const f = join(profile, 'DevToolsActivePort');
     if (existsSync(f)) port = readFileSync(f, 'utf8').split('\n')[0];
   }
-  if (!port) { chrome.kill(); throw new Error('Chrome did not open a debugging port'); }
+  if (!port) {
+    chrome.kill();
+    const why = chrome.exitCode !== null ? `Chrome exited with code ${chrome.exitCode}` : 'Chrome did not open a debugging port within 30s';
+    throw new Error(`${why} (${CHROME})${stderr.trim() ? '\n' + stderr.trim() : ''}`);
+  }
   const targets = await (await fetch(`http://127.0.0.1:${port}/json/list`)).json();
   const ws = new WebSocket(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);
   await new Promise((res) => ws.addEventListener('open', res, { once: true }));
