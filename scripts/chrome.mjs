@@ -1,10 +1,11 @@
 // Headless Chrome over the DevTools protocol, for the scripts that drive a page (mobile.mjs, touch.mjs).
 // Usage: const { send, goto, evaluate, close } = await openChrome(); await send('Page.enable'); await goto(url); …; await close();
 // CHROME_PATH overrides where Chrome is: the macOS app by default, /usr/bin/google-chrome on Linux.
-import { spawn } from 'node:child_process';
-import { mkdtempSync, rmSync, readFileSync, existsSync } from 'node:fs';
-import { join } from 'node:path';
+import { spawn, execFileSync } from 'node:child_process';
+import { mkdtempSync, rmSync, readFileSync, existsSync, realpathSync } from 'node:fs';
+import { join, basename, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 
 export const CHROME = process.env.CHROME_PATH || (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : '/usr/bin/google-chrome');
 // CI runners can't give Chrome's sandbox the namespaces it wants.
@@ -93,3 +94,26 @@ export async function openChrome() {
     },
   };
 }
+
+// `node scripts/chrome.mjs --clean`: kills Chrome processes left behind by a killed script. Only the main process of a Chrome whose
+// --user-data-dir is a hy-chrome-* directory directly in the OS temp dir matches; any other Chrome is left alone.
+export function clean() {
+  const tmp = realpathSync(tmpdir());
+  const real = (p) => { try { return realpathSync(p); } catch { return p; } };
+  const found = [];
+  for (const line of execFileSync('ps', ['-axo', 'pid=,command='], { encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n')) {
+    const m = /^\s*(\d+)\s+(.*)$/.exec(line);
+    if (!m || /\s--type=/.test(m[2])) continue;  // helpers exit with their main process
+    const d = /(?:^|\s)--user-data-dir=(\S+)/.exec(m[2]);
+    if (!d || !basename(d[1]).startsWith('hy-chrome-') || real(dirname(d[1])) !== tmp) continue;
+    found.push({ pid: Number(m[1]), profile: d[1] });
+  }
+  for (const { pid, profile } of found) {
+    try { process.kill(pid, 'SIGKILL'); } catch {}
+    rmSync(profile, { recursive: true, force: true, maxRetries: 3 });
+    console.log(`killed Chrome ${pid}, removed ${profile}`);
+  }
+  if (!found.length) console.log('no orphaned hy-chrome Chrome processes');
+  return found.length;
+}
+if (process.argv[1] && realpathSync(process.argv[1]) === fileURLToPath(import.meta.url) && process.argv[2] === '--clean') clean();
