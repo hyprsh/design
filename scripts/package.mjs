@@ -7,7 +7,7 @@
 //   dist/icons.js     opt-in: registers the full Lucide set for <Icon name="…">
 //   dist/brand/       logo SVGs
 //   dist/AGENTS.md    for coding agents: setup, rules and a component index (scripts/docs.mjs, shared with the docs site)
-//   dist/docs/        markdown per component with a Props table, getting started, foundations, guidelines, components.json
+//   dist/docs/        markdown per component with a Props table, getting started, foundations, guidelines, the changelog, components.json
 // Dark mode follows [data-theme="dark"] or a .dark class on any ancestor.
 // Usage: node scripts/package.mjs
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, copyFileSync, existsSync } from 'node:fs';
