@@ -4,12 +4,12 @@ These are the rules every hyprsh interface follows. **Must** is required, **shou
 
 ## Keyboard and focus
 
-- **Must:** shortcut hints (`KeyboardInput`) are hidden on touch-only devices, `(hover: none) and (pointer: coarse)`, where there is no keyboard. `alwaysShow` is the exception, for when the key itself is the content. A hint is never the only label of a control: give it its own name or glyph.
 - **Must:** everything works from the keyboard, following the WAI-ARIA Authoring Practices pattern for that widget (tabs, menu, dialog, combobox, switch).
 - **Must:** focus is visible. Use the `focus-color` outline on `:focus-visible`, and `:focus-within` for compound controls. Never `outline: none` without a replacement.
 - **Must:** dialogs and menus trap focus while open and return it to the trigger when they close. Escape closes them.
 - **Must:** sticky and fixed elements never cover the focused element. Give heading anchors `scroll-margin-top`.
 - **Must:** add a “Skip to Content” link and use heading levels in order (`h1`–`h6`).
+- **Must:** shortcut hints (`KeyboardInput`) are hidden on touch-only devices, `(hover: none) and (pointer: coarse)`, where there is no keyboard. `alwaysShow` is the exception, for when the key itself is the content. A hint is never the only label of a control: give it its own name or glyph.
 
 ## Targets and input
 
