@@ -13,7 +13,7 @@ function DotsMenu(props) {
     className: cx('hy-dots-menu', props.className), style: props.style
   },
     h(HY.MenuButton, {
-      variant: 'tertiary', size: props.size || 'small', svgOnly: true, disabled: props.disabled,
+      variant: 'tertiary', size: props.size || 'small', svgOnly: true, disabled: props.disabled, tabIndex: props.tabIndex, onFocus: props.onFocus,
       'aria-label': props['aria-label'] || props.label || 'More Actions', className: 'hy-dots-menu__button'
     }, h(DotsIcon, { size: size })),
     h(HY.Menu, { width: props.width, 'aria-label': props.menuLabel }, props.children));
