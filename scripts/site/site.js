@@ -1,28 +1,53 @@
-/* The docs site's script: theme toggle, phone nav, search, copy buttons and live examples. Copied by scripts/site.mjs. */
+/* The docs site's script: theme control, phone nav, search, copy buttons and live examples. Copied by scripts/site.mjs. */
 (function () {
   var root = document.documentElement, KEY = 'hyprsh-docs-theme';
   var dark = window.matchMedia('(prefers-color-scheme: dark)');
-  function saved() { try { var t = localStorage.getItem(KEY); return t === 'light' || t === 'dark' ? t : null; } catch (e) { return null; } }
+  /* The stored choice: 'light' and 'dark' (also what the old two-state toggle stored); anything else is System. */
+  function saved() { try { var t = localStorage.getItem(KEY); return t === 'light' || t === 'dark' ? t : 'system'; } catch (e) { return 'system'; } }
 
   /* ---------- Theme ---------- */
-  var themeBtn = document.querySelector('.theme-btn');
-  /* Runs on every data-theme change, including one a ThemeSwitcher example makes, so the toggle and the cards follow. */
+  /* The header control reproduces ThemeSwitcher variant="cycle" (size small, tooltip below): System, Light, Dark, named
+     "Theme: <choice>", storing the choice under the same key and values. Mounting HY.ThemeSwitcher would need React and
+     the bundle on every page; only pages with live examples load them. */
+  var ORDER = ['system', 'light', 'dark'], LABEL = { system: 'System', light: 'Light', dark: 'Dark' };
+  var themeBtn = document.querySelector('.theme-btn'), themeTip = document.querySelector('.theme-tip');
+  var choice = saved(), applied = null;
+  function resolve(c) { return c === 'light' || c === 'dark' ? c : dark.matches ? 'dark' : 'light'; }
+  function apply(t) { applied = t; root.setAttribute('data-theme', t); root.style.colorScheme = t; }
+  function show() {
+    root.setAttribute('data-choice', choice);
+    var label = 'Theme: ' + LABEL[choice];
+    if (themeBtn) themeBtn.setAttribute('aria-label', label);
+    if (themeTip && themeTip.firstChild) themeTip.firstChild.nodeValue = label;
+  }
+  /* Runs on every data-theme change, including one a ThemeSwitcher example makes, so the control and the cards follow. */
   function sync() {
     var t = root.getAttribute('data-theme');
-    if (themeBtn) themeBtn.setAttribute('aria-label', t === 'dark' ? 'Switch to Light Theme' : 'Switch to Dark Theme');
+    if (t !== applied && (t === 'light' || t === 'dark')) { applied = t; choice = t; show(); } /* someone else set it: show it as the choice, unsaved */
     document.querySelectorAll('iframe.card').forEach(function (f) { try { f.contentWindow.postMessage({ theme: t }, '*'); } catch (e) {} });
   }
-  function apply(t) { root.setAttribute('data-theme', t); }
-  apply(root.getAttribute('data-theme') || 'light');
+  /* The pre-paint script has already applied the resolved theme; this only takes it over. */
+  applied = root.getAttribute('data-theme');
+  if (applied !== 'light' && applied !== 'dark') apply(resolve(choice));
+  show();
   sync();
   new MutationObserver(sync).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
-  if (themeBtn) themeBtn.addEventListener('click', function () {
-    var t = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-    try { localStorage.setItem(KEY, t); } catch (e) {}
-    apply(t);
-  });
-  var follow = function () { if (!saved()) apply(dark.matches ? 'dark' : 'light'); };
+  if (themeBtn) {
+    var wrap = themeBtn.parentNode;
+    themeBtn.addEventListener('click', function () {
+      choice = ORDER[(ORDER.indexOf(choice) + 1) % ORDER.length];
+      try { localStorage.setItem(KEY, choice); } catch (e) {}
+      apply(resolve(choice));
+      show();
+    });
+    /* Escape dismisses the tooltip without moving focus; it returns on the next hover or focus. */
+    themeBtn.addEventListener('keydown', function (e) { if (e.key === 'Escape') wrap.classList.add('tip-off'); });
+    ['mouseleave', 'blur'].forEach(function (n) { wrap.addEventListener(n, function () { wrap.classList.remove('tip-off'); }, true); });
+  }
+  var follow = function () { if (choice === 'system') apply(resolve('system')); };
   if (dark.addEventListener) dark.addEventListener('change', follow); else if (dark.addListener) dark.addListener(follow);
+  /* The choice changed in another tab: take it over. */
+  addEventListener('storage', function (e) { if (e.key === KEY || e.key === null) { choice = saved(); apply(resolve(choice)); show(); } });
   /* A card that loads after a toggle reads the theme from this page itself; this covers one that loaded before. */
   /* Cards grow to their content, which wraps onto more rows at phone width. */
   document.querySelectorAll('iframe.card').forEach(function (f) {

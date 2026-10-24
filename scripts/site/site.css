@@ -20,7 +20,17 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
 .icon-btn { display: grid; flex: none; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--gray-1000); cursor: pointer; touch-action: manipulation; transition: background-color 150ms cubic-bezier(.4, 0, .2, 1); }
 .icon-btn:hover { background: var(--gray-alpha-100); }
 .menu-btn { display: none; }
-[data-theme="dark"] .when-light, :root:not([data-theme="dark"]) .when-dark { display: none; }
+
+/* The theme control (ThemeSwitcher's cycle variant, reproduced): the icon shows the choice, set on <html data-choice> before first paint. */
+.theme-wrap { --theme-size: 32px; position: relative; display: inline-flex; flex: none; }
+.theme-btn .ico { display: none; }
+[data-choice="system"] .when-system, [data-choice="light"] .when-light, [data-choice="dark"] .when-dark { display: block; }
+html:not(.js) .theme-wrap { display: none; }
+/* The tooltip is the library's box, below the button and right-aligned so it never runs past the screen edge. */
+.theme-tip { position: absolute; top: calc(100% + 8px); right: 0; z-index: var(--z-tooltip); visibility: hidden; opacity: 0; pointer-events: none; white-space: nowrap; transition: opacity 150ms cubic-bezier(.4, 0, .2, 1), visibility 0s linear 150ms; }
+.theme-tip .hy-tooltip__tip { left: auto; right: calc(var(--theme-size) / 2 - 7px); }
+.theme-wrap:focus-within:not(.tip-off) .theme-tip { visibility: visible; opacity: 1; transition-delay: 0s; }
+@media (hover: hover) { .theme-wrap:hover:not(.tip-off) .theme-tip { visibility: visible; opacity: 1; transition-delay: 150ms; } }
 
 /* Search: the field and its listbox reuse the library's .hy-input and .hy-menu__* styles. */
 .search { display: none; }
@@ -142,7 +152,7 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
   .top-link { padding: 6px 4px; }
   /* The 44px buttons carry their own space, so the row needs no gap to fit search, Markdown, GitHub and the theme. */
   .top { gap: 0; }
-  .theme-btn { margin-right: -8px; }
+  .theme-wrap { margin-right: -8px; }
 }
 /* Below 700px the version gives way to the search field. */
 @media (max-width: 699px) {
@@ -157,10 +167,11 @@ a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1
 }
 @media (pointer: coarse), (max-width: 639px) {
   .icon-btn { width: var(--touch-target); height: var(--touch-target); }
+  .theme-wrap { --theme-size: var(--touch-target); }
   .nav a { display: flex; align-items: center; min-height: var(--touch-target); box-sizing: border-box; }
   .copy::after { inset: -10px -4px; }
   .top-link { display: flex; align-items: center; min-height: var(--touch-target); box-sizing: border-box; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .icon-btn, .copy, .comp-grid a { transition: none; }
+  .icon-btn, .copy, .comp-grid a, .theme-tip { transition: none; }
 }
