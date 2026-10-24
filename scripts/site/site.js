@@ -221,8 +221,40 @@
   var current = nav && nav.querySelector('[aria-current="page"]');
   if (current && current.scrollIntoView && current.offsetTop > nav.clientHeight - 80) nav.scrollTop = current.offsetTop - nav.clientHeight / 2;
 
+  /* ---------- On This Page: marks the section being read, the last heading above the top third of the screen ---------- */
+  var tocLinks = [].slice.call(document.querySelectorAll('.toc a'));
+  if (tocLinks.length) (function () {
+    var heads = tocLinks.map(function (a) { return document.getElementById(decodeURIComponent(a.hash.slice(1))); });
+    var queued = false, last = -1;
+    function mark() {
+      queued = false;
+      var line = Math.min(innerHeight / 3, 160), at = 0;
+      heads.forEach(function (h, i) { if (h && h.getBoundingClientRect().top <= line) at = i; });
+      /* At the very bottom the last section is the current one, even when its heading can't reach the line. */
+      if (innerHeight + scrollY >= document.documentElement.scrollHeight - 2) at = heads.length - 1;
+      if (at === last) return;
+      last = at;
+      tocLinks.forEach(function (a, i) { if (i === at) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current'); });
+    }
+    function queue() { if (!queued) { queued = true; requestAnimationFrame(mark); } }
+    addEventListener('scroll', queue, { passive: true });
+    addEventListener('resize', queue);
+    mark();
+  })();
+
   /* ---------- Copy buttons ---------- */
-  document.querySelectorAll('main pre').forEach(function (pre) {
+  /* Static Snippets (the home page's install command) copy their data-copy text and swap the icon, as Snippet does. */
+  document.querySelectorAll('.hy-snippet__copy[data-copy]').forEach(function (b) {
+    var icons = b.querySelectorAll('.hy-snippet__icon'), live = b.parentNode.querySelector('[aria-live]'), timer;
+    function set(copied, msg) { icons[0].classList.toggle('is-copied', copied); icons[1].classList.toggle('is-hidden', !copied); if (live) live.textContent = msg; }
+    b.addEventListener('click', function () {
+      var p = navigator.clipboard ? navigator.clipboard.writeText(b.getAttribute('data-copy')) : Promise.reject();
+      p.then(function () { set(true, 'Copied to clipboard'); }, function () { set(false, 'Copy failed. Select the text and copy it manually.'); });
+      clearTimeout(timer);
+      timer = setTimeout(function () { set(false, ''); }, 2000);
+    });
+  });
+  document.querySelectorAll('main pre:not(.hy-snippet__pre)').forEach(function (pre) {
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'copy label-12'; b.textContent = 'Copy';
     b.setAttribute('aria-label', 'Copy Code');
