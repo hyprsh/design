@@ -2,7 +2,7 @@
 // Usage: const { send, goto, evaluate, close } = await openChrome(); await send('Page.enable'); await goto(url); …; await close();
 // CHROME_PATH overrides where Chrome is: the macOS app by default, /usr/bin/google-chrome on Linux.
 import { spawn, execFileSync } from 'node:child_process';
-import { mkdtempSync, rmSync, readFileSync, existsSync, realpathSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, readFileSync, existsSync, realpathSync } from 'node:fs';
 import { join, basename, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -83,7 +83,8 @@ export async function openChrome() {
   });
   const send = (method, params = {}) => new Promise((res, rej) => { const id = ++seq; pending.set(id, { res, rej }); ws.send(JSON.stringify({ id, method, params })); });
   const loaded = () => new Promise((res) => { const w = (m) => (m.method === 'Page.loadEventFired' ? res() : waiters.push(w)); waiters.push(w); });
-  return {
+  let media = {}, touchOn = false;
+  const api = {
     send,
     // Navigates and waits for load (8s at most), then a little longer so React has rendered.
     async goto(url) {
@@ -99,6 +100,42 @@ export async function openChrome() {
       if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
       return r.result.value;
     },
+    // Device emulation through CDP: { width, height, scale, theme: 'light'|'dark', reducedMotion, touch, mobile }.
+    // `touch` turns on touch events and a coarse pointer; `mobile` (default: touch under 768px) is Chrome's mobile viewport mode,
+    // with mouse events sent as touches. Only the options passed change, the rest stay as they were.
+    async emulate({ width, height, scale, theme, reducedMotion, touch, mobile } = {}) {
+      if (width || height || scale) {
+        const m = mobile ?? ((touch ?? touchOn) && (width || 1280) < 768);
+        await send('Emulation.setDeviceMetricsOverride', { width: width || 1280, height: height || 800, deviceScaleFactor: scale || 1, mobile: m });
+        await send('Emulation.setEmitTouchEventsForMouse', m ? { enabled: true, configuration: 'mobile' } : { enabled: false });
+      }
+      if (touch !== undefined) {
+        touchOn = !!touch;
+        await send('Emulation.setTouchEmulationEnabled', touch ? { enabled: true, maxTouchPoints: 5 } : { enabled: false });
+      }
+      if (theme) media['prefers-color-scheme'] = theme;
+      if (reducedMotion !== undefined) media['prefers-reduced-motion'] = reducedMotion ? 'reduce' : 'no-preference';
+      if (theme || reducedMotion !== undefined) await send('Emulation.setEmulatedMedia', { features: Object.entries(media).map(([name, value]) => ({ name, value })) });
+    },
+    // Rects (CSS px, viewport-relative) and computed styles of every element matching the selector.
+    async measure(selector, styles = ['display', 'color', 'backgroundColor', 'fontSize']) {
+      return api.evaluate(`[...document.querySelectorAll(${JSON.stringify(selector)})].map((el) => {
+        const r = el.getBoundingClientRect(), cs = getComputedStyle(el);
+        return { tag: el.tagName.toLowerCase(), text: (el.textContent || '').trim().slice(0, 40),
+          rect: { x: r.x, y: r.y, width: r.width, height: r.height },
+          styles: Object.fromEntries(${JSON.stringify(styles)}.map((p) => [p, cs[p]])) };
+      })`);
+    },
+    // Saves a PNG of the viewport, or of the whole page with { fullPage: true }.
+    async screenshot(path, { fullPage = false } = {}) {
+      mkdirSync(dirname(path), { recursive: true });
+      const params = { format: 'png' };
+      if (fullPage) {
+        const { cssContentSize: c } = await send('Page.getLayoutMetrics');
+        Object.assign(params, { captureBeyondViewport: true, clip: { x: 0, y: 0, width: Math.ceil(c.width), height: Math.ceil(c.height), scale: 1 } });
+      }
+      writeFileSync(path, Buffer.from((await send('Page.captureScreenshot', params)).data, 'base64'));
+    },
     async close() {
       unregister();
       ws.close();
@@ -107,6 +144,7 @@ export async function openChrome() {
       rmSync(profile, { recursive: true, force: true });
     },
   };
+  return api;
 }
 
 // `node scripts/chrome.mjs --clean`: kills Chrome processes left behind by a killed script. Only the main process of a Chrome whose

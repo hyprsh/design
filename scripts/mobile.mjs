@@ -18,11 +18,9 @@ const theme = args.includes('--dark') ? 'dark' : 'light';
 const r = build({ write: false });
 const names = args.filter((a) => !a.startsWith('--')).length ? args.filter((a) => !a.startsWith('--')) : r.order;
 
-const { send, goto, evaluate, close } = await openChrome();
+const { send, goto, evaluate, emulate, close } = await openChrome();
 await send('Page.enable');
-await send('Emulation.setDeviceMetricsOverride', { width: WIDTH, height: 812, deviceScaleFactor: 2, mobile: true });
-await send('Emulation.setTouchEmulationEnabled', { enabled: true, maxTouchPoints: 5 });
-await send('Emulation.setEmitTouchEventsForMouse', { enabled: true, configuration: 'mobile' });
+await emulate({ width: WIDTH, height: 812, scale: 2, touch: true });
 
 // Reports the page's own width and the outermost elements that stick out past the screen edge,
 // skipping anything inside a container that scrolls or clips horizontally on purpose.
