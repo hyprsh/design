@@ -128,3 +128,19 @@ node scripts/touch.mjs                 # touch sizing: drawn sizes and hit areas
 The Chrome scripts close their Chrome when they exit, also on Ctrl+C or a kill, and stop with exit code 1 after `HY_DEADLINE` seconds (default 300, `0` turns it off), naming the script and what it was doing. Don't wrap them in `timeout` or `perl -e alarm`: that orphans Chrome. If a hard kill (`kill -9`) left one behind, `node scripts/chrome.mjs --clean` removes it and its `hy-chrome-*` profile.
 
 Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 44px tall under touch sizing (`@media (pointer: coarse), (max-width: 639px)`, sized with `var(--touch-target)`).
+
+### Probing a page
+
+To check something the scripts don't cover, drive Chrome with `openChrome()` from `scripts/chrome.mjs`. It has `goto`, `evaluate`, `emulate({ width, height, theme, touch, reducedMotion, scale })`, `measure(selector, styles)` and `screenshot(path, { fullPage })`:
+
+```js
+import { openChrome } from './scripts/chrome.mjs';   // run with: node probe.mjs, with `node scripts/dev.mjs` up
+const { goto, emulate, measure, screenshot, close } = await openChrome();
+await emulate({ width: 375, height: 812, scale: 2, touch: true, theme: 'dark' });
+await goto('http://127.0.0.1:4400/card/Button');
+console.log(await measure('.hy-btn', ['height', 'backgroundColor']));   // [{ tag, text, rect, styles }, …]
+await screenshot('.cache/probe.png', { fullPage: true });
+await close();
+```
+
+Serve a built page with `node scripts/site.mjs --serve <port>` or `node scripts/dev.mjs <port>`. Stop what you start.

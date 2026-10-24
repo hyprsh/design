@@ -82,12 +82,11 @@ const PROBE = `(async () => {
   return out;
 })()`;
 
-const { send, goto, evaluate, close } = await openChrome();
+const { send, goto, evaluate, emulate, close } = await openChrome();
 await send('Page.enable');
 let failed = 0;
 for (const m of MODES) {
-  await send('Emulation.setDeviceMetricsOverride', { width: m.width, height: 900, deviceScaleFactor: 1, mobile: false });
-  await send('Emulation.setTouchEmulationEnabled', m.touch ? { enabled: true, maxTouchPoints: 5 } : { enabled: false });
+  await emulate({ width: m.width, height: 900, touch: m.touch, mobile: false });
   await goto(`${BASE}/card/Button`);
   const got = await evaluate(PROBE);
   const bad = [];
