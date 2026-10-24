@@ -1,4 +1,4 @@
-<!-- @dsCard group="Actions" height=252 subtitle="Five variants, four sizes, square/circle/rounded shapes, prefix/suffix, loading, disabled, ButtonLink" -->
+<!-- @dsCard group="Actions" height=300 subtitle="Five variants, four sizes, square/circle/rounded shapes, prefix/suffix, badges, loading, disabled, ButtonLink" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Button</title></head>
@@ -36,6 +36,12 @@ function Demo() {
       h(H.Button, { key: 5, svgOnly: true, shape: 'circle', size: 'small', variant: 'default', 'aria-label': 'Upload File' }, I('arrow-up')),
       h(H.Button, { key: 6, svgOnly: true, shape: 'circle', variant: 'default', 'aria-label': 'Upload File' }, I('arrow-up')),
       h(H.Button, { key: 7, svgOnly: true, shape: 'circle', size: 'large', variant: 'default', 'aria-label': 'Upload File' }, I('arrow-up'))]),
+    Row([
+      h(H.Button, { key: 1, svgOnly: true, size: 'tiny', variant: 'tertiary', badge: true, 'aria-label': 'Inbox' }, I('arrow-up')),
+      h(H.Button, { key: 2, svgOnly: true, size: 'small', badge: 3, badgeLabel: '3 need attention', 'aria-label': 'Inbox' }, I('arrow-up')),
+      h(H.Button, { key: 3, svgOnly: true, badge: 2, badgeTone: 'error', badgeLabel: '2 blocking', 'aria-label': 'Inbox' }, I('arrow-up')),
+      h(H.Button, { key: 4, svgOnly: true, size: 'large', badge: 120, badgeTone: 'warning', 'aria-label': 'Inbox' }, I('arrow-up')),
+      h(H.Button, { key: 5, badge: 4, badgeLabel: '4 unread' }, 'Inbox')]),
     Row([
       h(H.Button, { key: 1, variant: 'default', loading: busy, onClick: deploy }, busy ? 'Deploying…' : 'Deploy Project'),
       h(H.Button, { key: 2, loading: true }, 'Saving…'),

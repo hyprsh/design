@@ -20,6 +20,12 @@ export interface ButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonE
   /** Renders an `<a>` instead of a `<button>`, as ButtonLink does. */
   href?: string;
   width?: number | string;
+  /** A badge pinned to the button's corner: `true` is a dot, a number a count ("99+" above 99, nothing for 0), a node is rendered as given. Same as on `TabBar.Item`. */
+  badge?: boolean | number | React.ReactNode;
+  /** The colour of a dot or count badge: `'accent'` (default), `'error'` (red) or `'warning'` (amber). It is visual only and a node badge ignores it, so say the tone in `badgeLabel` ("2 blocking"). */
+  badgeTone?: 'accent' | 'error' | 'warning';
+  /** Accessible text for the badge ("3 need attention"). It joins the button's accessible name; a count with no `badgeLabel` adds its number. */
+  badgeLabel?: string;
 }
 export interface ButtonLinkProps extends Omit<ButtonProps, 'href'>, Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, 'type' | 'prefix'> {
   href: string;

@@ -13,7 +13,24 @@ function btnHtmlType(props) {
   return 'button';
 }
 
-var BTN_OWN = ['variant', 'size', 'shape', 'shadow', 'loading', 'prefix', 'suffix', 'svgOnly', 'className', 'children', 'disabled', 'type', 'typeName', 'href', 'width', 'style'];
+var BTN_OWN = ['variant', 'size', 'shape', 'shadow', 'loading', 'prefix', 'suffix', 'svgOnly', 'className', 'children', 'disabled', 'type', 'typeName', 'href', 'width', 'style', 'badge', 'badgeTone', 'badgeLabel'];
+
+/* A badge pinned to the button's corner, as on TabBar.Item: true is a dot, a number a count (99+ above 99, nothing for 0),
+   a node is rendered as given. The tone only recolours dots and counts. Returns the node and the text it adds to the name. */
+function btnBadge(props) {
+  var badge = props.badge;
+  var tone = props.badgeTone === 'error' || props.badgeTone === 'warning' ? ' hy-btn__badge--' + props.badgeTone : '';
+  var node = null;
+  var label = props.badgeLabel;
+  if (badge === true) node = h('span', { className: 'hy-btn__badge hy-btn__badge--dot' + tone, 'aria-hidden': 'true' });
+  else if (typeof badge === 'number') {
+    if (badge > 0) {
+      node = h('span', { className: 'hy-btn__badge hy-btn__badge--count' + tone, 'aria-hidden': 'true' }, badge > 99 ? '99+' : String(badge));
+      if (!label) label = String(badge);
+    }
+  } else if (badge !== undefined && badge !== null && badge !== false) node = h('span', { className: 'hy-btn__badge', 'aria-hidden': 'true' }, badge);
+  return { node: node, label: node ? label : undefined };
+}
 
 function renderButton(props, ref, asLink) {
   var variant = btnVariant(props);
@@ -31,16 +48,21 @@ function renderButton(props, ref, asLink) {
     : (props.prefix ? h('span', { className: 'hy-btn__affix', 'aria-hidden': 'true' }, props.prefix) : null);
   var body = props.svgOnly ? (loading ? null : props.children) : h('span', { className: 'hy-btn__label' }, props.children);
   var tail = !loading && props.suffix ? h('span', { className: 'hy-btn__affix', 'aria-hidden': 'true' }, props.suffix) : null;
+  var badge = btnBadge(props);
+  var named = rest['aria-label'];
+  /* With an aria-label the badge label joins it; otherwise it is hidden text after the content. */
+  var badgeText = badge.label && !named ? h('span', { className: 'hy-sr' }, ', ' + badge.label) : null;
   var common = { ref: ref, className: className, style: style, 'aria-busy': loading || undefined };
-  if (asLink) {
+  if (badge.label && named) common['aria-label'] = named + ', ' + badge.label;
+    if (asLink) {
     /* A disabled link has no href, so it can't be followed or focused, and says so to assistive tech. */
     return h('a', Object.assign({}, rest, common, {
       href: disabled ? undefined : props.href,
       'aria-disabled': disabled || undefined,
       onClick: disabled ? function (e) { e.preventDefault(); } : rest.onClick
-    }), lead, body, tail);
+    }), lead, body, tail, badgeText, badge.node);
   }
-  return h('button', Object.assign({}, rest, common, { type: btnHtmlType(props), disabled: disabled }), lead, body, tail);
+  return h('button', Object.assign({}, rest, common, { type: btnHtmlType(props), disabled: disabled }), lead, body, tail, badgeText, badge.node);
 }
 
 /* Button forwards its ref (Menu focuses its trigger). With `href` it renders a link, like ButtonLink. */
