@@ -148,15 +148,16 @@ export async function openChrome() {
 }
 
 // `node scripts/chrome.mjs --clean`: kills Chrome processes left behind by a killed script. Only the main process of a Chrome whose
-// --user-data-dir is a hy-chrome-* directory directly in the OS temp dir matches; any other Chrome is left alone.
+// --user-data-dir is a hy-chrome-* directory directly in the OS temp dir matches, and only once it is orphaned (re-parented to
+// PID 1), so a Chrome that a running script still drives is left alone, as is any other Chrome.
 export function clean() {
   const tmp = realpathSync(tmpdir());
   const real = (p) => { try { return realpathSync(p); } catch { return p; } };
   const found = [];
-  for (const line of execFileSync('ps', ['-axo', 'pid=,command='], { encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n')) {
-    const m = /^\s*(\d+)\s+(.*)$/.exec(line);
-    if (!m || /\s--type=/.test(m[2])) continue;  // helpers exit with their main process
-    const d = /(?:^|\s)--user-data-dir=(\S+)/.exec(m[2]);
+  for (const line of execFileSync('ps', ['-axo', 'pid=,ppid=,command='], { encoding: 'utf8', maxBuffer: 1 << 26 }).split('\n')) {
+    const m = /^\s*(\d+)\s+(\d+)\s+(.*)$/.exec(line);
+    if (!m || m[2] !== '1' || /\s--type=/.test(m[3])) continue;  // not orphaned, or a helper (helpers exit with their main process)
+    const d = /(?:^|\s)--user-data-dir=(\S+)/.exec(m[3]);
     if (!d || !basename(d[1]).startsWith('hy-chrome-') || real(dirname(d[1])) !== tmp) continue;
     found.push({ pid: Number(m[1]), profile: d[1] });
   }
