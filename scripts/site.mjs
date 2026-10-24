@@ -9,7 +9,7 @@ import { join, dirname, extname, normalize, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { build, GROUPS } from './build.mjs';
 import { compileTokens } from './tokens-css.mjs';
-import { md, inline, esc } from './md.mjs';
+import { md, inline, esc, sections, slug } from './md.mjs';
 import { componentDocs, pages, writeAgentDocs, kebab } from './docs.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -26,6 +26,8 @@ const REPO = 'https://github.com/hyprsh/design';
 const VERSION = JSON.parse(read(join(ROOT, 'package.json'))).version;
 // The GitHub mark (Octicons mark-github): Lucide has no brand icons. Linking to the repo is what GitHub allows it for.
 const GITHUB_MARK = '<svg class="ico" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>';
+// The logo mark, one path on a 24px grid (project/brand/logo-mark.svg).
+const MARK_PATH = 'M12 1.5 L22.5 20 L15 16.5 L12 22 L9 16.5 L1.5 20 Z M12 7 L10.7 12.5 L12 14.5 L13.3 12.5 Z';
 const icon = (n, cls = '') => `<svg class="ico ${cls}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n]}</svg>`;
 
 // The page a repo file becomes, for rewriting links between docs: '' (Getting started), 'guidelines/', 'components/button/'…
@@ -93,12 +95,67 @@ const sectionOf = (path) => ({ foundations: 'Foundations', changelog: 'Changelog
 const GENERIC = new Set(['Examples', 'Card', 'Props', 'Usage']);
 const text = (html) => html.replace(/<[^>]+>/g, '').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'").replace(/&amp;/g, '&').trim();
 
+// ---------- The page system ----------
+// Every page is a column with an optional header, the body, prev/next links and, at 1280px and up, an "On this page"
+// list beside it. page() builds all of it; a body only writes its content:
+//   page(ctx, { path, title, eyebrow: 'Foundations', lead: 'One or two sentences, inline markdown.', body })
+//   - eyebrow or lead given: page() writes the header (eyebrow label-13, title as a heading-40 h1, lead copy-18), so
+//     the body must not write its own h1. Pass heading: '…' when the h1 should differ from <title>.
+//   - neither given: no header, and the body writes its own h1 (the home page's hero does).
+//   - the list appears by itself on a page with 3 or more <h2 id>s; prev/next links appear on the pages in ctx.sequence.
+// For a markdown page, splitHead(src) takes its # heading and first paragraph off as { title, lead, rest }.
+
+export function splitHead(src) {
+  const lines = src.replace(/\r\n?/g, '\n').trim().split('\n');
+  if (!/^# /.test(lines[0])) return { title: null, lead: '', rest: src };
+  let i = 1;
+  while (i < lines.length && !lines[i].trim()) i++;
+  const para = [];
+  if (!/^(#|```|~~~|\||\s*([-*+]|\d+[.)])\s)/.test(lines[i] || '')) for (; i < lines.length && lines[i].trim(); i++) para.push(lines[i].trim());
+  return { title: lines[0].slice(2).trim(), lead: para.join(' '), rest: lines.slice(i).join('\n') + '\n' };
+}
+
+const pageHead = ({ eyebrow, heading, lead }, rel, from) => `<header class="page-head">
+${eyebrow ? `<p class="eyebrow label-13">${esc(eyebrow)}</p>\n` : ''}<h1 class="heading-40">${esc(heading)}</h1>
+${lead ? `<p class="lead copy-18">${inline(lead, { link: from ? linker(from, rel) : undefined })}</p>\n` : ''}</header>`;
+
+// The "On this page" list: every h2 with an id, in order. site.js marks the one being read.
+function toc(main) {
+  const items = [...main.matchAll(/<h2 id="([^"]+)"[^>]*>([\s\S]*?)<\/h2>/g)].map((m) => [m[1], text(m[2])]);
+  if (items.length < 3) return '';
+  return `<nav class="toc" aria-labelledby="toc-title">
+<p class="toc-title label-13" id="toc-title"><strong>On This Page</strong></p>
+<ul>${items.map(([id, name]) => `<li><a class="label-13" href="#${id}">${esc(name)}</a></li>`).join('')}</ul>
+</nav>`;
+}
+
+// Previous / next along ctx.sequence, in the markup of the library's Pagination.
+function pager(ctx, path, rel) {
+  const seq = ctx.sequence || [];
+  const at = seq.findIndex((s) => s.path === path);
+  if (at < 0) return '';
+  const link = (s, dir) => {
+    const prev = dir === 'prev';
+    return `<a class="hy-pagination__link hy-pagination__link--${dir}" href="${rel + s.path || './'}" rel="${dir}" aria-label="Go to ${prev ? 'previous' : 'next'} page: ${esc(s.title)}"><span class="hy-pagination__icon" aria-hidden="true">${icon(prev ? 'chevron-left' : 'chevron-right', 'ico-20')}</span><span class="hy-pagination__label">${prev ? 'Previous' : 'Next'}</span><span class="hy-pagination__title">${esc(s.title)}</span></a>`;
+  };
+  return `<nav class="hy-pagination pager" aria-label="Pagination">${at > 0 ? link(seq[at - 1], 'prev') : '<span></span>'}${at < seq.length - 1 ? link(seq[at + 1], 'next') : '<span></span>'}</nav>`;
+}
+
 // One page. path is its folder ('' for the root, 'components/button/'), markdown the path of its .md copy.
-function page(ctx, { path, title, description = '', body, markdown, live = false }) {
+// eyebrow, lead and heading: see the page system above. from: the repo file the lead's links are relative to.
+function page(ctx, { path, title, description = '', body, markdown, live = false, eyebrow, lead, heading = title, from }) {
   const rel = '../'.repeat(path.split('/').filter(Boolean).length);
   const c = { ...ctx, rel };
   const mdHref = markdown && rel + markdown;
-  const main = body(c);
+  const content = body(c);
+  const head = eyebrow !== undefined || lead !== undefined ? pageHead({ eyebrow, heading, lead }, rel, from) : '';
+  const list = toc(content);
+  const main = `<div class="page${list ? ' has-toc' : ''}${/class="prose wide"/.test(content) ? ' is-wide' : ''}">
+<div class="page-col">
+${head}${content}
+${pager(ctx, path, rel)}
+</div>
+${list}</div>`;
   // Every h2 and h3 goes into the search index, except the headings every component page repeats.
   for (const m of main.matchAll(/<h([23]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
     const name = text(m[3]);
@@ -122,7 +179,7 @@ ${mdHref ? `<link rel="alternate" type="text/markdown" href="${mdHref}">\n` : ''
 <a class="skip label-14" href="#main">Skip to Content</a>
 <header class="top">
 <button class="icon-btn menu-btn" type="button" aria-label="Menu" aria-controls="nav" aria-expanded="false">${icon('menu')}</button>
-<a class="brand label-16" href="${rel || './'}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--accent-700)" d="M12 1.5 L22.5 20 L15 16.5 L12 22 L9 16.5 L1.5 20 Z M12 7 L10.7 12.5 L12 14.5 L13.3 12.5 Z"/></svg><span><strong>hyprsh</strong> design</span></a>
+<a class="brand label-16" href="${rel || './'}"><svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--accent-700)" d="${MARK_PATH}"/></svg><span><strong>hyprsh</strong> design</span></a>
 <span class="top-version hy-badge hy-badge--small hy-badge--gray-subtle">v${VERSION}</span>
 <span class="top-gap"></span>
 ${search(rel)}
@@ -171,9 +228,6 @@ ${ex.description ? `<p class="copy-14 muted">${inline(ex.description)}</p>` : ''
       : `<p class="copy-14 muted">No examples yet. This is the component’s card, showing its variants.</p>
 <iframe class="card" src="${c.rel}cards/${comp.name}.html" title="${comp.name} card" style="height:${comp.height}px" loading="lazy"></iframe>`;
     return `<article class="prose">
-<p class="eyebrow label-13">${comp.group}</p>
-<h1 class="heading-32">${comp.name}</h1>
-<p class="lead copy-18">${inline(comp.summary)}</p>
 <pre class="copy-13-mono" data-lang="jsx"><code>import { ${comp.name} } from '@hyprsh/design';</code></pre>
 <h2 id="examples" class="heading-24">${comp.examples.length ? 'Examples' : 'Card'}</h2>
 ${examples}
@@ -186,14 +240,110 @@ ${comp.guidance ? `<h2 id="usage" class="heading-24">Usage</h2>\n${prose(comp.gu
 
 function componentsIndex(c) {
   return `<article class="prose wide">
-<h1 class="heading-32">Components</h1>
-<p class="lead copy-18">${c.comps.length} React components, imported from <code>@hyprsh/design</code>. Each page has examples or its card, the props and when to use it.</p>
 ${GROUPS.map((g) => {
     const list = c.comps.filter((x) => x.group === g);
     return list.length ? `<h2 id="${g.toLowerCase()}" class="heading-24">${g}</h2>
 <ul class="comp-grid">${list.map((x) => `<li><a href="${x.kebab}/"><span class="label-14"><strong>${x.name}</strong></span><span class="copy-13 muted">${inline(x.summary)}</span></a></li>`).join('')}</ul>` : '';
   }).join('\n')}
 </article>`;
+}
+
+// ---------- Getting started, Changelog and Interface guidelines ----------
+
+// The home page: a hero, the Setup section as numbered steps, a "What's inside" grid, then the rest of
+// docs/getting-started.md as it is. The markdown keeps the facts; the hero and the cards live only here.
+const START = 'docs/getting-started.md';
+function homeBody(src) {
+  const parts = sections(src.replace(/\r\n?/g, '\n'), 2);
+  const intro = splitHead(parts[0].body);
+  const setup = parts.find((p) => p.slug === 'setup');
+  const rest = parts.slice(1).filter((p) => p !== setup);
+  const install = (/```bash\n(.+)\n```/.exec(src) || [])[1] || '';
+  return (c) => {
+    const steps = setup ? sections(setup.body, 3) : [];
+    const setupHtml = setup ? `<h2 id="setup" class="heading-24">${esc(setup.title)}</h2>
+${steps[0].body.replace(/^##.*\n/, '').trim() ? prose(steps[0].body.replace(/^##.*\n/, ''), START, c.rel) : ''}<ol class="steps">${steps.slice(1).map((s) => `<li class="step">${prose(s.body, START, c.rel)}</li>`).join('')}</ol>` : '';
+    return `<section class="hero" aria-labelledby="hero-title">
+<svg class="hero-mark" width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--accent-700)" d="${MARK_PATH}"/></svg>
+<h1 id="hero-title" class="heading-48">hyprsh design</h1>
+<p class="hero-pitch copy-20">${inline(intro.lead)}</p>
+<div class="hero-actions"><a class="hy-btn hy-btn--primary hy-btn--large" href="#setup"><span class="hy-btn__label">Get Started</span></a><a class="hy-btn hy-btn--secondary hy-btn--large" href="${c.rel}components/"><span class="hy-btn__label">Browse Components</span></a></div>
+${install ? snippet(install) : ''}
+</section>
+<article class="prose">
+${setupHtml}
+<h2 id="whats-inside" class="heading-24">What’s inside</h2>
+${inside(c)}
+${rest.map((s) => prose(s.body, START, c.rel)).join('\n')}
+</article>`;
+  };
+}
+
+// A static Snippet (src/Snippet.js markup); site.js wires its copy button.
+const snippet = (cmd) => `<div class="hy-snippet hero-snippet" translate="no"><pre class="hy-snippet__pre"><code class="hy-snippet__line"><span class="hy-snippet__prompt" aria-hidden="true">$ </span>${esc(cmd)}</code></pre><button type="button" class="hy-snippet__copy" aria-label="Copy to Clipboard" data-copy="${esc(cmd)}"><span class="hy-snippet__icon" aria-hidden="true">${icon('copy')}</span><span class="hy-snippet__icon is-hidden" aria-hidden="true">${icon('check')}</span></button><span class="hy-sr" aria-live="polite"></span></div>`;
+
+// The cards under "What's inside", each with a small drawing made of tokens and library classes.
+function inside(c) {
+  const line = (w) => `<i class="art-line" style="width:${w}%"></i>`;
+  const cards = [
+    ['foundations/', 'Foundations', 'Colour, type, space, materials and motion, and the copy rules.',
+      `<span class="heading-32 art-aa">Aa</span><span class="art-dots"><i class="art-dot art-fg"></i><i class="art-dot art-accent"></i><i class="art-dot art-border"></i><i class="art-dot art-bg"></i></span>`],
+    ['foundations/tokens/', 'Tokens', 'Every colour, space, radius and shadow by name, as CSS variables.',
+      `<span class="art-stack"><code class="label-12-mono art-chip">var(--gray-1000)</code><code class="label-12-mono art-chip">var(--space-6)</code></span>`],
+    ['components/', 'Components', `${c.comps.length} React components, each with live examples and its props.`,
+      `<span class="hy-btn hy-btn--primary hy-btn--small art-btn"><span class="hy-btn__label">Deploy</span></span><span class="hy-badge hy-badge--small hy-badge--green-subtle">Ready</span>`],
+    ['guidelines/', 'Interface guidelines', 'Keyboard, forms, touch, motion and performance rules to build and review by.',
+      `<span class="art-stack">${['Must', 'Should', 'Never'].map((w, i) => `<span class="art-row"><span class="hy-badge hy-badge--small ${['hy-badge--gray-subtle', 'hy-badge--pill', 'hy-badge--red-subtle'][i]}">${w}</span>${line([70, 52, 60][i])}</span>`).join('')}</span>`],
+    ['changelog/', 'Changelog', 'What changed in each version, including breaking changes.',
+      `<span class="art-stack"><span class="art-row"><span class="hy-badge hy-badge--small hy-badge--gray-subtle art-mono">v${VERSION}</span>${line(40)}</span><span class="art-row art-indent">${line(76)}</span><span class="art-row art-indent">${line(58)}</span></span>`],
+    ['#coding-agents', 'Coding agents', 'AGENTS.md and a markdown page per component, matching the installed version.',
+      `<span class="art-file">${icon('file-text')}<span class="label-13-mono">AGENTS.md</span></span>`],
+  ];
+  return `<ul class="inside">${cards.map(([href, title, desc, art]) => `<li><a class="inside-card" href="${href.startsWith('#') ? href : c.rel + href}"><span class="inside-art" aria-hidden="true">${art}</span><span class="inside-text"><span class="label-16"><strong>${esc(title)}</strong></span><span class="copy-14 muted">${esc(desc)}</span></span></a></li>`).join('')}</ul>`;
+}
+
+// The changelog: each version a section with its date beside the heading, scopes as small badges. The version
+// headings keep their ids (#v0-13-0); the group headings get the version in front, so no id repeats.
+function changelogBody(src, rel) {
+  const parts = sections(src, 2);
+  const classes = { ...PROSE, h3: 'heading-14 release-group', li: 'copy-14' };
+  const scope = (html) => html.replace(/<li class="copy-14"><strong>([\w.,-]+):<\/strong>\s*/g, '<li class="copy-14"><span class="hy-badge hy-badge--small hy-badge--gray-subtle release-scope" translate="no">$1<span class="hy-sr">:</span></span> ');
+  const before = parts[0].body.trim() ? prose(parts[0].body, 'CHANGELOG.md', rel) : '';
+  return `<article class="prose">${before}${parts.slice(1).map((s) => {
+    const lines = s.body.split('\n').slice(1);
+    const at = lines.findIndex((l) => l.trim());
+    const date = at > -1 && /^\d{4}-\d{2}-\d{2}$/.test(lines[at].trim()) ? lines.splice(at, 1)[0].trim() : '';
+    const body = md(lines.join('\n'), { classes, link: linker('CHANGELOG.md', rel) }).replace(/<h3 id="([^"]+)"/g, `<h3 id="${s.slug}-$1"`);
+    return `<section class="release" aria-labelledby="${s.slug}">
+<div class="release-head"><h2 id="${s.slug}" class="heading-24">${inline(s.title)}</h2>${date ? `<time class="label-13-mono muted" datetime="${date}">${date}</time>` : ''}</div>
+${scope(body)}</section>`;
+  }).join('\n')}</article>`;
+}
+
+// The interface guidelines: Must / Should / Never as badges in front of each rule (the word stays, so the badge is
+// not colour alone), the anti-patterns as a checklist and the licence text behind a disclosure. With the word set apart
+// as a badge, the rule after it starts with a capital.
+const RULE_TONE = { Must: 'gray-subtle', Should: 'pill', Never: 'red-subtle' };
+function guidelinesBody(src, rel) {
+  const from = 'project/guidelines.md';
+  const rules = (html) => html.replace(/<ul>([\s\S]*?)<\/ul>/g, (all, inner) => !/<strong>(Must|Should|Never):<\/strong>/.test(inner) ? all
+    : `<ul class="rules">${inner.replace(/<li class="copy-16"><strong>(Must|Should|Never):<\/strong>\s*([\s\S]*?)<\/li>/g,
+      (_, w, t) => `<li class="copy-16 rule"><span class="hy-badge hy-badge--small hy-badge--${RULE_TONE[w]} rule-tag">${w}<span class="hy-sr">:</span></span><span class="rule-text">${t.replace(/^[a-z]/, (ch) => ch.toUpperCase())}</span></li>`)}</ul>`);
+  const parts = sections(src, 2);
+  return `<article class="prose">${parts.map((s) => {
+    if (s.slug === 'anti-patterns-to-flag') {
+      const [head, ...lines] = s.body.split('\n');
+      const items = lines.filter((l) => /^[-*]\s+/.test(l)).map((l) => l.replace(/^[-*]\s+/, ''));
+      const other = lines.filter((l) => !/^[-*]\s+/.test(l)).join('\n');
+      return `${prose(head + '\n\n' + other, from, rel)}<ul class="checklist">${items.map((t) => `<li class="copy-14">${icon('ban', 'checklist-icon')}<span>${inline(t)}</span></li>`).join('')}</ul>`;
+    }
+    if (s.slug === 'licence') {
+      const fence = /```[^\n]*\n([\s\S]*?)\n```/.exec(s.body);
+      const html = prose(s.body.replace(/```[^\n]*\n[\s\S]*?\n```/, ''), from, rel);
+      return html + (fence ? `<details class="licence"><summary class="label-14">${icon('chevron-right', 'licence-chevron')}Show the MIT Licence</summary><pre class="copy-13-mono"><code>${esc(fence[1])}</code></pre></details>` : '');
+    }
+    return rules(prose(s.body, from, rel));
+  }).join('\n')}</article>`;
 }
 
 function tokensBody(t) {
@@ -264,12 +414,16 @@ export function buildSite() {
   const ctx = { comps, foundations, index };
   const byPath = Object.fromEntries(docs.pages.map((p) => [p.path, p]));
 
+  // The reading order of the first pages, for their prev/next links.
+  ctx.sequence = [{ path: '', title: 'Getting started' }, { path: 'changelog/', title: 'Changelog' }, { path: 'foundations/', title: 'Foundations' },
+    ...foundations.map((f) => ({ path: f.path + '/', title: f.title })), { path: 'guidelines/', title: 'Interface guidelines' }];
+
   const start = byPath['getting-started'];
-  page(ctx, { path: '', title: 'hyprsh design', description: start.note, markdown: 'getting-started.md',
-    body: (c) => `<article class="prose">${prose(start.markdown, 'docs/getting-started.md', c.rel)}</article>` });
+  page(ctx, { path: '', title: 'hyprsh design', description: start.note, markdown: 'getting-started.md', body: homeBody(start.markdown) });
   const log = byPath.changelog;
-  page(ctx, { path: 'changelog/', title: log.title, description: log.note, markdown: 'changelog.md',
-    body: (c) => `<article class="prose">${prose(log.markdown, 'CHANGELOG.md', c.rel)}</article>` });
+  const logHead = splitHead(log.markdown);
+  page(ctx, { path: 'changelog/', title: log.title, description: log.note, markdown: 'changelog.md', eyebrow: 'Releases', lead: logHead.lead, from: 'CHANGELOG.md',
+    body: (c) => changelogBody(logHead.rest, c.rel) });
   page(ctx, { path: 'foundations/', title: 'Foundations', description: docs.intro.split('\n')[0],
     body: () => `<article class="prose"><h1 class="heading-32">Foundations</h1>${prose(docs.intro, 'project/README.md', '../')}
 <ul class="link-list">${foundations.map((f) => `<li><a class="label-16" href="${f.path.slice(12)}/"><strong>${esc(f.title)}</strong></a><span class="copy-14 muted">${inline(f.note)}</span></li>`).join('')}</ul></article>` });
@@ -279,16 +433,19 @@ export function buildSite() {
     page(ctx, { path: f.path + '/', title: f.title, description: f.note, markdown: f.path.slice(12) + '.md', body });
   }
   const guide = byPath.guidelines;
-  page(ctx, { path: 'guidelines/', title: guide.title, description: guide.note, markdown: 'guidelines.md',
-    body: (c) => `<article class="prose">${prose(guide.markdown, 'project/guidelines.md', c.rel)}</article>` });
-  page(ctx, { path: 'components/', title: 'Components', description: 'Every hyprsh component by group.', body: componentsIndex });
+  const guideHead = splitHead(guide.markdown);
+  page(ctx, { path: 'guidelines/', title: guide.title, description: guide.note, markdown: 'guidelines.md', eyebrow: 'Guidelines', lead: guideHead.lead, from: 'project/guidelines.md',
+    body: (c) => guidelinesBody(guideHead.rest, c.rel) });
+  page(ctx, { path: 'components/', title: 'Components', description: 'Every hyprsh component by group.', body: componentsIndex,
+    lead: `${comps.length} React components, imported from \`@hyprsh/design\`. Each page has examples or its card, the props and when to use it.` });
   for (const comp of comps) {
     page(ctx, { path: `components/${comp.kebab}/`, title: comp.name, description: comp.summary, markdown: `${comp.kebab}.md`,
-      body: componentBody(comp), live: comp.examples.length > 0 });
+      body: componentBody(comp), live: comp.examples.length > 0, eyebrow: comp.group, lead: comp.summary });
     writeFileSync(join(OUT, 'cards', comp.name + '.html'), card(comp.name, '../'));
   }
   page(ctx, { path: 'patterns/', title: 'Patterns', description: 'Whole screens composed from several components.',
-    body: () => `<article class="prose"><h1 class="heading-32">Patterns</h1><p class="lead copy-18">A pattern is a whole screen composed from several components, such as a settings page.</p><p class="copy-16">No patterns yet.</p></article>` });
+    lead: 'A pattern is a whole screen composed from several components, such as a settings page.',
+    body: () => `<article class="prose"><p class="copy-16">No patterns yet.</p></article>` });
 
   // The search index: components and pages first, then the headings page() collected as it wrote each page.
   const entries = [
