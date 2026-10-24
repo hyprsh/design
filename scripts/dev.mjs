@@ -48,7 +48,7 @@ window.cardErrors=[];addEventListener('message',e=>{if(e.data&&e.data.error){car
 </script>`;
 }
 
-createServer((req, res) => {
+export const handler = (req, res) => {
   const url = new URL(req.url, 'http://x');
   const send = (code, type, body) => { res.writeHead(code, { 'content-type': type, 'cache-control': 'no-store' }); res.end(body); };
   try {
@@ -62,4 +62,9 @@ createServer((req, res) => {
     if (!p.startsWith(ROOT) || !existsSync(p)) return send(404, 'text/plain', 'not found');
     return send(200, TYPES[extname(p)] || 'application/octet-stream', readFileSync(p));
   } catch (e) { return send(500, 'text/plain', String(e.stack || e)); }
-}).listen(PORT, '127.0.0.1', () => console.log(`hyprsh cards → http://127.0.0.1:${PORT}`));
+};
+
+// Only listen when run directly: scripts/cards.mjs imports the handler.
+if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
+  createServer(handler).listen(PORT, '127.0.0.1', () => console.log(`hyprsh cards → http://127.0.0.1:${PORT}`));
+}
