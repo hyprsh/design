@@ -141,6 +141,7 @@ docs/
 | `node scripts/mobile.mjs Button Toggle` | Renders cards at 375px with touch, flags anything wider than the screen and tap targets under 24px, and saves screenshots to `.cache/mobile`. |
 | `node scripts/touch.mjs` | Measures touch sizing at 1280px with a mouse, at 375px and with a coarse pointer, and fails when a drawn size or hit area is off (see Touch sizing in `project/guidelines.md`). |
 | `node scripts/smoke.mjs [18\|19]` | Loads `dist/index.js` the way an app does, on React 18 and 19 from esm.sh, and fails on an error, a `console.error`, a component that didn't render or a missing toast. Run `npm run build` first; it needs network access. |
+| `node scripts/chrome.mjs --clean` | Kills headless Chrome processes left behind by a killed Chrome script (only those whose profile is a `hy-chrome-*` directory in the OS temp dir) and deletes their profiles. |
 
 The Chrome scripts need Google Chrome installed in `/Applications`, or `CHROME_PATH` set.
 
