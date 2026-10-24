@@ -11,6 +11,7 @@ import { build, GROUPS } from './build.mjs';
 import { compileTokens } from './tokens-css.mjs';
 import { md, inline, esc, sections, slug } from './md.mjs';
 import { componentDocs, pages, writeAgentDocs, kebab } from './docs.mjs';
+import { foundationsIndex, foundationBody, foundationHead, tokensBody, writeRedirects, FOUNDATION_NOTES, TOKENS_LEAD } from './site-foundations.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const PROJECT = join(ROOT, 'project');
@@ -346,41 +347,6 @@ function guidelinesBody(src, rel) {
   }).join('\n')}</article>`;
 }
 
-function tokensBody(t) {
-  const themes = t.color.themes.map((x) => x.id);
-  const val = (v) => (v && typeof v === 'object' ? themes.map((th) => v[th]).join(' · ') : String(v));
-  const scales = new Map(), single = [];
-  for (const c of t.color.tokens) {
-    const m = /^(.+)-(\d+)$/.exec(c.name);
-    if (m) (scales.get(m[1]) || scales.set(m[1], []).get(m[1])).push(c);
-    else single.push(c);
-  }
-  const usage = (c) => (c.usage ? ` title="${esc(c.usage)}"` : '');
-  const row = (name, sample, value, use) => `<tr><td>${sample}</td><td><code>${name}</code></td><td><code class="type">${esc(value)}</code></td><td>${use ? inline(use) : ''}</td></tr>`;
-  const table = (rows) => `<div class="table-wrap"><table class="props tokens copy-14"><thead><tr><th><span class="hy-sr">Sample</span></th><th>Token</th><th>Value</th><th>Usage</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
-  return () => `<article class="prose wide">
-<h1 class="heading-32">Tokens</h1>
-<p class="lead copy-18">Every token is a CSS custom property and every type style a class. Use them by name. Swatches follow the theme control; values read ${themes.join(' · ')}.</p>
-<h2 id="colour" class="heading-24">Colour</h2>
-${[...scales].map(([name, list]) => `<h3 id="colour-${name}" class="heading-16">${name}</h3>
-<ul class="swatches">${list.map((c) => `<li${usage(c)}><span class="chip" style="background:var(--${c.name})"></span><code class="label-12-mono">${c.name.slice(name.length + 1)}</code><span class="label-12-mono muted">${esc(val(c.value))}</span></li>`).join('')}</ul>`).join('\n')}
-<h3 id="colour-other" class="heading-16">Other colours</h3>
-${table(single.map((c) => row(c.name, `<span class="chip" style="background:var(--${c.name})"></span>`, val(c.value), c.usage)))}
-<h2 id="space" class="heading-24">Space</h2>
-${table(t.spacing.tokens.map((c) => row(c.name, `<span class="bar" style="width:var(--${c.name})"></span>`, c.value, c.usage)))}
-<h2 id="radius" class="heading-24">Radius</h2>
-${table(t.radius.tokens.map((c) => row(c.name, `<span class="box" style="border-radius:var(--${c.name})"></span>`, c.value, c.usage)))}
-<h2 id="shadow" class="heading-24">Shadow</h2>
-${table(t.shadow.tokens.map((c) => row(c.name, `<span class="box shadow" style="box-shadow:var(--${c.name})"></span>`, val(c.value), c.usage)))}
-<h2 id="type" class="heading-24">Type styles</h2>
-<p class="copy-16">Classes such as <code>.heading-32</code> and <code>.label-14</code>. The Labels and Copy styles also come as <code>-strong</code>.</p>
-${t.type.groups.map((g) => `<h3 id="type-${g.name.toLowerCase()}" class="heading-16">${g.name}</h3>
-<ul class="type-list">${g.styles.map((s) => `<li><div class="${s.name} type-sample">${esc(s.sample || s.name)}</div><p class="copy-13 muted"><code>${s.name}</code> ${esc(`${s.fontSize} / ${s.lineHeight}, ${s.fontWeight}`)}${s.usage ? ' · ' + inline(s.usage) : ''}</p></li>`).join('')}</ul>`).join('\n')}
-<h2 id="other" class="heading-24">Size, breakpoint and z-index</h2>
-${table([...t.size.tokens, ...t.breakpoint.tokens, ...t.zIndex.tokens].map((c) => row(c.name, '', String(c.value), c.usage)))}
-</article>`;
-}
-
 // A card on its own page, framed the way dev.mjs frames it. The theme comes from ?theme=, else from the page around it,
 // and follows that page's theme control through postMessage. Framed on its own it uses the stored choice, else the OS.
 function card(name, rel) {
@@ -424,14 +390,13 @@ export function buildSite() {
   const logHead = splitHead(log.markdown);
   page(ctx, { path: 'changelog/', title: log.title, description: log.note, markdown: 'changelog.md', eyebrow: 'Releases', lead: logHead.lead, from: 'CHANGELOG.md',
     body: (c) => changelogBody(logHead.rest, c.rel) });
-  page(ctx, { path: 'foundations/', title: 'Foundations', description: docs.intro.split('\n')[0],
-    body: () => `<article class="prose"><h1 class="heading-32">Foundations</h1>${prose(docs.intro, 'project/README.md', '../')}
-<ul class="link-list">${foundations.map((f) => `<li><a class="label-16" href="${f.path.slice(12)}/"><strong>${esc(f.title)}</strong></a><span class="copy-14 muted">${inline(f.note)}</span></li>`).join('')}</ul></article>` });
+  page(ctx, { path: 'foundations/', title: 'Foundations', description: docs.intro.split('\n')[0], lead: docs.intro.split('\n')[0], from: 'project/README.md', body: foundationsIndex(docs, foundations) });
   for (const f of foundations) {
-    const body = f.path === 'foundations/tokens' ? tokensBody(tokens)
-      : (c) => `<article class="prose">${prose(f.markdown, 'project/README.md', c.rel)}</article>`;
-    page(ctx, { path: f.path + '/', title: f.title, description: f.note, markdown: f.path.slice(12) + '.md', body });
+    const body = f.path === 'foundations/tokens' ? tokensBody(tokens) : foundationBody(f, (src, rel) => prose(src, 'project/README.md', rel));
+    const head = f.path === 'foundations/tokens' ? { heading: 'Tokens', lead: TOKENS_LEAD } : foundationHead(f);
+    page(ctx, { path: f.path + '/', title: f.title, description: FOUNDATION_NOTES[f.path] || f.note, markdown: f.path.slice(12) + '.md', eyebrow: 'Foundations', ...head, from: 'project/README.md', body });
   }
+  writeRedirects(OUT);
   const guide = byPath.guidelines;
   const guideHead = splitHead(guide.markdown);
   page(ctx, { path: 'guidelines/', title: guide.title, description: guide.note, markdown: 'guidelines.md', eyebrow: 'Guidelines', lead: guideHead.lead, from: 'project/guidelines.md',
