@@ -121,6 +121,7 @@ After its bullets, a README ends with an `## Examples` section. The docs site re
 node scripts/build.mjs                 # build + contract checks
 node scripts/dev.mjs                   # http://127.0.0.1:4400 (?only=Name,Other)
 node scripts/shot.mjs Name Other       # headless Chrome: mount check + .cache/shots/Name-{light,dark}.png
+node scripts/cards.mjs [Name …]        # every card fits its declared height (clipped fails, big empty band warns)
 node scripts/mobile.mjs Name Other     # phone: 375px with touch, reports overflow and small targets, .cache/mobile/Name.png
 node scripts/touch.mjs                 # touch sizing: drawn sizes and hit areas at desktop, phone width and coarse pointer
 ```

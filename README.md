@@ -117,6 +117,7 @@ scripts/
   package.mjs          builds the npm package into dist/ (ES module, types, styles, tokens, Tailwind entry, fonts, logo)
   dev.mjs              local card viewer, light and dark side by side
   shot.mjs             headless Chrome mount check + screenshots into .cache/shots
+  cards.mjs            checks every card fits its declared height
   icons.mjs            vendors Lucide into src/_icons.js
   tokens-css.mjs       compiles tokens.json to CSS the way the artifact does
   site.mjs             builds the docs site into .cache/site (--serve to view it)
@@ -137,6 +138,7 @@ docs/
 | `npm run dev` | The card viewer at http://127.0.0.1:4400. Add `?only=Button,Toggle` to show just those cards. |
 | `npm run site` | Builds the docs site into `.cache/site`. Add `-- --serve` to serve it at http://127.0.0.1:4401. |
 | `node scripts/examples.mjs` | Checks that every docs example mounts. |
+| `node scripts/cards.mjs [Name …]` | Checks that every card fits the `height` on line 1 of its preview.html at 960px, in light and dark: fails when content is clipped, warns on a big empty band. Serves the cards itself. |
 | `npm run shots -- Button Toggle` | Mount check and light and dark screenshots of those cards. Needs `npm run dev` running. |
 | `node scripts/mobile.mjs Button Toggle` | Renders cards at 375px with touch, flags anything wider than the screen and tap targets under 24px, and saves screenshots to `.cache/mobile`. |
 | `node scripts/touch.mjs` | Measures touch sizing at 1280px with a mouse, at 375px and with a coarse pointer, and fails when a drawn size or hit area is off (see Touch sizing in `project/guidelines.md`). |
