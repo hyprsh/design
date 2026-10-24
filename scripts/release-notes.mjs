@@ -69,8 +69,11 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) { console.error('--date wants YYYY-MM-DD'); process.exit(1); }
     const file = join(dirname(fileURLToPath(import.meta.url)), '..', 'CHANGELOG.md');
     const prev = git('describe', '--tags', '--abbrev=0', '--match', 'v*', 'HEAD');
-    const section = changelogSection({ tag, date: date || new Date().toISOString().slice(0, 10), subjects: log(`${prev}..HEAD`) });
-    writeFileSync(file, addToChangelog(existsSync(file) ? readFileSync(file, 'utf8') : '', section));
+    // Today in local time (en-CA formats as YYYY-MM-DD); toISOString() would be UTC, the day before just after midnight here.
+    const section = changelogSection({ tag, date: date || new Date().toLocaleDateString('en-CA'), subjects: log(`${prev}..HEAD`) });
+    let next;
+    try { next = addToChangelog(existsSync(file) ? readFileSync(file, 'utf8') : '', section); } catch (e) { console.error(e.message); process.exit(1); }
+    writeFileSync(file, next);
     console.error(`CHANGELOG.md: added ${tag} (the commits since ${prev})`);
   } else {
     let prev = '';
