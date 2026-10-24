@@ -14,7 +14,7 @@
 **1. Install** a release tag (React 18 or newer is a peer dependency):
 
 ```bash
-npm install github:hyprsh/design#v0.11.0
+npm install github:hyprsh/design#v0.12.0
 ```
 
 **2. Import the styles** once, at your app's entry:
@@ -86,7 +86,7 @@ The docs site also serves `llms.txt`, `llms-full.txt` and a `.md` version of eve
 Each version is a git tag with a [GitHub release](https://github.com/hyprsh/design/releases) listing its features, fixes and breaking changes. To upgrade, point the install at the new tag:
 
 ```bash
-npm install github:hyprsh/design#v0.11.0
+npm install github:hyprsh/design#v0.12.0
 ```
 
 ---
@@ -146,7 +146,7 @@ The Chrome scripts need Google Chrome installed in `/Applications`, or `CHROME_P
 
 ### Releasing
 
-Bump `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, then tag it (`git tag v0.12.0 && git push origin main v0.12.0`). Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with notes grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes).
+Bump `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, then tag it (`git tag v0.13.0 && git push origin main v0.13.0`). Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with notes grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes).
 
 ### Contributing
 
