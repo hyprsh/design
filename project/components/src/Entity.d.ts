@@ -8,6 +8,8 @@ export interface EntityProps extends Omit<React.HTMLAttributes<HTMLElement>, 'on
   /** Row click handler, used with as="button". */
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
   disabled?: boolean;
+  /** Marks the row that holds the keyboard cursor of a j/k list: sets `aria-current="true"` and draws the same tint and 2px marker as `TableRow current`. */
+  current?: boolean;
   leftClassName?: string;
   rightClassName?: string;
   children?: React.ReactNode;
