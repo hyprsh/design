@@ -6,6 +6,10 @@ export interface DotsMenuProps {
   /** Button size. Default 'small' (32px). */
   size?: 'tiny' | 'small' | 'medium';
   disabled?: boolean;
+  /** Tab order of the button. `-1` takes it out of the Tab sequence; it still opens the menu by click, and by Enter, Space or the arrow keys once focused. */
+  tabIndex?: number;
+  /** Called when the button receives focus. */
+  onFocus?: React.FocusEventHandler<HTMLButtonElement>;
   /** Accessible name of the button; name the thing it acts on, such as 'Deployment Actions'. Default 'More Actions'. */
   'aria-label'?: string;
   /** Same as aria-label. */
