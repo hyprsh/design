@@ -1,8 +1,9 @@
 // Builds the static docs site into .cache/site (wiped each run) for GitHub Pages at https://hyprsh.github.io/design/.
 // Every link is relative, so the same files work under /design/ and locally. Pages are plain HTML; JavaScript only runs
-// the live examples, the theme toggle, the search field and the copy buttons. See docs/adr/0001-docs-site-without-dependencies.md.
+// the live examples, the theme control, the search field and the copy buttons. See docs/adr/0001-docs-site-without-dependencies.md.
 // Usage: node scripts/site.mjs [--serve [port]]   (--serve builds, then serves at http://127.0.0.1:4401)
 import { createServer } from 'node:http';
+import vm from 'node:vm';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, copyFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, extname, normalize, posix } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,8 +44,20 @@ const linker = (fromRepo, rel) => (href) => {
 
 // ---------- Chrome ----------
 
+// The theme key shared by the pre-paint script, site.js and the cards.
+const THEME_KEY = 'hyprsh-docs-theme';
+// ThemeSwitcher.js is plain script for the bundle's scope. Running it here with stub hooks yields the bundle's own
+// themeScript(), so the pre-paint script resolves System exactly as the component does (stored 'light' or 'dark' are
+// kept, anything else is System). The choice itself goes on <html data-choice> so the header icon is right from the start.
+function themeScriptOf() {
+  const defined = {};
+  const stub = () => {};
+  vm.runInNewContext(read(join(COMP, 'src/ThemeSwitcher.js')), { define: (n, c) => { defined[n] = c; }, useState: stub, useRef: stub, useId: stub, useEffect: stub, useControllable: stub, cx: stub, omit: stub, h: stub, HY: {} });
+  return defined.themeScript({ storageKey: THEME_KEY });
+}
 const THEME_SCRIPT = `window.__pageErrors=[];addEventListener('error',function(e){__pageErrors.push(e.message||('Failed to load '+((e.target&&(e.target.src||e.target.href))||'a resource')))},true);addEventListener('unhandledrejection',function(e){__pageErrors.push(String(e.reason))});
-(function(d){var t;try{t=localStorage.getItem('hyprsh-docs-theme')}catch(e){}if(t!=='light'&&t!=='dark')t=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';d.setAttribute('data-theme',t);d.className='js'})(document.documentElement);`;
+${themeScriptOf()};
+(function(d){var c;try{c=localStorage.getItem(${JSON.stringify(THEME_KEY)})}catch(e){}d.setAttribute('data-choice',c==='light'||c==='dark'?c:'system');d.className='js'})(document.documentElement);`;
 
 function nav(ctx, current) {
   const a = (href, label) => `<a href="${ctx.rel}${href}"${href === current ? ' aria-current="page"' : ''}>${esc(label)}</a>`;
@@ -115,7 +128,7 @@ ${mdHref ? `<link rel="alternate" type="text/markdown" href="${mdHref}">\n` : ''
 ${search(rel)}
 ${mdHref ? `<a class="top-link label-14" href="${mdHref}">Markdown</a>` : ''}
 <a class="icon-btn" href="${REPO}" aria-label="hyprsh/design on GitHub">${GITHUB_MARK}</a>
-<button class="icon-btn theme-btn" type="button" aria-label="Switch Theme">${icon('moon', 'when-light')}${icon('sun', 'when-dark')}</button>
+<span class="theme-wrap"><button class="icon-btn theme-btn" type="button" aria-label="Theme: System">${icon('monitor', 'when-system')}${icon('sun', 'when-light')}${icon('moon', 'when-dark')}</button><span class="hy-tooltip__box hy-tooltip__box--bottom theme-tip" aria-hidden="true">Theme: System<svg class="hy-tooltip__tip" width="14" height="7" viewBox="0 0 14 7" aria-hidden="true" focusable="false"><path d="M0 0h14L8.4 6.1a1.9 1.9 0 0 1-2.8 0z"/></svg></span></span>
 </header>
 <div class="layout">
 ${nav(c, path)}
@@ -197,7 +210,7 @@ function tokensBody(t) {
   const table = (rows) => `<div class="table-wrap"><table class="props tokens copy-14"><thead><tr><th><span class="hy-sr">Sample</span></th><th>Token</th><th>Value</th><th>Usage</th></tr></thead><tbody>${rows.join('')}</tbody></table></div>`;
   return () => `<article class="prose wide">
 <h1 class="heading-32">Tokens</h1>
-<p class="lead copy-18">Every token is a CSS custom property and every type style a class. Use them by name. Swatches follow the theme toggle; values read ${themes.join(' · ')}.</p>
+<p class="lead copy-18">Every token is a CSS custom property and every type style a class. Use them by name. Swatches follow the theme control; values read ${themes.join(' · ')}.</p>
 <h2 id="colour" class="heading-24">Colour</h2>
 ${[...scales].map(([name, list]) => `<h3 id="colour-${name}" class="heading-16">${name}</h3>
 <ul class="swatches">${list.map((c) => `<li${usage(c)}><span class="chip" style="background:var(--${c.name})"></span><code class="label-12-mono">${c.name.slice(name.length + 1)}</code><span class="label-12-mono muted">${esc(val(c.value))}</span></li>`).join('')}</ul>`).join('\n')}
@@ -219,9 +232,9 @@ ${table([...t.size.tokens, ...t.breakpoint.tokens, ...t.zIndex.tokens].map((c) =
 }
 
 // A card on its own page, framed the way dev.mjs frames it. The theme comes from ?theme=, else from the page around it,
-// and follows that page's toggle through postMessage.
+// and follows that page's theme control through postMessage. Framed on its own it uses the stored choice, else the OS.
 function card(name, rel) {
-  const head = `<script>(function(d){var t=new URLSearchParams(location.search).get('theme');if(!t){try{t=parent.document.documentElement.getAttribute('data-theme')}catch(e){}}d.setAttribute('data-theme',t||'light');addEventListener('message',function(e){if(e.data&&(e.data.theme==='light'||e.data.theme==='dark'))d.setAttribute('data-theme',e.data.theme)})})(document.documentElement);` +
+  const head = `<script>(function(d){var q=new URLSearchParams(location.search).get('theme'),t=q;if(!t){try{t=parent.document.documentElement.getAttribute('data-theme')}catch(e){}}if(t==='light'||t==='dark'){d.setAttribute('data-theme',t)}else{var mq=matchMedia('(prefers-color-scheme: dark)'),pick=function(){var s;try{s=localStorage.getItem(${JSON.stringify(THEME_KEY)})}catch(e){}return s==='light'||s==='dark'?s:mq.matches?'dark':'light'};d.setAttribute('data-theme',pick());if(!q){var f=function(){d.setAttribute('data-theme',pick())};if(mq.addEventListener)mq.addEventListener('change',f);addEventListener('storage',f)}}addEventListener('message',function(e){if(e.data&&(e.data.theme==='light'||e.data.theme==='dark'))d.setAttribute('data-theme',e.data.theme)})})(document.documentElement);` +
     `window.addEventListener("error",function(e){var m=String(e.message);document.documentElement.setAttribute("data-card-error",m);if(parent!==window)parent.postMessage({card:location.pathname,error:m},"*")});</script>` +
     `<link rel="stylesheet" href="${rel}tokens.css"><link rel="stylesheet" href="${rel}bundle.css">` +
     REACT.map((s) => `<script src="${s}"></script>`).join('') + `<script src="${rel}bundle.js"></script>`;
