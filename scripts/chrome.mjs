@@ -38,8 +38,8 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
   });
 }
 
-// Overall deadline: HY_DEADLINE seconds (default 300, 0 = none). Prints which script hit it, closes Chrome (via the exit handler) and exits 1.
-const DEADLINE = Number(process.env.HY_DEADLINE ?? 300);
+// Overall deadline: HY_DEADLINE seconds (default 600, 0 = none; the card check takes about 4 minutes). Prints which script hit it, closes Chrome (via the exit handler) and exits 1.
+const DEADLINE = Number(process.env.HY_DEADLINE ?? 600);
 if (DEADLINE > 0 && process.argv[2] !== '--clean') {
   setTimeout(() => {
     console.error(`✗ ${basename(process.argv[1] || 'script')} hit the ${DEADLINE}s deadline (HY_DEADLINE)${doing ? ' while ' + doing : ''}`);
