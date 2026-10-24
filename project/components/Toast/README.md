@@ -1,6 +1,6 @@
 # Toast
 
-A short, temporary message in a polite `aria-live` region at the bottom right. Toasts stack into a pile that expands on hover or focus, and their timers pause while it is expanded.
+A short, temporary message in a polite `aria-live` region at the bottom right, lifted by `--tab-bar-height` so it clears a `TabBar`. Toasts stack into a pile that expands on hover or focus, and their timers pause while it is expanded.
 
 **You provide:** either the imperative API, `const toasts = useToasts()` then `toasts.message({ text })`, `toasts.success(text)`, `toasts.warning(text)` or `toasts.error(text)`, or a controlled list with `<Toast toasts onDismiss>` (`[{ id, text | message, type?, action?, onUndoAction?, preserve?, duration? }]`). Options: `preserve` keeps the toast until dismissed, `action: 'Retry'` with `onAction` adds one button, and `onUndoAction` turns it into an Undo snackbar (Dismiss + Undo, 8s). Toasts dismiss themselves after 6s. `useToasts()` renders into a `<Toast />` host if you mount one, and mounts its own otherwise. Mount `<Toast />` once at the app root anyway: it renders on the server, and the toasts stack in one predictable place. Optional: `inline` to render the list in place.
 
