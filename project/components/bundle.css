@@ -1676,12 +1676,13 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 
 /* ---------- Toast ---------- */
 .hy-toaster {
-  position: fixed; right: 24px; bottom: max(24px, env(safe-area-inset-bottom)); z-index: var(--z-toast);
+  position: fixed; right: 24px; bottom: max(calc(24px + var(--tab-bar-height, 0px)), env(safe-area-inset-bottom)); z-index: var(--z-toast);
   width: 420px; max-width: calc(100vw - 32px);
 }
+/* The stack sits above a TabBar: --tab-bar-height (safe area included) is 0px when there is none. */
 /* Phones: span the screen with 16px margins. */
 @media (max-width: 600px) {
-  .hy-toaster { left: 16px; right: 16px; bottom: max(16px, env(safe-area-inset-bottom)); width: auto; max-width: none; }
+  .hy-toaster { left: 16px; right: 16px; bottom: max(calc(16px + var(--tab-bar-height, 0px)), env(safe-area-inset-bottom)); width: auto; max-width: none; }
 }
 .hy-toaster--inline { position: static; width: auto; max-width: 420px; }
 .hy-toaster__list { position: relative; margin: 0; padding: 0; list-style: none; transition: height .35s cubic-bezier(.25,.75,.6,.98); }
