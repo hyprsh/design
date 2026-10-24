@@ -126,7 +126,7 @@ node scripts/mobile.mjs Name Other     # phone: 375px with touch, reports overfl
 node scripts/touch.mjs                 # touch sizing: drawn sizes and hit areas at desktop, phone width and coarse pointer
 ```
 
-The Chrome scripts close their Chrome when they exit, also on Ctrl+C or a kill, and stop with exit code 1 after `HY_DEADLINE` seconds (default 300, `0` turns it off), naming the script and what it was doing. Don't wrap them in `timeout` or `perl -e alarm`: that orphans Chrome. If a hard kill (`kill -9`) left one behind, `node scripts/chrome.mjs --clean` removes it and its `hy-chrome-*` profile.
+The Chrome scripts close their Chrome when they exit, also on Ctrl+C or a kill, and stop with exit code 1 after `HY_DEADLINE` seconds (default 600, `0` turns it off), naming the script and what it was doing. Don't wrap them in `timeout` or `perl -e alarm`: that orphans Chrome. If a hard kill (`kill -9`) left one behind, `node scripts/chrome.mjs --clean` removes it and its `hy-chrome-*` profile.
 
 Look at both screenshots and the phone one. On a phone nothing may be wider than the screen, hover-only behaviour needs a tap equivalent, and controls are at least 44px tall under touch sizing (`@media (pointer: coarse), (max-width: 639px)`, sized with `var(--touch-target)`).
 
