@@ -7,7 +7,7 @@
 Install it from this repo. Installing runs `prepare`, which builds `dist/`.
 
 ```bash
-npm install github:hyprsh/design#v0.12.0
+npm install github:hyprsh/design#v0.13.0
 ```
 
 ```tsx

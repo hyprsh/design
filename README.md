@@ -14,7 +14,7 @@
 **1. Install** a release tag (React 18 or newer is a peer dependency):
 
 ```bash
-npm install github:hyprsh/design#v0.12.0
+npm install github:hyprsh/design#v0.13.0
 ```
 
 **2. Import the styles** once, at your app's entry:
@@ -86,7 +86,7 @@ The docs site also serves `llms.txt`, `llms-full.txt` and a `.md` version of eve
 Each version is a git tag. [CHANGELOG.md](CHANGELOG.md) (the [Changelog page](https://hyprsh.github.io/design/changelog/), and `docs/changelog.md` in the package) and the [GitHub releases](https://github.com/hyprsh/design/releases) list each version's features, fixes and breaking changes. To upgrade, point the install at the new tag:
 
 ```bash
-npm install github:hyprsh/design#v0.12.0
+npm install github:hyprsh/design#v0.13.0
 ```
 
 ---
@@ -146,7 +146,7 @@ The Chrome scripts need Google Chrome installed in `/Applications`, or `CHROME_P
 
 ### Releasing
 
-Bump `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, then add the version to the changelog with `node scripts/release-notes.mjs --changelog v0.13.0` (it writes a new section at the top of `CHANGELOG.md` from the commits since the latest tag, dated today, and leaves the older sections untouched; `--date YYYY-MM-DD` overrides the date). Commit all of that as the release commit, then tag it (`git tag v0.13.0 && git push origin main v0.13.0`). The changelog comes first because the docs site and the npm package are built from the committed `CHANGELOG.md`. Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with the same notes, grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes).
+Bump `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, then add the version to the changelog with `node scripts/release-notes.mjs --changelog v0.14.0` (it writes a new section at the top of `CHANGELOG.md` from the commits since the latest tag, dated today, and leaves the older sections untouched; `--date YYYY-MM-DD` overrides the date). Commit all of that as the release commit, then tag it (`git tag v0.14.0 && git push origin main v0.14.0`). The changelog comes first because the docs site and the npm package are built from the committed `CHANGELOG.md`. Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with the same notes, grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes).
 
 ### Contributing
 

@@ -2,6 +2,20 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.13.0
+
+2026-10-24
+
+### Features
+
+- **docs:** a changelog page, shipped in the package
+- **site:** follow the system theme, with a System, Light and Dark switch
+
+### Fixes
+
+- **release-notes:** a plain error for a version already in the changelog, and today's local date
+- **chrome:** wait up to 30s for Chrome to start, and say why it didn't
+
 ## v0.12.0
 
 2026-10-24
