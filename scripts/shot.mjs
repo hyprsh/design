@@ -1,13 +1,13 @@
 // Renders cards in headless Chrome: checks each one mounts without errors and saves a screenshot.
 // Needs `node scripts/dev.mjs` running. Usage: node scripts/shot.mjs Button Toggle …  (no names = all)
 // Screenshots land in .cache/shots/<Name>-<theme>.png. Exits 1 if the dev server doesn't answer, or if any card fails or writes no screenshot.
-import { execFileSync } from 'node:child_process';
+import { spawn } from 'node:child_process';
 import { mkdirSync, mkdtempSync, rmSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { build } from './build.mjs';
-import { CHROME, CHROME_FLAGS } from './chrome.mjs';
+import { CHROME, CHROME_FLAGS, register, setDoing } from './chrome.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = join(ROOT, '.cache/shots');
@@ -20,6 +20,16 @@ try { await fetch(BASE); } catch { console.error(`✗ no dev server at ${BASE}: 
 const r = build();
 const names = process.argv.slice(2).length ? process.argv.slice(2) : ['Cover', ...r.order];
 const profile = mkdtempSync(join(tmpdir(), 'hy-chrome-'));
+register(null, profile);  // removed on exit, also when killed or past HY_DEADLINE
+// One Chrome run, async so the HY_DEADLINE timer can fire; it is killed on exit like openChrome()'s (and after 60s). Resolves with stdout.
+const run = (args) => new Promise((res, rej) => {
+  const child = spawn(CHROME, args, { stdio: ['ignore', 'pipe', 'ignore'] });
+  const done = register(child, null);
+  let out = '';
+  child.stdout.on('data', (d) => { out += d; });
+  const timer = setTimeout(() => { child.kill('SIGKILL'); rej(new Error('Chrome timed out after 60s')); }, 60000);
+  child.on('close', () => { clearTimeout(timer); done(); res(out); });
+});
 const flags = [...CHROME_FLAGS, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check', `--user-data-dir=${profile}`, '--virtual-time-budget=5000'];
 let failed = 0;
 for (const n of names) {
@@ -30,12 +40,13 @@ for (const n of names) {
     let problem = '';
     try {
       rmSync(png, { force: true });
-      const dom = execFileSync(CHROME, [...flags, '--dump-dom', url], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 60000 });
+      setDoing(`rendering ${n} (${theme})`);
+      const dom = await run([...flags, '--dump-dom', url]);
       const err = /data-card-error="([^"]*)"/.exec(dom);
       if (err) problem = 'error: ' + err[1];
       else if (n !== 'Cover' && !/<div id="root"/.test(dom)) problem = 'not a card page (is the name right?)';
       else if (n !== 'Cover' && /<div id="root"[^>]*><\/div>/.test(dom)) problem = 'root is empty';
-      execFileSync(CHROME, [...flags, `--window-size=960,${height}`, `--screenshot=${png}`, url], { stdio: 'ignore', timeout: 60000 });
+      await run([...flags, `--window-size=960,${height}`, `--screenshot=${png}`, url]);
       if (!problem && !existsSync(png)) problem = 'no screenshot written';
     } catch (e) { problem = 'failed: ' + e.message.split('\n')[0]; }
     if (problem) failed++;

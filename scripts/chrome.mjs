@@ -15,6 +15,8 @@ const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 // Cleanup. Every Chrome (and profile) a script opens is registered, and killed and removed when the Node process exits:
 // normally, on an uncaught error, or on SIGINT, SIGTERM and SIGHUP (re-raised afterwards, so the exit status is the usual one).
 const live = new Set();
+let doing = '';  // what the script is up to, named in the deadline message
+export const setDoing = (what) => { doing = what; };
 export function register(proc, profile) {
   const entry = { proc, profile };
   live.add(entry);
@@ -36,8 +38,18 @@ for (const sig of ['SIGINT', 'SIGTERM', 'SIGHUP']) {
   });
 }
 
+// Overall deadline: HY_DEADLINE seconds (default 300, 0 = none). Prints which script hit it, closes Chrome (via the exit handler) and exits 1.
+const DEADLINE = Number(process.env.HY_DEADLINE ?? 300);
+if (DEADLINE > 0 && process.argv[2] !== '--clean') {
+  setTimeout(() => {
+    console.error(`✗ ${basename(process.argv[1] || 'script')} hit the ${DEADLINE}s deadline (HY_DEADLINE)${doing ? ' while ' + doing : ''}`);
+    process.exit(1);
+  }, DEADLINE * 1000).unref();
+}
+
 export async function openChrome() {
   const profile = mkdtempSync(join(tmpdir(), 'hy-chrome-'));
+  doing = 'starting Chrome';
   const chrome = spawn(CHROME, [...CHROME_FLAGS, '--headless=new', '--disable-gpu', '--hide-scrollbars', '--no-first-run', '--no-default-browser-check',
     `--user-data-dir=${profile}`, '--remote-debugging-port=0', 'about:blank'], { stdio: ['ignore', 'ignore', 'pipe'] });
   const unregister = register(chrome, profile);
@@ -77,10 +89,12 @@ export async function openChrome() {
     async goto(url) {
       const done = loaded();
       await send('Page.navigate', { url });
+      doing = `loading ${url}`;
       await Promise.race([done, sleep(8000)]);
       await sleep(600);
     },
     async evaluate(expression) {
+      doing = 'evaluating in the page';
       const r = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
       if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text);
       return r.result.value;
