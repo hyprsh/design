@@ -125,9 +125,9 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
       for (const [f, text] of Object.entries(files)) {
         mkdirSync(dirname(join(tmp, f)), { recursive: true });
         writeFileSync(join(tmp, f), text);
-        // git diff --no-index exits 1 when the files differ
-        const r = spawnSync('git', ['diff', '--no-index', '--no-color', '--', join(root, f), join(tmp, f)], { encoding: 'utf8' });
-        process.stdout.write(r.stdout.split(join(root, f)).join(f).split(join(tmp, f)).join(f));
+        // diff exits 1 when the files differ
+        const r = spawnSync('diff', ['-u', '--label', `a/${f}`, '--label', `b/${f}`, join(root, f), join(tmp, f)], { encoding: 'utf8' });
+        process.stdout.write(`diff ${f}\n${r.stdout}`);
       }
     } finally { rmSync(tmp, { recursive: true, force: true }); }
     console.log('Dry run: nothing was changed.');
