@@ -33,7 +33,7 @@ The build wraps each `src/Name.js` in its own function inside one IIFE, so local
 - `ICONS` holds the Lucide markup that `HY.Icon` renders.
 - The query syntax from `_query.js`: `parseQuery`, `suggestQuery`, `termText`, `withValue`, `withoutValue`, `withoutTerm` and `valuesOf` (also on `HY` and exported by the package), plus the filter-menu mapping `queryMenu`, `withQueryMenu`, `querySingle` and `withQuerySingle` that QueryBar uses. Its tests run the file in `node:vm` (`npm test`).
 
-Don't edit `core.js`, `core.css`, `tokens.json` or another component's files. If you need a shared helper, write it inside your own file. If a token is missing, use the closest existing one and say so in your report.
+Don't edit `core.js`, `core.css`, `tokens.json` or another component's files, unless the ticket asks for it (for example a cross-link in another component's README). If you need a shared helper, write it inside your own file. If a token is missing, use the closest existing one and say so in your report.
 
 ## Conventions
 
