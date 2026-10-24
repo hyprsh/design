@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=532 subtitle="Single row, loading row, list with actions, selectable list, fill" -->
+<!-- @dsCard group="Content" height=710 subtitle="Single row, loading row, list with actions, selectable list, current row, fill" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Entity</title></head>
@@ -23,6 +23,9 @@ function Demo() {
       return h(H.Entity, { key: t.id, left: h(H.Icon, { name: 'key-round', size: 16 }),
         right: h(H.Button, { size: 'small', variant: 'secondary' }, 'Revoke Token') },
         h(H.EntityContent, { title: t.name, description: t.scope }));
+    })),
+    h(H.EntityList, { 'aria-label': 'Domains' }, ['hyprsh.dev', 'docs.hyprsh.dev', 'api.hyprsh.dev'].map(function (d, i) {
+      return h(H.Entity, { key: d, current: i === 1 }, h(H.EntityContent, { title: d, fill: true }));
     })),
     h(H.EntityList, { 'aria-label': 'Teams' }, members.map(function (m) {
       return h(H.Entity, { key: m, left: h(H.Checkbox, { 'aria-label': 'Select ' + m, checked: !!sel[0][m],

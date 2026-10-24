@@ -2,12 +2,13 @@
 
 A row that represents one thing (a member, token, domain or integration), with a leading visual, a title and description, and controls on the right.
 
-**You provide:** `left` (an Avatar, icon, Checkbox or Skeleton), children (usually `Entity.Content` with `title` and `description`, plus `fill` to take the free width), `right` (controls or meta text) and optionally `as` (`'div'`, `'li'` or `'button'`) with `onClick`. Wrap several rows in `Entity.List` (or `EntityList`), which draws the card and dividers and renders rows as list items.
+**You provide:** `left` (an Avatar, icon, Checkbox or Skeleton), children (usually `Entity.Content` with `title` and `description`, plus `fill` to take the free width), `right` (controls or meta text) and optionally `as` (`'div'`, `'li'` or `'button'`) with `onClick`, and `current` for a keyboard cursor. Wrap several rows in `Entity.List` (or `EntityList`), which draws the card and dividers and renders rows as list items.
 
 - Keep the right side to one or two controls. For more, use a single menu button.
 - Name buttons Verb + Noun in Title Case (Revoke Token, Remove Member), not just “Remove”.
 - Give a row checkbox a label such as `aria-label="Select ci-bot"`.
 - Use `as="button"` when the whole row opens something. It stays reachable by keyboard; when the row also has its own controls, those take focus instead and the stretched button is hidden from assistive tech.
+- **Current rows:** `current` sets `aria-current="true"` and draws the same tint and 2px marker at the row's start as `current` on `TableRow` (see Table's “Selected and current rows”), so the state isn't shown by colour alone. Use it for the row that holds the keyboard cursor of a j/k list, in or out of `Entity.List`, with any `as`. You move the cursor and focus yourself.
 - While loading, keep the row shape and put Skeletons in `left` and `Entity.Content`.
 
 ## Examples
@@ -83,6 +84,38 @@ export default function Example() {
           </Entity>
         ))}
       </EntityList>
+    </div>
+  );
+}
+```
+
+### Current Row
+`current` marks the keyboard cursor of a j/k list with the same tint and marker as a current table row. Click the list, then press j or k.
+
+```jsx
+import { useState } from 'react';
+import { Entity, EntityContent, EntityList } from '@hyprsh/design';
+
+const domains = ['hyprsh.dev', 'docs.hyprsh.dev', 'api.hyprsh.dev'];
+
+export default function Example() {
+  const [cursor, setCursor] = useState(0);
+  const onKeyDown = (e) => {
+    if (e.key === 'j') setCursor((i) => Math.min(i + 1, domains.length - 1));
+    if (e.key === 'k') setCursor((i) => Math.max(i - 1, 0));
+  };
+
+  return (
+    <div style={{ width: '100%', maxWidth: 420 }}>
+      <div tabIndex={0} onKeyDown={onKeyDown} aria-label="Domains, press j or k to move" role="group">
+        <EntityList aria-label="Domains">
+          {domains.map((name, i) => (
+            <Entity key={name} current={i === cursor}>
+              <EntityContent title={name} fill />
+            </Entity>
+          ))}
+        </EntityList>
+      </div>
     </div>
   );
 }

@@ -22,8 +22,10 @@ function Entity(props) {
     if (!!found !== hasControls[0]) hasControls[1](!!found);
   });
   var tag = props.as === 'li' || (inList && props.as !== 'div') ? 'li' : 'div';
-  var rest = omit(props, ['as', 'left', 'right', 'leftClassName', 'rightClassName', 'className', 'children', 'onClick', 'disabled']);
-  return h(tag, Object.assign({}, rest, { ref: rowRef, className: cx('hy-entity', asButton && 'hy-entity--button', props.disabled && 'hy-entity--disabled', props.className) }),
+  var rest = omit(props, ['as', 'left', 'right', 'leftClassName', 'rightClassName', 'className', 'children', 'onClick', 'disabled', 'current']);
+  /* current is the keyboard cursor of a j/k list, like TableRow current; an explicit aria-current wins. */
+  var state = props.current ? { 'aria-current': 'true' } : {};
+  return h(tag, Object.assign(state, rest, { ref: rowRef, className: cx('hy-entity', asButton && 'hy-entity--button', props.current && 'is-current', props.disabled && 'hy-entity--disabled', props.className) }),
     asButton ? h('button', {
       type: 'button', className: 'hy-entity__cover', onClick: props.onClick, disabled: props.disabled,
       'aria-labelledby': hasControls[0] ? undefined : labelId,
