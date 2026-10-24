@@ -2,6 +2,25 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.14.0
+
+2026-10-24
+
+### Features
+
+- **site:** page headers, an on-this-page list and prev/next links
+- **site:** specimens for the Foundations pages, a card overview and copyable tokens
+
+### Fixes
+
+- **site:** give code blocks' Copy button its own strip on phones
+
+### Docs
+
+- **getting-started:** setup in three steps, tokens and themes, and a shorter Tailwind section
+- **guidelines:** move the shortcut-hint rule after the general keyboard rules
+- **foundations:** tighten the brand book, split the logo rules and drop Using this system
+
 ## v0.13.0
 
 2026-10-24
