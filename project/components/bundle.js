@@ -542,7 +542,7 @@
       var badgeText = badge.label && !named ? h('span', { className: 'hy-sr' }, ', ' + badge.label) : null;
       var common = { ref: ref, className: className, style: style, 'aria-busy': loading || undefined };
       if (badge.label && named) common['aria-label'] = named + ', ' + badge.label;
-        if (asLink) {
+      if (asLink) {
         /* A disabled link has no href, so it can't be followed or focused, and says so to assistive tech. */
         return h('a', Object.assign({}, rest, common, {
           href: disabled ? undefined : props.href,
