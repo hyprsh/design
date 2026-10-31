@@ -36,6 +36,14 @@ _Avoid_: emoji, quick action
 The draggable edge at the end of a column header that changes the column's width.
 _Avoid_: resizer, grip, splitter, separator (that's the divider component)
 
+**Pager**:
+Moves through a long set of results one page at a time, in place, showing which range is on screen.
+_Avoid_: table pagination, paginator
+
+**Pagination**:
+Links to the previous and next page in a sequence of documents, such as a guide.
+_Avoid_: pager
+
 ## Documentation
 
 **Card**:
