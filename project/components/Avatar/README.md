@@ -2,11 +2,12 @@
 
 A round avatar for a person, team or project, with initials or a generated gradient shape, plus `AvatarGroup` for a stacked cluster and `AvatarWithIcon` for a status badge.
 
-**You provide:** `size` (px, default 32) and a name as `title` or `username`. Then `letter` for initials, `placeholder` for a loading shell, or `src` for an image you host; with none of these it draws a gradient seeded by the name. `AvatarGroup` takes `members` (`[{ username, title, letter }]`), `size`, `limit`, `overlap` (`'auto'` by default, or px) and `reverse`. `AvatarWithIcon` adds `icon` and `iconBackground`.
+**You provide:** `size` (px, default 32) and a name as `title` or `username`. Then `letter` for initials, `placeholder` for a loading shell, or `src` for an image you host; with none of these it draws a gradient seeded by the name. `AvatarGroup` takes `members` (`[{ username, title, letter }]`), `size`, `limit`, `overlap` (`'auto'` by default, or px) and `reverse`. `AvatarWithIcon` adds `icon` and `iconBackground`. `presence` (`'online'`, `'away'` or `'offline'`) draws a status dot on an `Avatar`.
 
 - Use one `Avatar` for one entity. For two or more, use `AvatarGroup`: it handles overlap and gives the cluster one accessible label.
 - `title` is the literal name (Platform Team, ci-bot). Letter avatars already announce “Avatar with initials”, so don't write “Avatar of …”.
 - Initials are one or two uppercase characters from the name. No emoji, punctuation or “?”.
+- `presence` is for people. The dot is decorative and the state joins the accessible name (“Ada Lovelace, online”); it follows whatever name the avatar already has (“Avatar with initials: AL, online”), and an avatar with no name at all is just “Online”. It isn't available on `AvatarGroup` or `AvatarWithIcon`.
 - Use `placeholder` only while loading, never as a permanent fallback.
 - Match the size to nearby type: 20–24px beside `label-14`, 32px beside `label-16`, 48–64px in headers and onboarding.
 - Never show photos of real people in demos. Use initials or the generated shape.
@@ -57,6 +58,23 @@ import { Avatar } from '@hyprsh/design';
 
 export default function Example() {
   return <Avatar placeholder size={40} />;
+}
+```
+
+### Presence
+`presence` draws a dot in the bottom-right corner, in the success, warning and neutral colours.
+
+```jsx
+import { Avatar } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Avatar title="Ada Lovelace" letter="AL" presence="online" />
+      <Avatar title="Grace Hopper" letter="GH" presence="away" />
+      <Avatar title="Linus Torvalds" letter="LT" presence="offline" />
+    </div>
+  );
 }
 ```
 

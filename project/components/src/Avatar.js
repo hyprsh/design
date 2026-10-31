@@ -6,7 +6,7 @@ function avatarHash(s) {
   return Math.abs(n);
 }
 
-function Avatar(props) {
+function AvatarBase(props, presence) {
   var size = props.size || 32;
   var name = props.title || props.username || props.name;
   var letter = props.letter ? String(props.letter).toUpperCase().slice(0, size < 24 ? 1 : 2) : null;
@@ -17,16 +17,31 @@ function Avatar(props) {
     var pair = AVATAR_PAIRS[avatarHash(String(name || 'hyprsh')) % AVATAR_PAIRS.length];
     style.backgroundImage = 'linear-gradient(135deg, var(--' + pair[0] + '), var(--' + pair[1] + '))';
   }
-  var hidden = props['aria-hidden'] === true || props['aria-hidden'] === 'true' || (kind === 'placeholder' && !name);
-  var label = name || (letter ? 'Avatar with initials: ' + letter : 'Avatar');
-  var rest = omit(props, ['size', 'title', 'username', 'name', 'letter', 'placeholder', 'src', 'alt', 'style', 'className', 'aria-hidden']);
+  var hidden = props['aria-hidden'] === true || props['aria-hidden'] === 'true' || (kind === 'placeholder' && !name && !presence);
+  var label = name || (letter ? 'Avatar with initials: ' + letter : presence ? '' : 'Avatar');
+  if (presence) label = label ? label + ', ' + presence.toLowerCase() : presence;
+  var alt = props.alt !== undefined ? props.alt : name || '';
+  if (presence && props.alt !== '') alt = alt ? alt + ', ' + presence.toLowerCase() : presence;
+  var rest = omit(props, ['presence', 'size', 'title', 'username', 'name', 'letter', 'placeholder', 'src', 'alt', 'style', 'className', 'aria-hidden']);
   return h('span', Object.assign({}, rest, {
     className: cx('hy-avatar', 'hy-avatar--' + kind, props.className), style: style,
     role: hidden || kind === 'image' ? undefined : 'img', 'aria-label': hidden || kind === 'image' ? undefined : label,
     'aria-hidden': hidden ? 'true' : undefined, title: name || undefined
   }),
-    kind === 'image' ? h('img', { src: props.src, alt: props.alt !== undefined ? props.alt : (name || ''), width: size, height: size, draggable: false }) : null,
+    kind === 'image' ? h('img', { src: props.src, alt: alt, width: size, height: size, draggable: false }) : null,
     kind === 'letter' ? h('span', { 'aria-hidden': 'true' }, letter) : null);
+}
+
+var AVATAR_PRESENCE = { online: 'Online', away: 'Away', offline: 'Offline' };
+
+function Avatar(props) {
+  var presence = AVATAR_PRESENCE[props.presence];
+  if (!presence) return AvatarBase(props);
+  var size = props.size || 32;
+  var dot = Math.max(8, Math.round(size * 0.28));
+  return h('span', { className: 'hy-avatar-presence', style: { width: size, height: size } },
+    AvatarBase(props, presence),
+    h('span', { className: 'hy-avatar-presence__dot hy-avatar-presence__dot--' + props.presence, style: { width: dot, height: dot, borderWidth: size > 32 ? 3 : 2 }, 'aria-hidden': 'true' }));
 }
 
 function AvatarGroup(props) {
@@ -53,7 +68,7 @@ function AvatarWithIcon(props) {
   var size = props.size || 32;
   var badge = Math.max(14, Math.round(size * 0.5));
   return h('span', { className: cx('hy-avatar-icon', props.className), style: { width: size, height: size } },
-    h(Avatar, omit(props, ['icon', 'iconBackground', 'className'])),
+    h(Avatar, omit(props, ['presence', 'icon', 'iconBackground', 'className'])),
     h('span', { className: cx('hy-avatar-icon__badge', props.iconBackground && 'hy-avatar-icon__badge--bg'), style: { width: badge, height: badge }, 'aria-hidden': 'true' }, props.icon));
 }
 

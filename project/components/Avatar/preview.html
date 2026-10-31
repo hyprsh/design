@@ -1,4 +1,4 @@
-<!-- @dsCard group="Media" height=200 subtitle="Sizes, letters, placeholder, group with limit and reverse, status icons" -->
+<!-- @dsCard group="Media" height=290 subtitle="Sizes, letters, placeholder, group with limit and reverse, status icons, presence" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Avatar</title></head>
@@ -16,7 +16,9 @@ function Demo() {
       h(H.AvatarGroup, { key: 4, members: team.slice(0, 3), size: 24 }), h(H.AvatarGroup, { key: 5, members: team.slice(0, 3), overlap: 0, size: 24 })]),
     Row([h(H.AvatarWithIcon, { key: 1, username: 'deploy-hook', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'circle-arrow-down' }) }),
       h(H.AvatarWithIcon, { key: 2, username: 'release-bot', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'circle-check' }) }),
-      h(H.AvatarWithIcon, { key: 3, username: 'cron-runner', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'clock' }) })]));
+      h(H.AvatarWithIcon, { key: 3, username: 'cron-runner', size: 32, iconBackground: true, icon: h(H.Icon, { name: 'clock' }) })]),
+    Row([24, 32, 64].map(function (n) { return h(F, { key: n }, ['online', 'away', 'offline'].map(function (p) { return h(H.Avatar, { key: p, size: n, title: 'Platform Team', letter: 'PT', presence: p }); })); })
+      .concat([h(H.Avatar, { key: 'g', size: 32, username: 'ci-bot', presence: 'online' })])));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>
