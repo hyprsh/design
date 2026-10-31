@@ -41,7 +41,7 @@ onSortChange: function (next) {
 - Show `—` for unknown or not-applicable values, never `N/A`, `null` or a blank cell.
 - Headers are Title Case nouns: Last Used, Requests (7d), Status. Sortable headers are buttons whose arrow is decorative.
 - Give numeric columns `hy-num` (or `numeric: true`) so digits align in tabular numerals. Use mono for hashes and IDs.
-- Over 50 rows: virtualise or paginate, and keep the page in the URL. Pagination reads Previous and Next, and ranges use an en dash: 21–40 of 142.
+- Over 50 rows: virtualise or paginate with [Pager](../Pager/README.md), and keep the page in the URL. Pager's buttons are named “Previous Page” and “Next Page”, and ranges use an en dash: 21–40 of 142.
 
 ## Examples
 

@@ -1,0 +1,4 @@
+/* ---------- Pager ---------- */
+.hy-pager { display: flex; width: 100%; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
+.hy-pager__range { flex: 0 1 auto; min-width: 0; white-space: nowrap; font-size: 13px; line-height: 20px; color: var(--gray-900); font-variant-numeric: tabular-nums; }
+.hy-pager__buttons { display: flex; flex: none; align-items: center; gap: 4px; margin-left: auto; }
