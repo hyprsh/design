@@ -1,4 +1,4 @@
-<!-- @dsCard group="Overlays" height=440 subtitle="MenuContainer, MenuButton, sections, locked and error items, typeahead; older label + items API" -->
+<!-- @dsCard group="Overlays" height=440 subtitle="MenuContainer, MenuButton, sections, locked and error items, checked items, typeahead; older label + items API" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Menu</title></head>
@@ -7,8 +7,23 @@
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 function noop() {}
+function Checks() {
+  var a = React.useState('1m'), b = React.useState({ branch: true, author: false });
+  var opts = [['30s', 'Every 30 Seconds'], ['1m', 'Every Minute'], ['5m', 'Every 5 Minutes']];
+  return h(H.MenuContainer, { defaultOpen: true, style: { marginRight: 180 } },
+    h(H.MenuButton, null, 'Monitoring'),
+    h(H.Menu, { width: 220 },
+      h(H.MenuSection, { title: 'Check Interval' }, opts.map(function (o) {
+        return h(H.MenuItem, { key: o[0], role: 'radio', checked: a[0] === o[0], onClick: function () { a[1](o[0]); } }, o[1]);
+      })),
+      h(H.MenuDivider),
+      ['branch', 'author'].map(function (k) {
+        return h(H.MenuItem, { key: k, checked: b[0][k], onClick: function () { var n = Object.assign({}, b[0]); n[k] = !n[k]; b[1](n); } }, k === 'branch' ? 'Show Branch' : 'Show Author');
+      })));
+}
 function Demo() {
   return h(F, null,
+    h(Checks),
     h(H.MenuContainer, { defaultOpen: true },
       h(H.MenuButton, null, 'Actions'),
       h(H.Menu, { width: 220 },

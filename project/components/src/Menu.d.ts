@@ -1,4 +1,8 @@
-export interface MenuItemData { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean; href?: string }
+interface MenuItemDataBase { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean }
+/** An item of the one-piece `items` API. With `href` it is a link, which can't be checked. */
+export type MenuItemData =
+  | (MenuItemDataBase & { href?: undefined; checked?: boolean; role?: 'radio' | 'checkbox' })
+  | (MenuItemDataBase & { href: string; checked?: never; role?: never });
 
 export type MenuPosition = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end';
 
@@ -38,13 +42,17 @@ export interface MenuButtonProps extends Omit<ButtonProps, 'type'> {
   showChevron?: boolean;
 }
 export interface MenuItemProps {
+  /** Renders the item as a link. A link can't be checked: use `MenuItem` without `href` for a checked item. */
+  href?: string;
+  /** Shows a checkmark when true and keeps its space when false. Makes the item a `menuitemcheckbox` (or a `menuitemradio` with `role="radio"`) with `aria-checked`. Undefined: a plain `menuitem`. Ignored with `href`. */
+  checked?: boolean;
+  /** 'radio' makes a checked item a `menuitemradio`; choosing it closes the menu. A checkbox item (the default) stays open when chosen, with focus on it. Ignored without `checked`. */
+  role?: 'radio' | 'checkbox';
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent | React.KeyboardEvent) => void;
   /** Called with `value` when the item is chosen. */
   onSelect?: (value?: string) => void;
   value?: string;
-  /** Renders the item as a link. */
-  href?: string;
   target?: string;
   rel?: string;
   /** Disabled items can't be activated (`aria-disabled`). One with a `description` still takes focus from the arrow keys, Home/End and typeahead so its reason can be read. */
@@ -74,8 +82,9 @@ export declare namespace Menu {
 }
 export declare function MenuContainer(props: MenuContainerProps): React.ReactElement;
 export declare const MenuButton: React.ForwardRefExoticComponent<MenuButtonProps & React.RefAttributes<HTMLButtonElement>>;
-export declare function MenuItem(props: MenuItemProps): React.ReactElement;
-export declare function MenuLink(props: MenuItemProps & { href: string }): React.ReactElement;
+export declare function MenuItem(props: Omit<MenuItemProps, 'href'> & { href?: undefined }): React.ReactElement;
+export declare function MenuItem(props: Omit<MenuItemProps, 'checked' | 'role'> & { href: string; checked?: never; role?: never }): React.ReactElement;
+export declare function MenuLink(props: Omit<MenuItemProps, 'href' | 'checked' | 'role'> & { href: string; checked?: never; role?: never }): React.ReactElement;
 /** A permission-gated item: disabled, with a lock. */
 export declare function MenuItemLocked(props: MenuItemProps): React.ReactElement;
 export declare function MenuSection(props: MenuSectionProps): React.ReactElement;
