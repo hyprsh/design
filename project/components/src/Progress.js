@@ -11,8 +11,12 @@ function progressColor(colors, value) {
   return pick === undefined && keys.length ? colors[keys[0]] : pick;
 }
 
+/* A segment's tone, as StatusDot's states: success, info, warning, error, neutral. */
+var PROGRESS_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
+
 function Progress(props) {
   var max = props.max || 100;
+  var segmented = Array.isArray(props.segments);
   var value = Math.max(0, Math.min(max, Number(props.value) || 0));
   var pct = value / max;
   var id = useId();
@@ -24,12 +28,30 @@ function Progress(props) {
   var height = props.height !== undefined ? props.height : 10;
   var stops = (props.stops || []).filter(function (s) { return s && s.value > 0 && s.value < max; });
 
-  var bar = h('div', { className: 'hy-progress__bar', style: { height: height } },
-    h('div', {
+  /* Segments are drawn in order and cut off at max; the run is as wide as what is filled. */
+  var runs = [], filled = 0;
+  if (segmented) props.segments.forEach(function (s) {
+    var v = Math.min(Math.max(0, Number(s && s.value) || 0), max - filled);
+    if (v <= 0) return;
+    filled += v;
+    runs.push({ value: v, tone: PROGRESS_TONES.indexOf(s.tone) >= 0 ? s.tone : 'neutral' });
+  });
+
+  var named = { 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress') };
+  var track = segmented ?
+    h('div', Object.assign({ className: 'hy-progress__track', role: 'img' }, named),
+      runs.length ? h('div', { className: 'hy-progress__run', style: { width: (filled / max * 100) + '%', minWidth: runs.length * (props.gap ? 5 : 4) } },
+        runs.map(function (r, i) {
+          return h('span', { key: i, className: cx('hy-progress__segment', 'hy-progress__segment--' + r.tone, props.gap && i > 0 && 'has-gap'), style: { flexBasis: (r.value / filled * 100) + '%' } });
+        })) : null) :
+    h('div', Object.assign({
       className: 'hy-progress__track', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': max, 'aria-valuenow': value,
-      'aria-valuetext': fmt.format(pct), 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress')
-    },
-      h('span', { className: 'hy-progress__fill', style: { transform: 'translateX(' + ((pct - 1) * 100) + '%)', background: color } })),
+      'aria-valuetext': fmt.format(pct)
+    }, named),
+      h('span', { className: 'hy-progress__fill', style: { transform: 'translateX(' + ((pct - 1) * 100) + '%)', background: color } }));
+
+  var bar = h('div', { className: 'hy-progress__bar', style: { height: height } },
+    track,
     stops.map(function (s, i) {
       var left = (s.value / max * 100) + '%';
       var mark = h('span', { className: 'hy-progress__divider', style: { left: left }, 'aria-hidden': 'true' });
@@ -44,7 +66,7 @@ function Progress(props) {
   return h('div', { className: cx('hy-progress', 'hy-progress--' + type, props.className), style: Object.assign(props.width !== undefined ? { width: props.width } : {}, props.style) },
     props.label ? h('div', { className: 'hy-progress__head' },
       h('span', { id: id, className: 'hy-progress__label' }, props.label),
-      h('span', { className: 'hy-progress__value' }, fmt.format(pct))) : null,
+      segmented ? null : h('span', { className: 'hy-progress__value' }, fmt.format(pct))) : null,
     bar);
 }
 

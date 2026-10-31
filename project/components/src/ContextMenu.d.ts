@@ -1,9 +1,14 @@
 export interface ContextMenuProps {
   /** A ContextMenuTrigger and a ContextMenuContent. */
   children: React.ReactNode;
-  /** Open on mount in the middle of the trigger (docs and previews). */
+  /** Controlled open state. When given, right-click, long-press, Shift+F10, the Menu key, Escape, an outside click, choosing an item and page scroll only call `onOpenChange`; the menu opens and closes as this says. */
+  open?: boolean;
+  /** Open on mount in the middle of the trigger (docs and previews). Ignored when `open` is given. */
   defaultOpen?: boolean;
+  /** Called with the next state in both modes. */
   onOpenChange?: (open: boolean) => void;
+  /** Viewport point (px) the menu opens at, instead of the gesture's point. Without it, an app-opened menu uses the gesture's point, or 8px in from the trigger's top-left corner. */
+  anchorPoint?: { x: number; y: number };
   className?: string;
   style?: React.CSSProperties;
 }
@@ -15,9 +20,21 @@ export interface ContextMenuTriggerProps extends React.HTMLAttributes<HTMLElemen
   /** Leave the browser's own context menu alone. */
   disabled?: boolean;
 }
+export interface ContextMenuReaction {
+  /** Passed to `onReact` when chosen. */
+  value: string;
+  /** The reaction's accessible name, such as 'Thumbs up'. */
+  label: string;
+  /** What is drawn, decorative (`aria-hidden`): an icon or a short glyph. */
+  emoji: React.ReactNode;
+}
 export interface ContextMenuContentProps {
   /** ContextMenuItem elements, plus MenuSection and MenuDivider if needed. */
   children: React.ReactNode;
+  /** A row of quick reactions drawn above the items, as a group named 'Reactions'. Left/Right move within it; Down goes to the items. */
+  reactions?: ContextMenuReaction[];
+  /** Called with the chosen reaction's `value`; the menu then closes. */
+  onReact?: (value: string) => void;
   /** Width in px. */
   width?: number;
   /** Accessible name of the menu. Default 'Context Menu'. */

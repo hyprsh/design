@@ -22,3 +22,10 @@
 }
 .hy-avatar-icon__badge--bg { background: var(--background-100); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
 .hy-avatar-icon__badge svg { width: 70%; height: 70%; }
+
+/* Presence dot: colours are StatusDot's success / warning / neutral tones; the ring is the page background. */
+.hy-avatar-presence { position: relative; display: inline-flex; flex: none; vertical-align: middle; }
+.hy-avatar-presence__dot { position: absolute; right: 0; bottom: 0; box-sizing: content-box; border-radius: var(--radius-full); border: solid var(--background-100); background: var(--hy-dot, var(--gray-700)); }
+.hy-avatar-presence__dot--online { --hy-dot: var(--green-700); }
+.hy-avatar-presence__dot--away { --hy-dot: var(--amber-700); }
+.hy-avatar-presence__dot--offline { --hy-dot: var(--gray-700); }

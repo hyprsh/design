@@ -1,0 +1,26 @@
+/* ---------- Bubble ---------- */
+.hy-bubble {
+  --bubble-bg: var(--gray-100); --bubble-fg: var(--gray-1000); --bubble-time: var(--gray-700);
+  --bubble-r: var(--radius-2xl); --bubble-tight: var(--radius-sm);
+  box-sizing: border-box; width: fit-content; max-width: min(80%, 480px); min-width: 0;
+  padding: 8px 12px; border-radius: var(--bubble-r);
+  background: var(--bubble-bg); color: var(--bubble-fg);
+  font-size: 14px; line-height: 20px;
+  overflow-wrap: anywhere; word-break: break-word;
+}
+.hy-bubble--received { margin-inline-end: auto; }
+.hy-bubble--sent {
+  --bubble-bg: var(--accent-900); --bubble-fg: var(--background-100); --bubble-time: var(--background-100);
+  margin-inline-start: auto;
+}
+.hy-bubble__body { min-width: 0; }
+.hy-bubble__time { margin-top: 2px; font-size: 12px; line-height: 16px; color: var(--bubble-time); text-align: end; white-space: nowrap; }
+.hy-bubble--sent .hy-bubble__time { opacity: .75; }
+
+/* Consecutive messages: the sender's side is tight where the bubble meets a neighbour. */
+.hy-bubble--received.hy-bubble--first { border-end-start-radius: var(--bubble-tight); }
+.hy-bubble--received.hy-bubble--middle { border-start-start-radius: var(--bubble-tight); border-end-start-radius: var(--bubble-tight); }
+.hy-bubble--received.hy-bubble--last { border-start-start-radius: var(--bubble-tight); }
+.hy-bubble--sent.hy-bubble--first { border-end-end-radius: var(--bubble-tight); }
+.hy-bubble--sent.hy-bubble--middle { border-start-end-radius: var(--bubble-tight); border-end-end-radius: var(--bubble-tight); }
+.hy-bubble--sent.hy-bubble--last { border-start-end-radius: var(--bubble-tight); }

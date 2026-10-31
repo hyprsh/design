@@ -15,12 +15,16 @@
 .hy-pbanner__icon svg { width: 16px; height: 16px; }
 .hy-pbanner__label { min-width: 0; }
 .hy-pbanner__cta {
-  display: inline-flex; align-items: center; height: 24px; padding: 0; margin: -2px 0;
+  display: inline-flex; align-items: center; gap: 2px; height: 24px; padding: 0; margin: -2px 0;
   border: 0; background: none; font: inherit; font-weight: 500; color: inherit; cursor: pointer;
   text-decoration: underline; text-decoration-color: var(--pb-line); text-underline-offset: 5px;
 }
 .hy-pbanner__cta:hover { text-decoration-color: var(--pb-hover); color: var(--pb-fg); }
 .hy-pbanner__cta:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; border-radius: 2px; }
+/* loading: a spinner in the text colour, and no hover change on an action that can't be pressed */
+.hy-pbanner__cta .hy-spinner { color: inherit; }
+.hy-pbanner__cta[aria-busy="true"] { cursor: wait; }
+.hy-pbanner__cta[aria-busy="true"]:hover { color: inherit; text-decoration-color: var(--pb-line); }
 /* Narrow: message on top, the call to action under it, aligned with the text rather than the icon. */
 @container (max-width: 560px) {
   .hy-pbanner__inner { flex-direction: column; align-items: flex-start; justify-content: flex-start; padding: 0 16px; }

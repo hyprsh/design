@@ -12,6 +12,8 @@ export interface AvatarProps extends Omit<React.HTMLAttributes<HTMLSpanElement>,
   /** An image you host. Without it the avatar shows initials or a generated gradient. */
   src?: string;
   alt?: string;
+  /** Draws a status dot in the bottom-right corner and adds the state to the accessible name (“Ada Lovelace, online”). Not supported on `Avatar.Group` or `Avatar.WithIcon`. */
+  presence?: 'online' | 'away' | 'offline';
 }
 export interface AvatarGroupMember { username?: string; title?: string; letter?: string; src?: string; placeholder?: boolean }
 export interface AvatarGroupProps {
@@ -28,7 +30,7 @@ export interface AvatarGroupProps {
   className?: string;
   style?: React.CSSProperties;
 }
-export interface AvatarWithIconProps extends AvatarProps {
+export interface AvatarWithIconProps extends Omit<AvatarProps, 'presence'> {
   /** Small status icon in the bottom-left corner. */
   icon: React.ReactNode;
   /** Put the icon on a background disc so it reads over the avatar. */

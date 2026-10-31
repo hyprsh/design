@@ -2,7 +2,7 @@
 
 A coloured dot and a word for a status: a deployment's lifecycle state, or any health or result.
 
-**You provide:** `state`, either a semantic state for any status (`success` green, `warning` amber, `error` red, `neutral` grey, `pending` grey and pulsing, `info` blue for informational, not a problem) or a deployment state (`queued` | `building` | `ready` | `error` | `canceled` | `deleted`), in either case, so `READY` works too. Optional: `variant`, `filled` (default), `outline` or `dashed`, a ring in the same colour for a dot that is wanted or not yet there (the size stays the same, and the name doesn't change); `label` (shown by default; pass a node to replace the word, such as “Healthy” or “Idle”, or `false` for a dot alone in a dense column), `titlePrefix`, a noun phrase for the title and accessible name, and `title`, the whole accessible name. For deployment states the name is “This deployment is ready.” unless you set `titlePrefix`; for semantic states, and for `error` with a custom `label`, it is the label (“Healthy”), or “api: Healthy” with `titlePrefix="api"`. `error` without a label keeps the deployment wording, so set `title` for a dot-only error on something that isn't a deployment.
+**You provide:** `state`, either a semantic state for any status (`success` green, `warning` amber, `error` red, `neutral` grey, `pending` grey and pulsing, `info` blue for informational, not a problem) or a deployment state (`queued` | `building` | `ready` | `error` | `canceled` | `deleted`), in either case, so `READY` works too. Optional: `variant`, `filled` (default), `outline` or `dashed`, a ring in the same colour for a dot that is wanted or not yet there (the size stays the same, and the name doesn't change); `label` (shown by default; pass a node to replace the word, such as “Healthy” or “Idle”, or `false` for a dot alone in a dense column), `titlePrefix`, a noun phrase for the title and accessible name, and `title`, the whole accessible name (`title={null}` drops the native tooltip and keeps the name). For deployment states the name is “This deployment is ready.” unless you set `titlePrefix`; for semantic states, and for `error` with a custom `label`, it is the label (“Healthy”), or “api: Healthy” with `titlePrefix="api"`. `error` without a label keeps the deployment wording, so set `title` for a dot-only error on something that isn't a deployment.
 
 - Use it for a status the reader scans in a list: a deployment, a service's health, an indexer's last check. Pick the semantic state by meaning (`success` for healthy or done, `warning` for degraded, `error` for failing, `neutral` for idle or off, `pending` for waiting or in flight) and put the app's own word in `label`. For a category or a count use a Badge; for a number such as uptime, use Gauge; for work with a known total, use Progress.
 - The dot pulses while `building`, `queued` or `pending` and stays still once the state is final, so don't put a Spinner next to it. Update it only when the state actually changes, not on every polling tick.
@@ -106,6 +106,23 @@ export default function Example() {
         </li>
       ))}
     </ul>
+  );
+}
+```
+
+### Row Named Once
+One accessible name for a row of dots. Each dot is hidden and has `title={null}`, so no dot shows a tooltip.
+
+```jsx
+import { StatusDot } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <span role="img" aria-label="4K: wanted, 1080p: on disk, 720p: downloading" style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}>
+      <StatusDot state="info" variant="outline" label={false} title={null} aria-hidden />
+      <StatusDot state="success" label={false} title={null} aria-hidden />
+      <StatusDot state="pending" variant="dashed" label={false} title={null} aria-hidden />
+    </span>
   );
 }
 ```

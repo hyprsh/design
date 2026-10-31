@@ -38,6 +38,8 @@
 .hy-menu__item--error[aria-disabled="true"] { color: var(--gray-700); background: none; }
 .hy-menu__affix { display: inline-flex; flex: none; color: var(--gray-900); }
 .hy-menu__item[aria-disabled="true"] .hy-menu__affix { color: inherit; }
+.hy-menu__check { display: inline-flex; flex: none; width: 16px; height: 16px; color: var(--gray-1000); }
+.hy-menu__item[aria-disabled="true"] .hy-menu__check { color: inherit; }
 .hy-menu__affix--end { margin-left: auto; }
 @media (hover: none) and (pointer: coarse) {
   .hy-menu__affix:has(> .hy-kbd:not(.hy-kbd--always):only-child), .hy-menu__shortcut:has(> .hy-kbd:not(.hy-kbd--always):only-child) { display: none; }
