@@ -5,6 +5,8 @@ export interface ProjectBannerCallToAction {
   href?: string;
   /** Without href, renders a button styled as a link. */
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  /** Shows a spinner before the label, keeps the label and ignores clicks (aria-disabled, aria-busy), like Button's loading. */
+  loading?: boolean;
 }
 export interface ProjectBannerProps {
   /** Default 'gray'. success is blue. */
