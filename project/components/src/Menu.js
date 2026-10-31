@@ -13,10 +13,12 @@ function parsePosition(pos) {
   return { side: side, align: parts[1] === 'end' ? 'end' : 'start' };
 }
 
+/* Every role an item can have; the roving focus, Home/End and typeahead find all of them. */
+var ITEM_SELECTOR = '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
 /* The items the arrow keys reach: enabled ones, and disabled ones that carry a description (data-focusable). */
 function menuItems(list, enabledOnly) {
   if (!list) return [];
-  return Array.prototype.filter.call(list.querySelectorAll('[role="menuitem"]'), function (el) {
+  return Array.prototype.filter.call(list.querySelectorAll(ITEM_SELECTOR), function (el) {
     return el.getAttribute('aria-disabled') !== 'true' || (!enabledOnly && el.hasAttribute('data-focusable'));
   });
 }
@@ -172,8 +174,9 @@ function itemText(el) {
   return (t || el).textContent.trim().toLowerCase();
 }
 
-function itemInner(props, descId) {
+function itemInner(props, descId, checkable) {
   return [
+    checkable ? h('span', { key: 'c', className: 'hy-menu__check', 'aria-hidden': 'true' }, props.checked ? h(Glyph, { name: 'check', size: 16 }) : null) : null,
     props.prefix ? h('span', { key: 'p', className: 'hy-menu__affix', 'aria-hidden': 'true' }, props.prefix) : null,
     props.description
       ? h('span', { key: 't', className: 'hy-menu__stack' },
@@ -195,27 +198,34 @@ function MenuItem(props) {
     title: props.title, 'aria-describedby': props.description ? descId : undefined,
     'data-focusable': disabled && props.description ? '' : undefined
   };
+  /* Links can't be checked; `checked` and `role` are ignored on them. */
+  var isLink = props.href !== undefined;
+  var checkable = !isLink && props.checked !== undefined;
+  var radio = checkable && props.role === 'radio';
+  var itemRole = checkable ? (radio ? 'menuitemradio' : 'menuitemcheckbox') : 'menuitem';
   var cls = cx('hy-menu__item', props.type === 'error' && 'hy-menu__item--error', props.className);
   function activate(e) {
     if (disabled) { e.preventDefault(); return; }
     if (props.onClick) props.onClick(e);
     if (props.onSelect) props.onSelect(props.value);
-    if (ctx) ctx.close(true);
+    /* A checkbox item stays open, with focus where it was, so several can be toggled. */
+    if (ctx && !(checkable && !radio)) ctx.close(true);
   }
   function hover(e) { if (!disabled) e.currentTarget.focus({ preventScroll: true }); }
-  if (props.href !== undefined) {
+  if (isLink) {
     return h('li', { role: 'none', className: 'hy-menu__li' },
       h('a', Object.assign({
         role: 'menuitem', tabIndex: -1, href: disabled ? undefined : props.href, target: props.target, rel: props.rel,
         'aria-disabled': disabled || undefined, className: cls, onClick: activate, onMouseEnter: hover,
         onKeyDown: function (e) { if (e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }
-      }, hint), itemInner(props, descId)));
+      }, hint), itemInner(props, descId, false)));
   }
   return h('li', Object.assign({
-    role: 'menuitem', tabIndex: -1, 'aria-disabled': disabled || undefined, className: cls, style: props.style,
+    role: itemRole, tabIndex: -1, 'aria-checked': checkable ? !!props.checked : undefined,
+    'aria-disabled': disabled || undefined, className: cls, style: props.style,
     onClick: activate, onMouseEnter: hover,
     onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); } }
-  }, hint), itemInner(props, descId));
+  }, hint), itemInner(props, descId, checkable));
 }
 
 function MenuLink(props) { return h(MenuItem, Object.assign({}, props, { href: props.href || '#' })); }
@@ -246,7 +256,7 @@ function LegacyList(props) {
   return h(MenuList, { ctx: ctx, width: props.width, 'aria-label': typeof props.label === 'string' ? props.label : undefined },
     (props.items || []).map(function (it, i) {
       if (it.separator) return h(MenuDivider, { key: 'sep' + i });
-      return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title }, it.label);
+      return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title, checked: it.checked, role: it.role }, it.label);
     }));
 }
 

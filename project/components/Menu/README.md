@@ -2,7 +2,7 @@
 
 A button that opens a list of actions, with typeahead and full keyboard support (the WAI-ARIA menu-button pattern).
 
-**You provide:** a `MenuContainer` holding a `MenuButton` (any Button props, plus `showChevron` or `type="unstyled"` for a custom trigger such as an avatar) and a `Menu` (`width`). Fill the menu with `MenuItem` (`onClick`, `href`, `disabled`, `description`, `title`, `type="error"`, `prefix`, `suffix`, `shortcut`), `MenuLink` (`href`), `MenuItemLocked`, `MenuSection` (`title`) and `MenuDivider`. `MenuContainer` takes `position` (`bottom-start` by default; also `bottom-end`, `top-*`, `left-*`, `right-*`), and `open`/`defaultOpen`/`onOpenChange`. The older one-piece form still works: `<Menu label="Actions" items={[{ label, onSelect, shortcut, prefix, disabled, danger } | { separator: true }]} align="end" />`.
+**You provide:** a `MenuContainer` holding a `MenuButton` (any Button props, plus `showChevron` or `type="unstyled"` for a custom trigger such as an avatar) and a `Menu` (`width`). Fill the menu with `MenuItem` (`onClick`, `href`, `checked`, `role`, `disabled`, `description`, `title`, `type="error"`, `prefix`, `suffix`, `shortcut`), `MenuLink` (`href`), `MenuItemLocked`, `MenuSection` (`title`) and `MenuDivider`. `MenuContainer` takes `position` (`bottom-start` by default; also `bottom-end`, `top-*`, `left-*`, `right-*`), and `open`/`defaultOpen`/`onOpenChange`. The older one-piece form still works: `<Menu label="Actions" items={[{ label, onSelect, shortcut, prefix, disabled, danger, checked, role } | { separator: true }]} align="end" />`.
 
 - Use Menu for a visible trigger that opens actions on one resource. Use ContextMenu for right-click, CommandMenu for global ⌘&nbsp;K commands, SplitButton when one action is the clear default, and Select to pick a value.
 - Keep it to about 10 items; group longer lists with `MenuSection` (Title Case, one or two words) or move rare actions to a settings page.
@@ -15,6 +15,8 @@ A button that opens a list of actions, with typeahead and full keyboard support 
 **Hints on items:** `description` adds a second line under the label (linked to the item with `aria-describedby`, so a screen reader reads it after the label), and `title` sets the native tooltip. Use a description for the reason an item is disabled: “No file to delete”, “Nothing here is Wanted”. Typeahead matches the label only.
 
 **Disabled items and the keyboard:** a disabled item is `aria-disabled` and never runs on click, Enter or Space. A disabled item with a `description` still takes focus from the arrow keys, Home, End and typeahead, so keyboard users can read why (WAI-ARIA allows focusable disabled menu items); a disabled item without one is skipped, as before. There is no separate prop: add the description. When the menu opens, focus goes to the first (or last) enabled item.
+
+**Checked items:** `checked` gives an item a state. `<MenuItem checked={on}>` is a `menuitemcheckbox` and `<MenuItem role="radio" checked={on}>` a `menuitemradio`, both with `aria-checked`; without `checked` the item is a plain `menuitem` and `role` is ignored. A checked item draws a checkmark at the start, an unchecked one (`checked={false}`) leaves the same space so labels line up, and `prefix` follows the checkmark. The mark is decorative: screen readers get the state from `aria-checked`. The menu doesn't track the value. You pass `checked` and update it from `onClick` or `onSelect`. Group a radio set in a `MenuSection`. Choosing a radio item closes the menu like any item; choosing a checkbox item runs its handlers and leaves the menu open with focus on it, so several can be toggled. Checked items take part in arrow keys, Home, End and typeahead like any other item. Links can't be checked: `checked` and `role` are ignored on an item with `href` and on `MenuLink`, and the types reject them. Use Select to pick a value from a form field.
 
 **Keys stay inside:** the open list stops the keys it handles itself (arrows, Home, End, Enter, Space, Escape, Tab, and plain letters for typeahead) from bubbling out of the portal, through the React tree and to the document. A page's own j/k list or Escape-closes-the-pane handler does not react while the menu is open; Escape closes the menu only. Keys pressed on the trigger button are not stopped.
 
@@ -123,6 +125,56 @@ export default function Example() {
       <Menu>
         <MenuItem>Rename Project</MenuItem>
         <MenuItem>Archive Project…</MenuItem>
+      </Menu>
+    </MenuContainer>
+  );
+}
+```
+
+### Radio Items
+One choice from a set. Group the set in a section and keep the value in state.
+
+```jsx
+import { useState } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem, MenuSection } from '@hyprsh/design';
+
+export default function Example() {
+  const [interval, setInterval] = useState('1m');
+  const options = [['30s', 'Every 30 Seconds'], ['1m', 'Every Minute'], ['5m', 'Every 5 Minutes']];
+
+  return (
+    <MenuContainer>
+      <MenuButton variant="secondary" showChevron>Monitoring</MenuButton>
+      <Menu width={220}>
+        <MenuSection title="Check Interval">
+          {options.map(([value, label]) => (
+            <MenuItem key={value} role="radio" checked={interval === value} onClick={() => setInterval(value)}>{label}</MenuItem>
+          ))}
+        </MenuSection>
+      </Menu>
+    </MenuContainer>
+  );
+}
+```
+
+### Checkbox Items
+Each item toggles on its own and the menu stays open.
+
+```jsx
+import { useState } from 'react';
+import { Menu, MenuButton, MenuContainer, MenuItem } from '@hyprsh/design';
+
+export default function Example() {
+  const [columns, setColumns] = useState({ branch: true, author: false, duration: true });
+  const toggle = (key) => setColumns((c) => ({ ...c, [key]: !c[key] }));
+
+  return (
+    <MenuContainer>
+      <MenuButton variant="secondary" showChevron>Columns</MenuButton>
+      <Menu width={200}>
+        <MenuItem checked={columns.branch} onClick={() => toggle('branch')}>Branch</MenuItem>
+        <MenuItem checked={columns.author} onClick={() => toggle('author')}>Author</MenuItem>
+        <MenuItem checked={columns.duration} onClick={() => toggle('duration')}>Duration</MenuItem>
       </Menu>
     </MenuContainer>
   );
