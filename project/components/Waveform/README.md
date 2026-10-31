@@ -78,6 +78,7 @@ export default function Example() {
     <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: 320, maxWidth: '100%' }}>
       <Button
         variant="secondary"
+        svgOnly
         aria-label={playing ? 'Pause Voice Message' : 'Play Voice Message'}
         onClick={() => setPlaying(!playing)}
       >
