@@ -21,7 +21,7 @@ const context = vm.createContext({
   define: (name, fn) => { registry[name] = fn; },
 });
 vm.runInContext(readFileSync(file, 'utf8'), context, { filename: file });
-const { layoutTable, columnMin, columnMax, resolveWidth, columnLimits, keyWidth, columnResizer, MIN_COLUMN } = context;
+const { layoutTable, columnMin, columnMax, resolveWidth, columnLimits, keyWidth, columnWidthEditor, MIN_COLUMN } = context;
 
 // A measured table: a fixed 80px column, two resizable ones and a truncate column with a 60px minimum.
 const col = (o) => Object.assign({ key: null, resizable: false, truncate: false, def: 0, min: 0, max: Infinity }, o);
@@ -116,6 +116,12 @@ describe('column limits', () => {
     assert.equal(columnLimits(cols.slice(0, 3), {}, 'branch', { container: 800, sticky: true }).max, 600);
   });
 
+  it('without a cap, keeps a column dragged past the container as the max, so the arrows never shrink it', () => {
+    assert.equal(columnLimits(cols, { branch: 1000 }, 'branch', { container: 800 }).max, 1000);
+    assert.equal(keyWidth({ key: 'ArrowRight' }, 1000, columnLimits(cols, { branch: 1000 }, 'branch', { container: 800 })), 1000);
+    assert.equal(keyWidth({ key: 'ArrowLeft' }, 1000, columnLimits(cols, { branch: 1000 }, 'branch', { container: 800 })), 992);
+  });
+
   it('with stickyHeader, never lets the max fall under the minimum', () => {
     assert.equal(columnLimits(cols, {}, 'branch', { container: 200, sticky: true }).max, 48);
   });
@@ -144,11 +150,11 @@ describe('keyWidth', () => {
   });
 });
 
-describe('columnResizer', () => {
+describe('columnWidthEditor', () => {
   function setup(initial) {
     const calls = [];
     let widths = initial || {};
-    const r = columnResizer({
+    const r = columnWidthEditor({
       getWidths: () => widths,
       emit: (next, meta) => { calls.push([plain(next), plain(meta)]); widths = next; },
     });
@@ -165,6 +171,13 @@ describe('columnResizer', () => {
       [{ name: 150 }, { key: 'name', phase: 'drag' }],
       [{ name: 150 }, { key: 'name', phase: 'end' }],
     ]);
+  });
+
+  it('drops the key when a drag comes back to a fractional default, rounded', () => {
+    const { r, calls } = setup();
+    const s = r.start({ key: 'name', width: 143.6, def: 143.6, min: 64, max: 300, dragMax: 300 }, 500);
+    s.move(520); s.move(500); s.end();
+    assert.deepEqual(calls.map((c) => c[0]), [{ name: 164 }, {}, {}]);
   });
 
   it('emits nothing for a click without movement', () => {
@@ -293,7 +306,7 @@ describe('Table data form', () => {
 
   it('wraps a table with resizable columns in the width owner and marks its heads; truncate ignores resizable', () => {
     const tree = registry.Table({ columns, rows: [], columnWidths: { time: 120 } });
-    assert.equal(tree.type, context.TableResizer);
+    assert.equal(tree.type, context.TableWidths);
     assert.deepEqual(plain(tree.props.columnWidths), { time: 120 });
     const hs = heads(tree);
     assert.deepEqual(hs.map((x) => x.props.resizable), [true, true, false]);
@@ -302,6 +315,12 @@ describe('Table data form', () => {
     assert.equal(hs[1].props.minWidth, 64);
     assert.equal(hs[1].props.maxWidth, 160);
     assert.equal(hs[2].props.truncate, true);
+  });
+
+  it('holds off measuring while loading or before there are rows', () => {
+    assert.equal(registry.Table({ columns, rows: [] }).props.pending, true);
+    assert.equal(registry.Table({ columns, rows: [{ id: 1 }], loading: true }).props.pending, true);
+    assert.equal(registry.Table({ columns, rows: [{ id: 1 }] }).props.pending, false);
   });
 
   it('renders a table without resizable columns as before: no width owner, no extra head props', () => {

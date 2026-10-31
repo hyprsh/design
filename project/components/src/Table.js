@@ -134,7 +134,7 @@ function TableSkeletonRow(props) {
 }
 
 /* ---- Resizable columns (ADR 0002) ----
-   Pure width maths first, then TableResizer, which owns the widths for both forms and hands them to the parts through
+   Pure width maths first, then TableWidths, which owns the widths for both forms and hands them to the parts through
    a context. A column, as measured once on first render:
    { key, resizable, truncate, def (default px), min, max }. Truncate columns have no width of their own: they share
    what is left of the row, down to their min, after which the table grows. Columns that aren't resizable keep the
@@ -176,7 +176,8 @@ function columnLimits(cols, widths, key, opts) {
     var room = Math.max(c.min, opts.container - rest);
     dragMax = dragMax == null ? room : Math.min(dragMax, room);
   }
-  return { min: c.min, max: dragMax != null ? dragMax : Math.max(c.min, opts.container || 0), dragMax: dragMax };
+  /* With no cap, a column already dragged past the container keeps its width under the arrow keys. */
+  return { min: c.min, max: dragMax != null ? dragMax : Math.max(c.min, opts.container || 0, Math.round(resolveWidth(c, widths))), dragMax: dragMax };
 }
 /* A key on the handle: the new width in whole px, 'reset' for Enter, or null when the key isn't the handle's. */
 function keyWidth(e, w, lim) {
@@ -190,14 +191,15 @@ function keyWidth(e, w, lim) {
     default: return null;
   }
 }
+/* Stored widths are whole px and a measured default may not be, so back at the rounded default the key goes. */
 function withWidth(widths, key, w, def) {
   var next = Object.assign({}, widths);
-  if (w === def) delete next[key]; else next[key] = w;
+  if (w === Math.round(def)) delete next[key]; else next[key] = w;
   return next;
 }
 /* The resize behaviour without the DOM. emit(widths, { key, phase }) fires on every change: 'drag' while the pointer moves,
    'end' on release (only after a move), on each keyboard step and on reset. c is { key, width, def, min, max, dragMax }. */
-function columnResizer(o) {
+function columnWidthEditor(o) {
   function commit(c, w, phase) {
     var next = withWidth(o.getWidths() || {}, c.key, w, c.def);
     o.emit(next, { key: c.key, phase: phase });
@@ -262,8 +264,9 @@ function measureHeadMin(cell) {
 
 /* Owns the widths for both forms (controlled through columnWidths, else defaultColumnWidths). The first render is the plain
    auto layout; a layout effect then measures each header cell once (its width as the default, its content as the minimum)
-   and switches the table to the fixed layout. It measures again only when the header's columns change. */
-function TableResizer(props) {
+   and switches the table to the fixed layout. It measures again only when the header's columns change. It waits while
+   `pending` (loading, or the data form has no rows yet), so the defaults come from real content, not skeletons. */
+function TableWidths(props) {
   var ctl = useControllable(props.columnWidths, props.defaultColumnWidths || {});
   var widths = ctl[0] || {};
   var ms = useState(null), measured = ms[0], setMeasured = ms[1];
@@ -273,8 +276,8 @@ function TableResizer(props) {
   var reg = useRef({ heads: {}, els: {} }).current;
   var live = useRef({});
   live.current = { widths: widths, set: ctl[1], onChange: props.onColumnWidthsChange };
-  var resizer = useMemo(function () {
-    return columnResizer({
+  var editor = useMemo(function () {
+    return columnWidthEditor({
       getWidths: function () { return live.current.widths; },
       emit: function (next, meta) {
         live.current.widths = next;
@@ -285,6 +288,7 @@ function TableResizer(props) {
   }, []);
 
   useLayoutEffect(function () {
+    if (props.pending && !measured) return;
     var table = tableRef.current;
     var row = table && table.tHead && table.tHead.rows[0];
     var info = [], any = false;
@@ -343,7 +347,7 @@ function TableResizer(props) {
     limits: function (key) { var l = limits(key); return { min: Math.round(l.min), max: Math.round(l.max) }; },
     startDrag: function (key, e) {
       var el = e.currentTarget, id = e.pointerId, done = false;
-      var s = resizer.start(session(key), e.clientX);
+      var s = editor.start(session(key), e.clientX);
       function move(ev) { s.move(ev.clientX); }
       function end() {
         if (done) return;
@@ -362,15 +366,15 @@ function TableResizer(props) {
       el.addEventListener('lostpointercapture', end);
       setDragging(key);
     },
-    keyDown: function (key, e) { if (resizer.key(session(key), e)) e.preventDefault(); },
-    reset: function (key) { resizer.reset(key); },
+    keyDown: function (key, e) { if (editor.key(session(key), e)) e.preventDefault(); },
+    reset: function (key) { editor.reset(key); },
   };
   return h(widthsContext().Provider, { value: ctx }, props.children);
 }
 
 function Table(props) {
   if (!props.columns) {
-    return h(TableResizer, { columnWidths: props.columnWidths, defaultColumnWidths: props.defaultColumnWidths, onColumnWidthsChange: props.onColumnWidthsChange, stickyHeader: props.stickyHeader, loading: props.loading },
+    return h(TableWidths, { columnWidths: props.columnWidths, defaultColumnWidths: props.defaultColumnWidths, onColumnWidthsChange: props.onColumnWidthsChange, stickyHeader: props.stickyHeader, loading: props.loading, pending: !!props.loading },
       h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent', 'sort', 'onSortChange', 'loading', 'columnWidths', 'defaultColumnWidths', 'onColumnWidthsChange']),
         props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null, props.children));
   }
@@ -398,7 +402,7 @@ function Table(props) {
         }));
       }) : h(TableRow, null, h(TableCell, { colSpan: cols.length, className: 'hy-table__empty' }, props.empty || 'Nothing here yet.')))));
   if (!resizable) return tree;
-  return h(TableResizer, { columnWidths: props.columnWidths, defaultColumnWidths: props.defaultColumnWidths, onColumnWidthsChange: props.onColumnWidthsChange, stickyHeader: props.stickyHeader, loading: loading }, tree);
+  return h(TableWidths, { columnWidths: props.columnWidths, defaultColumnWidths: props.defaultColumnWidths, onColumnWidthsChange: props.onColumnWidthsChange, stickyHeader: props.stickyHeader, loading: loading, pending: loading || !rows.length }, tree);
 }
 
 Table.Root = TableRoot;
