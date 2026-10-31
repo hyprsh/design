@@ -49,10 +49,14 @@ const TOUCH_SIZING = {
   comboboxClear: { h: 32, w: 32, hit: [TOUCH, TOUCH] }, filterRemove: { h: 32, w: 32, hit: [TOUCH, TOUCH] }, filterChip: { h: 32, hit: [0, TOUCH] },
 };
 
+// Touch emulation is a touch-only device (coarse pointer, no hover): shortcut hints give way, so CommandMenu's
+// Esc hint becomes a round 28px close button.
+const TOUCH_ONLY = { ...TOUCH_SIZING, cmdEsc: { h: 28, w: 28, hit: [TOUCH, TOUCH] } };
+
 const MODES = [
   { name: 'desktop 1280px, mouse', width: 1280, touch: false, expect: DESKTOP },
   { name: 'phone width 375px, mouse', width: 375, touch: false, expect: TOUCH_SIZING },
-  { name: 'desktop 1280px, coarse pointer', width: 1280, touch: true, expect: TOUCH_SIZING },
+  { name: 'desktop 1280px, coarse pointer', width: 1280, touch: true, expect: TOUCH_ONLY },
 ];
 
 // Mounts each case on its own (open overlays would cover the others) and returns its drawn size and hit area. The hit
