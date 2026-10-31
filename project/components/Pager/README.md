@@ -9,7 +9,7 @@ Previous and next buttons with a range such as “51–100 of 240”, for paging
 - Reset to page 1 when the sort or a filter changes.
 - Previous and next stay in place and are disabled at the ends, so nothing moves under the pointer. When everything fits on one page the range shows alone, and with a `total` of 0 the pager renders nothing.
 - A `page` beyond the last one, for example after a filter shrinks `total`, shows the last page's range with next disabled. Correct the page in your own state when you want the URL to follow.
-- Numbers follow the viewer's locale, and the range uses an en dash with tabular digits. The visible range is hidden from screen readers; a polite live region announces “Showing 51–100 of 240” after `page` changes, and stays silent on the first render and when only `total` changes.
+- Numbers follow the viewer's locale, and the range uses an en dash with tabular digits. The visible range is hidden from screen readers; a polite live region announces “Showing 51–100 of 240” after `page` changes, and stays silent on the first render and when only `total` changes. If a smaller `total` moves the shown page back to the last one, that is a new range on screen, so it is announced.
 - The buttons are named “Previous Page” and “Next Page”, and grow to the touch target size on touch devices. The pager fits a 320px wide container.
 
 ## Examples
