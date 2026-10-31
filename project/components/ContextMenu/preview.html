@@ -1,4 +1,4 @@
-<!-- @dsCard group="Overlays" height=300 subtitle="Menu that opens at the pointer on right-click, long-press or Shift+F10" -->
+<!-- @dsCard group="Overlays" height=360 subtitle="Menu that opens at the pointer on right-click, long-press or Shift+F10, with a reaction row" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ContextMenu</title></head>
@@ -7,14 +7,21 @@
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 var area = {
-  display: 'flex', alignItems: 'center', justifyContent: 'center', height: 232,
+  display: 'flex', alignItems: 'center', justifyContent: 'center', height: 292,
   border: '1px dashed var(--gray-alpha-500)', borderRadius: 'var(--radius-lg)',
   fontSize: 14, color: 'var(--gray-900)', userSelect: 'none'
 };
 function Demo() {
   return h(H.ContextMenu, { defaultOpen: true },
     h(H.ContextMenuTrigger, { style: area }, 'Right-Click or Long-Press Here'),
-    h(H.ContextMenuContent, { width: 200, 'aria-label': 'File Actions' },
+    h(H.ContextMenuContent, {
+      width: 200, 'aria-label': 'File Actions',
+      reactions: [
+        { value: 'thumbs-up', label: 'Thumbs up', emoji: h(H.Icon, { name: 'thumbs-up', size: 20 }) },
+        { value: 'heart', label: 'Heart', emoji: h(H.Icon, { name: 'heart', size: 20 }) },
+        { value: 'laugh', label: 'Laugh', emoji: h(H.Icon, { name: 'laugh', size: 20 }) }
+      ]
+    },
       h(H.ContextMenuItem, { prefix: h(H.Icon, { name: 'external-link' }) }, 'Open in New Tab'),
       h(H.ContextMenuItem, { prefix: h(H.Icon, { name: 'copy' }) }, 'Copy Path'),
       h(H.ContextMenuItem, { prefix: h(H.Icon, { name: 'pencil' }) }, 'Rename File…'),

@@ -15,13 +15,16 @@ function parsePosition(pos) {
 
 /* Every role an item can have; the roving focus, Home/End and typeahead find all of them. */
 var ITEM_SELECTOR = '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
-/* The items the arrow keys reach: enabled ones, and disabled ones that carry a description (data-focusable). */
+/* The items the arrow keys reach: enabled ones, and disabled ones that carry a description (data-focusable).
+   A row of its own (data-menu-row, which handles its keys itself) is not among them; menuRowStop() is its roving tab stop. */
 function menuItems(list, enabledOnly) {
   if (!list) return [];
   return Array.prototype.filter.call(list.querySelectorAll(ITEM_SELECTOR), function (el) {
+    if (el.closest('[data-menu-row]')) return false;
     return el.getAttribute('aria-disabled') !== 'true' || (!enabledOnly && el.hasAttribute('data-focusable'));
   });
 }
+function menuRowStop(list) { return list ? list.querySelector('[data-menu-row] [tabindex="0"]') : null; }
 /* Keys the menu handles itself; they never reach the page's own handlers through the React tree or the document. */
 var MENU_KEYS = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ', 'Escape', 'Tab'];
 
@@ -128,7 +131,7 @@ function MenuPopup(props) {
     if (!which || !list) return;
     var items = menuItems(list, true);
     if (!items.length) items = menuItems(list);
-    var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
+    var el = which === 'last' ? items[items.length - 1] : which === 'first' ? (menuRowStop(list) || items[0]) : null;
     (el || list).focus({ preventScroll: true });
   }, [placed]);
 
@@ -142,7 +145,7 @@ function MenuPopup(props) {
     var i = items.indexOf(document.activeElement);
     var next = null;
     if (e.key === 'ArrowDown') next = items[(i + 1) % items.length];
-    else if (e.key === 'ArrowUp') next = items[(i - 1 + items.length) % items.length];
+    else if (e.key === 'ArrowUp') next = i === 0 && menuRowStop(ctx.listRef.current) || items[(i - 1 + items.length) % items.length];
     else if (e.key === 'Home') next = items[0];
     else if (e.key === 'End') next = items[items.length - 1];
     else if (e.key === 'Tab') { ctx.close(false); return; }
