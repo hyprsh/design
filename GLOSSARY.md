@@ -32,6 +32,10 @@ _Avoid_: status, state (those are StatusDot's), availability
 A quick response to a message, such as an emoji, chosen from a row above a context menu's items.
 _Avoid_: emoji, quick action
 
+**Resize handle**:
+The draggable edge at the end of a column header that changes the column's width.
+_Avoid_: resizer, grip, splitter, separator (that's the divider component)
+
 ## Documentation
 
 **Card**:
