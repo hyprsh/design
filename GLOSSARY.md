@@ -16,6 +16,14 @@ _Avoid_: tab bar
 The round button beside the tab bar capsule, for an action that isn't a screen.
 _Avoid_: FAB, action button
 
+**Tone**:
+The colour of a semantic status: success, info, warning, error or neutral. One tone looks the same on every component that shows it, so a dot and a bar about the same thing match.
+_Avoid_: state colour, variant, type (those are a component's own look)
+
+**Segment**:
+One tone's share of a total, drawn as part of a bar beside the others.
+_Avoid_: slice, chunk, stack
+
 ## Documentation
 
 **Card**:
