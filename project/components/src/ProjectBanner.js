@@ -18,6 +18,8 @@ function ProjectBanner(props) {
     action = cta.href !== undefined || !cta.onClick
       ? h('a', {
         className: 'hy-pbanner__cta', href: busy ? undefined : cta.href || '#',
+        /* Without an href a link can't take focus, so keep it in the tab order while busy. */
+        tabIndex: busy ? 0 : undefined,
         'aria-busy': busy || undefined, 'aria-disabled': busy || undefined,
         onClick: busy ? noop : cta.onClick
       }, spinner, cta.label)
