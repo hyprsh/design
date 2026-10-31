@@ -1,0 +1,4 @@
+/* ---------- Waveform ---------- */
+.hy-waveform { display: flex; align-items: center; justify-content: space-between; gap: 2px; width: 100%; min-width: 0; overflow: hidden; pointer-events: none; }
+.hy-waveform__bar { flex: 1 1 0; min-width: 1px; max-width: 4px; min-height: 4px; border-radius: var(--radius-full); background: var(--gray-500); }
+.hy-waveform__bar.is-played { background: var(--gray-1000); }
