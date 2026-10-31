@@ -1,0 +1,26 @@
+<!-- @dsCard group="Navigation" height=316 subtitle="Range with previous and next, first and last page, one page, loading, 320px wide" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pager</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:480px;gap:16px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment, useState = React.useState;
+function Live() {
+  var s = useState(2), page = s[0], setPage = s[1];
+  return h(H.Pager, { page: page, pageSize: 50, total: 240, onPageChange: setPage });
+}
+function noop() {}
+function Demo() {
+  return h(F, null,
+    h(Live),
+    h(H.Pager, { page: 1, pageSize: 50, total: 240, onPageChange: noop }),
+    h(H.Pager, { page: 25, pageSize: 50, total: 3400, onPageChange: noop }),
+    h(H.Pager, { page: 1, pageSize: 50, total: 12, onPageChange: noop }),
+    h(H.Pager, { page: 2, pageSize: 50, total: 240, loading: true, onPageChange: noop }),
+    h('div', { style: { width: 320 } }, h(H.Pager, { page: 25, pageSize: 50, total: 3400, onPageChange: noop })));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
