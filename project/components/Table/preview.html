@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=1680 subtitle="Loading skeleton rows, sortable headers, compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
+<!-- @dsCard group="Content" height=2140 subtitle="Resizable columns, loading skeleton rows, sortable headers, compound parts, striped interactive body, footer, data form, wrap and truncate, sticky header, selected row, opt-in alignment" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Table</title></head>
@@ -108,7 +108,31 @@ function Loading() {
       h(H.TableHeader, null, h(H.TableRow, null, h(H.TableHead, null, 'Name'), h(H.TableHead, { align: 'right' }, 'Requests'))),
       h(H.TableBody, { bordered: true }, [0, 1].map(function (i) { return h(H.TableSkeletonRow, { key: i, index: i, columns: [{ key: 'n' }, { key: 'r', numeric: true }] }); }))));
 }
-ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Loading), h(Sortable), h(SortableData), h(Usage), h(Deployments), h(Log), h(Wrapped)));
+/* Resizable columns: drag or arrow-key the handle on a header edge; the truncate Message column gives up the room. Double-click or Enter resets. */
+function Resizable() {
+  var st = React.useState({ key: 'time', direction: 'descending' }), sort = st[0], setSort = st[1];
+  var rows = log.slice().sort(function (a, b) {
+    var d = a[sort.key] < b[sort.key] ? -1 : a[sort.key] > b[sort.key] ? 1 : 0;
+    return sort.direction === 'ascending' ? d : -d;
+  });
+  return h(H.Table, { caption: 'Log, resizable columns', bordered: true, sort: sort, onSortChange: setSort, columns: [
+    { key: 'time', header: 'Time', mono: true, sortable: true, resizable: true },
+    { key: 'level', header: 'Level', resizable: true, minWidth: 64, maxWidth: 160 },
+    { key: 'message', header: 'Message', truncate: true },
+    { key: 'id', header: 'Id', align: 'right', resizable: true }], rows: rows.slice(0, 4) });
+}
+/* Parts form: resizable and columnKey on TableHead, widths owned by Table. */
+function ResizableParts() {
+  return h(H.TableRoot, null, h(H.Table, { caption: 'Projects, resizable parts' },
+    h(H.TableHeader, null, h(H.TableRow, null,
+      h(H.TableHead, { resizable: true, columnKey: 'name' }, 'Name'),
+      h(H.TableHead, { resizable: true, columnKey: 'region' }, 'Region'),
+      h(H.TableHead, { align: 'right', resizable: true, columnKey: 'requests' }, 'Requests'))),
+    h(H.TableBody, { bordered: true }, projects.map(function (r) {
+      return h(H.TableRow, { key: r.id }, h(H.TableCell, null, r.name), h(H.TableCell, null, r.region), h(H.TableCell, { align: 'right', className: 'hy-num' }, fmt.format(r.requests)));
+    }))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(F, null, h(Resizable), h(ResizableParts), h(Loading), h(Sortable), h(SortableData), h(Usage), h(Deployments), h(Log), h(Wrapped)));
 </script>
 </body>
 </html>
