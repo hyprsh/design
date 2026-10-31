@@ -19,8 +19,11 @@ export interface StatusDotProps {
    * Semantic states: optional; “api: Success”.
    */
   titlePrefix?: string;
-  /** The whole title and accessible name, replacing the generated one. Use it for a dot without a label. */
-  title?: string;
+  /**
+   * The whole title and accessible name, replacing the generated one. Use it for a dot without a label.
+   * `null` drops the native tooltip (no `title` attribute) and keeps the accessible name, so a row of dots can be named once.
+   */
+  title?: string | null;
   'aria-hidden'?: boolean | 'true' | 'false';
   className?: string;
 }
