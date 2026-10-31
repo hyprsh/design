@@ -14,6 +14,15 @@
   position: absolute; inset: 0; border-radius: inherit; background: var(--progress-fill);
   transition: transform .2s cubic-bezier(.4,0,.2,1);
 }
+/* Segments: a run as wide as what is filled, rounded only at its outer ends by the clip. Tones are StatusDot's colours. */
+.hy-progress__run { display: flex; max-width: 100%; height: 100%; border-radius: inherit; overflow: hidden; }
+.hy-progress__segment { flex: 0 1 auto; min-width: 4px; height: 100%; background: var(--hy-seg, var(--gray-700)); }
+.hy-progress__segment.has-gap { min-width: 5px; box-shadow: inset 1px 0 0 var(--background-100); }
+.hy-progress__segment--success { --hy-seg: var(--green-700); }
+.hy-progress__segment--info { --hy-seg: var(--blue-700); }
+.hy-progress__segment--warning { --hy-seg: var(--amber-700); }
+.hy-progress__segment--error { --hy-seg: var(--red-800); }
+.hy-progress__segment--neutral { --hy-seg: var(--gray-700); }
 /* A stop: a 2px notch (one dark pixel, one page-coloured) with a focusable marker for its tooltip. */
 .hy-progress__divider {
   position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; pointer-events: none;
