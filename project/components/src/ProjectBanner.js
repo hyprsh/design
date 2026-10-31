@@ -10,9 +10,21 @@ function ProjectBanner(props) {
     : h(Glyph, { name: PB_GLYPH[variant], className: 'hy-pbanner__icon' });
   var action = null;
   if (cta) {
+    /* Like Button's loading: the label stays, a spinner comes before it, and the action can't run twice. A busy CTA stays
+       focusable (aria-disabled, not disabled, so focus is kept) and its click does nothing. A link loses its href so it can't be followed. */
+    var busy = !!cta.loading;
+    var spinner = busy ? h(HY.Spinner, { size: 'sm', className: 'hy-pbanner__spinner' }) : null;
+    var noop = function (e) { e.preventDefault(); };
     action = cta.href !== undefined || !cta.onClick
-      ? h('a', { className: 'hy-pbanner__cta', href: cta.href || '#', onClick: cta.onClick }, cta.label)
-      : h('button', { type: 'button', className: 'hy-pbanner__cta', onClick: cta.onClick }, cta.label);
+      ? h('a', {
+        className: 'hy-pbanner__cta', href: busy ? undefined : cta.href || '#',
+        'aria-busy': busy || undefined, 'aria-disabled': busy || undefined,
+        onClick: busy ? noop : cta.onClick
+      }, spinner, cta.label)
+      : h('button', {
+        type: 'button', className: 'hy-pbanner__cta', 'aria-busy': busy || undefined, 'aria-disabled': busy || undefined,
+        onClick: busy ? noop : cta.onClick
+      }, spinner, cta.label);
   }
   return h('aside', {
     className: cx('hy-pbanner', 'hy-pbanner--' + variant, props.className), style: props.style,
