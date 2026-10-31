@@ -2,7 +2,7 @@
 
 A semantic data table with striped, bordered and interactive bodies, a footer for totals and tabular numbers.
 
-**You provide:** either the parts — `TableRoot` (scroll wrapper) › `Table` › `TableColgroup`/`TableCol`, `TableHeader`, `TableBody`, `TableFooter` › `TableRow` › `TableHead`/`TableCell` (also `Table.Root`, `Table.Body`, …) — or the data form: `columns` (`[{ key, header, numeric?, align?, mono?, wrap?, truncate?, sortable?, render? }]`), `rows`, a screen-reader `caption` and an `empty` message. `TableBody` takes `striped`, `bordered`, `interactive` and `virtualize`, all off by default.
+**You provide:** either the parts — `TableRoot` (scroll wrapper) › `Table` › `TableColgroup`/`TableCol`, `TableHeader`, `TableBody`, `TableFooter` › `TableRow` › `TableHead`/`TableCell` (also `Table.Root`, `Table.Body`, …) — or the data form: `columns` (`[{ key, header, numeric?, align?, mono?, wrap?, truncate?, sortable?, resizable?, width?, minWidth?, maxWidth?, render? }]`), `rows`, a screen-reader `caption` and an `empty` message. `TableBody` takes `striped`, `bordered`, `interactive` and `virtualize`, all off by default.
 
 **Alignment:** columns align left unless you say otherwise: `align="left" | "center" | "right"` on a `TableHead` or `TableCell` (`align` on a column in the data form), or `numeric`, which right-aligns with tabular digits. Earlier versions right-aligned the last column of every table, whatever it held; that is gone, so add `align="right"` to the last head and cells (or `align: 'right'` on the column) where you relied on it.
 
@@ -32,6 +32,8 @@ onSortChange: function (next) {
 }
 ```
 
+**Resizable columns:** `resizable: true` on a column (in the parts, `resizable` and a `columnKey` on its `TableHead`) adds a resize handle on the header's trailing edge: drag it, or focus it with Tab and use Left and Right (8px, 32px with Shift), Home and End for the minimum and maximum, and Enter or a double-click to reset. The `truncate` column takes the rest of the row, so widening a column narrows it; it has no handle of its own (a `truncate` column ignores `resizable`; in the parts, put `truncate` on its `TableHead` too). Once it reaches its minimum, or when there is no `truncate` column, the table grows and `TableRoot` scrolls sideways; with `stickyHeader` the drag stops at the container's width instead. Without a `truncate` column the table is as wide as its columns, so narrowing one leaves room at the end of the row. A column starts at its `width` (else the width it had when the first rows showed, measured once: not while `loading` or before there are rows, so give a `width` to columns whose content arrives later) and can't go below its header's content (at least 48px) or `minWidth`, or above `maxWidth`. `Table` owns the widths for both forms: `columnWidths` with `onColumnWidthsChange(widths, { key, phase })` when controlled, `defaultColumnWidths` otherwise. The widths hold only the columns that differ from their default, so `{}` is the default layout and a reset removes the key. `phase` is `'drag'` while the pointer moves and `'end'` on release, on each keyboard step and on reset, so save the widths on `'end'`. The handles appear once the widths are measured; while `loading` after that they stay but don't respond, and on touch-only devices they are hidden and the columns keep their widths. In the parts the table lays out its own `<col>`s, so give a resizable column's default as `width` on its `TableHead` rather than on a `TableCol`; once the widths are measured, your own `TableColgroup` and its classes and styles are not rendered. Don't make a table resizable when it already fits the viewport, or when it is mostly read on phones.
+
 **Loading:** `loading` on the data form draws skeleton rows under the real header instead of `rows` or `empty`: `true` for 5 rows, or a number. Each cell holds a Skeleton sized to its column: `numeric` columns get a short, right-aligned block, `mono` and `truncate` columns a medium one, the rest widths that vary by row. The rows are the same height as real ones (also under touch sizing), so nothing shifts when data arrives. Sortable headers keep their look but are inert, the table gets `aria-busy="true"`, the skeleton rows are hidden from screen readers and the caption reads “Projects, loading” (“Loading” without a `caption`). With the parts, repeat `TableSkeletonRow` (`Table.SkeletonRow`) with `columns` for the same sizing, or `count` for plain cells, and give it `index` so the widths vary; set `aria-busy` on the table yourself.
 
 **Selected and current rows:** `selected` on `TableRow` sets `aria-selected="true"` and `current` sets `aria-current="true"` (or pass a token such as `current="location"`); both use the same tint as a highlighted menu item and a 2px marker on the first cell, so the state isn't shown by colour alone. Use `selected` for a chosen row and `current` for the keyboard cursor of a j/k list. In the data form pass `isSelected(row)` and `isCurrent(row)`. For a selectable grid, also set `role="grid"` on `Table` and manage focus yourself.
@@ -41,7 +43,7 @@ onSortChange: function (next) {
 - Show `—` for unknown or not-applicable values, never `N/A`, `null` or a blank cell.
 - Headers are Title Case nouns: Last Used, Requests (7d), Status. Sortable headers are buttons whose arrow is decorative.
 - Give numeric columns `hy-num` (or `numeric: true`) so digits align in tabular numerals. Use mono for hashes and IDs.
-- Over 50 rows: virtualise or paginate, and keep the page in the URL. Pagination reads Previous and Next, and ranges use an en dash: 21–40 of 142.
+- Over 50 rows: virtualise or paginate with [Pager](../Pager/README.md), and keep the page in the URL. Pager's buttons are named “Previous Page” and “Next Page”, and ranges use an en dash: 21–40 of 142.
 
 ## Examples
 
@@ -159,6 +161,43 @@ export default function Example() {
   }
 
   return <Table caption="Projects" columns={columns} rows={sorted} sort={sort} onSortChange={onSortChange} />;
+}
+```
+
+### Resizable Columns
+Drag a header's edge, or focus it and use the arrow keys. The widths are saved to local storage when a resize ends, and the Message column gives up the room.
+
+```jsx
+import { useState } from 'react';
+import { Table } from '@hyprsh/design';
+
+const columns = [
+  { key: 'time', header: 'Time', mono: true, resizable: true },
+  { key: 'level', header: 'Level', resizable: true, minWidth: 64, maxWidth: 160 },
+  { key: 'message', header: 'Message', truncate: true },
+];
+
+const rows = [
+  { id: 1, time: '10:42:01', level: 'info', message: 'Deployment dpl_8f2a promoted to production for marketing-site' },
+  { id: 2, time: '10:41:37', level: 'warn', message: 'Build cache for docs was invalidated by a lockfile change' },
+  { id: 3, time: '10:39:50', level: 'error', message: 'Function api/edge-config timed out after 10s on the staging branch' },
+];
+
+function load() {
+  try { return JSON.parse(localStorage.getItem('log-columns')) || {}; } catch { return {}; }
+}
+
+export default function Example() {
+  const [widths, setWidths] = useState(load);
+
+  function onColumnWidthsChange(next, { phase }) {
+    setWidths(next);
+    if (phase === 'end') {
+      try { localStorage.setItem('log-columns', JSON.stringify(next)); } catch {}
+    }
+  }
+
+  return <Table caption="Log" columns={columns} rows={rows} columnWidths={widths} onColumnWidthsChange={onColumnWidthsChange} />;
 }
 ```
 

@@ -1013,6 +1013,24 @@ export interface LinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
 }
 export declare const Link: React.ForwardRefExoticComponent<LinkProps & React.RefAttributes<HTMLAnchorElement & HTMLButtonElement>>;
 
+export interface PagerProps {
+  /** The page on screen, starting at 1. A page beyond the last one shows the last page's range with next disabled, and never calls `onPageChange`. */
+  page: number;
+  /** Rows per page. */
+  pageSize: number;
+  /** All the results, across every page. 0 renders nothing; a total that fits one page shows the range with no buttons. */
+  total: number;
+  /** The previous or next button was used, with the page to show. Only called after the user acted. Slice or fetch the rows yourself. */
+  onPageChange: (page: number) => void;
+  /** Disables both buttons and keeps the last range shown. */
+  loading?: boolean;
+  /** Name of the nav landmark. Default 'Pages'. */
+  'aria-label'?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Pager(props: PagerProps): React.ReactElement | null;
+
 export interface PaginationLinkData {
   /** Title of the neighbouring page. */
   title: string;
@@ -1651,11 +1669,28 @@ export interface TableColumn<R> {
   truncate?: boolean;
   /** Makes the header a sort button. The app sorts `rows` itself; see `sort` and `onSortChange` on the table. */
   sortable?: boolean;
+  /** Gives the header a resize handle on its trailing edge. Ignored on a `truncate` column, which takes the rest of the row. See `columnWidths` on the table. */
+  resizable?: boolean;
+  /** Resizable: the default width in px. Without it, the width the browser gives the column on first render, measured once. */
+  width?: number;
+  /** Resizable: the narrowest the column can go, in px, in place of the header content's width. Never below 48. */
+  minWidth?: number;
+  /** Resizable: the widest the column can go, in px. No maximum by default. */
+  maxWidth?: number;
   render?: (row: R) => React.ReactNode
 }
 
 type TableSortDirection = 'ascending' | 'descending';
 export interface TableSort { key: string; direction: TableSortDirection }
+
+/** Column widths in px, keyed by column key. Holds only the columns that differ from their default, so `{}` is the default layout. */
+export type TableColumnWidths = Record<string, number>;
+export interface TableColumnWidthsChange {
+  /** The column that changed. */
+  key: string;
+  /** `'drag'` while the pointer moves; `'end'` on release, on each keyboard step and on reset. */
+  phase: 'drag' | 'end';
+}
 
 type TablePart<E> = React.HTMLAttributes<E> & { children?: React.ReactNode };
 
@@ -1690,6 +1725,18 @@ export interface TableHeadProps extends Omit<React.ThHTMLAttributes<HTMLTableCel
   sort?: TableSortDirection | 'none';
   /** Makes the label a button that fills the cell and calls this on click, Enter and Space. The arrow is decorative: the direction is announced through `sort`. Right-aligned heads put the arrow before the label. Enter and Space on the native button fire a click whose `event.detail` is `0`, so `event.detail === 0` tells a keyboard press from a pointer click. */
   onSort?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  /** The truncate column's head in a resizable table: it takes the rest of the row and has no handle. */
+  truncate?: boolean;
+  /** Gives the head a resize handle on its trailing edge. Needs `columnKey`; the widths live on `Table` (`columnWidths`). */
+  resizable?: boolean;
+  /** Resizable: the key of the column's width in `columnWidths`. Required with `resizable`. */
+  columnKey?: string;
+  /** Resizable: the default width in px. Without it, the width the browser gives the column on first render, measured once. */
+  width?: number;
+  /** Resizable: the narrowest the column can go, in px, in place of the header content's width. Never below 48. */
+  minWidth?: number;
+  /** Resizable: the widest the column can go, in px. No maximum by default. */
+  maxWidth?: number;
 }
 
 export interface TableProps<R = Record<string, unknown>> extends Omit<React.TableHTMLAttributes<HTMLTableElement>, 'rows'> {
@@ -1715,8 +1762,14 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
   onSortChange?: (next: TableSort, event: React.MouseEvent<HTMLButtonElement>) => void;
   /** Data form: draw skeleton rows in the table's shape instead of `rows` or `empty`: `true` for 5, or a number of rows. The header stays, sortable headers go inert, the table gets `aria-busy="true"` and the caption reads "<caption>, loading" (or "Loading"). */
   loading?: boolean | number;
-  /** Keep the header row visible while an ancestor scrolls (it sticks to the nearest scrolling ancestor). The wrapper then clips sideways instead of scrolling. */
+  /** Keep the header row visible while an ancestor scrolls (it sticks to the nearest scrolling ancestor). The wrapper then clips sideways instead of scrolling, so resizing a column stops at the container's width. */
   stickyHeader?: boolean;
+  /** Resizable columns, controlled: the widths shown, keyed by column key. Only the columns that differ from their default; `{}` is the default layout. Both forms. */
+  columnWidths?: TableColumnWidths;
+  /** Resizable columns, uncontrolled: the starting widths. Default `{}`. */
+  defaultColumnWidths?: TableColumnWidths;
+  /** A column was resized or reset. Fires on every change: `phase: 'drag'` while dragging, `'end'` on release, on each keyboard step and on reset. Save the widths on `'end'`. */
+  onColumnWidthsChange?: (widths: TableColumnWidths, change: TableColumnWidthsChange) => void;
   children?: React.ReactNode;
 }
 export declare function TableRoot(props: TablePart<HTMLDivElement>): React.ReactElement;
@@ -2647,6 +2700,7 @@ declare global {
       Breadcrumbs: typeof Breadcrumbs;
       CommandMenuTrigger: typeof CommandMenuTrigger;
       Link: typeof Link;
+      Pager: typeof Pager;
       Pagination: typeof Pagination;
       TabBar: typeof TabBar;
       Tabs: typeof Tabs;
