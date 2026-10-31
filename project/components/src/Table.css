@@ -61,3 +61,29 @@
 
 .hy-table__footer .hy-table__cell { color: var(--gray-1000); font-weight: 500; border-radius: 0; box-shadow: inset 0 1px 0 var(--gray-alpha-400); }
 .hy-table__empty.hy-table__cell { text-align: center; color: var(--gray-900); height: 96px; white-space: normal; }
+
+/* Resizable columns: fixed layout with <col> widths, so the 320px cap and the truncate max-width: 0 technique step aside. */
+.hy-table__table--resizable { table-layout: fixed; }
+.hy-table__table--resizable .hy-table__cell { max-width: none; }
+.hy-table__table--resizable .hy-table__cell--truncate { width: auto; max-width: none; }
+.hy-table__table--resizable.is-resizing { cursor: col-resize; user-select: none; }
+.hy-table__head--resizable { position: relative; }
+/* The resize handle: an 8px grab zone centred on the column edge (inside it on the last column, so the table doesn't overflow). */
+.hy-table__resize {
+  position: absolute; top: 0; bottom: 0; right: -4px; z-index: 1; width: 8px;
+  cursor: col-resize; touch-action: none;
+}
+.hy-table__resize::before {
+  content: ''; position: absolute; top: 8px; bottom: 8px; left: 3px; width: 1px;
+  background-color: transparent; transition: background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-table__head--resizable:last-child > .hy-table__resize { right: 0; }
+.hy-table__head--resizable:last-child > .hy-table__resize::before { left: auto; right: 0; }
+.hy-table__resize:hover::before { background-color: var(--gray-alpha-400); }
+.hy-table__resize.is-dragging::before { background-color: var(--gray-1000); }
+.hy-table__resize:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-table__resize[aria-disabled="true"] { cursor: default; }
+.hy-table__resize[aria-disabled="true"]:hover::before { background-color: transparent; }
+@media (prefers-reduced-motion: reduce) { .hy-table__resize::before { transition: none; } }
+/* No resizing on touch-only devices: the handle goes, the columns keep their widths. */
+@media (hover: none) and (pointer: coarse) { .hy-table__resize { display: none; } }
