@@ -1185,8 +1185,11 @@ export interface StatusDotProps {
    * Semantic states: optional; “api: Success”.
    */
   titlePrefix?: string;
-  /** The whole title and accessible name, replacing the generated one. Use it for a dot without a label. */
-  title?: string;
+  /**
+   * The whole title and accessible name, replacing the generated one. Use it for a dot without a label.
+   * `null` drops the native tooltip (no `title` attribute) and keeps the accessible name, so a row of dots can be named once.
+   */
+  title?: string | null;
   'aria-hidden'?: boolean | 'true' | 'false';
   className?: string;
 }
@@ -1305,30 +1308,50 @@ export interface ProgressStop {
   /** Accessible name of the marker; defaults to the tooltip text. */
   ariaLabel?: string;
 }
-export interface ProgressProps {
+export interface ProgressSegment {
   value: number;
+  /** Colour of StatusDot's state of the same name. */
+  tone: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+}
+interface ProgressBase {
   /** Default 100. */
   max?: number;
-  /** Fill colour. success is blue. Default 'default' (gray-1000). */
-  type?: 'default' | 'secondary' | 'success' | 'warning' | 'error';
-  /** Threshold → colour, e.g. { 0: 'var(--gray-1000)', 80: 'var(--amber-700)', 95: 'var(--red-700)' }. Overrides type. */
-  colors?: Record<number, string>;
   /** Marked points along the bar, each with an optional tooltip. */
   stops?: ProgressStop[];
   /** Bar width (number = px). Default 100%. */
   width?: number | string;
   /** Bar height in px. Default 10. */
   height?: number;
-  /** hyprsh: a label row above the bar, with the percentage on the right. Names the progressbar. */
+  /** hyprsh: a label row above the bar, with the percentage on the right (none for segments). Names the bar. */
   label?: React.ReactNode;
-  /** Older name for type: blue → success, amber → warning, red → error; green stays green. */
-  variant?: 'default' | 'blue' | 'green' | 'amber' | 'red';
   /** Accessible name when there is no label. */
   'aria-label'?: string;
   className?: string;
   style?: React.CSSProperties;
 }
-export declare function Progress(props: ProgressProps): React.ReactElement;
+/** The value form. With segments, use ProgressSegmentsProps; the Progress component accepts either. */
+export interface ProgressProps extends ProgressBase {
+  value: number;
+  /** Fill colour. success is blue. Default 'default' (gray-1000). */
+  type?: 'default' | 'secondary' | 'success' | 'warning' | 'error';
+  /** Threshold → colour, e.g. { 0: 'var(--gray-1000)', 80: 'var(--amber-700)', 95: 'var(--red-700)' }. Overrides type. */
+  colors?: Record<number, string>;
+  /** Older name for type: blue → success, amber → warning, red → error; green stays green. */
+  variant?: 'default' | 'blue' | 'green' | 'amber' | 'red';
+  segments?: never;
+  gap?: never;
+}
+export interface ProgressSegmentsProps extends ProgressBase {
+  /** One bar split into tones, drawn left to right and cut off at max. Replaces value, colors and type. */
+  segments: ProgressSegment[];
+  /** A 1px gap in the page colour between segments. Default false. */
+  gap?: boolean;
+  value?: never;
+  colors?: never;
+  type?: never;
+  variant?: never;
+}
+export declare function Progress(props: ProgressProps | ProgressSegmentsProps): React.ReactElement;
 
 export interface ProjectBannerCallToAction {
   /** A Title Case verb and noun, such as “Update Billing”. */
@@ -1337,6 +1360,8 @@ export interface ProjectBannerCallToAction {
   href?: string;
   /** Without href, renders a button styled as a link. */
   onClick?: (event: React.MouseEvent<HTMLElement>) => void;
+  /** Shows a spinner before the label, keeps the label and ignores clicks (aria-disabled, aria-busy), like Button's loading. */
+  loading?: boolean;
 }
 export interface ProjectBannerProps {
   /** Default 'gray'. success is blue. */
@@ -1432,6 +1457,20 @@ export interface ToastProps {
   className?: string;
 }
 export declare const Toast: ((props: ToastProps) => React.ReactElement) & { useToasts: typeof useToasts; toasts: ToastsApi };
+
+export interface BubbleProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'children' | 'className'> {
+  /** The message content. */
+  children: React.ReactNode;
+  /** Default 'received'. A sent bubble sits at the end of its row in the accent fill; a received one at the start in gray-100. */
+  direction?: 'sent' | 'received';
+  /** Default 'single'. For consecutive messages from one side: the corners on the sender's side are tighter where the bubble meets its neighbours. */
+  position?: 'single' | 'first' | 'middle' | 'last';
+  /** The time, drawn small and secondary after the content. */
+  time?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Bubble(props: BubbleProps): React.ReactElement;
 
 export interface CodeProps extends React.HTMLAttributes<HTMLElement> {
   /** The code. A string with a line break renders as a block. */
@@ -1961,9 +2000,14 @@ export declare const ContextCard: ((props: ContextCardProps) => React.ReactEleme
 export interface ContextMenuProps {
   /** A ContextMenuTrigger and a ContextMenuContent. */
   children: React.ReactNode;
-  /** Open on mount in the middle of the trigger (docs and previews). */
+  /** Controlled open state. When given, right-click, long-press, Shift+F10, the Menu key, Escape, an outside click, choosing an item and page scroll only call `onOpenChange`; the menu opens and closes as this says. */
+  open?: boolean;
+  /** Open on mount in the middle of the trigger (docs and previews). Ignored when `open` is given. */
   defaultOpen?: boolean;
+  /** Called with the next state in both modes. */
   onOpenChange?: (open: boolean) => void;
+  /** Viewport point (px) the menu opens at, instead of the gesture's point. Without it, an app-opened menu uses the gesture's point, or 8px in from the trigger's top-left corner. */
+  anchorPoint?: { x: number; y: number };
   className?: string;
   style?: React.CSSProperties;
 }
@@ -1975,9 +2019,21 @@ export interface ContextMenuTriggerProps extends React.HTMLAttributes<HTMLElemen
   /** Leave the browser's own context menu alone. */
   disabled?: boolean;
 }
+export interface ContextMenuReaction {
+  /** Passed to `onReact` when chosen. */
+  value: string;
+  /** The reaction's accessible name, such as 'Thumbs up'. */
+  label: string;
+  /** What is drawn, decorative (`aria-hidden`): an icon or a short glyph. */
+  emoji: React.ReactNode;
+}
 export interface ContextMenuContentProps {
   /** ContextMenuItem elements, plus MenuSection and MenuDivider if needed. */
   children: React.ReactNode;
+  /** A row of quick reactions drawn above the items, as a group named 'Reactions'. Left/Right move within it; Down goes to the items. */
+  reactions?: ContextMenuReaction[];
+  /** Called with the chosen reaction's `value`; the menu then closes. */
+  onReact?: (value: string) => void;
   /** Width in px. */
   width?: number;
   /** Accessible name of the menu. Default 'Context Menu'. */
@@ -2076,7 +2132,11 @@ export interface DrawerTitleProps { className?: string; children?: React.ReactNo
 export declare function DrawerTitle(props: DrawerTitleProps): React.ReactElement;
 export declare const Drawer: ((props: DrawerProps) => React.ReactElement | null) & { Title: typeof DrawerTitle };
 
-export interface MenuItemData { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean; href?: string }
+interface MenuItemDataBase { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean }
+/** An item of the one-piece `items` API. With `href` it is a link, which can't be checked. */
+export type MenuItemData =
+  | (MenuItemDataBase & { href?: undefined; checked?: boolean; role?: 'radio' | 'checkbox' })
+  | (MenuItemDataBase & { href: string; checked?: never; role?: never });
 
 export type MenuPosition = 'bottom-start' | 'bottom-end' | 'top-start' | 'top-end' | 'left-start' | 'left-end' | 'right-start' | 'right-end';
 
@@ -2116,13 +2176,17 @@ export interface MenuButtonProps extends Omit<ButtonProps, 'type'> {
   showChevron?: boolean;
 }
 export interface MenuItemProps {
+  /** Renders the item as a link. A link can't be checked: use `MenuItem` without `href` for a checked item. */
+  href?: string;
+  /** Shows a checkmark when true and keeps its space when false. Makes the item a `menuitemcheckbox` (or a `menuitemradio` with `role="radio"`) with `aria-checked`. Undefined: a plain `menuitem`. Ignored with `href`. */
+  checked?: boolean;
+  /** 'radio' makes a checked item a `menuitemradio`; choosing it closes the menu. A checkbox item (the default) stays open when chosen, with focus on it. Ignored without `checked`. */
+  role?: 'radio' | 'checkbox';
   children: React.ReactNode;
   onClick?: (e: React.MouseEvent | React.KeyboardEvent) => void;
   /** Called with `value` when the item is chosen. */
   onSelect?: (value?: string) => void;
   value?: string;
-  /** Renders the item as a link. */
-  href?: string;
   target?: string;
   rel?: string;
   /** Disabled items can't be activated (`aria-disabled`). One with a `description` still takes focus from the arrow keys, Home/End and typeahead so its reason can be read. */
@@ -2152,8 +2216,9 @@ export declare namespace Menu {
 }
 export declare function MenuContainer(props: MenuContainerProps): React.ReactElement;
 export declare const MenuButton: React.ForwardRefExoticComponent<MenuButtonProps & React.RefAttributes<HTMLButtonElement>>;
-export declare function MenuItem(props: MenuItemProps): React.ReactElement;
-export declare function MenuLink(props: MenuItemProps & { href: string }): React.ReactElement;
+export declare function MenuItem(props: Omit<MenuItemProps, 'href'> & { href?: undefined }): React.ReactElement;
+export declare function MenuItem(props: Omit<MenuItemProps, 'checked' | 'role'> & { href: string; checked?: never; role?: never }): React.ReactElement;
+export declare function MenuLink(props: Omit<MenuItemProps, 'href' | 'checked' | 'role'> & { href: string; checked?: never; role?: never }): React.ReactElement;
 /** A permission-gated item: disabled, with a lock. */
 export declare function MenuItemLocked(props: MenuItemProps): React.ReactElement;
 export declare function MenuSection(props: MenuSectionProps): React.ReactElement;
@@ -2450,6 +2515,8 @@ export interface AvatarProps extends Omit<React.HTMLAttributes<HTMLSpanElement>,
   /** An image you host. Without it the avatar shows initials or a generated gradient. */
   src?: string;
   alt?: string;
+  /** Draws a status dot in the bottom-right corner and adds the state to the accessible name (“Ada Lovelace, online”). Not supported on `Avatar.Group` or `Avatar.WithIcon`. */
+  presence?: 'online' | 'away' | 'offline';
 }
 export interface AvatarGroupMember { username?: string; title?: string; letter?: string; src?: string; placeholder?: boolean }
 export interface AvatarGroupProps {
@@ -2466,7 +2533,7 @@ export interface AvatarGroupProps {
   className?: string;
   style?: React.CSSProperties;
 }
-export interface AvatarWithIconProps extends AvatarProps {
+export interface AvatarWithIconProps extends Omit<AvatarProps, 'presence'> {
   /** Small status icon in the bottom-left corner. */
   icon: React.ReactNode;
   /** Put the icon on a background disc so it reads over the avatar. */
@@ -2536,6 +2603,18 @@ export interface VideoProps {
 }
 export declare function Video(props: VideoProps): React.ReactElement;
 
+export interface WaveformProps {
+  /** One bar per entry, from 0 (silent, still drawn as a minimal bar) to 1 (loudest). Values outside 0–1 are clamped. */
+  levels: number[];
+  /** How much has played, 0–1 (clamped). Bars up to that fraction use the played colour. Default 0. */
+  progress?: number;
+  /** Height in px. Default 32. It always fills the width of its container. */
+  height?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Waveform(props: WaveformProps): React.ReactElement;
+
 declare global {
   interface Window {
     Hyprsh: {
@@ -2585,6 +2664,7 @@ declare global {
       Skeleton: typeof Skeleton;
       Spinner: typeof Spinner;
       Toast: typeof Toast;
+      Bubble: typeof Bubble;
       Code: typeof Code;
       CodeBlock: typeof CodeBlock;
       Description: typeof Description;
@@ -2621,6 +2701,7 @@ declare global {
       Logo: typeof Logo;
       Phone: typeof Phone;
       Video: typeof Video;
+      Waveform: typeof Waveform;
     };
   }
 }

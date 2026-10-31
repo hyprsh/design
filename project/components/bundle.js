@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -3548,6 +3548,8 @@
       var label = props.label === false ? null : (props.label === true || props.label == null ? word : props.label);
       /* Semantic states name the status itself; so does `error` once it has a custom label. Deployment states say what happened to a deployment. */
       var general = !!STATUS_SEMANTIC[state] || (state === 'error' && props.label != null && props.label !== true && props.label !== false);
+      /* title={null} drops the native tooltip but keeps the accessible name, which is generated as usual. */
+      var untitled = props.title === null;
       var name;
       if (props.title) name = props.title;
       else if (general) {
@@ -3556,7 +3558,7 @@
       } else name = (props.titlePrefix || 'This deployment') + ' ' + STATUS_MESSAGE[state];
       return h('span', {
         className: cx('hy-status', 'hy-status--' + state, variant !== 'filled' && 'hy-status--' + variant, props.className),
-        title: general || props.title ? name : name + '.',
+        title: untitled ? undefined : general || props.title ? name : name + '.',
         role: label ? undefined : 'img',
         'aria-label': label ? undefined : name,
         'aria-hidden': props['aria-hidden']
@@ -3760,8 +3762,12 @@
       return pick === undefined && keys.length ? colors[keys[0]] : pick;
     }
 
+    /* A segment's tone, as StatusDot's states: success, info, warning, error, neutral. */
+    var PROGRESS_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
+
     function Progress(props) {
       var max = props.max || 100;
+      var segmented = Array.isArray(props.segments);
       var value = Math.max(0, Math.min(max, Number(props.value) || 0));
       var pct = value / max;
       var id = useId();
@@ -3773,12 +3779,30 @@
       var height = props.height !== undefined ? props.height : 10;
       var stops = (props.stops || []).filter(function (s) { return s && s.value > 0 && s.value < max; });
 
-      var bar = h('div', { className: 'hy-progress__bar', style: { height: height } },
-        h('div', {
+      /* Segments are drawn in order and cut off at max; the run is as wide as what is filled. */
+      var runs = [], filled = 0;
+      if (segmented) props.segments.forEach(function (s) {
+        var v = Math.min(Math.max(0, Number(s && s.value) || 0), max - filled);
+        if (v <= 0) return;
+        filled += v;
+        runs.push({ value: v, tone: PROGRESS_TONES.indexOf(s.tone) >= 0 ? s.tone : 'neutral' });
+      });
+
+      var named = { 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress') };
+      var track = segmented ?
+        h('div', Object.assign({ className: 'hy-progress__track', role: 'img' }, named),
+          runs.length ? h('div', { className: 'hy-progress__run', style: { width: (filled / max * 100) + '%', minWidth: runs.length * (props.gap ? 5 : 4) } },
+            runs.map(function (r, i) {
+              return h('span', { key: i, className: cx('hy-progress__segment', 'hy-progress__segment--' + r.tone, props.gap && i > 0 && 'has-gap'), style: { flexBasis: (r.value / filled * 100) + '%' } });
+            })) : null) :
+        h('div', Object.assign({
           className: 'hy-progress__track', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': max, 'aria-valuenow': value,
-          'aria-valuetext': fmt.format(pct), 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress')
-        },
-          h('span', { className: 'hy-progress__fill', style: { transform: 'translateX(' + ((pct - 1) * 100) + '%)', background: color } })),
+          'aria-valuetext': fmt.format(pct)
+        }, named),
+          h('span', { className: 'hy-progress__fill', style: { transform: 'translateX(' + ((pct - 1) * 100) + '%)', background: color } }));
+
+      var bar = h('div', { className: 'hy-progress__bar', style: { height: height } },
+        track,
         stops.map(function (s, i) {
           var left = (s.value / max * 100) + '%';
           var mark = h('span', { className: 'hy-progress__divider', style: { left: left }, 'aria-hidden': 'true' });
@@ -3793,7 +3817,7 @@
       return h('div', { className: cx('hy-progress', 'hy-progress--' + type, props.className), style: Object.assign(props.width !== undefined ? { width: props.width } : {}, props.style) },
         props.label ? h('div', { className: 'hy-progress__head' },
           h('span', { id: id, className: 'hy-progress__label' }, props.label),
-          h('span', { className: 'hy-progress__value' }, fmt.format(pct))) : null,
+          segmented ? null : h('span', { className: 'hy-progress__value' }, fmt.format(pct))) : null,
         bar);
     }
 
@@ -3814,9 +3838,23 @@
         : h(Glyph, { name: PB_GLYPH[variant], className: 'hy-pbanner__icon' });
       var action = null;
       if (cta) {
+        /* Like Button's loading: the label stays, a spinner comes before it, and the action can't run twice. A busy CTA stays
+           focusable (aria-disabled, not disabled, so focus is kept) and its click does nothing. A link loses its href so it can't be followed. */
+        var busy = !!cta.loading;
+        var spinner = busy ? h(HY.Spinner, { size: 'sm', className: 'hy-pbanner__spinner' }) : null;
+        var noop = function (e) { e.preventDefault(); };
         action = cta.href !== undefined || !cta.onClick
-          ? h('a', { className: 'hy-pbanner__cta', href: cta.href || '#', onClick: cta.onClick }, cta.label)
-          : h('button', { type: 'button', className: 'hy-pbanner__cta', onClick: cta.onClick }, cta.label);
+          ? h('a', {
+            className: 'hy-pbanner__cta', href: busy ? undefined : cta.href || '#',
+            /* Without an href a link can't take focus, so keep it in the tab order while busy. */
+            tabIndex: busy ? 0 : undefined,
+            'aria-busy': busy || undefined, 'aria-disabled': busy || undefined,
+            onClick: busy ? noop : cta.onClick
+          }, spinner, cta.label)
+          : h('button', {
+            type: 'button', className: 'hy-pbanner__cta', 'aria-busy': busy || undefined, 'aria-disabled': busy || undefined,
+            onClick: busy ? noop : cta.onClick
+          }, spinner, cta.label);
       }
       return h('aside', {
         className: cx('hy-pbanner', 'hy-pbanner--' + variant, props.className), style: props.style,
@@ -4042,6 +4080,22 @@
     Toast.toasts = toastApi;
     define('Toast', Toast);
     define('useToasts', useToasts);
+  })();
+
+  /* ---- Bubble ---- */
+  (function () {
+    function Bubble(props) {
+      var direction = props.direction === 'sent' ? 'sent' : 'received';
+      var position = props.position === 'first' || props.position === 'middle' || props.position === 'last' ? props.position : 'single';
+      var rest = omit(props, ['direction', 'position', 'time', 'children', 'className']);
+      return h('div', Object.assign({}, rest, {
+        className: cx('hy-bubble', 'hy-bubble--' + direction, 'hy-bubble--' + position, props.className)
+      }),
+        h('div', { className: 'hy-bubble__body' }, props.children),
+        props.time != null && props.time !== false ? h('div', { className: 'hy-bubble__time' }, props.time) : null);
+    }
+
+    define('Bubble', Bubble);
   })();
 
   /* ---- Code ---- */
@@ -5672,39 +5726,57 @@
      */
     var ContextMenuCtx = React.createContext(null);
 
+    /* When the app opens the menu (controlled `open`), no gesture set the focus target: take the first item, as Menu does. */
+    function ContextMenuFocus() {
+      var menu = React.useContext(HY.MenuContainer.Context);
+      var open = !!(menu && menu.open);
+      useLayoutEffect(function () {
+        if (open && !menu.focusOnOpen.current) menu.focusOnOpen.current = 'first';
+      }, [open]);
+      return null;
+    }
+
     function ContextMenu(props) {
       var st = useState(null), point = st[0], setPoint = st[1];
       var triggerEl = useRef(null);
       var api = useRef({});
       api.current.setPoint = setPoint;
+      /* Controlled by `open`, or held here; the gestures only ask via set(), which calls onOpenChange either way. */
+      var oc = useControllable(props.open, !!props.defaultOpen, props.onOpenChange), open = oc[0], set = oc[1];
+      var anchor = props.anchorPoint || point;
 
-      function onOpenChange(next) {
-        if (!next) setPoint(null);
-        if (props.onOpenChange) props.onOpenChange(next);
-      }
       /* defaultOpen (docs and previews): open near the top middle of the trigger area. */
       useLayoutEffect(function () {
-        if (!props.defaultOpen || !triggerEl.current) return;
+        if (!props.defaultOpen || props.open !== undefined || !triggerEl.current) return;
         var r = triggerEl.current.getBoundingClientRect();
         setPoint({ x: Math.round(r.left + r.width / 2), y: Math.round(r.top + Math.min(32, r.height / 2)) });
       }, []);
+      /* Open without a point from the app: 8px in from the trigger's top-left corner, as Shift+F10 does. */
+      useLayoutEffect(function () {
+        if (!open || anchor || !triggerEl.current) return;
+        var r = triggerEl.current.getBoundingClientRect();
+        setPoint({ x: Math.round(r.left + 8), y: Math.round(r.top + 8) });
+      }, [open, anchor]);
+      /* A closed menu forgets its point, also one from a gesture the app declined (controlled, `open` still false after
+         the render that followed it), so the next open starts from its own gesture or the fallback. */
+      useEffect(function () { if (!open && point) setPoint(null); }, [open, point]);
       /* A menu pinned to the viewport would drift from its target, so close when the page scrolls under it. */
       useEffect(function () {
-        if (!point) return;
+        if (!open) return;
         function shut(e) {
           var t = e.target;
           if (t && t.nodeType === 1 && t.closest && t.closest('.hy-menu__list')) return;
-          onOpenChange(false);
+          set(false);
         }
         window.addEventListener('scroll', shut, true);
         return function () { window.removeEventListener('scroll', shut, true); };
-      }, [point]);
+      }, [open, props.onOpenChange]);
 
       return h(ContextMenuCtx.Provider, { value: { api: api, triggerEl: triggerEl } },
         h(HY.MenuContainer, {
-          open: !!point, onOpenChange: onOpenChange, anchorPoint: point || undefined,
+          open: open && !!anchor, onOpenChange: set, anchorPoint: anchor || undefined,
           className: cx('hy-context-menu', props.className), style: props.style
-        }, props.children));
+        }, h(ContextMenuFocus), props.children));
     }
 
     function ContextMenuTrigger(props) {
@@ -5777,11 +5849,59 @@
       }), props.children);
     }
 
+    /* The reaction row: a role="group" of menuitem buttons with a roving tabindex. Menu leaves a [data-menu-row] to its own keys
+       (and puts focus on its tab stop when it opens to the first item), so Left/Right stay in the row, Up/Down hop to the items,
+       and Home/End and typeahead, which Menu handles, reach the items only. */
+    function ContextMenuReactions(props) {
+      var menu = React.useContext(HY.MenuContainer.Context);
+      var list = props.reactions;
+      var st = useState(0), cur = st[0], setCur = st[1];
+      var rowRef = useRef(null);
+      var stop = Math.min(cur, list.length - 1);
+      function buttons() { return rowRef.current ? Array.prototype.slice.call(rowRef.current.querySelectorAll('button')) : []; }
+      function onKeyDown(e) {
+        var go = null, i = buttons().indexOf(e.target.closest('button'));
+        var key = e.key;
+        if (key === 'ArrowRight' || key === 'ArrowLeft') {
+          e.preventDefault(); e.stopPropagation();
+          go = buttons()[i + (key === 'ArrowRight' ? 1 : -1)]; /* no wrap */
+          if (go) go.focus();
+        } else if (key === 'ArrowDown' || key === 'ArrowUp') {
+          e.preventDefault(); e.stopPropagation();
+          var items = Array.prototype.filter.call(menu && menu.listRef.current ? menu.listRef.current.querySelectorAll('[role^="menuitem"]') : [], function (el) {
+            return !el.closest('[data-menu-row]') && el.getAttribute('aria-disabled') !== 'true';
+          });
+          go = key === 'ArrowDown' ? items[0] : items[items.length - 1];
+          if (go) go.focus();
+        }
+      }
+      return h('li', { role: 'none', className: 'hy-context-menu__row-li' },
+        h('div', { ref: rowRef, role: 'group', 'aria-label': 'Reactions', 'data-menu-row': '', className: 'hy-context-menu__reactions', onKeyDown: onKeyDown },
+          list.map(function (r, i) {
+            return h('button', {
+              key: r.value, type: 'button', role: 'menuitem', tabIndex: i === stop ? 0 : -1, 'aria-label': r.label, title: r.label,
+              className: 'hy-context-menu__reaction',
+              onFocus: function () { setCur(i); },
+              onMouseEnter: function (e) { e.currentTarget.focus({ preventScroll: true }); },
+              onClick: function () {
+                if (props.onReact) props.onReact(r.value);
+                if (menu) menu.close(true);
+              }
+            }, h('span', { className: 'hy-context-menu__emoji', 'aria-hidden': 'true' }, r.emoji));
+          })));
+    }
+
     /* The list is portalled and placed by Menu (useFloating at the pointer), which keeps it 8px inside the screen. */
     function ContextMenuContent(props) {
-      return h(HY.Menu, Object.assign({}, props, {
+      var reactions = props.reactions && props.reactions.length ? props.reactions : null;
+      var rest = Object.assign({}, omit(props, ['reactions', 'onReact', 'children']), {
         'aria-label': props['aria-label'] || 'Context Menu', className: cx('hy-context-menu__list', props.className)
-      }));
+      });
+      if (!reactions) return h(HY.Menu, Object.assign(rest, { children: props.children }));
+      return h(HY.Menu, rest,
+        h(ContextMenuReactions, { reactions: reactions, onReact: props.onReact }),
+        h(HY.MenuDivider),
+        props.children);
     }
 
     function ContextMenuItem(props) { return h(HY.MenuItem, props); }
@@ -5977,13 +6097,18 @@
       return { side: side, align: parts[1] === 'end' ? 'end' : 'start' };
     }
 
-    /* The items the arrow keys reach: enabled ones, and disabled ones that carry a description (data-focusable). */
+    /* Every role an item can have; the roving focus, Home/End and typeahead find all of them. */
+    var ITEM_SELECTOR = '[role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"]';
+    /* The items the arrow keys reach: enabled ones, and disabled ones that carry a description (data-focusable).
+       A row of its own (data-menu-row, which handles its keys itself) is not among them; menuRowStop() is its roving tab stop. */
     function menuItems(list, enabledOnly) {
       if (!list) return [];
-      return Array.prototype.filter.call(list.querySelectorAll('[role="menuitem"]'), function (el) {
+      return Array.prototype.filter.call(list.querySelectorAll(ITEM_SELECTOR), function (el) {
+        if (el.closest('[data-menu-row]')) return false;
         return el.getAttribute('aria-disabled') !== 'true' || (!enabledOnly && el.hasAttribute('data-focusable'));
       });
     }
+    function menuRowStop(list) { return list ? list.querySelector('[data-menu-row] [tabindex="0"]') : null; }
     /* Keys the menu handles itself; they never reach the page's own handlers through the React tree or the document. */
     var MENU_KEYS = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ', 'Escape', 'Tab'];
 
@@ -6090,7 +6215,7 @@
         if (!which || !list) return;
         var items = menuItems(list, true);
         if (!items.length) items = menuItems(list);
-        var el = which === 'last' ? items[items.length - 1] : which === 'first' ? items[0] : null;
+        var el = which === 'last' ? items[items.length - 1] : which === 'first' ? (menuRowStop(list) || items[0]) : null;
         (el || list).focus({ preventScroll: true });
       }, [placed]);
 
@@ -6104,7 +6229,7 @@
         var i = items.indexOf(document.activeElement);
         var next = null;
         if (e.key === 'ArrowDown') next = items[(i + 1) % items.length];
-        else if (e.key === 'ArrowUp') next = items[(i - 1 + items.length) % items.length];
+        else if (e.key === 'ArrowUp') next = i === 0 && menuRowStop(ctx.listRef.current) || items[(i - 1 + items.length) % items.length];
         else if (e.key === 'Home') next = items[0];
         else if (e.key === 'End') next = items[items.length - 1];
         else if (e.key === 'Tab') { ctx.close(false); return; }
@@ -6136,8 +6261,9 @@
       return (t || el).textContent.trim().toLowerCase();
     }
 
-    function itemInner(props, descId) {
+    function itemInner(props, descId, checkable) {
       return [
+        checkable ? h('span', { key: 'c', className: 'hy-menu__check', 'aria-hidden': 'true' }, props.checked ? h(Glyph, { name: 'check', size: 16 }) : null) : null,
         props.prefix ? h('span', { key: 'p', className: 'hy-menu__affix', 'aria-hidden': 'true' }, props.prefix) : null,
         props.description
           ? h('span', { key: 't', className: 'hy-menu__stack' },
@@ -6159,27 +6285,34 @@
         title: props.title, 'aria-describedby': props.description ? descId : undefined,
         'data-focusable': disabled && props.description ? '' : undefined
       };
+      /* Links can't be checked; `checked` and `role` are ignored on them. */
+      var isLink = props.href !== undefined;
+      var checkable = !isLink && props.checked !== undefined;
+      var radio = checkable && props.role === 'radio';
+      var itemRole = checkable ? (radio ? 'menuitemradio' : 'menuitemcheckbox') : 'menuitem';
       var cls = cx('hy-menu__item', props.type === 'error' && 'hy-menu__item--error', props.className);
       function activate(e) {
         if (disabled) { e.preventDefault(); return; }
         if (props.onClick) props.onClick(e);
         if (props.onSelect) props.onSelect(props.value);
-        if (ctx) ctx.close(true);
+        /* A checkbox item stays open, with focus where it was, so several can be toggled. */
+        if (ctx && !(checkable && !radio)) ctx.close(true);
       }
       function hover(e) { if (!disabled) e.currentTarget.focus({ preventScroll: true }); }
-      if (props.href !== undefined) {
+      if (isLink) {
         return h('li', { role: 'none', className: 'hy-menu__li' },
           h('a', Object.assign({
             role: 'menuitem', tabIndex: -1, href: disabled ? undefined : props.href, target: props.target, rel: props.rel,
             'aria-disabled': disabled || undefined, className: cls, onClick: activate, onMouseEnter: hover,
             onKeyDown: function (e) { if (e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }
-          }, hint), itemInner(props, descId)));
+          }, hint), itemInner(props, descId, false)));
       }
       return h('li', Object.assign({
-        role: 'menuitem', tabIndex: -1, 'aria-disabled': disabled || undefined, className: cls, style: props.style,
+        role: itemRole, tabIndex: -1, 'aria-checked': checkable ? !!props.checked : undefined,
+        'aria-disabled': disabled || undefined, className: cls, style: props.style,
         onClick: activate, onMouseEnter: hover,
         onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); } }
-      }, hint), itemInner(props, descId));
+      }, hint), itemInner(props, descId, checkable));
     }
 
     function MenuLink(props) { return h(MenuItem, Object.assign({}, props, { href: props.href || '#' })); }
@@ -6210,7 +6343,7 @@
       return h(MenuList, { ctx: ctx, width: props.width, 'aria-label': typeof props.label === 'string' ? props.label : undefined },
         (props.items || []).map(function (it, i) {
           if (it.separator) return h(MenuDivider, { key: 'sep' + i });
-          return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title }, it.label);
+          return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title, checked: it.checked, role: it.role }, it.label);
         }));
     }
 
@@ -6972,7 +7105,7 @@
       return Math.abs(n);
     }
 
-    function Avatar(props) {
+    function AvatarBase(props, presence) {
       var size = props.size || 32;
       var name = props.title || props.username || props.name;
       var letter = props.letter ? String(props.letter).toUpperCase().slice(0, size < 24 ? 1 : 2) : null;
@@ -6983,16 +7116,31 @@
         var pair = AVATAR_PAIRS[avatarHash(String(name || 'hyprsh')) % AVATAR_PAIRS.length];
         style.backgroundImage = 'linear-gradient(135deg, var(--' + pair[0] + '), var(--' + pair[1] + '))';
       }
-      var hidden = props['aria-hidden'] === true || props['aria-hidden'] === 'true' || (kind === 'placeholder' && !name);
-      var label = name || (letter ? 'Avatar with initials: ' + letter : 'Avatar');
-      var rest = omit(props, ['size', 'title', 'username', 'name', 'letter', 'placeholder', 'src', 'alt', 'style', 'className', 'aria-hidden']);
+      var hidden = props['aria-hidden'] === true || props['aria-hidden'] === 'true' || (kind === 'placeholder' && !name && !presence);
+      var label = name || (letter ? 'Avatar with initials: ' + letter : presence ? '' : 'Avatar');
+      if (presence) label = label ? label + ', ' + presence.toLowerCase() : presence;
+      var alt = props.alt !== undefined ? props.alt : name || '';
+      if (presence && props.alt !== '') alt = alt ? alt + ', ' + presence.toLowerCase() : presence;
+      var rest = omit(props, ['presence', 'size', 'title', 'username', 'name', 'letter', 'placeholder', 'src', 'alt', 'style', 'className', 'aria-hidden']);
       return h('span', Object.assign({}, rest, {
         className: cx('hy-avatar', 'hy-avatar--' + kind, props.className), style: style,
         role: hidden || kind === 'image' ? undefined : 'img', 'aria-label': hidden || kind === 'image' ? undefined : label,
         'aria-hidden': hidden ? 'true' : undefined, title: name || undefined
       }),
-        kind === 'image' ? h('img', { src: props.src, alt: props.alt !== undefined ? props.alt : (name || ''), width: size, height: size, draggable: false }) : null,
+        kind === 'image' ? h('img', { src: props.src, alt: alt, width: size, height: size, draggable: false }) : null,
         kind === 'letter' ? h('span', { 'aria-hidden': 'true' }, letter) : null);
+    }
+
+    var AVATAR_PRESENCE = { online: 'Online', away: 'Away', offline: 'Offline' };
+
+    function Avatar(props) {
+      var presence = AVATAR_PRESENCE[props.presence];
+      if (!presence) return AvatarBase(props);
+      var size = props.size || 32;
+      var dot = Math.max(8, Math.round(size * 0.28));
+      return h('span', { className: 'hy-avatar-presence', style: { width: size, height: size } },
+        AvatarBase(props, presence),
+        h('span', { className: 'hy-avatar-presence__dot hy-avatar-presence__dot--' + props.presence, style: { width: dot, height: dot, borderWidth: size > 32 ? 3 : 2 }, 'aria-hidden': 'true' }));
     }
 
     function AvatarGroup(props) {
@@ -7019,7 +7167,7 @@
       var size = props.size || 32;
       var badge = Math.max(14, Math.round(size * 0.5));
       return h('span', { className: cx('hy-avatar-icon', props.className), style: { width: size, height: size } },
-        h(Avatar, omit(props, ['icon', 'iconBackground', 'className'])),
+        h(Avatar, omit(props, ['presence', 'icon', 'iconBackground', 'className'])),
         h('span', { className: cx('hy-avatar-icon__badge', props.iconBackground && 'hy-avatar-icon__badge--bg'), style: { width: badge, height: badge }, 'aria-hidden': 'true' }, props.icon));
     }
 
@@ -7228,6 +7376,35 @@
     }
 
     define('Video', Video);
+  })();
+
+  /* ---- Waveform ---- */
+  (function () {
+    /* Clamp a number into 0–1; anything that is not a finite number counts as 0. */
+    function waveClamp(n) {
+      n = Number(n);
+      return n > 0 ? (n < 1 ? n : 1) : 0;
+    }
+
+    function Waveform(props) {
+      var levels = props.levels || [];
+      var played = Math.round(waveClamp(props.progress) * levels.length);
+      var height = props.height !== undefined ? props.height : 32;
+
+      return h('div', {
+        className: cx('hy-waveform', props.className),
+        style: Object.assign({ height: height }, props.style),
+        'aria-hidden': 'true'
+      }, levels.map(function (level, i) {
+        return h('span', {
+          key: i,
+          className: cx('hy-waveform__bar', i < played && 'is-played'),
+          style: { height: (waveClamp(level) * 100) + '%' }
+        });
+      }));
+    }
+
+    define('Waveform', Waveform);
   })();
 
   window.Hyprsh = Object.assign(window.Hyprsh || {}, HY);
