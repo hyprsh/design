@@ -5,39 +5,57 @@
  */
 var ContextMenuCtx = React.createContext(null);
 
+/* When the app opens the menu (controlled `open`), no gesture set the focus target: take the first item, as Menu does. */
+function ContextMenuFocus() {
+  var menu = React.useContext(HY.MenuContainer.Context);
+  var open = !!(menu && menu.open);
+  useLayoutEffect(function () {
+    if (open && !menu.focusOnOpen.current) menu.focusOnOpen.current = 'first';
+  }, [open]);
+  return null;
+}
+
 function ContextMenu(props) {
   var st = useState(null), point = st[0], setPoint = st[1];
   var triggerEl = useRef(null);
   var api = useRef({});
   api.current.setPoint = setPoint;
+  /* Controlled by `open`, or held here; the gestures only ask via set(), which calls onOpenChange either way. */
+  var oc = useControllable(props.open, !!props.defaultOpen, props.onOpenChange), open = oc[0], set = oc[1];
+  var anchor = props.anchorPoint || point;
 
-  function onOpenChange(next) {
-    if (!next) setPoint(null);
-    if (props.onOpenChange) props.onOpenChange(next);
-  }
   /* defaultOpen (docs and previews): open near the top middle of the trigger area. */
   useLayoutEffect(function () {
-    if (!props.defaultOpen || !triggerEl.current) return;
+    if (!props.defaultOpen || props.open !== undefined || !triggerEl.current) return;
     var r = triggerEl.current.getBoundingClientRect();
     setPoint({ x: Math.round(r.left + r.width / 2), y: Math.round(r.top + Math.min(32, r.height / 2)) });
   }, []);
+  /* Open without a point from the app: 8px in from the trigger's top-left corner, as Shift+F10 does. */
+  useLayoutEffect(function () {
+    if (!open || anchor || !triggerEl.current) return;
+    var r = triggerEl.current.getBoundingClientRect();
+    setPoint({ x: Math.round(r.left + 8), y: Math.round(r.top + 8) });
+  }, [open, anchor]);
+  /* A closed menu forgets its point, also one from a gesture the app declined (controlled, `open` still false after
+     the render that followed it), so the next open starts from its own gesture or the fallback. */
+  useEffect(function () { if (!open && point) setPoint(null); }, [open, point]);
   /* A menu pinned to the viewport would drift from its target, so close when the page scrolls under it. */
   useEffect(function () {
-    if (!point) return;
+    if (!open) return;
     function shut(e) {
       var t = e.target;
       if (t && t.nodeType === 1 && t.closest && t.closest('.hy-menu__list')) return;
-      onOpenChange(false);
+      set(false);
     }
     window.addEventListener('scroll', shut, true);
     return function () { window.removeEventListener('scroll', shut, true); };
-  }, [point]);
+  }, [open, props.onOpenChange]);
 
   return h(ContextMenuCtx.Provider, { value: { api: api, triggerEl: triggerEl } },
     h(HY.MenuContainer, {
-      open: !!point, onOpenChange: onOpenChange, anchorPoint: point || undefined,
+      open: open && !!anchor, onOpenChange: set, anchorPoint: anchor || undefined,
       className: cx('hy-context-menu', props.className), style: props.style
-    }, props.children));
+    }, h(ContextMenuFocus), props.children));
 }
 
 function ContextMenuTrigger(props) {

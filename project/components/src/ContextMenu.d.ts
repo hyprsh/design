@@ -1,9 +1,14 @@
 export interface ContextMenuProps {
   /** A ContextMenuTrigger and a ContextMenuContent. */
   children: React.ReactNode;
-  /** Open on mount in the middle of the trigger (docs and previews). */
+  /** Controlled open state. When given, right-click, long-press, Shift+F10, the Menu key, Escape, an outside click, choosing an item and page scroll only call `onOpenChange`; the menu opens and closes as this says. */
+  open?: boolean;
+  /** Open on mount in the middle of the trigger (docs and previews). Ignored when `open` is given. */
   defaultOpen?: boolean;
+  /** Called with the next state in both modes. */
   onOpenChange?: (open: boolean) => void;
+  /** Viewport point (px) the menu opens at, instead of the gesture's point. Without it, an app-opened menu uses the gesture's point, or 8px in from the trigger's top-left corner. */
+  anchorPoint?: { x: number; y: number };
   className?: string;
   style?: React.CSSProperties;
 }
