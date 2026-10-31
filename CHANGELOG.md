@@ -2,6 +2,18 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.16.0
+
+2026-10-31
+
+### Features
+
+- **table:** resizable columns and a pager for long tables
+
+### Docs
+
+- **table:** record resize and pager decisions
+
 ## v0.15.0
 
 2026-10-31

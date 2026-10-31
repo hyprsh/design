@@ -9,7 +9,7 @@ The tokens, fonts, brand assets and React components that every hyprsh product i
 Install it from this repo, pinned to a version tag. Installing runs `prepare`, which builds `dist/`. React and ReactDOM 18 or newer are peer dependencies.
 
 ```bash
-npm install github:hyprsh/design#v0.15.0
+npm install github:hyprsh/design#v0.16.0
 ```
 
 ### Import the styles
