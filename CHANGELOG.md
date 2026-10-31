@@ -2,6 +2,39 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.15.0
+
+2026-10-31
+
+### Features
+
+- **release:** a script that bumps, changelogs, commits and tags a release
+- **chrome:** add --clean to kill orphaned hy-chrome Chrome processes
+- **chrome:** stop the Chrome scripts after HY_DEADLINE seconds
+- **chrome:** add emulate, measure and screenshot probe helpers
+- **components:** chat parts, checked menu items, segmented progress and smaller props
+
+### Fixes
+
+- **release:** show plain paths in the dry-run diff
+- **chrome:** kill Chrome and remove its profile when the script exits or is interrupted
+- **chrome:** --clean kills only orphaned Chromes, not ones a running script drives
+- **cards:** heights that fit their content
+- **chrome:** a 600s default deadline, since the card check takes about 4 minutes
+- **touch:** expect the round close button in place of the Esc hint on touch-only devices
+
+### Docs
+
+- **readme:** rewrite Releasing around scripts/release.mjs
+- **contributing:** allow edits to shared files when the ticket asks for them
+- **glossary:** add tone and segment
+- **glossary:** add presence and reaction
+
+### Other
+
+- fail when install tags or the changelog disagree with package.json
+- check every card fits its declared height
+
 ## v0.14.0
 
 2026-10-24

@@ -14,7 +14,7 @@
 **1. Install** a release tag (React 18 or newer is a peer dependency):
 
 ```bash
-npm install github:hyprsh/design#v0.14.0
+npm install github:hyprsh/design#v0.15.0
 ```
 
 **2. Import the styles** once, at your app's entry:
@@ -86,7 +86,7 @@ The docs site also serves `llms.txt`, `llms-full.txt` and a `.md` version of eve
 Each version is a git tag. [CHANGELOG.md](CHANGELOG.md) (the [Changelog page](https://hyprsh.github.io/design/changelog/), and `docs/changelog.md` in the package) and the [GitHub releases](https://github.com/hyprsh/design/releases) list each version's features, fixes and breaking changes. To upgrade, point the install at the new tag:
 
 ```bash
-npm install github:hyprsh/design#v0.14.0
+npm install github:hyprsh/design#v0.15.0
 ```
 
 ---
@@ -149,7 +149,7 @@ The Chrome scripts need Google Chrome installed in `/Applications`, or `CHROME_P
 
 ### Releasing
 
-From a clean `main` that is level with `origin/main`, run `node scripts/release.mjs 0.15.0 --push`. It first checks that the tree is clean, the version is greater than `package.json`'s and the tag is new, and that CI on `origin/main`'s HEAD is green (it refuses a red run, and asks you to try again while one is still going; `--skip-ci-check` overrides that). Then it bumps `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, adds the version to the changelog with `node scripts/release-notes.mjs --changelog v0.15.0` (a new section at the top of `CHANGELOG.md` from the commits since the latest tag, dated today, with the older sections untouched), commits it all as `chore: release 0.15.0`, tags `v0.15.0` and pushes `main` and the tag. Without `--push` it stops before pushing and prints the push command, and `--dry-run` prints the plan and the diff and changes nothing. The changelog comes first because the docs site and the npm package are built from the committed `CHANGELOG.md`. Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with the same notes, grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes). A test fails when an install tag or the changelog disagrees with `package.json`'s version.
+From a clean `main` that is level with `origin/main`, run `node scripts/release.mjs 0.16.0 --push`. It first checks that the tree is clean, the version is greater than `package.json`'s and the tag is new, and that CI on `origin/main`'s HEAD is green (it refuses a red run, and asks you to try again while one is still going; `--skip-ci-check` overrides that). Then it bumps `version` in `package.json` and the install tags in this README and `docs/getting-started.md`, adds the version to the changelog with `node scripts/release-notes.mjs --changelog v0.16.0` (a new section at the top of `CHANGELOG.md` from the commits since the latest tag, dated today, with the older sections untouched), commits it all as `chore: release 0.16.0`, tags `v0.16.0` and pushes `main` and the tag. Without `--push` it stops before pushing and prints the push command, and `--dry-run` prints the plan and the diff and changes nothing. The changelog comes first because the docs site and the npm package are built from the committed `CHANGELOG.md`. Pushing the tag runs every check, deploys the docs site and publishes a GitHub release with the same notes, grouped from the commit subjects since the previous tag, so write them as conventional commits (`feat(table): …`, `fix: …`, `feat!: …` for breaking changes). A test fails when an install tag or the changelog disagrees with `package.json`'s version.
 
 ### Contributing
 
