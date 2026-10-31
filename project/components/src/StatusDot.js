@@ -25,6 +25,8 @@ function StatusDot(props) {
   var label = props.label === false ? null : (props.label === true || props.label == null ? word : props.label);
   /* Semantic states name the status itself; so does `error` once it has a custom label. Deployment states say what happened to a deployment. */
   var general = !!STATUS_SEMANTIC[state] || (state === 'error' && props.label != null && props.label !== true && props.label !== false);
+  /* title={null} drops the native tooltip but keeps the accessible name, which is generated as usual. */
+  var untitled = props.title === null;
   var name;
   if (props.title) name = props.title;
   else if (general) {
@@ -33,7 +35,7 @@ function StatusDot(props) {
   } else name = (props.titlePrefix || 'This deployment') + ' ' + STATUS_MESSAGE[state];
   return h('span', {
     className: cx('hy-status', 'hy-status--' + state, variant !== 'filled' && 'hy-status--' + variant, props.className),
-    title: general || props.title ? name : name + '.',
+    title: untitled ? undefined : general || props.title ? name : name + '.',
     role: label ? undefined : 'img',
     'aria-label': label ? undefined : name,
     'aria-hidden': props['aria-hidden']
