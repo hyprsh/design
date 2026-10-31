@@ -128,11 +128,59 @@ function ContextMenuTrigger(props) {
   }), props.children);
 }
 
+/* The reaction row: a role="group" of menuitem buttons with a roving tabindex. Menu leaves a [data-menu-row] to its own keys
+   (and puts focus on its tab stop when it opens to the first item), so Left/Right stay in the row, Up/Down hop to the items,
+   and Home/End and typeahead, which Menu handles, reach the items only. */
+function ContextMenuReactions(props) {
+  var menu = React.useContext(HY.MenuContainer.Context);
+  var list = props.reactions;
+  var st = useState(0), cur = st[0], setCur = st[1];
+  var rowRef = useRef(null);
+  var stop = Math.min(cur, list.length - 1);
+  function buttons() { return rowRef.current ? Array.prototype.slice.call(rowRef.current.querySelectorAll('button')) : []; }
+  function onKeyDown(e) {
+    var go = null, i = buttons().indexOf(e.target.closest('button'));
+    var key = e.key;
+    if (key === 'ArrowRight' || key === 'ArrowLeft') {
+      e.preventDefault(); e.stopPropagation();
+      go = buttons()[i + (key === 'ArrowRight' ? 1 : -1)]; /* no wrap */
+      if (go) go.focus();
+    } else if (key === 'ArrowDown' || key === 'ArrowUp') {
+      e.preventDefault(); e.stopPropagation();
+      var items = Array.prototype.filter.call(menu && menu.listRef.current ? menu.listRef.current.querySelectorAll('[role^="menuitem"]') : [], function (el) {
+        return !el.closest('[data-menu-row]') && el.getAttribute('aria-disabled') !== 'true';
+      });
+      go = key === 'ArrowDown' ? items[0] : items[items.length - 1];
+      if (go) go.focus();
+    }
+  }
+  return h('li', { role: 'none', className: 'hy-context-menu__row-li' },
+    h('div', { ref: rowRef, role: 'group', 'aria-label': 'Reactions', 'data-menu-row': '', className: 'hy-context-menu__reactions', onKeyDown: onKeyDown },
+      list.map(function (r, i) {
+        return h('button', {
+          key: r.value, type: 'button', role: 'menuitem', tabIndex: i === stop ? 0 : -1, 'aria-label': r.label, title: r.label,
+          className: 'hy-context-menu__reaction',
+          onFocus: function () { setCur(i); },
+          onMouseEnter: function (e) { e.currentTarget.focus({ preventScroll: true }); },
+          onClick: function () {
+            if (props.onReact) props.onReact(r.value);
+            if (menu) menu.close(true);
+          }
+        }, h('span', { className: 'hy-context-menu__emoji', 'aria-hidden': 'true' }, r.emoji));
+      })));
+}
+
 /* The list is portalled and placed by Menu (useFloating at the pointer), which keeps it 8px inside the screen. */
 function ContextMenuContent(props) {
-  return h(HY.Menu, Object.assign({}, props, {
+  var reactions = props.reactions && props.reactions.length ? props.reactions : null;
+  var rest = Object.assign({}, omit(props, ['reactions', 'onReact', 'children']), {
     'aria-label': props['aria-label'] || 'Context Menu', className: cx('hy-context-menu__list', props.className)
-  }));
+  });
+  if (!reactions) return h(HY.Menu, Object.assign(rest, { children: props.children }));
+  return h(HY.Menu, rest,
+    h(ContextMenuReactions, { reactions: reactions, onReact: props.onReact }),
+    h(HY.MenuDivider),
+    props.children);
 }
 
 function ContextMenuItem(props) { return h(HY.MenuItem, props); }

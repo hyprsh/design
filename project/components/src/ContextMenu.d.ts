@@ -20,9 +20,21 @@ export interface ContextMenuTriggerProps extends React.HTMLAttributes<HTMLElemen
   /** Leave the browser's own context menu alone. */
   disabled?: boolean;
 }
+export interface ContextMenuReaction {
+  /** Passed to `onReact` when chosen. */
+  value: string;
+  /** The reaction's accessible name, such as 'Thumbs up'. */
+  label: string;
+  /** What is drawn, decorative (`aria-hidden`): an icon or a short glyph. */
+  emoji: React.ReactNode;
+}
 export interface ContextMenuContentProps {
   /** ContextMenuItem elements, plus MenuSection and MenuDivider if needed. */
   children: React.ReactNode;
+  /** A row of quick reactions drawn above the items, as a group named 'Reactions'. Left/Right move within it; Down goes to the items. */
+  reactions?: ContextMenuReaction[];
+  /** Called with the chosen reaction's `value`; the menu then closes. */
+  onReact?: (value: string) => void;
   /** Width in px. */
   width?: number;
   /** Accessible name of the menu. Default 'Context Menu'. */
