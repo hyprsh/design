@@ -11,6 +11,8 @@ export interface QueryBarProps extends Omit<QueryInputProps, 'suggestions' | 'he
   size?: 'small' | 'medium' | 'large';
   /** Class for the outer element. */
   className?: string;
+  /** The "?" button that opens the help popover: `true` (default) beside the field, `false` hidden, `'menus'` last in the menu row after the `QueryBar.Menu` elements (beside the field when there are no menus). Needs `qualifiers`. */
+  help?: boolean | 'menus';
   /** The menus wrap onto more rows when they don't fit, so a Sort menu at the end stays visible (default true). `false` keeps them on one row that scrolls sideways. */
   wrap?: boolean;
   /** `QueryBar.Menu` elements, shown in a row after the field. */

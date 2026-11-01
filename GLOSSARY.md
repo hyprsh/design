@@ -12,6 +12,10 @@ _Avoid_: bottom nav, phone nav, tabs
 Switches between sections inside one page.
 _Avoid_: tab bar
 
+**Nav list**:
+The vertical list of destinations in a sidebar or settings page, one marked current. Not a Tab bar (phone-width screens) or Tabs (sections inside one page).
+_Avoid_: sidebar menu, nav menu
+
 **Accessory**:
 The round button beside the tab bar capsule, for an action that isn't a screen.
 _Avoid_: FAB, action button

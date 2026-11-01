@@ -1,4 +1,4 @@
-<!-- @dsCard group="Feedback" height=420 subtitle="useToasts(): message, success, warning, error, action, undo; legacy toasts list" -->
+<!-- @dsCard group="Feedback" height=490 subtitle="useToasts(): message, success, warning, error, action, undo, progress, update; legacy toasts list" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Toast</title></head>
@@ -13,7 +13,8 @@ function Demo() {
     { id: 2, text: 'Environment variable deleted', onUndoAction: function () {}, preserve: true },
     { id: 3, text: 'Deployment promoted to production', type: 'success', preserve: true },
     { id: 4, text: 'Some routes were skipped during the build', type: 'warning', preserve: true },
-    { id: 5, text: 'Couldn’t verify domain. Try again.', type: 'error', action: 'Retry', preserve: true }]);
+    { id: 5, text: 'Couldn’t verify domain. Try again.', type: 'error', action: 'Retry', preserve: true },
+    { id: 6, text: 'Searching 3 of 10…', preserve: true, progress: { value: 3, max: 10 } }]);
   function dismiss(id) { s[1](function (l) { return l.filter(function (t) { return t.id !== id; }); }); }
   return h('div', { style: { display: 'flex', flexWrap: 'wrap', gap: 32, alignItems: 'flex-start' } },
     h('div', { style: { display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' } },
@@ -21,6 +22,14 @@ function Demo() {
       h(H.Button, { size: 'small', onClick: function () { toasts.success('Deployment promoted'); } }, 'Success'),
       h(H.Button, { size: 'small', onClick: function () { toasts.warning('Build cache skipped'); } }, 'Warning'),
       h(H.Button, { size: 'small', onClick: function () { toasts.error('Failed to start build. Try again.'); } }, 'Error'),
+      h(H.Button, { size: 'small', onClick: function () {
+        var id = toasts.message({ text: 'Searching 0 of 10…', preserve: true, progress: { value: 0, max: 10 } }), n = 0;
+        var timer = setInterval(function () {
+          n += 1;
+          if (n < 10) toasts.update(id, { text: 'Searching ' + n + ' of 10…', progress: { value: n, max: 10 } });
+          else { clearInterval(timer); toasts.update(id, { text: 'Search Done', type: 'success', progress: null, preserve: false }); }
+        }, 600);
+      } }, 'Progress'),
       h(H.Button, { size: 'small', onClick: function () { toasts.message({ text: 'Branch deleted', onUndoAction: function () { toasts.message('Branch restored'); } }); } }, 'Undo')),
     h('div', { style: { flex: '1 1 300px', minWidth: 0, maxWidth: 420 } }, h(H.Toast, { inline: true, toasts: s[0], onDismiss: dismiss })));
 }

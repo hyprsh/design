@@ -1,0 +1,21 @@
+<!-- @dsCard group="Forms" height=120 subtitle="The ? button and its Query Help popover" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>QueryHelpButton</title></head>
+<body>
+<div id="root" class="hy-row"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement;
+var qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs'], excludable: true, none: true }
+];
+function Demo() {
+  return ['small', 'medium', 'large'].map(function (size) {
+    return h(H.QueryHelpButton, { key: size, size: size, qualifiers: qualifiers });
+  });
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

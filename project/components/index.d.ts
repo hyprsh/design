@@ -617,6 +617,8 @@ export interface QueryBarProps extends Omit<QueryInputProps, 'suggestions' | 'he
   size?: 'small' | 'medium' | 'large';
   /** Class for the outer element. */
   className?: string;
+  /** The "?" button that opens the help popover: `true` (default) beside the field, `false` hidden, `'menus'` last in the menu row after the `QueryBar.Menu` elements (beside the field when there are no menus). Needs `qualifiers`. */
+  help?: boolean | 'menus';
   /** The menus wrap onto more rows when they don't fit, so a Sort menu at the end stays visible (default true). `false` keeps them on one row that scrolls sideways. */
   wrap?: boolean;
   /** `QueryBar.Menu` elements, shown in a row after the field. */
@@ -638,6 +640,19 @@ export declare function QueryBarMenu(props: QueryBarMenuProps): React.ReactEleme
 export declare const QueryBar: ((props: QueryBarProps) => React.ReactElement) & {
   Menu: typeof QueryBarMenu;
 };
+
+export interface QueryHelpButtonProps {
+  /** The qualifiers to explain: one line each, from their `help`. */
+  qualifiers: readonly Qualifier[];
+  /** Sizes the button to match a field or menus beside it. Default medium. */
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
+ * The "?" icon button that opens the Query Help popover: each qualifier's `help` line and the rules of the query syntax. `QueryInput` draws it beside the
+ * field; use it on its own to place it elsewhere, with `help={false}` on the field (or in a `QueryBar`, `help="menus"` for the menu row).
+ */
+export declare function QueryHelpButton(props: QueryHelpButtonProps): React.ReactElement;
 
 /** One qualifier an app understands in a query: `label:bug`. */
 export interface Qualifier {
@@ -726,10 +741,16 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
   suggestions?: (text: string, caret: number) => QuerySuggestion[];
   /** The qualifiers the app understands: suggested with `suggestQuery`, explained in the help popover, and checked with `parseQuery` (problems show under the field). */
   qualifiers?: readonly Qualifier[];
-  /** false hides the "?" button that opens the help popover. Needs `qualifiers`. Default true. */
+  /** false hides the "?" button that opens the help popover. Needs `qualifiers`. Default true. To place the button yourself, hide it and render `QueryHelpButton`. */
   help?: boolean;
   /** small 32px, medium 36px (default), large 40px. */
   size?: 'small' | 'medium' | 'large';
+  /**
+   * A single key, with no modifiers, such as `"/"`. Pressing it anywhere on the page focuses the field (and the key is not typed), unless focus is already in an
+   * editable element or the field is disabled. While the field is empty a key cap shows the key inside it (not on touch-only devices), and the input gets
+   * `aria-keyshortcuts`, which an `aria-keyshortcuts` prop overrides. Not for modifier combinations.
+   */
+  shortcut?: string;
   /** Keys the field leaves alone: Enter, Escape and Tab whenever the list is closed, and every other key. While the list is open it owns Up, Down, Enter, Tab and Escape. */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   /** Class for the outer element. */
@@ -1012,6 +1033,36 @@ export interface LinkProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   className?: string;
 }
 export declare const Link: React.ForwardRefExoticComponent<LinkProps & React.RefAttributes<HTMLAnchorElement & HTMLButtonElement>>;
+
+export interface NavListProps extends React.HTMLAttributes<HTMLElement> {
+  /** Names the navigation landmark. Give this or `aria-labelledby`: NavList warns in development without one. */
+  'aria-label'?: string;
+  children: React.ReactNode;
+}
+export interface NavGroupProps {
+  /** Visible heading. It labels the group's list. */
+  title: React.ReactNode;
+  children: React.ReactNode;
+}
+export interface NavItemProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorElement> & React.ButtonHTMLAttributes<HTMLButtonElement>, 'onClick' | 'children'> {
+  /** Leading node. Decorative: hidden from assistive tech. */
+  icon?: React.ReactNode;
+  /** Right-aligned node. A number is shown as a count and joins the accessible name ("Downloads, 3"). */
+  trailing?: React.ReactNode;
+  /** Text that joins the accessible name for a `trailing` node that isn't a number, such as a StatusDot ("Health, Failing"). */
+  trailingLabel?: string;
+  /** Marks the selected row: draws the secondary-button look and sets `aria-current` (`"page"` for `true`, or the token given). */
+  current?: boolean | 'page' | 'step' | 'location' | 'true';
+  /** Renders an `<a>`, so Cmd/Ctrl-click and middle-click work. Without it the item is a `<button type="button">`. */
+  href?: string;
+  onClick?: (event: React.MouseEvent) => void;
+  /** Buttons only: sets `aria-disabled` and ignores clicks. */
+  disabled?: boolean;
+  children: React.ReactNode;
+}
+export declare function NavGroup(props: NavGroupProps): React.ReactElement;
+export declare function NavItem(props: NavItemProps): React.ReactElement;
+export declare const NavList: ((props: NavListProps) => React.ReactElement) & { Group: typeof NavGroup; Item: typeof NavItem };
 
 export interface PagerProps {
   /** The page on screen, starting at 1. A page beyond the last one shows the last page's range with next disabled, and never calls `onPageChange`. */
@@ -1437,6 +1488,12 @@ export interface SpinnerProps {
 }
 export declare function Spinner(props: SpinnerProps): React.ReactElement;
 
+export interface ToastProgress {
+  /** How far along. Clamped to 0..max. */
+  value: number;
+  /** Default 100. */
+  max?: number;
+}
 export interface ToastOptions {
   /** One sentence. */
   text: React.ReactNode;
@@ -1450,19 +1507,29 @@ export interface ToastOptions {
   /** ms before it dismisses itself. Default 6000; Infinity keeps it. */
   duration?: number;
   id?: string | number;
+  /** A Progress bar below the text, named by the text. Changing only this is not announced. */
+  progress?: ToastProgress;
 }
+/** What update() changes: any option except id, plus type and progress. null removes action, type or progress. */
+export type ToastUpdate = Partial<Omit<ToastOptions, 'id' | 'action'>> & {
+  type?: 'success' | 'error' | 'warning' | null;
+  action?: ToastOptions['action'] | null;
+  progress?: ToastProgress | null;
+};
 export interface ToastsApi {
   message(o: ToastOptions | string): string | number;
   success(o: ToastOptions | string): string | number;
   warning(o: ToastOptions | string): string | number;
   error(o: ToastOptions | string): string | number;
+  /** Changes a shown toast in place. Returns false, and does nothing, for an unknown or dismissed id. The timer carries on unless changes has duration or preserve. A change of text or type is announced once; progress alone is not. */
+  update(id: string | number, changes: ToastUpdate): boolean;
   dismiss(id: string | number): void;
   clear(): void;
 }
 /** Imperative API. Renders into a <Toast /> host if one is mounted, otherwise mounts one on document.body. */
 export declare function useToasts(): ToastsApi;
 
-export interface ToastData { id: string | number; message?: React.ReactNode; text?: React.ReactNode; type?: 'success' | 'error' | 'warning'; action?: string | { label: string; onClick?: () => void }; onAction?: () => void; onUndoAction?: () => void; preserve?: boolean; duration?: number }
+export interface ToastData { id: string | number; message?: React.ReactNode; text?: React.ReactNode; type?: 'success' | 'error' | 'warning'; action?: string | { label: string; onClick?: () => void }; onAction?: () => void; onUndoAction?: () => void; preserve?: boolean; duration?: number; progress?: ToastProgress }
 
 export interface ToastProps {
   /** Controlled list. Omit it to render the useToasts() queue. */
@@ -2688,6 +2755,7 @@ declare global {
       Label: typeof Label;
       MultiSelect: typeof MultiSelect;
       QueryBar: typeof QueryBar;
+      QueryHelpButton: typeof QueryHelpButton;
       QueryInput: typeof QueryInput;
       Radio: typeof Radio;
       SearchInput: typeof SearchInput;
@@ -2700,6 +2768,7 @@ declare global {
       Breadcrumbs: typeof Breadcrumbs;
       CommandMenuTrigger: typeof CommandMenuTrigger;
       Link: typeof Link;
+      NavList: typeof NavList;
       Pager: typeof Pager;
       Pagination: typeof Pagination;
       TabBar: typeof TabBar;
