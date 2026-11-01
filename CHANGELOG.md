@@ -6,10 +6,28 @@ What changed in each version, newest first; the same notes are on the [GitHub re
 
 2026-11-01
 
+### New Components
+
+- **ColumnChart:** stacked columns with a legend, tooltips, one roving Tab stop and a View as Table toggle.
+- **BarList:** labelled horizontal bars for ranking amounts, with optional links.
+- **Sparkbars:** per-run bars sized by value and coloured by outcome, with keyboard navigation and a tooltip.
+- **NavList** and **NavItem:** navigation rows for sidebars and settings section lists, with icons, trailing counts and a current item.
+- **QueryHelpButton:** the query help button and popover as a component of its own.
+
 ### Features
 
-- **components:** add the components kestrel's redesign worked around
-- **charts:** add chart tokens, barlist, sparkbars and columnchart
+- **menu:** nested submenus (`Menu.Sub`, `Menu.SubTrigger`) that open to the side on desktop and drill in place under touch sizing.
+- **query-input:** a `shortcut` prop that shows a key cap in the empty field and focuses it from anywhere on the page.
+- **query-bar:** `help={false}` hides the help button and `help="menus"` moves it to the end of the menu row.
+- **table:** column reordering with pinned columns, drag, Alt+←/→ and an exported `Table.ColumnsMenu`.
+- **toast:** `toast.update()` changes a toast in place, with an optional progress bar.
+- **progress:** segments get a 2px gap and a 2px minimum, so a small share stays visible.
+- **tokens:** `chart-seq-1`…`chart-seq-5` and `chart-series` colour tokens for amounts.
+
+### Docs
+
+- **guidelines:** a Charts section on marks, colour, legends, tooltips, keyboard and accessibility.
+- **adr:** pinned columns and the Columns menu (0003), and charts without a library (0004).
 
 ## v0.16.0
 
