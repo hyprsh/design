@@ -126,7 +126,7 @@ export default function Example() {
 }
 ```
 
-### Help In The Menu Row
+### Help in the Menu Row
 `help="menus"` moves the “?” button to the end of the menu row.
 
 ```jsx
