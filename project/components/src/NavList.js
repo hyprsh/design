@@ -3,7 +3,9 @@
    holding an <a> (with href) or a <button>. The app decides which item is current. */
 function NavList(props) {
   var rest = omit(props, ['className', 'children']);
-  if (!props['aria-label'] && !props['aria-labelledby']) {
+  var warned = useRef(false);
+  if (!warned.current && !props['aria-label'] && !props['aria-labelledby']) {
+    warned.current = true;
     var prod = false;
     try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
     if (!prod && typeof console !== 'undefined') console.warn('hyprsh: NavList needs an accessible name. Pass aria-label or aria-labelledby.');
@@ -42,9 +44,9 @@ function NavItem(props) {
     h(isLink ? 'a' : 'button', attrs,
       props.icon ? h('span', { className: 'hy-nav-item__icon', 'aria-hidden': 'true' }, props.icon) : null,
       h('span', { className: 'hy-nav-item__label' }, props.children),
-      spoken ? h('span', { className: 'hy-nav-item__sr' }, ', ') : null,
+      spoken ? h('span', { className: 'hy-sr' }, ', ') : null,
       hasTrailing ? h('span', Object.assign({ className: cx('hy-nav-item__trailing', count && 'hy-nav-item__count') }, count ? {} : { 'aria-hidden': 'true' }), props.trailing) : null,
-      spoken && !count ? h('span', { className: 'hy-nav-item__sr' }, spoken) : null));
+      spoken && !count ? h('span', { className: 'hy-sr' }, spoken) : null));
 }
 
 NavList.Group = NavGroup;

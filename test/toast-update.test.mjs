@@ -170,15 +170,15 @@ describe('update() on a shown toast', () => {
 
   it('adds a type and reads its word, and removes it with null', () => {
     const t = setup();
-    t.api.message({ id: 'a', text: 'Search Done', preserve: true });
+    t.api.message({ id: 'a', text: 'Search done', preserve: true });
     t.advance(0);
     t.api.update('a', { type: 'success' });
     t.advance(0);
-    assert.equal(t.titles()[0], 'Success: Search Done');
+    assert.equal(t.titles()[0], 'Success: Search done');
     assert.match(t.items()[0].props.className, /hy-toast--success/);
     t.api.update('a', { type: null });
     t.advance(0);
-    assert.equal(t.titles()[0], 'Search Done');
+    assert.equal(t.titles()[0], 'Search done');
   });
 
   it('removes the action button with action: null', () => {
@@ -212,7 +212,7 @@ describe('update() and the dismiss timer', () => {
     t.api.message({ id: 's', text: 'Searching…', preserve: true });
     t.advance(60000);
     assert.equal(t.titles().length, 1);
-    t.api.update('s', { preserve: false, text: 'Search Done', type: 'success' });
+    t.api.update('s', { preserve: false, text: 'Search done', type: 'success' });
     t.advance(5999);
     assert.equal(t.titles().length, 1);
     t.advance(2);
@@ -334,10 +334,36 @@ describe('what the live region announces', () => {
     assert.equal(changes, 1);
   });
 
-  it('announces a type change with its word', () => {
+  // What a screen reader reads when `fn` runs: for each toast text container whose content changed, the whole
+  // container when it is aria-atomic, else only the part that differs (the added or changed nodes).
+  const read = (t, fn) => {
+    const texts = () => all(t.live(), (n) => n.props.className === 'hy-toast__text').map((n) => ({ n, text: textOf(n) }));
+    const before = texts();
+    fn(); t.advance(0);
+    return texts().flatMap((a, i) => {
+      const b = before[i] ? before[i].text : '';
+      if (a.text === b) return [];
+      if (a.n.props['aria-atomic'] === 'true' || a.n.props['aria-atomic'] === true) return [a.text];
+      let s = 0; while (s < b.length && s < a.text.length && a.text[s] === b[s]) s++;
+      let e = 0; while (e < b.length - s && e < a.text.length - s && a.text[a.text.length - 1 - e] === b[b.length - 1 - e]) e++;
+      return [a.text.slice(s, a.text.length - e)];
+    });
+  };
+
+  it('announces a type-only change as the type word plus the text', () => {
     const t = start();
-    assert.equal(announced(t, () => t.api.update('a', { type: 'error' })), true);
-    assert.match(textOf(t.live()), /Error: Searching…/);
+    assert.deepEqual(read(t, () => t.api.update('a', { type: 'error' })), ['Error: Searching…']);
+  });
+
+  it('announces a combined text and type update as one announcement', () => {
+    const t = start();
+    assert.deepEqual(read(t, () => t.api.update('a', { text: 'Search done', type: 'success' })), ['Success: Search done']);
+  });
+
+  it('announces removing the type as the plain text', () => {
+    const t = start();
+    t.api.update('a', { type: 'error' }); t.advance(0);
+    assert.deepEqual(read(t, () => t.api.update('a', { type: null })), ['Searching…']);
   });
 
   it('is still a polite region for additions and text', () => {

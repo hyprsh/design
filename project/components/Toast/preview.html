@@ -27,7 +27,7 @@ function Demo() {
         var timer = setInterval(function () {
           n += 1;
           if (n < 10) toasts.update(id, { text: 'Searching ' + n + ' of 10…', progress: { value: n, max: 10 } });
-          else { clearInterval(timer); toasts.update(id, { text: 'Search Done', type: 'success', progress: null, preserve: false }); }
+          else { clearInterval(timer); toasts.update(id, { text: 'Search done', type: 'success', progress: null, preserve: false }); }
         }, 600);
       } }, 'Progress'),
       h(H.Button, { size: 'small', onClick: function () { toasts.message({ text: 'Branch deleted', onUndoAction: function () { toasts.message('Branch restored'); } }); } }, 'Undo')),

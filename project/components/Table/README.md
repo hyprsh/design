@@ -166,45 +166,8 @@ export default function Example() {
 }
 ```
 
-### Resizable Columns
-Drag a header's edge, or focus it and use the arrow keys. The widths are saved to local storage when a resize ends, and the Message column gives up the room.
-
-```jsx
-import { useState } from 'react';
-import { Table } from '@hyprsh/design';
-
-const columns = [
-  { key: 'time', header: 'Time', mono: true, resizable: true },
-  { key: 'level', header: 'Level', resizable: true, minWidth: 64, maxWidth: 160 },
-  { key: 'message', header: 'Message', truncate: true },
-];
-
-const rows = [
-  { id: 1, time: '10:42:01', level: 'info', message: 'Deployment dpl_8f2a promoted to production for marketing-site' },
-  { id: 2, time: '10:41:37', level: 'warn', message: 'Build cache for docs was invalidated by a lockfile change' },
-  { id: 3, time: '10:39:50', level: 'error', message: 'Function api/edge-config timed out after 10s on the staging branch' },
-];
-
-function load() {
-  try { return JSON.parse(localStorage.getItem('log-columns')) || {}; } catch { return {}; }
-}
-
-export default function Example() {
-  const [widths, setWidths] = useState(load);
-
-  function onColumnWidthsChange(next, { phase }) {
-    setWidths(next);
-    if (phase === 'end') {
-      try { localStorage.setItem('log-columns', JSON.stringify(next)); } catch {}
-    }
-  }
-
-  return <Table caption="Log" columns={columns} rows={rows} columnWidths={widths} onColumnWidthsChange={onColumnWidthsChange} />;
-}
-```
-
-### Reorderable Columns
-Drag a head onto another, or focus one and press Alt with an arrow key. The Columns menu does the same from a toolbar, with a Reset Order item. The Status column is pinned, and the order and widths are saved to local storage.
+### Resizable and Reorderable Columns
+Drag a header's edge to resize it, or drag a head onto another (or press Alt with an arrow key) to move it, with the Columns menu doing the same from a toolbar; the Status column is pinned and the order and widths are saved to local storage.
 
 ```jsx
 import { useState } from 'react';

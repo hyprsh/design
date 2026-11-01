@@ -23,7 +23,7 @@ function toastNormalize(input, type) {
     onUndoAction: undo ? o.onUndoAction : null,
     duration: duration,
     progress: o.progress || null,
-    timer: 0
+    restarts: 0
   };
 }
 function toastEmit() { toastStore.subs.forEach(function (fn) { fn(toastStore.list); }); }
@@ -60,7 +60,7 @@ function toastRemove(id) {
   toastEmit();
 }
 /* Changes a shown toast in place: same slot in the stack, same component, so it neither moves nor enters again.
-   `timer` counts the restarts: it changes only when the update carries duration or preserve, and ToastItem restarts
+   `restarts` counts the restarts: it changes only when the update carries duration or preserve, and ToastItem restarts
    its dismiss timer when it does. */
 function toastUpdate(id, changes) {
   var at = -1;
@@ -78,7 +78,7 @@ function toastUpdate(id, changes) {
   if (c.preserve !== undefined || timeout !== undefined) {
     var wasPreserved = next.duration === Infinity;
     next.duration = toastDuration({ preserve: c.preserve !== undefined ? c.preserve : (timeout === undefined && wasPreserved), duration: timeout }, undo);
-    next.timer = next.timer + 1;
+    next.restarts = next.restarts + 1;
   }
   toastStore.list = toastStore.list.map(function (x, i) { return i === at ? next : x; });
   toastEmit();
@@ -107,7 +107,7 @@ function ToastItem(p) {
   var t = p.toast;
   var ref = useRef(null);
   var left = useRef(t.duration);
-  var timerRev = useRef(t.timer);
+  var restartSeen = useRef(t.restarts);
   var entered = useState(!!p.inline);
   useEffect(function () {
     if (entered[0]) return;
@@ -118,12 +118,12 @@ function ToastItem(p) {
   useLayoutEffect(function () { if (ref.current && p.onHeight) p.onHeight(t.id, ref.current.offsetHeight); });
   useEffect(function () {
     /* An update that carries duration or preserve starts the timer over; any other leaves what is left. */
-    if (timerRev.current !== t.timer) { timerRev.current = t.timer; left.current = t.duration; }
+    if (restartSeen.current !== t.restarts) { restartSeen.current = t.restarts; left.current = t.duration; }
     if (p.paused || left.current === Infinity) return;
     var start = Date.now();
     var timer = setTimeout(function () { p.onDismiss(t.id); }, left.current);
     return function () { clearTimeout(timer); left.current -= Date.now() - start; };
-  }, [t.id, p.paused, t.timer]);
+  }, [t.id, p.paused, t.restarts]);
   var glyph = TOAST_WORD[t.type] ? t.type : null;
   function dismiss() { p.onDismiss(t.id); }
   var style = p.inline ? undefined : (entered[0] ? p.style : Object.assign({}, p.style, { transform: 'translateY(100%)', opacity: 0 }));
@@ -131,7 +131,7 @@ function ToastItem(p) {
     h('div', { ref: ref, className: 'hy-toast__inner' },
     h('div', { className: 'hy-toast__main' },
       glyph ? h(Glyph, { name: glyph, className: 'hy-toast__glyph' }) : null,
-      h('div', { className: 'hy-toast__text' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
+      h('div', { className: 'hy-toast__text', 'aria-atomic': 'true' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
       t.action && !t.onUndoAction ? h(HY.Button, { size: 'small', variant: 'secondary', onClick: function () { if (t.action.onClick) t.action.onClick(); dismiss(); } }, t.action.label) : null,
       !t.onUndoAction && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
     t.progress ? h('div', { className: 'hy-toast__progress' },

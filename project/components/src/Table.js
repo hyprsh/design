@@ -65,6 +65,12 @@ function TableHead(props) {
     if (oc.drag && oc.drag.key === key) dragState = 'is-dragging';
     else if (oc.drag && oc.drag.target === key) dragState = 'is-drop-' + oc.drag.side;
   }
+  /* Alt+Left/Right is the browser's Back and Forward: every head of a reorderable table swallows it, a pinned or loading one
+     without moving anything. */
+  if (reorder) state.onKeyDown = function (e) {
+    if (e.target.closest && e.target.closest('.hy-table__resize')) return;
+    if (movable ? oc.keyDown(key, e) : altArrowStep(e)) e.preventDefault();
+  };
   if (movable) {
     state['aria-keyshortcuts'] = 'Alt+ArrowLeft Alt+ArrowRight';
     if (!props.onSort) state.tabIndex = 0;
@@ -72,10 +78,6 @@ function TableHead(props) {
     state.onPointerDown = function (e) {
       if (e.button !== 0 || (e.target.closest && e.target.closest('.hy-table__resize'))) return;
       oc.startDrag(key, e);
-    };
-    state.onKeyDown = function (e) {
-      if (e.target.closest && e.target.closest('.hy-table__resize')) return;
-      if (oc.keyDown(key, e)) e.preventDefault();
     };
   }
   if (resizable) {
@@ -265,23 +267,27 @@ function columnWidthEditor(o) {
    Pure order maths first, then TableOrder (state, drag, keys, announcements) and the Columns menu. An order is an array of
    column keys. resolveColumnOrder makes it a full order: unknown and repeated keys go, missing ones follow in their column
    order, and a pinned column keeps the index it has in the default order, so the others fill the slots around it. */
-function resolveColumnOrder(columns, order) {
-  var known = {}, pinned = {}, seen = {}, free = [];
-  columns.forEach(function (c) { known[c.key] = true; if (c.pinned) pinned[c.key] = true; });
+function pinnedKeys(columns) {
+  var pinned = {};
+  columns.forEach(function (c) { if (c.pinned) pinned[c.key] = true; });
+  return pinned;
+}
+function resolveColumnOrder(columns, order, pinnedMap) {
+  var known = {}, pinned = pinnedMap || pinnedKeys(columns), seen = {}, free = [];
+  columns.forEach(function (c) { known[c.key] = true; });
   (order || []).forEach(function (k) {
     if (known[k] && !pinned[k] && !seen[k]) { seen[k] = true; free.push(k); }
   });
   columns.forEach(function (c) { if (!pinned[c.key] && !seen[c.key]) free.push(c.key); });
   var i = 0;
-  return columns.map(function (c) { return c.pinned ? c.key : free[i++]; });
+  return columns.map(function (c) { return pinned[c.key] ? c.key : free[i++]; });
 }
 
 /* Move key to a slot among the movable (not pinned) columns, picked by pick(free, at). { order, change: { key, from, to } },
    or null when it can't move. */
 function placeColumn(columns, order, key, pick) {
-  var cur = resolveColumnOrder(columns, order);
-  var pinned = {};
-  columns.forEach(function (c) { if (c.pinned) pinned[c.key] = true; });
+  var pinned = pinnedKeys(columns);
+  var cur = resolveColumnOrder(columns, order, pinned);
   var free = cur.filter(function (k) { return !pinned[k]; });
   var at = free.indexOf(key);
   var to = at < 0 ? -1 : pick(free, at);
@@ -315,6 +321,13 @@ function orderedColumns(columns, order) {
   columns.forEach(function (c) { by[c.key] = c; });
   return resolveColumnOrder(columns, order).map(function (k) { return by[k]; });
 }
+/* -1 for Alt+Left, 1 for Alt+Right (no other modifier), else 0. */
+function altArrowStep(e) {
+  if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return 0;
+  return e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+}
+/* The text of a polite live region: the message, with a no-break space on every other one so that repeating it is announced again. */
+function liveText(said) { return said.text ? said.text + (said.n % 2 ? '' : '\u00a0') : ''; }
 /* The order behaviour without the DOM. emit(order, change) fires on every change. getOrder is the order as the app gave it
    (possibly partial); every move starts from its resolved form. key() reports whether the key was Alt+Left or Alt+Right,
    moved or not, so the browser's own Alt+Left (back) stays out of it. */
@@ -329,8 +342,7 @@ function columnOrderEditor(o) {
     drop: function (key, target) { return apply(moveColumnTo(o.getColumns(), o.getOrder(), key, target)); },
     reset: function () { o.emit([], { reset: true }); },
     key: function (key, e) {
-      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return false;
-      var step = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+      var step = altArrowStep(e);
       if (!step) return false;
       apply(moveColumn(o.getColumns(), o.getOrder(), key, step));
       return true;
@@ -385,8 +397,8 @@ function TableOrder(props) {
       return handled;
     },
     startDrag: function (key, e) {
-      var x0 = e.clientX, y0 = e.clientY, table = e.currentTarget.closest('table');
-      var active = false, done = false, target = null;
+      var x0 = e.clientX, y0 = e.clientY, th = e.currentTarget, table = th.closest('table');
+      var active = false, done = false, target = null, root = document.documentElement, select = null;
       function head(ev) {
         var el = document.elementFromPoint(ev.clientX, ev.clientY);
         var th = el && el.closest('[data-column-key]');
@@ -396,6 +408,11 @@ function TableOrder(props) {
         if (!active) {
           if (!dragStarted(ev.clientX - x0, ev.clientY - y0)) return;
           active = true;
+          /* The dragged head is inert and the page's text can't be selected while it is carried. */
+          th.setAttribute('inert', '');
+          select = { u: root.style.userSelect, w: root.style.webkitUserSelect };
+          root.style.userSelect = root.style.webkitUserSelect = 'none';
+          if (window.getSelection) window.getSelection().removeAllRanges();
         }
         var t = head(ev);
         var cols = live.current.columns;
@@ -412,6 +429,9 @@ function TableOrder(props) {
         document.removeEventListener('pointercancel', cancel);
         document.removeEventListener('keydown', esc, true);
         if (active) {
+          th.removeAttribute('inert');
+          root.style.userSelect = select.u;
+          root.style.webkitUserSelect = select.w;
           /* The release that ends a drag must not also click the sort button. */
           var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
           document.addEventListener('click', swallow, true);
@@ -429,10 +449,9 @@ function TableOrder(props) {
       document.addEventListener('keydown', esc, true);
     },
   };
-  var text = said.text ? said.text + (said.n % 2 ? '' : ' ') : '';
   return h(orderContext().Provider, { value: ctx },
     h(React.Fragment, null, dataTable(props, orderedColumns(props.columns, order), { reorder: true }),
-      h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, text)));
+      h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said))));
 }
 
 /* A Menu the app places, for example in a toolbar: each column in its current order with Move Left and Move Right, then Reset
@@ -459,7 +478,7 @@ function TableColumnsMenu(props) {
   items.push({ label: 'Reset Order', onSelect: editor.reset });
   return h(React.Fragment, null,
     h(HY.Menu, { label: props.label == null ? 'Columns' : props.label, items: items }),
-    h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, said.text ? said.text + (said.n % 2 ? '' : ' ') : ''));
+    h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said)));
 }
 
 /* Created on first use, so the pure parts above run without React (see test/table-resize.test.mjs). */

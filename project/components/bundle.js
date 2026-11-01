@@ -3292,7 +3292,9 @@
        holding an <a> (with href) or a <button>. The app decides which item is current. */
     function NavList(props) {
       var rest = omit(props, ['className', 'children']);
-      if (!props['aria-label'] && !props['aria-labelledby']) {
+      var warned = useRef(false);
+      if (!warned.current && !props['aria-label'] && !props['aria-labelledby']) {
+        warned.current = true;
         var prod = false;
         try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
         if (!prod && typeof console !== 'undefined') console.warn('hyprsh: NavList needs an accessible name. Pass aria-label or aria-labelledby.');
@@ -3331,9 +3333,9 @@
         h(isLink ? 'a' : 'button', attrs,
           props.icon ? h('span', { className: 'hy-nav-item__icon', 'aria-hidden': 'true' }, props.icon) : null,
           h('span', { className: 'hy-nav-item__label' }, props.children),
-          spoken ? h('span', { className: 'hy-nav-item__sr' }, ', ') : null,
+          spoken ? h('span', { className: 'hy-sr' }, ', ') : null,
           hasTrailing ? h('span', Object.assign({ className: cx('hy-nav-item__trailing', count && 'hy-nav-item__count') }, count ? {} : { 'aria-hidden': 'true' }), props.trailing) : null,
-          spoken && !count ? h('span', { className: 'hy-nav-item__sr' }, spoken) : null));
+          spoken && !count ? h('span', { className: 'hy-sr' }, spoken) : null));
     }
 
     NavList.Group = NavGroup;
@@ -4105,7 +4107,7 @@
         onUndoAction: undo ? o.onUndoAction : null,
         duration: duration,
         progress: o.progress || null,
-        timer: 0
+        restarts: 0
       };
     }
     function toastEmit() { toastStore.subs.forEach(function (fn) { fn(toastStore.list); }); }
@@ -4142,7 +4144,7 @@
       toastEmit();
     }
     /* Changes a shown toast in place: same slot in the stack, same component, so it neither moves nor enters again.
-       `timer` counts the restarts: it changes only when the update carries duration or preserve, and ToastItem restarts
+       `restarts` counts the restarts: it changes only when the update carries duration or preserve, and ToastItem restarts
        its dismiss timer when it does. */
     function toastUpdate(id, changes) {
       var at = -1;
@@ -4160,7 +4162,7 @@
       if (c.preserve !== undefined || timeout !== undefined) {
         var wasPreserved = next.duration === Infinity;
         next.duration = toastDuration({ preserve: c.preserve !== undefined ? c.preserve : (timeout === undefined && wasPreserved), duration: timeout }, undo);
-        next.timer = next.timer + 1;
+        next.restarts = next.restarts + 1;
       }
       toastStore.list = toastStore.list.map(function (x, i) { return i === at ? next : x; });
       toastEmit();
@@ -4189,7 +4191,7 @@
       var t = p.toast;
       var ref = useRef(null);
       var left = useRef(t.duration);
-      var timerRev = useRef(t.timer);
+      var restartSeen = useRef(t.restarts);
       var entered = useState(!!p.inline);
       useEffect(function () {
         if (entered[0]) return;
@@ -4200,12 +4202,12 @@
       useLayoutEffect(function () { if (ref.current && p.onHeight) p.onHeight(t.id, ref.current.offsetHeight); });
       useEffect(function () {
         /* An update that carries duration or preserve starts the timer over; any other leaves what is left. */
-        if (timerRev.current !== t.timer) { timerRev.current = t.timer; left.current = t.duration; }
+        if (restartSeen.current !== t.restarts) { restartSeen.current = t.restarts; left.current = t.duration; }
         if (p.paused || left.current === Infinity) return;
         var start = Date.now();
         var timer = setTimeout(function () { p.onDismiss(t.id); }, left.current);
         return function () { clearTimeout(timer); left.current -= Date.now() - start; };
-      }, [t.id, p.paused, t.timer]);
+      }, [t.id, p.paused, t.restarts]);
       var glyph = TOAST_WORD[t.type] ? t.type : null;
       function dismiss() { p.onDismiss(t.id); }
       var style = p.inline ? undefined : (entered[0] ? p.style : Object.assign({}, p.style, { transform: 'translateY(100%)', opacity: 0 }));
@@ -4213,7 +4215,7 @@
         h('div', { ref: ref, className: 'hy-toast__inner' },
         h('div', { className: 'hy-toast__main' },
           glyph ? h(Glyph, { name: glyph, className: 'hy-toast__glyph' }) : null,
-          h('div', { className: 'hy-toast__text' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
+          h('div', { className: 'hy-toast__text', 'aria-atomic': 'true' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
           t.action && !t.onUndoAction ? h(HY.Button, { size: 'small', variant: 'secondary', onClick: function () { if (t.action.onClick) t.action.onClick(); dismiss(); } }, t.action.label) : null,
           !t.onUndoAction && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
         t.progress ? h('div', { className: 'hy-toast__progress' },
@@ -4933,6 +4935,12 @@
         if (oc.drag && oc.drag.key === key) dragState = 'is-dragging';
         else if (oc.drag && oc.drag.target === key) dragState = 'is-drop-' + oc.drag.side;
       }
+      /* Alt+Left/Right is the browser's Back and Forward: every head of a reorderable table swallows it, a pinned or loading one
+         without moving anything. */
+      if (reorder) state.onKeyDown = function (e) {
+        if (e.target.closest && e.target.closest('.hy-table__resize')) return;
+        if (movable ? oc.keyDown(key, e) : altArrowStep(e)) e.preventDefault();
+      };
       if (movable) {
         state['aria-keyshortcuts'] = 'Alt+ArrowLeft Alt+ArrowRight';
         if (!props.onSort) state.tabIndex = 0;
@@ -4940,10 +4948,6 @@
         state.onPointerDown = function (e) {
           if (e.button !== 0 || (e.target.closest && e.target.closest('.hy-table__resize'))) return;
           oc.startDrag(key, e);
-        };
-        state.onKeyDown = function (e) {
-          if (e.target.closest && e.target.closest('.hy-table__resize')) return;
-          if (oc.keyDown(key, e)) e.preventDefault();
         };
       }
       if (resizable) {
@@ -5133,23 +5137,27 @@
        Pure order maths first, then TableOrder (state, drag, keys, announcements) and the Columns menu. An order is an array of
        column keys. resolveColumnOrder makes it a full order: unknown and repeated keys go, missing ones follow in their column
        order, and a pinned column keeps the index it has in the default order, so the others fill the slots around it. */
-    function resolveColumnOrder(columns, order) {
-      var known = {}, pinned = {}, seen = {}, free = [];
-      columns.forEach(function (c) { known[c.key] = true; if (c.pinned) pinned[c.key] = true; });
+    function pinnedKeys(columns) {
+      var pinned = {};
+      columns.forEach(function (c) { if (c.pinned) pinned[c.key] = true; });
+      return pinned;
+    }
+    function resolveColumnOrder(columns, order, pinnedMap) {
+      var known = {}, pinned = pinnedMap || pinnedKeys(columns), seen = {}, free = [];
+      columns.forEach(function (c) { known[c.key] = true; });
       (order || []).forEach(function (k) {
         if (known[k] && !pinned[k] && !seen[k]) { seen[k] = true; free.push(k); }
       });
       columns.forEach(function (c) { if (!pinned[c.key] && !seen[c.key]) free.push(c.key); });
       var i = 0;
-      return columns.map(function (c) { return c.pinned ? c.key : free[i++]; });
+      return columns.map(function (c) { return pinned[c.key] ? c.key : free[i++]; });
     }
 
     /* Move key to a slot among the movable (not pinned) columns, picked by pick(free, at). { order, change: { key, from, to } },
        or null when it can't move. */
     function placeColumn(columns, order, key, pick) {
-      var cur = resolveColumnOrder(columns, order);
-      var pinned = {};
-      columns.forEach(function (c) { if (c.pinned) pinned[c.key] = true; });
+      var pinned = pinnedKeys(columns);
+      var cur = resolveColumnOrder(columns, order, pinned);
       var free = cur.filter(function (k) { return !pinned[k]; });
       var at = free.indexOf(key);
       var to = at < 0 ? -1 : pick(free, at);
@@ -5183,6 +5191,13 @@
       columns.forEach(function (c) { by[c.key] = c; });
       return resolveColumnOrder(columns, order).map(function (k) { return by[k]; });
     }
+    /* -1 for Alt+Left, 1 for Alt+Right (no other modifier), else 0. */
+    function altArrowStep(e) {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return 0;
+      return e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+    }
+    /* The text of a polite live region: the message, with a no-break space on every other one so that repeating it is announced again. */
+    function liveText(said) { return said.text ? said.text + (said.n % 2 ? '' : '\u00a0') : ''; }
     /* The order behaviour without the DOM. emit(order, change) fires on every change. getOrder is the order as the app gave it
        (possibly partial); every move starts from its resolved form. key() reports whether the key was Alt+Left or Alt+Right,
        moved or not, so the browser's own Alt+Left (back) stays out of it. */
@@ -5197,8 +5212,7 @@
         drop: function (key, target) { return apply(moveColumnTo(o.getColumns(), o.getOrder(), key, target)); },
         reset: function () { o.emit([], { reset: true }); },
         key: function (key, e) {
-          if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return false;
-          var step = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+          var step = altArrowStep(e);
           if (!step) return false;
           apply(moveColumn(o.getColumns(), o.getOrder(), key, step));
           return true;
@@ -5253,8 +5267,8 @@
           return handled;
         },
         startDrag: function (key, e) {
-          var x0 = e.clientX, y0 = e.clientY, table = e.currentTarget.closest('table');
-          var active = false, done = false, target = null;
+          var x0 = e.clientX, y0 = e.clientY, th = e.currentTarget, table = th.closest('table');
+          var active = false, done = false, target = null, root = document.documentElement, select = null;
           function head(ev) {
             var el = document.elementFromPoint(ev.clientX, ev.clientY);
             var th = el && el.closest('[data-column-key]');
@@ -5264,6 +5278,11 @@
             if (!active) {
               if (!dragStarted(ev.clientX - x0, ev.clientY - y0)) return;
               active = true;
+              /* The dragged head is inert and the page's text can't be selected while it is carried. */
+              th.setAttribute('inert', '');
+              select = { u: root.style.userSelect, w: root.style.webkitUserSelect };
+              root.style.userSelect = root.style.webkitUserSelect = 'none';
+              if (window.getSelection) window.getSelection().removeAllRanges();
             }
             var t = head(ev);
             var cols = live.current.columns;
@@ -5280,6 +5299,9 @@
             document.removeEventListener('pointercancel', cancel);
             document.removeEventListener('keydown', esc, true);
             if (active) {
+              th.removeAttribute('inert');
+              root.style.userSelect = select.u;
+              root.style.webkitUserSelect = select.w;
               /* The release that ends a drag must not also click the sort button. */
               var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
               document.addEventListener('click', swallow, true);
@@ -5297,10 +5319,9 @@
           document.addEventListener('keydown', esc, true);
         },
       };
-      var text = said.text ? said.text + (said.n % 2 ? '' : ' ') : '';
       return h(orderContext().Provider, { value: ctx },
         h(React.Fragment, null, dataTable(props, orderedColumns(props.columns, order), { reorder: true }),
-          h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, text)));
+          h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said))));
     }
 
     /* A Menu the app places, for example in a toolbar: each column in its current order with Move Left and Move Right, then Reset
@@ -5327,7 +5348,7 @@
       items.push({ label: 'Reset Order', onSelect: editor.reset });
       return h(React.Fragment, null,
         h(HY.Menu, { label: props.label == null ? 'Columns' : props.label, items: items }),
-        h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, said.text ? said.text + (said.n % 2 ? '' : ' ') : ''));
+        h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said)));
     }
 
     /* Created on first use, so the pure parts above run without React (see test/table-resize.test.mjs). */
@@ -6839,6 +6860,7 @@
     }
     function menuRowStop(list) { return list ? list.querySelector('[data-menu-row] [tabindex="0"]') : null; }
     /* Keys the menu handles itself; they never reach the page's own handlers through the React tree or the document. */
+    var MENU_MAX_WIDTH = 'min(320px, calc(100vw - 16px))';
     var MENU_KEYS = ['ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter', ' ', 'Escape', 'Tab'];
 
     function MenuContainer(props) {
@@ -6954,16 +6976,16 @@
         (el || list).focus({ preventScroll: true });
       }, [placed]);
 
-      var lvl = useLevel();
+      var lvl = useLevel(useTouchSizing());
       function onKeyDown(e) { menuKeyDown(e, typed, ctx.listRef.current, ctx, null); }
       var side = pos ? pos.side : (anchor ? 'bottom' : ctx.side);
       var align = anchor ? 'start' : ctx.align;
-      var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(320px, calc(100vw - 16px))' },
+      var style = floatingStyle(pos, Object.assign({ maxWidth: MENU_MAX_WIDTH },
         props.width !== undefined ? { width: props.width } : null, props.style));
       return portal(h('ul', {
         ref: ctx.listRef, id: ctx.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': anchor ? undefined : ctx.buttonId,
         'aria-label': props['aria-label'], onKeyDown: onKeyDown, onFocus: lvl.focusIn, onMouseMove: lvl.move, style: style,
-        className: cx('hy-menu__list', 'hy-menu__list--' + side, 'hy-menu__list--' + align, anchor && 'hy-menu__list--point', props.className)
+        className: cx('hy-menu__list', 'hy-menu__list--' + side, 'hy-menu__list--' + align, anchor && 'hy-menu__list--point', lvl.drilled && 'hy-menu__list--drilled', props.className)
       }, h(LevelCtx.Provider, { value: lvl }, props.children)));
     }
 
@@ -7027,23 +7049,31 @@
       return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
     }
 
-    /* State of one open list (the top one or a submenu's): which submenu is open (one per level) and the pointer's last position. */
-    function useLevel() {
+    /* State of one open list (the top one or a submenu's): which submenu is open (one per level) and the pointer's last position.
+       `touch` is the touch sizing, read once by the root list and passed down, so a menu with submenus has one media-query subscription. */
+    function useLevel(touch) {
       var st = useState(null), openId = st[0], setOpenId = st[1];
-      var touch = useTouchSizing();
-      var t = useRef({ cur: null, timer: null, subEls: {} }).current;
-      useEffect(function () { return function () { clearTimeout(t.timer); }; }, []);
+      /* Hover intent: the pointer's last position, the timer of a row that waits for it, and the open submenus' boxes. */
+      var intent = useRef({ pointer: null, timer: null, boxes: {} }).current;
+      useEffect(function () { return function () { clearTimeout(intent.timer); }; }, []);
       return {
-        openId: openId, setOpenId: setOpenId, touch: touch, drilled: touch && openId !== null, t: t,
-        move: function (e) { t.cur = { x: e.clientX, y: e.clientY }; },
+        openId: openId, setOpenId: setOpenId, touch: touch, drilled: touch && openId !== null,
+        move: function (e) { intent.pointer = { x: e.clientX, y: e.clientY }; },
+        /* The pointer entered the open submenu's own box: nothing is on its way there any more. */
+        settle: function () { intent.pointer = null; clearTimeout(intent.timer); },
+        /* A submenu's box, for the pointer-heading-there test; returns the function that forgets it. */
+        registerBox: function (id, el) {
+          intent.boxes[id] = el;
+          return function () { if (intent.boxes[id] === el) delete intent.boxes[id]; };
+        },
         /* A row of this list was entered. With a submenu open and the pointer heading for it, the row waits: apply runs
            only if the pointer is still on it after INTENT_WAIT. Otherwise the open submenu closes and apply runs. */
         hover: function (el, e, apply) {
-          clearTimeout(t.timer);
+          clearTimeout(intent.timer);
           if (openId === null || el.id === openId + '-trigger') { apply(); return; }
-          var box = t.subEls[openId], from = t.cur;
+          var box = intent.boxes[openId], from = intent.pointer;
           if (box && from && towardSub(from, { x: e.clientX, y: e.clientY }, box.getBoundingClientRect())) {
-            t.timer = setTimeout(function () { if (el.matches(':hover')) { setOpenId(null); apply(); } }, INTENT_WAIT);
+            intent.timer = setTimeout(function () { if (el.matches(':hover')) { setOpenId(null); apply(); } }, INTENT_WAIT);
             return;
           }
           setOpenId(null);
@@ -7057,6 +7087,11 @@
       };
     }
 
+    /* Enter or Space on a row. */
+    function onActivateKey(fn) {
+      return function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fn(e); } };
+    }
+
     function focusFirst(list) {
       var items = menuItems(list, true).filter(function (el) { return !el.classList.contains('hy-menu__back'); });
       if (!items.length) items = menuItems(list);
@@ -7067,7 +7102,6 @@
     function MenuSub(props) {
       var lv = React.useContext(LevelCtx);
       var id = useId();
-      var touch = useTouchSizing();
       var trigRef = useRef(null), listRef = useRef(null), focusOn = useRef(null), label = useRef(null), refocus = useRef(false);
       var open = !!lv && lv.openId === id;
       useEffect(function () { if (props.defaultOpen && lv) lv.setOpenId(id); }, []);
@@ -7086,7 +7120,7 @@
         lv.setOpenId(id);
       }
       var value = {
-        id: id, open: open, touch: touch, lv: lv, trigRef: trigRef, listRef: listRef, focusOn: focusOn, label: label,
+        id: id, open: open, touch: !!lv && lv.touch, lv: lv, trigRef: trigRef, listRef: listRef, focusOn: focusOn, label: label,
         triggerId: id + '-trigger', menuId: id + '-menu', openSub: openSub, close: close
       };
       return h(SubCtx.Provider, { value: value }, props.children);
@@ -7100,8 +7134,9 @@
       var timer = useRef(null);
       var disabled = !!props.disabled;
       useEffect(function () { return function () { clearTimeout(timer.current); }; }, []);
+      /* The drilled list's Back row is headed by this label. */
+      useEffect(function () { if (sub) sub.label.current = props.children; });
       if (!sub) return null;
-      sub.label.current = props.children;
       function onClick(e) {
         clearTimeout(timer.current);
         if (disabled) { e.preventDefault(); return; }
@@ -7127,7 +7162,7 @@
         ref: sub.trigRef, id: sub.triggerId, role: 'menuitem', tabIndex: -1, 'aria-haspopup': 'menu', 'aria-expanded': sub.open,
         'aria-controls': sub.open ? sub.menuId : undefined, 'aria-disabled': disabled || undefined,
         'aria-describedby': props.description ? descId : undefined, 'data-focusable': disabled && props.description ? '' : undefined,
-        className: cx('hy-menu__item', 'hy-menu__item--sub', sub.open && 'is-open', lv && lv.drilled && 'hy-menu__hide', props.className),
+        className: cx('hy-menu__item', 'hy-menu__item--sub', sub.open && 'is-open', props.className),
         onClick: onClick, onKeyDown: onKeyDown, onMouseEnter: onMouseEnter, onMouseLeave: function () { clearTimeout(timer.current); }
       }, itemInner({
         children: props.children, prefix: props.prefix, description: props.description,
@@ -7155,7 +7190,7 @@
     function SubPopup(props) {
       var ctx = React.useContext(MenuCtx), sub = React.useContext(SubCtx);
       var typed = useRef({ text: '', at: 0 });
-      var lvl = useLevel();
+      var lvl = useLevel(sub.touch);
       /* Beside the parent list (so it flips to the left of it), its top level with the trigger's: the list's own 6px
          padding is taken off, so that the first item, not the box, lines up. */
       var anchorRef = useMemo(function () {
@@ -7173,22 +7208,22 @@
       useSubFocus(sub, !!pos);
       /* Registered, so that a pointer-down inside is not an outside click, and as the box the pointer is heading for. */
       useLayoutEffect(function () {
-        var el = sub.listRef.current, subs = ctx.subEls.current, boxes = sub.lv && sub.lv.t.subEls;
+        var el = sub.listRef.current, subs = ctx.subEls.current;
         subs.push(el);
-        if (boxes) boxes[sub.id] = el;
+        var forget = sub.lv && sub.lv.registerBox(sub.id, el);
         return function () {
           subs.splice(subs.indexOf(el), 1);
-          if (boxes && boxes[sub.id] === el) delete boxes[sub.id];
+          if (forget) forget();
         };
       }, []);
       var side = pos ? pos.side : 'right';
-      var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(320px, calc(100vw - 16px))' },
+      var style = floatingStyle(pos, Object.assign({ maxWidth: MENU_MAX_WIDTH },
         props.width !== undefined ? { width: props.width } : null, props.style));
       return portal(h('ul', {
         ref: sub.listRef, id: sub.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': sub.triggerId, 'aria-label': props['aria-label'],
         onKeyDown: function (e) { menuKeyDown(e, typed, sub.listRef.current, ctx, function () { sub.close(true); }); },
         onFocus: lvl.focusIn, onMouseMove: lvl.move, style: style,
-        onMouseEnter: function () { if (sub.lv) { sub.lv.t.cur = null; clearTimeout(sub.lv.t.timer); } },
+        onMouseEnter: function () { if (sub.lv) sub.lv.settle(); },
         className: cx('hy-menu__list', 'hy-menu__list--sub', 'hy-menu__list--' + side, 'hy-menu__list--start', props.className)
       }, h(LevelCtx.Provider, { value: lvl }, props.children)));
     }
@@ -7197,18 +7232,17 @@
     function DrillList(props) {
       var ctx = React.useContext(MenuCtx), sub = React.useContext(SubCtx);
       var typed = useRef({ text: '', at: 0 });
-      var lvl = useLevel();
+      var lvl = useLevel(sub.touch);
       useSubFocus(sub, true);
       function back() { sub.close(true); }
       return h('li', { role: 'none', className: 'hy-menu__drill' },
         h('ul', {
           ref: sub.listRef, id: sub.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': sub.triggerId, 'aria-label': props['aria-label'],
           onKeyDown: function (e) { menuKeyDown(e, typed, sub.listRef.current, ctx, back); },
-          onFocus: lvl.focusIn, className: cx('hy-menu__list', 'hy-menu__list--drill', props.className)
+          onFocus: lvl.focusIn, className: cx('hy-menu__list', 'hy-menu__list--drill', lvl.drilled && 'hy-menu__list--drilled', props.className)
         },
           h('li', {
-            role: 'menuitem', tabIndex: -1, className: cx('hy-menu__item', 'hy-menu__back', lvl.drilled && 'hy-menu__hide'), onClick: back,
-            onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); back(); } }
+            role: 'menuitem', tabIndex: -1, className: 'hy-menu__item hy-menu__back', onClick: back, onKeyDown: onActivateKey(back)
           },
             h('span', { className: 'hy-menu__affix hy-menu__chev hy-menu__chev--back', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 16 })),
             h('span', { className: 'hy-menu__text' }, sub.label.current)),
@@ -7259,7 +7293,6 @@
         if (ctx && !(checkable && !radio)) ctx.close(true);
       }
       var lv = React.useContext(LevelCtx);
-      if (lv && lv.drilled) cls = cx(cls, 'hy-menu__hide');
       function hover(e) {
         var el = e.currentTarget;
         function apply() { if (!disabled) el.focus({ preventScroll: true }); }
@@ -7277,7 +7310,7 @@
         role: itemRole, tabIndex: -1, 'aria-checked': checkable ? !!props.checked : undefined,
         'aria-disabled': disabled || undefined, className: cls, style: props.style,
         onClick: activate, onMouseEnter: hover,
-        onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); activate(e); } }
+        onKeyDown: onActivateKey(activate)
       }, hint), itemInner(props, descId, checkable));
     }
 
@@ -7290,15 +7323,13 @@
 
     function MenuSection(props) {
       var id = useId();
-      var lv = React.useContext(LevelCtx);
       return h('li', { role: 'none', className: 'hy-menu__section' },
-        h('span', { id: id, className: cx('hy-menu__section-title', lv && lv.drilled && 'hy-menu__hide'), 'aria-hidden': 'true' }, props.title),
+        h('span', { id: id, className: 'hy-menu__section-title', 'aria-hidden': 'true' }, props.title),
         h('ul', { role: 'group', 'aria-labelledby': id, className: 'hy-menu__group' }, props.children));
     }
 
     function MenuDivider() {
-      var lv = React.useContext(LevelCtx);
-      return h('li', { role: 'separator', className: cx('hy-menu__sep', lv && lv.drilled && 'hy-menu__hide') });
+      return h('li', { role: 'separator', className: 'hy-menu__sep' });
     }
 
     /* The older API: <Menu label="Actions" items={[{ label, onSelect, shortcut, prefix, disabled, danger } | { separator: true }]} /> */

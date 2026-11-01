@@ -72,6 +72,15 @@ describe('moveColumn', () => {
   });
 });
 
+describe('pinned columns', () => {
+  it('are read from the columns once per column for a move', () => {
+    let reads = 0;
+    const cols = pinB.map((c) => ({ key: c.key, header: c.header, get pinned() { reads++; return c.pinned; } }));
+    moveColumn(cols, [], 'a', 1);
+    assert.equal(reads, cols.length);
+  });
+});
+
 describe('moveColumnTo (a drop on another head)', () => {
   it('puts the column in the target head\'s slot: dragging a onto c gives b, c, a', () => {
     assert.deepEqual(plain(moveColumnTo(abc, [], 'a', 'c')), { order: ['b', 'c', 'a'], change: { key: 'a', from: 0, to: 2 } });
@@ -229,10 +238,30 @@ describe('reorderable head', () => {
   it('a pinned head cannot be picked up or moved, and takes no tab stop', () => {
     const th = head({ pinned: true }, { pinned: () => true });
     assert.equal(th.props.onPointerDown, undefined);
-    assert.equal(th.props.onKeyDown, undefined);
     assert.equal(th.props.tabIndex, undefined);
     assert.equal(th.props['aria-keyshortcuts'], undefined);
     assert.equal(th.props['data-column-key'], 'a');
+  });
+  it('swallows Alt+Left and Alt+Right on a pinned head, and a loading one, without moving anything', () => {
+    for (const [props, o] of [[{ pinned: true }, {}], [{}, { loading: true }]]) {
+      const moved = [];
+      const th = head(props, Object.assign({ keyDown: (k) => { moved.push(k); return true; } }, o));
+      for (const key of ['ArrowLeft', 'ArrowRight']) {
+        let prevented = 0;
+        th.props.onKeyDown({ key, altKey: true, target: { closest: () => null }, preventDefault: () => { prevented++; } });
+        assert.equal(prevented, 1, key);
+      }
+      for (const extra of [{ key: 'ArrowLeft' }, { key: 'ArrowUp', altKey: true }, { key: 'ArrowLeft', altKey: true, shiftKey: true }]) {
+        let prevented = 0;
+        th.props.onKeyDown(Object.assign({ target: { closest: () => null }, preventDefault: () => { prevented++; } }, extra));
+        assert.equal(prevented, 0);
+      }
+      assert.deepEqual(moved, []);
+    }
+  });
+  it('has no key handler without reordering', () => {
+    values.clear();
+    assert.equal(registry.TableHead({ columnKey: 'a', pinned: true, children: 'A' }).props.onKeyDown, undefined);
   });
   it('is inert while loading, and shows the drag and the drop edge', () => {
     assert.equal(head({}, { loading: true }).props.onPointerDown, undefined);
@@ -244,6 +273,65 @@ describe('reorderable head', () => {
     values.clear();
     const th = registry.TableHead({ children: 'A' });
     assert.deepEqual(Object.keys(th.props).sort(), ['className', 'scope']);
+  });
+});
+
+describe('a pointer drag', () => {
+  // TableOrder in its own context, with a stub DOM: the drag listeners go on a fake document.
+  function rig() {
+    const listeners = {};
+    const style = { userSelect: 'text', webkitUserSelect: 'text' };
+    let ranges = 0;
+    const doc = {
+      documentElement: { style },
+      addEventListener: (t, f) => { (listeners[t] = listeners[t] || []).push(f); },
+      removeEventListener: (t, f) => { listeners[t] = (listeners[t] || []).filter((x) => x !== f); },
+      elementFromPoint: () => null,
+    };
+    const attrs = new Set();
+    const th = {
+      closest: () => ({}), setAttribute: (n) => attrs.add(n), removeAttribute: (n) => attrs.delete(n),
+    };
+    const ctx2 = vm.createContext({
+      HY: {}, document: doc, window: { getSelection: () => ({ removeAllRanges: () => { ranges++; } }) }, setTimeout,
+      React: { createContext: () => ({ Provider: 'Provider' }), useContext: () => null, Fragment: 'Fragment' },
+      useControllable: (v, d) => [v === undefined ? d : v, () => {}],
+      useState: (v) => [v, () => {}], useRef: (v) => ({ current: v }), useMemo: (f) => f(), useLayoutEffect() {}, useId: () => 'i',
+      h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
+      cx: (...a) => a.filter(Boolean).join(' '), omit: (o) => o, define() {},
+    });
+    vm.runInContext(readFileSync(file, 'utf8'), ctx2, { filename: file });
+    const el = ctx2.TableOrder({ columns: abc, rows: [] });
+    const ctl = el.props.value;
+    const fire = (t, e) => (listeners[t] || []).slice().forEach((f) => f(e));
+    return { ctl, th, attrs, style, fire, ranges: () => ranges };
+  }
+
+  it('makes the dragged head inert and turns text selection off until it ends', () => {
+    const r = rig();
+    r.ctl.startDrag('a', { clientX: 0, clientY: 0, currentTarget: r.th });
+    assert.equal(r.attrs.has('inert'), false, 'a press that has not moved yet is still a click');
+    r.fire('pointermove', { clientX: 1, clientY: 0 });
+    assert.equal(r.attrs.has('inert'), false, 'still under the slop');
+    r.fire('pointermove', { clientX: 20, clientY: 0 });
+    assert.equal(r.attrs.has('inert'), true);
+    assert.equal(r.style.userSelect, 'none');
+    assert.equal(r.style.webkitUserSelect, 'none');
+    assert.equal(r.ranges(), 1);
+    r.fire('pointerup', { clientX: 20, clientY: 0 });
+    assert.equal(r.attrs.has('inert'), false);
+    assert.equal(r.style.userSelect, 'text');
+    assert.equal(r.style.webkitUserSelect, 'text');
+  });
+  it('lets go on Escape and on cancel too', () => {
+    for (const end of [(r) => r.fire('keydown', { key: 'Escape', stopPropagation() {} }), (r) => r.fire('pointercancel', {})]) {
+      const r = rig();
+      r.ctl.startDrag('a', { clientX: 0, clientY: 0, currentTarget: r.th });
+      r.fire('pointermove', { clientX: 20, clientY: 0 });
+      end(r);
+      assert.equal(r.attrs.has('inert'), false);
+      assert.equal(r.style.userSelect, 'text');
+    }
   });
 });
 

@@ -68,7 +68,11 @@
   border-radius: 0; background: none; box-shadow: none; animation: none;
 }
 .hy-menu__back { font-weight: 500; }
-.hy-menu__hide { display: none; }
+/* The list a submenu has replaced the contents of (marked --drilled) hides all its own rows, in sections too, and keeps only the drill wrapper */
+.hy-menu__list--drilled > li:not(.hy-menu__drill):not(.hy-menu__section),
+.hy-menu__list--drilled > .hy-menu__section:not(:has(.hy-menu__drill)),
+.hy-menu__list--drilled > .hy-menu__section > .hy-menu__section-title,
+.hy-menu__list--drilled > .hy-menu__section > .hy-menu__group > li:not(.hy-menu__drill) { display: none; }
 /* Touch sizing: rows and the unstyled trigger are drawn at the touch target */
 @media (pointer: coarse), (max-width: 639px) {
   .hy-menu__item { min-height: var(--touch-target); }
