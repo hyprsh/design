@@ -42,7 +42,7 @@ export interface ProgressProps extends ProgressBase {
 export interface ProgressSegmentsProps extends ProgressBase {
   /** One bar split into tones, drawn left to right and cut off at max. Replaces value, colors and type. */
   segments: ProgressSegment[];
-  /** A 1px gap in the page colour between segments. Default false. */
+  /** A 2px gap in the page colour between segments. Default false. Every segment above 0 is at least 2px wide either way. */
   gap?: boolean;
   value?: never;
   colors?: never;

@@ -28,6 +28,14 @@ _Avoid_: state colour, variant, type (those are a component's own look)
 One tone's share of a total, drawn as part of a bar beside the others.
 _Avoid_: slice, chunk, stack
 
+**Mark**:
+One drawn data element, such as a column, a bar, a segment or a run.
+_Avoid_: shape, glyph
+
+**Sequential scale**:
+The `chart-seq-*` steps for amounts, from least to most.
+_Avoid_: heatmap colours, gradient
+
 **Presence**:
 Whether a person is online, away or offline, shown as a dot on their avatar.
 _Avoid_: status, state (those are StatusDot's), availability

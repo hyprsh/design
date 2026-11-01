@@ -1642,8 +1642,9 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 }
 /* Segments: a run as wide as what is filled, rounded only at its outer ends by the clip. Tones are StatusDot's colours. */
 .hy-progress__run { display: flex; max-width: 100%; height: 100%; border-radius: inherit; overflow: hidden; }
-.hy-progress__segment { flex: 0 1 auto; min-width: 4px; height: 100%; background: var(--hy-seg, var(--gray-700)); }
-.hy-progress__segment.has-gap { min-width: 5px; box-shadow: inset 1px 0 0 var(--background-100); }
+/* With gap, the run is page-coloured so the 2px space between segments shows the page. Widths and gaps are set inline. */
+.hy-progress__run.has-gap { background: var(--background-100); }
+.hy-progress__segment { flex: 0 1 auto; height: 100%; background: var(--hy-seg, var(--gray-700)); }
 .hy-progress__segment--success { --hy-seg: var(--green-700); }
 .hy-progress__segment--info { --hy-seg: var(--blue-700); }
 .hy-progress__segment--warning { --hy-seg: var(--amber-700); }
@@ -2135,6 +2136,102 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
   .hy-twcb__glyph.is-out { transform: none; }
 }
 
+/* ---------- BarList ---------- */
+.hy-bar-list { display: block; min-width: 0; margin: 0; padding: 0; list-style: none; font-family: var(--font-sans); }
+.hy-bar-list--mono .hy-bar-list__label { font-family: var(--font-mono); }
+.hy-bar-list__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; align-items: center; column-gap: 12px;
+  box-sizing: border-box; height: 36px; padding: 0 8px; border-radius: var(--radius-md);
+  color: var(--gray-1000); font-size: 14px; line-height: 20px; text-decoration: none;
+  transition: background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-bar-list__row:hover { background: var(--gray-100); }
+.hy-bar-list__row--link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-bar-list__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--gray-1000); }
+.hy-bar-list__bar { display: block; min-width: 0; height: 8px; }
+.hy-bar-list__fill { display: block; height: 100%; background: var(--chart-series); border-radius: 0 4px 4px 0; }
+.hy-bar-list__value { min-width: 4ch; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-bar-list__row { height: var(--touch-target); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-bar-list__row { transition: none; }
+}
+
+/* ---------- ColumnChart ---------- */
+.hy-column-chart { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; width: 100%; font-family: var(--font-sans); }
+.hy-column-chart__toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 32px; }
+.hy-column-chart__toggle { margin-left: auto; }
+.hy-column-chart__empty { display: flex; align-items: center; justify-content: center; min-height: 120px; font-size: 14px; color: var(--gray-900); }
+
+/* Legend: 8px square swatches, 13px text in the text colour, never the series colour. */
+.hy-column-chart__legend { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; padding: 0; list-style: none; }
+.hy-column-chart__legend-item { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; line-height: 20px; color: var(--gray-900); }
+.hy-column-chart__swatch { flex: none; display: inline-block; width: 8px; height: 8px; border-radius: 2px; background: var(--hy-seg, var(--chart-series)); }
+
+/* Tones are Progress's segment colours; a series without one is the single-series colour. */
+.hy-column-chart__swatch--success, .hy-column-chart__seg--success { --hy-seg: var(--green-700); }
+.hy-column-chart__swatch--info, .hy-column-chart__seg--info { --hy-seg: var(--blue-700); }
+.hy-column-chart__swatch--warning, .hy-column-chart__seg--warning { --hy-seg: var(--amber-700); }
+.hy-column-chart__swatch--error, .hy-column-chart__seg--error { --hy-seg: var(--red-800); }
+.hy-column-chart__swatch--neutral, .hy-column-chart__seg--neutral { --hy-seg: var(--gray-700); }
+.hy-column-chart__swatch--series, .hy-column-chart__seg--series { --hy-seg: var(--chart-series); }
+
+/* Plot: y labels | plot, then the x labels under the plot. */
+.hy-column-chart__body { display: grid; grid-template-rows: auto auto; column-gap: 8px; padding-top: 8px; }
+.hy-column-chart__yaxis { position: relative; }
+.hy-column-chart__tick {
+  position: absolute; right: 0; transform: translateY(50%); font-size: 12px; line-height: 16px; color: var(--gray-900);
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.hy-column-chart__plot { position: relative; min-width: 0; }
+.hy-column-chart__grid { position: absolute; left: 0; right: 0; height: 0; border-top: 1px solid var(--gray-alpha-200); pointer-events: none; }
+.hy-column-chart__grid.is-baseline { border-top-color: var(--gray-alpha-500); }
+.hy-column-chart__cols { position: absolute; inset: 0; display: flex; }
+
+/* A slot is one column's full-height hit area; the 24px column is centred in it. */
+.hy-column-chart__slot { position: relative; flex: 1 1 0; min-width: 0; height: 100%; background: transparent; transition: background-color .15s; }
+.hy-column-chart__slot.is-active { background: var(--gray-100); }
+.hy-column-chart__slot:focus { outline: none; }
+.hy-column-chart__slot:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-column-chart__col { position: absolute; top: 0; bottom: 0; left: 0; right: 0; margin: 0 auto; width: 24px; max-width: 100%; }
+.hy-column-chart__seg { position: absolute; left: 0; right: 0; background: var(--hy-seg); }
+.hy-column-chart__seg.is-top { border-radius: 4px 4px 0 0; }
+
+.hy-column-chart__xaxis { grid-column: 2; display: flex; margin-top: 8px; }
+.hy-column-chart__xslot { position: relative; flex: 1 1 0; min-width: 0; height: 16px; }
+.hy-column-chart__xlabel {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  font-size: 12px; line-height: 16px; color: var(--gray-900); font-variant-numeric: tabular-nums;
+}
+.hy-column-chart__body > :nth-child(3) { grid-column: 2; }
+
+/* Tooltip: the tooltip material (the .hy-tooltip__box classes), placed by the chart inside its own bounds. */
+.hy-column-chart__tip { position: absolute; z-index: var(--z-tooltip); min-width: 140px; padding: 8px 10px; text-align: left; }
+.hy-column-chart__tip-title { font-weight: 600; margin-bottom: 4px; }
+.hy-column-chart__tip-row { display: flex; align-items: center; gap: 8px; line-height: 20px; }
+.hy-column-chart__tip-row .hy-column-chart__swatch { box-shadow: 0 0 0 1px color-mix(in srgb, var(--tip-fg) 40%, transparent); }
+.hy-column-chart__tip-label { flex: 1 1 auto; min-width: 0; }
+.hy-column-chart__tip-value { font-variant-numeric: tabular-nums; text-align: right; }
+.hy-column-chart__tip-total { margin-top: 4px; padding-top: 4px; border-top: 1px solid color-mix(in srgb, var(--tip-fg) 30%, transparent); font-weight: 600; }
+.hy-column-chart__tip-total .hy-column-chart__tip-label { padding-left: 16px; }
+
+/* Table view. In chart view the same table is visually hidden with core's .hy-sr. */
+.hy-column-chart__table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; color: var(--gray-1000); font-variant-numeric: tabular-nums; }
+.hy-column-chart__table th, .hy-column-chart__table td { padding: 6px 12px; border-bottom: 1px solid var(--gray-alpha-200); text-align: right; white-space: nowrap; }
+.hy-column-chart__table th:first-child { text-align: left; }
+.hy-column-chart__table thead th { font-weight: 500; color: var(--gray-900); }
+.hy-column-chart__table tbody th { font-weight: 400; }
+.hy-column-chart__tablewrap { min-width: 0; overflow-x: auto; }
+
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-column-chart__toolbar { min-height: var(--touch-target); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-column-chart__slot { transition: none; }
+  .hy-column-chart__tip { animation: none; }
+}
+
 /* ---------- FileTree ---------- */
 .hy-ft, .hy-ft__group { list-style: none; margin: 0; padding: 0; }
 .hy-ft { font-family: var(--font-mono); font-size: 13px; line-height: 20px; color: var(--gray-1000); min-width: 0; }
@@ -2284,6 +2381,29 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 @media (prefers-reduced-motion: reduce) {
   .hy-jv__toggle { transition: none; }
 }
+
+/* ---------- Sparkbars ---------- */
+/* Tones are Progress segments' colours. */
+.hy-sparkbars { position: relative; display: inline-flex; align-items: flex-end; gap: 2px; vertical-align: middle; max-width: 100%; box-sizing: border-box; }
+.hy-sparkbars:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-sparkbars__bar {
+  flex: none; width: 6px; border-radius: 2px 2px 0 0; background: var(--hy-bar, var(--gray-700));
+  transition: opacity .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-sparkbars__bar--success { --hy-bar: var(--green-700); }
+.hy-sparkbars__bar--info { --hy-bar: var(--blue-700); }
+.hy-sparkbars__bar--warning { --hy-bar: var(--amber-700); }
+.hy-sparkbars__bar--error { --hy-bar: var(--red-800); }
+.hy-sparkbars__bar--neutral { --hy-bar: var(--gray-700); }
+.hy-sparkbars.has-active .hy-sparkbars__bar:not(.is-active) { opacity: .55; }
+/* The box follows the emphasis from bar to bar, so it doesn't fade in each time. */
+.hy-tooltip__box.hy-sparkbars__tip { animation: none; }
+/* Touch sizing: the row keeps its drawn height; an invisible layer grows the hit area to the touch target. Pointer events
+   on it land on the row, and the run comes from the pointer's x. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-sparkbars::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, var(--touch-target)); transform: translateY(-50%); }
+}
+@media (prefers-reduced-motion: reduce) { .hy-sparkbars__bar { transition: none; } }
 
 /* ---------- CommandMenu ---------- */
 .hy-cmd-overlay.hy-overlay--top { padding-top: min(15vh, 120px); }

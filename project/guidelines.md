@@ -88,6 +88,19 @@ Touch sizing applies under `@media (pointer: coarse), (max-width: 639px)`: a coa
 - **Must:** a native `<select>` sets its `background-color` and `color` explicitly.
 - **Should:** use layered shadows (the `shadow-*` tokens), crisp edges from translucent borders, and concentric radii.
 
+## Charts
+
+- **Must:** use two palettes only. The five tones (success, info, warning, error, neutral) mean outcomes and states, mapped exactly as `Progress` segments and `StatusDot` map them, and a tone is never an arbitrary series colour. `chart-seq-*` and `chart-series` mean amounts.
+- **Must:** marks are at most 24px thick. A 2px gap in the surface colour separates touching marks, with no strokes around marks. Data ends get a 4px radius, or 2px on marks narrower than 8px, and the baseline end stays square. A segment for a non-zero value is never under 2px.
+- **Must:** labels, values and legends use text colours (`gray-900` / `gray-1000`), never the series colour.
+- **Must:** two or more series get a legend (8px square swatch, 2px radius). One series has none.
+- **Must:** tooltips open on hover and on focus, use the tooltip material, and list values in stack order with a total.
+- **Must:** each chart has an accessible name and its marks are hidden from assistive technology. A visually hidden table holds every value, except in a chart whose marks are individually focusable and named, such as Sparkbars runs and ColumnChart columns: there each mark's accessible name carries its values. Where a chart has many values a "View as Table" toggle shows that table.
+- **Must:** an interactive chart is one Tab stop. ←/→ move between columns or runs, Home/End jump to the ends, and the tooltip follows focus.
+- **Must:** marks don't animate in. Colour changes take 150ms. Nothing moves under reduced motion.
+- **Must:** gridlines are 1px and solid: the baseline in `gray-alpha-500`, the others in `gray-alpha-200`.
+- **Never:** pull in a chart library. Charts are drawn from plain elements and tokens (see the ADR on charts).
+
 ## Anti-patterns to flag
 
 - `user-scalable=no` or `maximum-scale=1`

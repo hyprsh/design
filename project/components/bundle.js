@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryHelpButton"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"NavList"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryHelpButton"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"NavList"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"BarList"},{"name":"ColumnChart"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"Sparkbars"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -3916,6 +3916,10 @@
     /* A segment's tone, as StatusDot's states: success, info, warning, error, neutral. */
     var PROGRESS_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
 
+    /* Segment spacing in px: the gap between neighbours with `gap`, and the narrowest a segment above zero may be. */
+    var SEGMENT_GAP = 2;
+    var SEGMENT_MIN = 2;
+
     function Progress(props) {
       var max = props.max || 100;
       var segmented = Array.isArray(props.segments);
@@ -3938,13 +3942,16 @@
         filled += v;
         runs.push({ value: v, tone: PROGRESS_TONES.indexOf(s.tone) >= 0 ? s.tone : 'neutral' });
       });
+      /* Every segment is at least SEGMENT_MIN wide; with gap, neighbours are SEGMENT_GAP apart. Shrinking takes the space from the others. */
+      var gapPx = props.gap ? SEGMENT_GAP : 0;
+      var runMin = runs.length * SEGMENT_MIN + Math.max(0, runs.length - 1) * gapPx;
 
       var named = { 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress') };
       var track = segmented ?
         h('div', Object.assign({ className: 'hy-progress__track', role: 'img' }, named),
-          runs.length ? h('div', { className: 'hy-progress__run', style: { width: (filled / max * 100) + '%', minWidth: runs.length * (props.gap ? 5 : 4) } },
+          runs.length ? h('div', { className: cx('hy-progress__run', props.gap && 'has-gap'), style: { width: (filled / max * 100) + '%', minWidth: runMin } },
             runs.map(function (r, i) {
-              return h('span', { key: i, className: cx('hy-progress__segment', 'hy-progress__segment--' + r.tone, props.gap && i > 0 && 'has-gap'), style: { flexBasis: (r.value / filled * 100) + '%' } });
+              return h('span', { key: i, className: cx('hy-progress__segment', 'hy-progress__segment--' + r.tone), style: { flexBasis: (r.value / filled * 100) + '%', minWidth: SEGMENT_MIN, marginLeft: gapPx && i > 0 ? gapPx : undefined } });
             })) : null) :
         h('div', Object.assign({
           className: 'hy-progress__track', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': max, 'aria-valuenow': value,
@@ -5583,6 +5590,273 @@
     define('TextWithCopyButton', TextWithCopyButton);
   })();
 
+  /* ---- BarList ---- */
+  (function () {
+    /* Labelled horizontal bars for ranking amounts: one row per item, in the order given, scaled to `max` or the largest value.
+       The bar is decorative (aria-hidden): each row reads "label, value unit". An item with `href` is a link. One series, so no legend. */
+    function BarList(props) {
+      var warned = useRef(false);
+      if (!warned.current && !props['aria-label'] && !props['aria-labelledby']) {
+        warned.current = true;
+        var prod = false;
+        try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
+        if (!prod && typeof console !== 'undefined') console.warn('hyprsh: BarList needs an accessible name. Pass aria-label or aria-labelledby.');
+      }
+      var items = props.items || [];
+      if (!items.length) return props.empty === undefined ? null : props.empty;
+      var scaleMax = props.max;
+      if (typeof scaleMax !== 'number' || !(scaleMax > 0)) {
+        scaleMax = 0;
+        items.forEach(function (it) { if (it.value > scaleMax) scaleMax = it.value; });
+      }
+      var format = props.valueFormatter || new Intl.NumberFormat().format;
+      var rest = omit(props, ['items', 'max', 'valueFormatter', 'unit', 'mono', 'empty', 'className']);
+      return h('ul', Object.assign({}, rest, { className: cx('hy-bar-list', props.mono && 'hy-bar-list--mono', props.className), role: 'list' }),
+        items.map(function (it) {
+          var pct = it.value > 0 && scaleMax > 0 ? Math.min(100, it.value / scaleMax * 100) : 0;
+          var inner = [
+            h('span', { key: 'l', className: 'hy-bar-list__label', title: it.label }, it.label),
+            h('span', { key: 'a', className: 'hy-sr' }, ', '),
+            h('span', { key: 'b', className: 'hy-bar-list__bar', 'aria-hidden': 'true' },
+              pct > 0 ? h('span', { className: 'hy-bar-list__fill', style: { width: pct + '%', minWidth: '2px' } }) : null),
+            h('span', { key: 'v', className: 'hy-bar-list__value' }, format(it.value),
+              props.unit ? h('span', { className: 'hy-sr' }, ' ' + props.unit) : null)
+          ];
+          var link = it.href !== undefined;
+          return h('li', { key: it.key || it.label, className: 'hy-bar-list__item' },
+            link ? h('a', { className: 'hy-bar-list__row hy-bar-list__row--link', href: it.href }, inner)
+              : h('div', { className: 'hy-bar-list__row' }, inner));
+        }));
+    }
+
+    define('BarList', BarList);
+  })();
+
+  /* ---- ColumnChart ---- */
+  (function () {
+    /* ColumnChart: stacked columns on one y scale, with a legend, hover and focus tooltips, one Tab stop with roving keys,
+       and a table view. Drawn from plain elements and tokens (ADR 0004). The pure parts (ticks, segment geometry, label
+       thinning, names) are module-private functions: tests read them from the vm context. */
+    var CC_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
+    var CC_GAP = 2, CC_MIN = 2, CC_MAX_TICKS = 5;
+
+    function ccAmount(v) { v = Number(v); return v > 0 && isFinite(v) ? v : 0; }
+    /* One series' value in a column, never negative: 0 when missing or invalid. */
+    function ccValue(datum, series) { return ccAmount(datum.values && datum.values[series.key]); }
+
+    /* Clean ticks from 0 (steps of 1, 2 or 5 times a power of ten), at most 5, the last at or above `max`. */
+    function ccTicks(max) {
+      max = ccAmount(max);
+      if (!max) return [0, 1];
+      var mag = Math.pow(10, Math.floor(Math.log(max) / Math.LN10 + 1e-9));
+      var steps = [0.1, 0.2, 0.5, 1, 2, 5, 10], step = 10 * mag;
+      for (var i = 0; i < steps.length; i++) {
+        if (Math.ceil(max / (steps[i] * mag) - 1e-9) <= CC_MAX_TICKS - 1) { step = steps[i] * mag; break; }
+      }
+      var count = Math.ceil(max / step - 1e-9), out = [];
+      for (var n = 0; n <= count; n++) out.push(Number((n * step).toPrecision(12)));
+      return out;
+    }
+
+    /* Axis labels: plain below 1,000, compact (1K, 1.5K, 2M) from there. */
+    function ccTickLabel(v) {
+      var opts = v >= 1000 ? { notation: 'compact', maximumFractionDigits: 1 } : { maximumFractionDigits: 3 };
+      try { return new Intl.NumberFormat(undefined, opts).format(v); } catch (e) { return String(v); }
+    }
+
+    function ccTotal(series, datum) {
+      var t = 0;
+      series.forEach(function (s) { t += ccValue(datum, s); });
+      return t;
+    }
+
+    /* Where each non-zero segment goes: `bottom` and `height` in px up a plot `height` px tall for 0 to `max`.
+       A segment that touches one below it leaves a 2px gap under it, and none is under 2px. Each carries its series' `tone`,
+       and `top` marks the last one. */
+    function ccSegments(series, datum, max, height) {
+      var out = [], cursor = 0;
+      series.forEach(function (s) {
+        var v = ccValue(datum, s);
+        if (!v) return;
+        var slice = max > 0 ? v / max * height : 0;
+        var gap = out.length ? CC_GAP : 0;
+        var h = Math.max(CC_MIN, slice - gap);
+        out.push({ key: s.key, tone: s.tone, bottom: cursor + gap, height: h, top: false });
+        cursor += Math.max(slice, h + gap);
+      });
+      if (out.length) out[out.length - 1].top = true;
+      return out;
+    }
+
+    /* Show every nth x label so they never collide: a label needs about 7px a character plus 8px of air. */
+    function ccThinStep(slotWidth, chars) {
+      if (!(slotWidth > 0) || !(chars > 0)) return 1;
+      return Math.max(1, Math.ceil((chars * 7 + 8) / slotWidth));
+    }
+
+    /* "Oct 28: 25 ready, 1 canceled, 0 error" */
+    function ccColumnName(datum, series, fmt) {
+      return datum.label + ': ' + series.map(function (s) { return fmt(ccValue(datum, s)) + ' ' + s.label; }).join(', ');
+    }
+
+    /* Tooltip rows from the top of the stack down, and the total's text. */
+    function ccTooltipRows(datum, series, fmt) {
+      return series.slice().reverse().map(function (s) {
+        return { key: s.key, label: s.label, tone: s.tone, value: fmt(ccValue(datum, s)) };
+      });
+    }
+    /* The total, formatted: the tooltip's last row and the table's Total column. */
+    function ccTotalText(datum, series, fmt) { return fmt(ccTotal(series, datum)); }
+
+    /* A tone's colour, as Progress segments map it; a series without one is the single-series colour. */
+    function ccToneClass(prefix, s) { return prefix + '--' + (CC_TONES.indexOf(s.tone) >= 0 ? s.tone : 'series'); }
+
+    function ColumnChart(props) {
+      var series = props.series || [], data = props.data || [];
+      var height = props.height > 0 ? props.height : 200;
+      var warned = useRef(false);
+      if (!warned.current && !props['aria-label'] && !props['aria-labelledby']) {
+        warned.current = true;
+        var prod = false;
+        try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
+        if (!prod && typeof console !== 'undefined') console.warn('hyprsh: ColumnChart needs an accessible name. Pass aria-label or aria-labelledby.');
+      }
+      var viewState = useControllable(props.view, props.defaultView || 'chart', props.onViewChange);
+      var view = viewState[0] === 'table' ? 'table' : 'chart', setView = viewState[1];
+      var fmt = useMemo(function () {
+        if (props.valueFormatter) return props.valueFormatter;
+        try { var nf = new Intl.NumberFormat(undefined); return function (v) { return nf.format(v); }; } catch (e) { return String; }
+      }, [props.valueFormatter]);
+      var hoverState = useState(null), hovered = hoverState[0], setHovered = hoverState[1];
+      var focusState = useState(null), focused = focusState[0], setFocused = focusState[1];
+      var rovingState = useState(0), rovingIndex = rovingState[0], setRovingIndex = rovingState[1];
+      var widthState = useState(0), plotWidth = widthState[0], setPlotWidth = widthState[1];
+      var tipState = useState(null), tipPos = tipState[0], setTipPos = tipState[1];
+      var rootRef = useRef(null), plotRef = useRef(null), tipRef = useRef(null);
+      var named = { 'aria-label': props['aria-label'], 'aria-labelledby': props['aria-labelledby'] };
+
+      var n = data.length;
+      var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d); }))));
+      var max = ticks[ticks.length - 1];
+      var active = hovered !== null ? hovered : focused;
+      /* The Tab stop stays on a column that exists when `data` shrinks. */
+      var tabStop = Math.min(rovingIndex, n - 1);
+      if (active !== null && active >= n) active = null;
+      var showLegend = props.legend !== false && series.length >= 2;
+
+      useLayoutEffect(function () {
+        var el = plotRef.current;
+        if (!el || view !== 'chart') return;
+        function measure() { setPlotWidth(el.clientWidth); }
+        measure();
+        if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure); return function () { window.removeEventListener('resize', measure); }; }
+        var ro = new ResizeObserver(measure);
+        ro.observe(el);
+        return function () { ro.disconnect(); };
+      }, [view, n]);
+
+      /* The tooltip sits above the column, clamped inside the chart's bounds. */
+      useLayoutEffect(function () {
+        if (active === null || !tipRef.current || !plotRef.current || !rootRef.current) { setTipPos(null); return; }
+        var tip = tipRef.current, pr = plotRef.current.getBoundingClientRect(), cr = rootRef.current.getBoundingClientRect();
+        var tw = tip.offsetWidth, th = tip.offsetHeight;
+        var center = pr.left - cr.left + (active + 0.5) / n * pr.width;
+        var colTop = pr.top - cr.top + height - ccTotal(series, data[active]) / max * height;
+        var next = { left: Math.round(Math.max(0, Math.min(center - tw / 2, cr.width - tw))), top: Math.round(Math.max(0, colTop - 8 - th)) };
+        setTipPos(function (p) { return p && p.left === next.left && p.top === next.top ? p : next; });
+      }, [active, plotWidth, height, n, view, data]);
+
+      function focusColumn(i) {
+        var el = plotRef.current && plotRef.current.querySelector('[data-index="' + i + '"]');
+        if (el) el.focus();
+      }
+      function onKeyDown(e) {
+        var raw = e.target.getAttribute && e.target.getAttribute('data-index');
+        if (raw === null || raw === undefined) return;
+        var i = Number(raw);
+        var to = e.key === 'ArrowRight' ? Math.min(n - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+        if (to === null) return;
+        e.preventDefault();
+        focusColumn(to);
+      }
+
+      if (!n) return h('div', { className: cx('hy-column-chart', props.className), style: props.style }, h('div', { className: 'hy-column-chart__empty' }, props.empty !== undefined ? props.empty : 'No Data'));
+
+      var toggle = h(HY.Button, { variant: 'tertiary', size: 'small', className: 'hy-column-chart__toggle', onClick: function () { setView(view === 'chart' ? 'table' : 'chart'); } },
+        view === 'chart' ? 'View as Table' : 'View as Chart');
+      var legend = showLegend ? h('ul', { className: 'hy-column-chart__legend' }, series.map(function (s) {
+        return h('li', { key: s.key, className: 'hy-column-chart__legend-item' },
+          h('span', { className: cx('hy-column-chart__swatch', ccToneClass('hy-column-chart__swatch', s)), 'aria-hidden': 'true' }), s.label);
+      })) : null;
+
+      var table = h('div', { className: view === 'table' ? 'hy-column-chart__tablewrap' : 'hy-sr' }, h('table', Object.assign({ className: 'hy-column-chart__table' }, named),
+        h('thead', null, h('tr', null,
+          h('th', { scope: 'col' }, 'Label'),
+          series.map(function (s) { return h('th', { key: s.key, scope: 'col' }, s.label); }),
+          h('th', { scope: 'col' }, 'Total'))),
+        h('tbody', null, data.map(function (d, i) {
+          return h('tr', { key: i },
+            h('th', { scope: 'row' }, d.label),
+            series.map(function (s) { return h('td', { key: s.key }, fmt(ccValue(d, s))); }),
+            h('td', null, ccTotalText(d, series, fmt)));
+        }))));
+
+      var tickChars = Math.max.apply(null, ticks.map(function (t) { return ccTickLabel(t).length; }));
+      var labelChars = Math.max.apply(null, data.map(function (d) { return String(d.label).length; }));
+      var step = ccThinStep(plotWidth / n, labelChars);
+
+      var plot = h('div', { className: 'hy-column-chart__body', style: { gridTemplateColumns: (tickChars * 7 + 12) + 'px minmax(0, 1fr)' } },
+        h('div', { className: 'hy-column-chart__yaxis', style: { height: height }, 'aria-hidden': 'true' }, ticks.map(function (t) {
+          return h('span', { key: t, className: 'hy-column-chart__tick', style: { bottom: (t / max * 100) + '%' } }, ccTickLabel(t));
+        })),
+        h('div', Object.assign({ ref: plotRef, className: 'hy-column-chart__plot', role: 'group', style: { height: height }, onKeyDown: onKeyDown }, named),
+          ticks.map(function (t, i) {
+            return h('span', { key: 'g' + t, className: cx('hy-column-chart__grid', i === 0 && 'is-baseline'), style: { bottom: (t / max * 100) + '%' }, 'aria-hidden': 'true' });
+          }),
+          h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
+            return h('div', {
+              key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
+              'aria-label': ccColumnName(d, series, fmt),
+              className: cx('hy-column-chart__slot', active === i && 'is-active'),
+              onMouseEnter: function () { setHovered(i); }, onMouseLeave: function () { setHovered(null); },
+              onFocus: function () { setFocused(i); setRovingIndex(i); }, onBlur: function () { setFocused(null); }
+            },
+              h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, ccSegments(series, d, max, height).map(function (g) {
+                return h('span', {
+                  key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', g), g.top && 'is-top'),
+                  style: { bottom: g.bottom, height: g.height }
+                });
+              })));
+          }))),
+        h('div', { className: 'hy-column-chart__xaxis', 'aria-hidden': 'true' }, data.map(function (d, i) {
+          return h('span', { key: i, className: 'hy-column-chart__xslot' }, i % step === 0 ? h('span', { className: 'hy-column-chart__xlabel' }, d.label) : null);
+        })));
+
+      var tip = view === 'chart' && active !== null ? h('div', {
+        ref: tipRef, className: 'hy-tooltip__box hy-tooltip__box--start hy-column-chart__tip', 'aria-hidden': 'true',
+        style: { left: tipPos ? tipPos.left : 0, top: tipPos ? tipPos.top : 0, visibility: tipPos ? 'visible' : 'hidden' }
+      },
+        h('div', { className: 'hy-column-chart__tip-title' }, data[active].label),
+        ccTooltipRows(data[active], series, fmt).map(function (r) {
+          return h('div', { key: r.key, className: 'hy-column-chart__tip-row' },
+            h('span', { className: cx('hy-column-chart__swatch', ccToneClass('hy-column-chart__swatch', r)) }),
+            h('span', { className: 'hy-column-chart__tip-label' }, r.label),
+            h('span', { className: 'hy-column-chart__tip-value' }, r.value));
+        }),
+        h('div', { className: 'hy-column-chart__tip-row hy-column-chart__tip-total' },
+          h('span', { className: 'hy-column-chart__tip-label' }, 'Total'),
+          h('span', { className: 'hy-column-chart__tip-value' }, ccTotalText(data[active], series, fmt)))) : null;
+
+      return h('div', { ref: rootRef, className: cx('hy-column-chart', props.className), style: props.style },
+        h('div', { className: 'hy-column-chart__toolbar' }, legend, toggle),
+        view === 'chart' ? plot : null,
+        table,
+        tip);
+    }
+
+    define('ColumnChart', ColumnChart);
+  })();
+
   /* ---- FileTree ---- */
   (function () {
     var FileTreeDepth = React.createContext(0);
@@ -6159,6 +6433,87 @@
 
     define('JsonView', JsonView);
     define('makeJsonViewHighlightPattern', makeJsonViewHighlightPattern);
+  })();
+
+  /* ---- Sparkbars ---- */
+  (function () {
+    /* Sparkbars: one bar per run, oldest first. Height is the value, colour is the run's outcome (Progress segments' tones).
+       The row is one Tab stop (a listbox driven with aria-activedescendant); the tooltip follows hover and focus. */
+    var SPARKBARS_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
+    var SPARKBARS_STEP = 8; /* 6px bar + 2px gap */
+
+    /* "27 success, 2 warning, 1 error": counts per tone, in tone order, skipping tones with no runs. */
+    function sparkbarsSummary(runs) {
+      var counts = {};
+      runs.forEach(function (r) { counts[r.tone] = (counts[r.tone] || 0) + 1; });
+      return SPARKBARS_TONES.filter(function (t) { return counts[t]; }).map(function (t) { return counts[t] + ' ' + t; }).join(', ');
+    }
+
+    /* The tooltip box, placed 8px above the bar. Keyed by run, so it is placed afresh whenever the emphasis moves. */
+    function SparkbarsTip(p) {
+      var boxRef = useRef(null);
+      var pos = useFloating(true, p.anchorRef, boxRef, { side: 'top', align: 'center', offset: 8 });
+      return portal(h('span', {
+        ref: boxRef, role: 'tooltip', className: 'hy-tooltip__box hy-tooltip__box--top hy-sparkbars__tip',
+        style: floatingStyle(pos, { zIndex: 'var(--z-tooltip)', maxWidth: 'min(250px, calc(100vw - 16px))' })
+      }, p.text));
+    }
+
+    function Sparkbars(props) {
+      var runs = (props.runs || []).map(function (r) {
+        return { value: Math.max(0, Number(r && r.value) || 0), tone: SPARKBARS_TONES.indexOf(r && r.tone) >= 0 ? r.tone : 'neutral', label: String((r && r.label) || '') };
+      });
+      var rowHeight = props.height !== undefined ? props.height : 24;
+      var max = props.max;
+      if (!(max > 0)) max = runs.reduce(function (m, r) { return Math.max(m, r.value); }, 0);
+      var id = useId();
+      var hoverSt = useState(-1), hover = hoverSt[0], setHover = hoverSt[1];
+      var focusSt = useState(-1), focus = focusSt[0], setFocus = focusSt[1]; /* -1: the row does not have focus */
+      var lastRef = useRef(0);
+      var anchorRef = useRef(null);
+      var count = runs.length;
+      var active = hover >= 0 && hover < count ? hover : (focus >= 0 && focus < count ? focus : -1);
+
+      function move(i) { i = Math.max(0, Math.min(count - 1, i)); lastRef.current = i; setFocus(i); }
+      function onKeyDown(e) {
+        if (!count || e.altKey || e.ctrlKey || e.metaKey) return;
+        var cur = focus >= 0 ? focus : lastRef.current;
+        var next = e.key === 'ArrowRight' ? cur + 1 : e.key === 'ArrowLeft' ? cur - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? count - 1 : null;
+        if (next === null) return;
+        e.preventDefault();
+        setHover(-1);
+        move(next);
+      }
+      /* Bars are 6px with a 2px gap, so the run under the pointer comes from its position: the gaps don't flicker. */
+      function onMove(e) {
+        var r = e.currentTarget.getBoundingClientRect();
+        setHover(Math.max(0, Math.min(count - 1, Math.floor((e.clientX - r.left) / SPARKBARS_STEP))));
+      }
+
+      var name = props['aria-label'] ? props['aria-label'] + ': ' + sparkbarsSummary(runs) : sparkbarsSummary(runs);
+      var bars = runs.map(function (r, i) {
+        var ratio = max > 0 ? Math.min(1, r.value / max) : 0;
+        return h('div', {
+          key: i, id: id + '-' + i, role: 'option', 'aria-label': r.label,
+          className: cx('hy-sparkbars__bar', 'hy-sparkbars__bar--' + r.tone, i === active && 'is-active'),
+          style: { height: Math.max(4, ratio * rowHeight) },
+          ref: i === active ? function (el) { anchorRef.current = el; } : undefined
+        });
+      });
+
+      return h('div', {
+        role: 'listbox', 'aria-orientation': 'horizontal', tabIndex: 0, 'aria-label': name,
+        'aria-activedescendant': active >= 0 ? id + '-' + active : undefined,
+        className: cx('hy-sparkbars', active >= 0 && 'has-active', props.className),
+        style: Object.assign({ height: rowHeight }, props.style),
+        onKeyDown: onKeyDown,
+        onFocus: function () { if (focus < 0) setFocus(Math.min(lastRef.current, Math.max(0, count - 1))); },
+        onBlur: function () { setFocus(-1); },
+        onMouseMove: onMove, onMouseLeave: function () { setHover(-1); }, onClick: onMove
+      }, bars, active >= 0 ? h(SparkbarsTip, { key: active, anchorRef: anchorRef, text: runs[active].label }) : null);
+    }
+
+    define('Sparkbars', Sparkbars);
   })();
 
   /* ---- CommandMenu ---- */
