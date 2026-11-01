@@ -12,6 +12,10 @@ _Avoid_: bottom nav, phone nav, tabs
 Switches between sections inside one page.
 _Avoid_: tab bar
 
+**Nav list**:
+The vertical list of destinations in a sidebar or settings page, one marked current. Not a Tab bar (phone-width screens) or Tabs (sections inside one page).
+_Avoid_: sidebar menu, nav menu
+
 **Accessory**:
 The round button beside the tab bar capsule, for an action that isn't a screen.
 _Avoid_: FAB, action button
@@ -28,6 +32,10 @@ _Avoid_: slice, chunk, stack
 Whether a person is online, away or offline, shown as a dot on their avatar.
 _Avoid_: status, state (those are StatusDot's), availability
 
+**Submenu**:
+A menu opened from an item of another menu.
+_Avoid_: nested menu, flyout, cascade
+
 **Reaction**:
 A quick response to a message, such as an emoji, chosen from a row above a context menu's items.
 _Avoid_: emoji, quick action
@@ -35,6 +43,10 @@ _Avoid_: emoji, quick action
 **Resize handle**:
 The draggable edge at the end of a column header that changes the column's width.
 _Avoid_: resizer, grip, splitter, separator (that's the divider component)
+
+**Pinned column**:
+A table column that keeps its index in the default order: it can't be dragged or moved, and the other columns reorder around it.
+_Avoid_: frozen column, locked column, sticky column (that is a sticky header)
 
 **Pager**:
 Moves through a long set of results one page at a time, in place, showing which range is on screen.

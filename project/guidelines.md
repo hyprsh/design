@@ -26,13 +26,14 @@ Touch sizing applies under `@media (pointer: coarse), (max-width: 639px)`: a coa
 
 - **Must:** write the touch target as `var(--touch-target)`, never as `44px`. Media queries can't read custom properties, so the query writes `max-width: 639px` itself.
 - **Must:** keep rules that aren't about size (16px field text so iOS doesn't zoom, hover on tap, popovers staying 8px inside the screen) under `(pointer: coarse)` alone.
-- **Must:** these are drawn at the touch target: Button (small and default; icon-only Buttons are 44px wide too), Input, Select, Menu items and Menu's unstyled trigger, Checkbox, Radio and Toggle rows, Switch (every size), secondary Tabs, Combobox, MultiSelect, SearchInput, AddressInput, CommandMenuTrigger, ContextMenu and its reaction row, FilterParams, FilterMenu (its trigger, search box, rows and Exclude action), QueryInput and its suggestion rows, QueryBar, and Table's sortable heads.
+- **Must:** these are drawn at the touch target: Button (small and default; icon-only Buttons are 44px wide too), Input, Select, Menu items and Menu's unstyled trigger, MenuSubTrigger, NavList rows, Checkbox, Radio and Toggle rows, Switch (every size), secondary Tabs, Combobox, MultiSelect, SearchInput, AddressInput, CommandMenuTrigger, ContextMenu and its reaction row, FilterParams, FilterMenu (its trigger, search box, rows and Exclude action), QueryInput and its suggestion rows, QueryBar, and Table's sortable heads.
 - **Must:** these keep their drawn size and grow only their hit area to the touch target: tiny Button, interactive Pills (links and buttons, every size), the Progress stop trigger, CommandMenu's Esc key (on a touch-only device it is a round 28px close button instead), Combobox's clear and chevron buttons, ClearableInput's clear button, and FilterParams' remove button and Back chip.
 - Large Buttons (48px), primary Tabs (48px), TabBar items (48px) and its accessory (56px), and CommandMenu items (44px) are already at or above the touch target and don't change. Calendar and the Video seek bar still have their own 40px rules under `(pointer: coarse)`.
 
 ## Navigation
 
 - **Should:** at phone width, move between an app's main screens with a TabBar: at most five destinations, with a More item (opening a Drawer) for the rest. From `sm` up use a rail or sidebar.
+- **Should:** list a sidebar's or settings page's destinations in a NavList, with an accessible name, one item marked `current` and `href` on items that go to a URL. It is not a TabBar or Tabs.
 - **Must:** Tabs switch sections inside one page; a TabBar switches screens. Never use one for the other, and never nest them.
 - **Must:** give a scroll area `padding-bottom: var(--tab-bar-height)` so its last rows never sit under a TabBar.
 

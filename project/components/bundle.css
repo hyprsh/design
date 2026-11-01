@@ -858,11 +858,19 @@ body {
   .hy-querybar__menus { flex-basis: 100%; }
 }
 
+/* ---------- QueryHelpButton ---------- */
+.hy-query__help { flex: none; }
+.hy-query__guide { display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; }
+.hy-query__guide p { margin: 0; padding-top: 8px; border-top: 1px solid var(--gray-alpha-200); color: var(--gray-900); }
+.hy-query__qualifiers { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; }
+.hy-query__qualifiers dt { font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--gray-1000); }
+.hy-query__qualifiers dd { margin: 0; color: var(--gray-900); }
+.hy-query__code { font-family: var(--font-mono); font-size: 12px; color: var(--gray-1000); }
+
 /* ---------- QueryInput ---------- */
 .hy-query { display: flex; flex-direction: column; gap: 8px; width: 100%; min-width: 0; }
 .hy-query__row { display: flex; align-items: center; gap: 8px; }
 .hy-query__field { flex: 1; min-width: 0; }
-.hy-query__help { flex: none; }
 .hy-query__list {
   /* portalled; position and z-index come from useFloating */
   box-sizing: border-box; max-height: 280px; overflow-y: auto; margin: 0; padding: 4px; list-style: none;
@@ -879,12 +887,6 @@ body {
 /* The match is bold as well as brighter, so it doesn't rest on colour. */
 .hy-query__match { background: transparent; color: inherit; font-weight: 700; }
 .hy-query__desc { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 16px; color: var(--gray-900); }
-.hy-query__guide { display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; }
-.hy-query__guide p { margin: 0; padding-top: 8px; border-top: 1px solid var(--gray-alpha-200); color: var(--gray-900); }
-.hy-query__qualifiers { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 0; }
-.hy-query__qualifiers dt { font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--gray-1000); }
-.hy-query__qualifiers dd { margin: 0; color: var(--gray-900); }
-.hy-query__code { font-family: var(--font-mono); font-size: 12px; color: var(--gray-1000); }
 @keyframes hy-query-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-query-fade { from { opacity: 0; } to { opacity: 1; } }
 
@@ -1253,6 +1255,33 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 .hy-link:hover { text-decoration-thickness: 2px; }
 .hy-link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-link:disabled, .hy-link[aria-disabled="true"] { color: var(--gray-700); cursor: not-allowed; text-decoration-thickness: 1px; }
+
+/* ---------- NavList ---------- */
+.hy-nav-list { display: block; min-width: 0; font-family: var(--font-sans); }
+.hy-nav-list__list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.hy-nav-group + .hy-nav-group, .hy-nav-item-row + .hy-nav-group { margin-top: var(--space-4); }
+.hy-nav-group__title { padding: 0 12px; margin-bottom: 4px; font-size: 12px; line-height: 20px; font-weight: 500; color: var(--gray-900); }
+.hy-nav-item {
+  position: relative; display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; margin: 0; padding: 0 12px;
+  box-sizing: border-box; border: 0; border-radius: var(--radius-md); background: transparent; color: var(--gray-900);
+  font: inherit; font-size: 14px; line-height: 20px; font-weight: 500; text-align: left; text-decoration: none; cursor: pointer;
+  transition: background-color .15s cubic-bezier(.4,0,.2,1), color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-nav-item:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
+.hy-nav-item:active { background: var(--gray-alpha-300); }
+.hy-nav-item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-nav-item.is-current { background: var(--background-100); color: var(--gray-1000); box-shadow: 0 0 0 1px var(--gray-alpha-400); }
+.hy-nav-item.is-disabled, .hy-nav-item[aria-disabled="true"] { opacity: .5; cursor: not-allowed; pointer-events: none; }
+.hy-nav-item__icon { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 16px; height: 16px; }
+.hy-nav-item__label { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-nav-item__trailing { display: inline-flex; flex: none; align-items: center; margin-left: auto; }
+.hy-nav-item__count { font-size: 12px; line-height: 20px; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-nav-item { height: var(--touch-target); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-nav-item { transition: none; }
+}
 
 /* ---------- Pager ---------- */
 .hy-pager { display: flex; width: 100%; box-sizing: border-box; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
@@ -1745,6 +1774,10 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-toast--error { background: var(--red-800); color: var(--white); }
 .hy-toast--warning { background: var(--amber-700); color: var(--black); }
 .hy-toast--success .hy-toast__close:hover, .hy-toast--error .hy-toast__close:hover, .hy-toast--warning .hy-toast__close:hover { background: transparent; }
+/* progress: a thin bar at the toast's width; on a typed toast it draws in the toast's own text colour */
+.hy-toast__progress { min-width: 0; }
+.hy-toast--success .hy-progress, .hy-toast--error .hy-progress, .hy-toast--warning .hy-progress { --progress-fill: currentColor; }
+.hy-toast--success .hy-progress__track, .hy-toast--error .hy-progress__track, .hy-toast--warning .hy-progress__track { background: color-mix(in srgb, currentColor 25%, transparent); }
 @keyframes hy-toast-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-toaster:not(.hy-toaster--inline) .hy-toast { transition: opacity .2s linear; }
@@ -2050,6 +2083,13 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 
 .hy-table__footer .hy-table__cell { color: var(--gray-1000); font-weight: 500; border-radius: 0; box-shadow: inset 0 1px 0 var(--gray-alpha-400); }
 .hy-table__empty.hy-table__cell { text-align: center; color: var(--gray-900); height: 96px; white-space: normal; }
+
+/* Reorderable columns: a head is picked up anywhere but its resize handle; the drop target shows the edge the column arrives at. */
+.hy-table__head--reorder { position: relative; user-select: none; }
+.hy-table__head--reorder:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-table__head.is-dragging { opacity: .5; }
+.hy-table__head.is-drop-before { box-shadow: inset 2px 0 0 var(--accent-900); }
+.hy-table__head.is-drop-after { box-shadow: inset -2px 0 0 var(--accent-900); }
 
 /* Resizable columns: fixed layout with <col> widths, so the 320px cap and the truncate max-width: 0 technique step aside. */
 .hy-table__table--resizable { table-layout: fixed; }
@@ -2468,6 +2508,25 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-menu__section { display: block; }
 .hy-menu__section-title { display: block; padding: 8px 8px 4px; font-size: 12px; line-height: 16px; color: var(--gray-900); }
 .hy-menu__group { margin: 0; padding: 0; list-style: none; }
+/* Submenus: the trigger's chevron points right (down is the shared glyph); the list opens beside its parent (placed by useFloating) */
+.hy-menu__chev { display: inline-flex; flex: none; margin-left: auto; color: var(--gray-900); transform: rotate(-90deg); }
+.hy-menu__chev--back { margin-left: 0; transform: rotate(90deg); }
+.hy-menu__item--sub.is-open { background: var(--gray-alpha-100); }
+.hy-menu__item--sub[aria-disabled="true"] .hy-menu__chev { color: inherit; }
+.hy-menu__list--sub { transform-origin: top left; }
+.hy-menu__list--sub.hy-menu__list--left { transform-origin: top right; }
+/* Under touch sizing a submenu's items replace the open list's contents in place: its wrapper draws nothing of its own, and the rows it replaces are hidden */
+.hy-menu__drill { display: contents; }
+.hy-menu__list--drill {
+  position: static; z-index: auto; min-width: 0; max-width: none; max-height: none; overflow: visible; padding: 0;
+  border-radius: 0; background: none; box-shadow: none; animation: none;
+}
+.hy-menu__back { font-weight: 500; }
+/* The list a submenu has replaced the contents of (marked --drilled) hides all its own rows, in sections too, and keeps only the drill wrapper */
+.hy-menu__list--drilled > li:not(.hy-menu__drill):not(.hy-menu__section),
+.hy-menu__list--drilled > .hy-menu__section:not(:has(.hy-menu__drill)),
+.hy-menu__list--drilled > .hy-menu__section > .hy-menu__section-title,
+.hy-menu__list--drilled > .hy-menu__section > .hy-menu__group > li:not(.hy-menu__drill) { display: none; }
 /* Touch sizing: rows and the unstyled trigger are drawn at the touch target */
 @media (pointer: coarse), (max-width: 639px) {
   .hy-menu__item { min-height: var(--touch-target); }

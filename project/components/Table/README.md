@@ -2,7 +2,7 @@
 
 A semantic data table with striped, bordered and interactive bodies, a footer for totals and tabular numbers.
 
-**You provide:** either the parts — `TableRoot` (scroll wrapper) › `Table` › `TableColgroup`/`TableCol`, `TableHeader`, `TableBody`, `TableFooter` › `TableRow` › `TableHead`/`TableCell` (also `Table.Root`, `Table.Body`, …) — or the data form: `columns` (`[{ key, header, numeric?, align?, mono?, wrap?, truncate?, sortable?, resizable?, width?, minWidth?, maxWidth?, render? }]`), `rows`, a screen-reader `caption` and an `empty` message. `TableBody` takes `striped`, `bordered`, `interactive` and `virtualize`, all off by default.
+**You provide:** either the parts — `TableRoot` (scroll wrapper) › `Table` › `TableColgroup`/`TableCol`, `TableHeader`, `TableBody`, `TableFooter` › `TableRow` › `TableHead`/`TableCell` (also `Table.Root`, `Table.Body`, …) — or the data form: `columns` (`[{ key, header, numeric?, align?, mono?, wrap?, truncate?, sortable?, resizable?, width?, minWidth?, maxWidth?, pinned?, render? }]`), `rows`, a screen-reader `caption` and an `empty` message. `TableBody` takes `striped`, `bordered`, `interactive` and `virtualize`, all off by default.
 
 **Alignment:** columns align left unless you say otherwise: `align="left" | "center" | "right"` on a `TableHead` or `TableCell` (`align` on a column in the data form), or `numeric`, which right-aligns with tabular digits. Earlier versions right-aligned the last column of every table, whatever it held; that is gone, so add `align="right"` to the last head and cells (or `align: 'right'` on the column) where you relied on it.
 
@@ -33,6 +33,8 @@ onSortChange: function (next) {
 ```
 
 **Resizable columns:** `resizable: true` on a column (in the parts, `resizable` and a `columnKey` on its `TableHead`) adds a resize handle on the header's trailing edge: drag it, or focus it with Tab and use Left and Right (8px, 32px with Shift), Home and End for the minimum and maximum, and Enter or a double-click to reset. The `truncate` column takes the rest of the row, so widening a column narrows it; it has no handle of its own (a `truncate` column ignores `resizable`; in the parts, put `truncate` on its `TableHead` too). Once it reaches its minimum, or when there is no `truncate` column, the table grows and `TableRoot` scrolls sideways; with `stickyHeader` the drag stops at the container's width instead. Without a `truncate` column the table is as wide as its columns, so narrowing one leaves room at the end of the row. A column starts at its `width` (else the width it had when the first rows showed, measured once: not while `loading` or before there are rows, so give a `width` to columns whose content arrives later) and can't go below its header's content (at least 48px) or `minWidth`, or above `maxWidth`. `Table` owns the widths for both forms: `columnWidths` with `onColumnWidthsChange(widths, { key, phase })` when controlled, `defaultColumnWidths` otherwise. The widths hold only the columns that differ from their default, so `{}` is the default layout and a reset removes the key. `phase` is `'drag'` while the pointer moves and `'end'` on release, on each keyboard step and on reset, so save the widths on `'end'`. The handles appear once the widths are measured; while `loading` after that they stay but don't respond, and on touch-only devices they are hidden and the columns keep their widths. In the parts the table lays out its own `<col>`s, so give a resizable column's default as `width` on its `TableHead` rather than on a `TableCol`; once the widths are measured, your own `TableColgroup` and its classes and styles are not rendered. Don't make a table resizable when it already fits the viewport, or when it is mostly read on phones.
+
+**Reorderable columns:** in the data form, `columnOrder` (controlled), `defaultColumnOrder` (uncontrolled) and `onColumnOrderChange(order, change)` let users reorder the columns; giving any one of them turns it on. The order is an array of column keys: keys missing from it follow in their `columns` order, unknown keys are ignored, and `[]` is the default order. `change` is `{ key, from, to }` for a move and `{ reset: true }` for a reset, and `order` is always the full new order. Saving it is up to the app. Drag a head (anywhere but its resize handle) onto another head to move the column there; the target shows a bar on the edge the column will arrive at. A drag starts after a few pixels, so clicking a sortable head still sorts, and Escape cancels it. With the keyboard, Alt+← and Alt+→ on a focused head, or on its sort button, move that column one step and keep focus on it. For touch, and for people who don't know the shortcut, place `Table.ColumnsMenu` (also `TableColumnsMenu`) somewhere in the page, such as a toolbar: it takes the same `columns`, `columnOrder` and `onColumnOrderChange`, so it needs the controlled form, lists the columns in their current order with Move Left and Move Right items, and ends with Reset Order. Its button reads “Columns”; change it with `label`. Every move is announced in a polite live region, such as “Status moved to position 3 of 7”, and a reset as “Column order reset”. `pinned: true` on a column keeps it at its index in the default order: it can't be dragged or moved and other columns can't take its slot, so use it for a leading checkbox or a trailing actions column. Widths stay keyed by column key, so a resized column keeps its width when it moves, and a `truncate` column can be moved like any other. Reordering is for the data form only; with the parts, order the heads and cells yourself.
 
 **Loading:** `loading` on the data form draws skeleton rows under the real header instead of `rows` or `empty`: `true` for 5 rows, or a number. Each cell holds a Skeleton sized to its column: `numeric` columns get a short, right-aligned block, `mono` and `truncate` columns a medium one, the rest widths that vary by row. The rows are the same height as real ones (also under touch sizing), so nothing shifts when data arrives. Sortable headers keep their look but are inert, the table gets `aria-busy="true"`, the skeleton rows are hidden from screen readers and the caption reads “Projects, loading” (“Loading” without a `caption`). With the parts, repeat `TableSkeletonRow` (`Table.SkeletonRow`) with `columns` for the same sizing, or `count` for plain cells, and give it `index` so the widths vary; set `aria-busy` on the table yourself.
 
@@ -164,8 +166,8 @@ export default function Example() {
 }
 ```
 
-### Resizable Columns
-Drag a header's edge, or focus it and use the arrow keys. The widths are saved to local storage when a resize ends, and the Message column gives up the room.
+### Resizable and Reorderable Columns
+Drag a header's edge to resize it, or drag a head onto another (or press Alt with an arrow key) to move it, with the Columns menu doing the same from a toolbar; the Status column is pinned and the order and widths are saved to local storage.
 
 ```jsx
 import { useState } from 'react';
@@ -174,30 +176,55 @@ import { Table } from '@hyprsh/design';
 const columns = [
   { key: 'time', header: 'Time', mono: true, resizable: true },
   { key: 'level', header: 'Level', resizable: true, minWidth: 64, maxWidth: 160 },
+  { key: 'source', header: 'Source', resizable: true },
   { key: 'message', header: 'Message', truncate: true },
+  { key: 'status', header: 'Status', pinned: true },
 ];
 
 const rows = [
-  { id: 1, time: '10:42:01', level: 'info', message: 'Deployment dpl_8f2a promoted to production for marketing-site' },
-  { id: 2, time: '10:41:37', level: 'warn', message: 'Build cache for docs was invalidated by a lockfile change' },
-  { id: 3, time: '10:39:50', level: 'error', message: 'Function api/edge-config timed out after 10s on the staging branch' },
+  { id: 1, time: '10:42:01', level: 'info', source: 'marketing-site', message: 'Deployment dpl_8f2a promoted to production', status: 'Ready' },
+  { id: 2, time: '10:41:37', level: 'warn', source: 'docs', message: 'Build cache was invalidated by a lockfile change', status: 'Ready' },
+  { id: 3, time: '10:39:50', level: 'error', source: 'edge-config', message: 'Function timed out after 10s on the staging branch', status: 'Failed' },
 ];
 
-function load() {
-  try { return JSON.parse(localStorage.getItem('log-columns')) || {}; } catch { return {}; }
+function load(name, fallback) {
+  try { return JSON.parse(localStorage.getItem(name)) || fallback; } catch { return fallback; }
+}
+
+function save(name, value) {
+  try { localStorage.setItem(name, JSON.stringify(value)); } catch {}
 }
 
 export default function Example() {
-  const [widths, setWidths] = useState(load);
+  const [order, setOrder] = useState(() => load('log-order', []));
+  const [widths, setWidths] = useState(() => load('log-widths', {}));
+
+  function onColumnOrderChange(next) {
+    setOrder(next);
+    save('log-order', next);
+  }
 
   function onColumnWidthsChange(next, { phase }) {
     setWidths(next);
-    if (phase === 'end') {
-      try { localStorage.setItem('log-columns', JSON.stringify(next)); } catch {}
-    }
+    if (phase === 'end') save('log-widths', next);
   }
 
-  return <Table caption="Log" columns={columns} rows={rows} columnWidths={widths} onColumnWidthsChange={onColumnWidthsChange} />;
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Table.ColumnsMenu columns={columns} columnOrder={order} onColumnOrderChange={onColumnOrderChange} />
+      </div>
+      <Table
+        caption="Log"
+        columns={columns}
+        rows={rows}
+        columnOrder={order}
+        onColumnOrderChange={onColumnOrderChange}
+        columnWidths={widths}
+        onColumnWidthsChange={onColumnWidthsChange}
+      />
+    </div>
+  );
 }
 ```
 

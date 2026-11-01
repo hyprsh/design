@@ -2,7 +2,7 @@
 
 A button that opens a list of actions, with typeahead and full keyboard support (the WAI-ARIA menu-button pattern).
 
-**You provide:** a `MenuContainer` holding a `MenuButton` (any Button props, plus `showChevron` or `type="unstyled"` for a custom trigger such as an avatar) and a `Menu` (`width`). Fill the menu with `MenuItem` (`onClick`, `href`, `checked`, `role`, `disabled`, `description`, `title`, `type="error"`, `prefix`, `suffix`, `shortcut`), `MenuLink` (`href`), `MenuItemLocked`, `MenuSection` (`title`) and `MenuDivider`. `MenuContainer` takes `position` (`bottom-start` by default; also `bottom-end`, `top-*`, `left-*`, `right-*`), and `open`/`defaultOpen`/`onOpenChange`. The older one-piece form still works: `<Menu label="Actions" items={[{ label, onSelect, shortcut, prefix, disabled, danger, checked, role } | { separator: true }]} align="end" />`.
+**You provide:** a `MenuContainer` holding a `MenuButton` (any Button props, plus `showChevron` or `type="unstyled"` for a custom trigger such as an avatar) and a `Menu` (`width`). Fill the menu with `MenuItem` (`onClick`, `href`, `checked`, `role`, `disabled`, `description`, `title`, `type="error"`, `prefix`, `suffix`, `shortcut`), `MenuLink` (`href`), `MenuItemLocked`, `MenuSection` (`title`), `MenuDivider` and `MenuSub` (see Submenus). `MenuContainer` takes `position` (`bottom-start` by default; also `bottom-end`, `top-*`, `left-*`, `right-*`), and `open`/`defaultOpen`/`onOpenChange`. The older one-piece form still works: `<Menu label="Actions" items={[{ label, onSelect, shortcut, prefix, disabled, danger, checked, role } | { separator: true }]} align="end" />`.
 
 - Use Menu for a visible trigger that opens actions on one resource. Use ContextMenu for right-click, CommandMenu for global ⌘&nbsp;K commands, SplitButton when one action is the clear default, and Select to pick a value.
 - Keep it to about 10 items; group longer lists with `MenuSection` (Title Case, one or two words) or move rare actions to a settings page.
@@ -19,6 +19,8 @@ A button that opens a list of actions, with typeahead and full keyboard support 
 **Checked items:** `checked` gives an item a state. `<MenuItem checked={on}>` is a `menuitemcheckbox` and `<MenuItem role="radio" checked={on}>` a `menuitemradio`, both with `aria-checked`; without `checked` the item is a plain `menuitem` and `role` is ignored. A checked item draws a checkmark at the start, an unchecked one (`checked={false}`) leaves the same space so labels line up, and `prefix` follows the checkmark. The mark is decorative: screen readers get the state from `aria-checked`. The menu doesn't track the value. You pass `checked` and update it from `onClick` or `onSelect`. Group a radio set in a `MenuSection`. Choosing a radio item closes the menu like any item; choosing a checkbox item runs its handlers and leaves the menu open with focus on it, so several can be toggled. Checked items take part in arrow keys, Home, End and typeahead like any other item. Links can't be checked: `checked` and `role` are ignored on an item with `href` and on `MenuLink`, and the types reject them. Use Select to pick a value from a form field.
 
 **Keys stay inside:** the open list stops the keys it handles itself (arrows, Home, End, Enter, Space, Escape, Tab, and plain letters for typeahead) from bubbling out of the portal, through the React tree and to the document. A page's own j/k list or Escape-closes-the-pane handler does not react while the menu is open; Escape closes the menu only. Keys pressed on the trigger button are not stopped.
+
+**Submenus:** `MenuSub` (also `Menu.Sub`) wraps a `MenuSubTrigger` (`children`, `prefix`, `disabled`, `description`) and a `Menu` of the same item parts, sections, dividers, checked items and links included. Submenus nest to any depth and work in `MenuContainer`, `ContextMenu` and `DotsMenu`. The trigger is a `menuitem` with `aria-haspopup="menu"` and `aria-expanded`; the submenu is a `menu` labelled by it. With a pointer, hovering or clicking the trigger opens the submenu beside its parent (it flips to the left near the edge of the window), and moving diagonally toward it doesn't close it. → , Enter or Space opens it with focus on its first item; ← or Escape closes only that submenu and refocuses its trigger. Choosing an item closes the whole chain and refocuses the top trigger. Under touch sizing, tapping the trigger replaces the open list's items in place, headed by a Back row with the trigger's label, and nothing opens to the side. Group a few related actions behind a trigger (“Open In ›”) rather than hiding common ones, and stay within two levels. It isn't available in the older `items` form, CommandMenu, FilterMenu or Select.
 
 ## Examples
 
@@ -42,11 +44,11 @@ export default function Example() {
 }
 ```
 
-### Sections, Shortcuts and Destructive Items
-Group longer lists with sections. Destructive items go last, after a divider, with a full label.
+### Sections, Shortcuts, Submenus and Destructive Items
+Group longer lists with sections, put related actions behind a submenu trigger, and end with the destructive item after a divider and with a full label.
 
 ```jsx
-import { Menu, MenuButton, MenuContainer, MenuDivider, MenuItem, MenuSection } from '@hyprsh/design';
+import { Menu, MenuButton, MenuContainer, MenuDivider, MenuItem, MenuSection, MenuSub, MenuSubTrigger } from '@hyprsh/design';
 import { Copy, GitBranch, Trash2 } from 'lucide-react';
 
 export default function Example() {
@@ -58,6 +60,14 @@ export default function Example() {
           <MenuItem prefix={<Copy />} shortcut="⌘ C">Copy Deployment URL</MenuItem>
           <MenuItem prefix={<GitBranch />}>View Branch</MenuItem>
         </MenuSection>
+        <MenuSub>
+          <MenuSubTrigger>Open In</MenuSubTrigger>
+          <Menu>
+            <MenuItem>Editor</MenuItem>
+            <MenuItem>Terminal</MenuItem>
+            <MenuItem>Browser</MenuItem>
+          </Menu>
+        </MenuSub>
         <MenuDivider />
         <MenuItem type="error" prefix={<Trash2 />}>Delete Deployment…</MenuItem>
       </Menu>
