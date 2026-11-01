@@ -8,8 +8,7 @@ A short, temporary message in a polite `aria-live` region at the bottom right, l
 - Pick the method by how the person experienced it, not by HTTP status: a canceled deploy is `message`, a partial deploy is `warning`.
 - Completion toasts follow “Noun past-participle” with no full stop and no “successfully”. Errors are two sentences ending in the fix: “Couldn’t verify domain. Try again.”
 - Match the verb to the button that caused it (Delete Project → “Project deleted”). Undo snackbars use the literal label “Undo”, and only when rollback is safe.
-- Narrate one async flow with one toast, updated in place, not with several. Text and type changes are announced once; progress alone is not, so put the milestones in the text (“Searching 3 of 10…”). The timer carries on through an update unless it has `duration` or `preserve`: update a preserved toast with `preserve: false` to let it leave after the default duration.
-- Don't narrate one async flow with several toasts, and never put navigation in a toast. Build failures and billing errors also need a persistent row with the fix.
+- Narrate one async flow with one toast, updated in place, never with several. Text and type changes are announced once; progress alone is not, so put the milestones in the text (“Searching 3 of 10…”). The timer carries on through an update unless it has `duration` or `preserve`: update a preserved toast with `preserve: false` to let it leave after the default duration. Never put navigation in a toast, and build failures and billing errors also need a persistent row with the fix.
 
 ## Examples
 
@@ -89,7 +88,7 @@ export default function Example() {
 ```
 
 ### Progress and Update
-Show a preserved toast with `progress`, change it in place with `update`, and finish it with `preserve: false` so it leaves on its own. The bar is named by the text and its value is not announced.
+Show a preserved toast with `progress`, change it in place with `update`, and finish it with `preserve: false` so it leaves on its own.
 
 ```jsx
 import { Button, useToasts } from '@hyprsh/design';
@@ -106,7 +105,7 @@ export default function Example() {
         toasts.update(id, { text: `Searching ${n} of 10…`, progress: { value: n, max: 10 } });
       } else {
         clearInterval(timer);
-        toasts.update(id, { text: 'Search Done', type: 'success', progress: null, preserve: false });
+        toasts.update(id, { text: 'Search done', type: 'success', progress: null, preserve: false });
       }
     }, 600);
   }
