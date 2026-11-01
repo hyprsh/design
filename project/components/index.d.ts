@@ -1413,7 +1413,7 @@ export interface ProgressProps extends ProgressBase {
 export interface ProgressSegmentsProps extends ProgressBase {
   /** One bar split into tones, drawn left to right and cut off at max. Replaces value, colors and type. */
   segments: ProgressSegment[];
-  /** A 1px gap in the page colour between segments. Default false. */
+  /** A 2px gap in the page colour between segments. Default false. Every segment above 0 is at least 2px wide either way. */
   gap?: boolean;
   value?: never;
   colors?: never;
@@ -2023,6 +2023,28 @@ export declare function makeJsonViewHighlightPattern(terms: string | string[]): 
 export declare const JsonView: ((props: JsonViewProps) => React.ReactElement) & {
   makeJsonViewHighlightPattern: typeof makeJsonViewHighlightPattern;
 };
+
+export interface SparkbarsRun {
+  /** Bar height, scaled to max. */
+  value: number;
+  /** The run's outcome, coloured as StatusDot and Progress segments of the same name. */
+  tone: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /** The run's accessible name and its tooltip text. */
+  label: string;
+}
+export interface SparkbarsProps {
+  /** One bar per run, oldest first, drawn left to right. */
+  runs: SparkbarsRun[];
+  /** The value that fills the box. Default: the largest value. A bar is never under 4px. */
+  max?: number;
+  /** Height of the box in px. Default 24. */
+  height?: number;
+  /** Names the row; the component adds a per-tone summary, such as "27 success, 2 warning, 1 error". */
+  'aria-label': string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Sparkbars(props: SparkbarsProps): React.ReactElement;
 
 export interface CommandItem { label: string; onSelect?: () => void; keywords?: string[]; shortcut?: React.ReactNode; icon?: React.ReactNode; disabled?: boolean }
 
@@ -2839,6 +2861,7 @@ declare global {
       FilterParams: typeof FilterParams;
       Gauge: typeof Gauge;
       JsonView: typeof JsonView;
+      Sparkbars: typeof Sparkbars;
       CommandMenu: typeof CommandMenu;
       ContextCard: typeof ContextCard;
       ContextMenu: typeof ContextMenu;
