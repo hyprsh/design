@@ -2,6 +2,15 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.17.0
+
+2026-11-01
+
+### Features
+
+- **components:** add the components kestrel's redesign worked around
+- **charts:** add chart tokens, barlist, sparkbars and columnchart
+
 ## v0.16.0
 
 2026-10-31
