@@ -14,7 +14,7 @@
 **1. Install** a release tag (React 18 or newer is a peer dependency):
 
 ```bash
-npm install github:hyprsh/design#v0.17.0
+npm install github:hyprsh/design#v0.17.1
 ```
 
 **2. Import the styles** once, at your app's entry:
@@ -86,7 +86,7 @@ The docs site also serves `llms.txt`, `llms-full.txt` and a `.md` version of eve
 Each version is a git tag. [CHANGELOG.md](CHANGELOG.md) (the [Changelog page](https://hyprsh.github.io/design/changelog/), and `docs/changelog.md` in the package) and the [GitHub releases](https://github.com/hyprsh/design/releases) list each version's features, fixes and breaking changes. To upgrade, point the install at the new tag:
 
 ```bash
-npm install github:hyprsh/design#v0.17.0
+npm install github:hyprsh/design#v0.17.1
 ```
 
 ---

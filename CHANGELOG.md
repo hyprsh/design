@@ -2,6 +2,14 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.17.1
+
+2026-11-01
+
+### Docs
+
+- **changelog:** rewrite the 0.17.0 notes around the components it adds
+
 ## v0.17.0
 
 2026-11-01
