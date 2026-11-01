@@ -5,7 +5,7 @@
 
 # hyprsh design system
 
-80+ accessible React components, design tokens, the Geist fonts and the hyprsh brand, in one package with no dependencies of its own. Light and dark themes, touch sizing and keyboard support are built in.
+90 accessible React components, design tokens, the Geist fonts and the hyprsh brand, in one package with no dependencies of its own. Light and dark themes, touch sizing and keyboard support are built in.
 
 **[Docs and live examples](https://hyprsh.github.io/design/)** · **[Releases](https://github.com/hyprsh/design/releases)** · **[Getting started](docs/getting-started.md)**
 
@@ -60,7 +60,7 @@ Every component has a page with live examples you can copy at **https://hyprsh.g
 
 | | |
 |---|---|
-| **Components** | Forms (Input, Select, Combobox, Checkbox, Toggle, Slider…), overlays (Modal, Drawer, Popover, Menu, Command Menu, Tooltip), data (Table, Query Bar, File Tree, JSON View), feedback (Toast, Banner, Note, Progress, Skeleton), navigation, layout and media. Each one ships its TypeScript types. |
+| **Components** | Forms (Input, Select, Combobox, Checkbox, Toggle, Slider…), overlays (Modal, Drawer, Popover, Menu, Command Menu, Tooltip), data (Table, Query Bar, File Tree, JSON View, Column Chart, Bar List, Sparkbars), feedback (Toast, Banner, Note, Progress, Skeleton), navigation (Nav List…), layout and media. Each one ships its TypeScript types. |
 | **Tokens** | A colour scale for light and dark, spacing, radii, shadows, z-index and type styles, as CSS variables and classes (`.heading-24`, `.copy-14`). |
 | **Fonts** | Geist Sans and Geist Mono, loaded by `tokens.css`. |
 | **Icons** | Pass any [Lucide](https://lucide.dev) icon: `<Icon icon={GitBranch} />` from `lucide-react`. `import '@hyprsh/design/icons'` registers the full set for `<Icon name="…">` (about 450 KB). |
