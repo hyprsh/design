@@ -1,0 +1,30 @@
+<!-- @dsCard group="Data" height=1000 subtitle="Deployments by outcome with legend and tooltip, a single series, a controlled table view, empty" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ColumnChart</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none;gap:32px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var DAYS = ['Oct 22', 'Oct 23', 'Oct 24', 'Oct 25', 'Oct 26', 'Oct 27', 'Oct 28', 'Oct 29', 'Oct 30', 'Oct 31', 'Nov 1', 'Nov 2', 'Nov 3', 'Nov 4'];
+var READY = [18, 25, 31, 12, 4, 6, 29, 33, 27, 36, 14, 5, 22, 30];
+var CANCELED = [1, 0, 2, 1, 0, 0, 1, 3, 2, 1, 0, 0, 2, 1];
+var ERRORS = [0, 2, 1, 0, 0, 0, 3, 1, 0, 2, 0, 0, 1, 0];
+var deployments = DAYS.map(function (d, i) { return { label: d, values: { ready: READY[i], canceled: CANCELED[i], error: ERRORS[i] } }; });
+var outcomes = [{ key: 'ready', label: 'Ready', tone: 'success' }, { key: 'canceled', label: 'Canceled', tone: 'neutral' }, { key: 'error', label: 'Error', tone: 'error' }];
+var requests = DAYS.slice(0, 10).map(function (d, i) { return { label: d, values: { requests: [1200, 3400, 2800, 4100, 900, 700, 3900, 5200, 4800, 6100][i] } }; });
+function Table() {
+  var s = React.useState('table'), view = s[0], set = s[1];
+  return h(H.ColumnChart, { series: outcomes, data: deployments.slice(0, 5), view: view, onViewChange: set, 'aria-label': 'Deployments per day, by outcome' });
+}
+function Demo() {
+  return h(F, null,
+    h(H.ColumnChart, { series: outcomes, data: deployments, 'aria-label': 'Deployments per day, by outcome' }),
+    h(H.ColumnChart, { series: [{ key: 'requests', label: 'Requests' }], data: requests, height: 140, 'aria-label': 'Requests per day' }),
+    h(Table),
+    h(H.ColumnChart, { series: outcomes, data: [], 'aria-label': 'Deployments per day, by outcome', empty: 'No Deployments Yet' }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
