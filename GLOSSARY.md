@@ -28,6 +28,10 @@ _Avoid_: slice, chunk, stack
 Whether a person is online, away or offline, shown as a dot on their avatar.
 _Avoid_: status, state (those are StatusDot's), availability
 
+**Submenu**:
+A menu opened from an item of another menu.
+_Avoid_: nested menu, flyout, cascade
+
 **Reaction**:
 A quick response to a message, such as an emoji, chosen from a row above a context menu's items.
 _Avoid_: emoji, quick action
