@@ -351,6 +351,25 @@ describe('under touch sizing', { skip: skipNoChrome }, () => {
   });
 });
 
+describe('under touch sizing in a ContextMenu with reactions', { skip: skipNoChrome }, () => {
+  before(() => fresh(375, true));
+
+  it('hides the Reactions row and the divider below it while a submenu replaces the list', async () => {
+    await ev(`show(h(H.ContextMenu, null, h(H.ContextMenuTrigger, { id: 'area', style: { height: 200, margin: 40 } }, 'Press'),
+      h(H.ContextMenuContent, { reactions: [{ value: 'up', label: 'Thumbs Up', emoji: 'U' }, { value: 'ok', label: 'Okay', emoji: 'O' }] }, ${ITEMS})))`);
+    await ev(`document.getElementById('area').dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: 100, clientY: 100 }))`);
+    await until(`document.querySelector('[role="menu"]')`, 'the menu');
+    await tag();
+    const shown = `document.querySelector('.hy-context-menu__reactions').offsetParent !== null`;
+    assert.equal(await ev(shown), true, 'the row is there before drilling');
+    await click(triggerSel('Open In'));
+    await until(`!!document.querySelector('.hy-menu__back')`, 'the drilled list');
+    await tag();
+    assert.equal(await ev(shown), false, 'the Reactions row is hidden above the Back row');
+    assert.equal(await ev(`document.querySelectorAll('[role="separator"]').length - [...document.querySelectorAll('[role="separator"]')].filter(function (el) { return !el.offsetParent; }).length`), 1, 'only the submenu\'s own divider is drawn');
+  });
+});
+
 describe('without submenus', { skip: skipNoChrome }, () => {
   before(() => fresh(1000));
   it('render no chevron or haspopup rows and still select and close', async () => {
