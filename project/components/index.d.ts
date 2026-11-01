@@ -617,6 +617,8 @@ export interface QueryBarProps extends Omit<QueryInputProps, 'suggestions' | 'he
   size?: 'small' | 'medium' | 'large';
   /** Class for the outer element. */
   className?: string;
+  /** The "?" button that opens the help popover: `true` (default) beside the field, `false` hidden, `'menus'` last in the menu row after the `QueryBar.Menu` elements (beside the field when there are no menus). Needs `qualifiers`. */
+  help?: boolean | 'menus';
   /** The menus wrap onto more rows when they don't fit, so a Sort menu at the end stays visible (default true). `false` keeps them on one row that scrolls sideways. */
   wrap?: boolean;
   /** `QueryBar.Menu` elements, shown in a row after the field. */
@@ -638,6 +640,19 @@ export declare function QueryBarMenu(props: QueryBarMenuProps): React.ReactEleme
 export declare const QueryBar: ((props: QueryBarProps) => React.ReactElement) & {
   Menu: typeof QueryBarMenu;
 };
+
+export interface QueryHelpButtonProps {
+  /** The qualifiers to explain: one line each, from their `help`. */
+  qualifiers: readonly Qualifier[];
+  /** Sizes the button to match a field or menus beside it. Default medium. */
+  size?: 'small' | 'medium' | 'large';
+}
+
+/**
+ * The "?" icon button that opens the Query Help popover: each qualifier's `help` line and the rules of the query syntax. `QueryInput` draws it beside the
+ * field; use it on its own to place it elsewhere, with `help={false}` on the field (or in a `QueryBar`, `help="menus"` for the menu row).
+ */
+export declare function QueryHelpButton(props: QueryHelpButtonProps): React.ReactElement;
 
 /** One qualifier an app understands in a query: `label:bug`. */
 export interface Qualifier {
@@ -726,10 +741,16 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
   suggestions?: (text: string, caret: number) => QuerySuggestion[];
   /** The qualifiers the app understands: suggested with `suggestQuery`, explained in the help popover, and checked with `parseQuery` (problems show under the field). */
   qualifiers?: readonly Qualifier[];
-  /** false hides the "?" button that opens the help popover. Needs `qualifiers`. Default true. */
+  /** false hides the "?" button that opens the help popover. Needs `qualifiers`. Default true. To place the button yourself, hide it and render `QueryHelpButton`. */
   help?: boolean;
   /** small 32px, medium 36px (default), large 40px. */
   size?: 'small' | 'medium' | 'large';
+  /**
+   * A single key, with no modifiers, such as `"/"`. Pressing it anywhere on the page focuses the field (and the key is not typed), unless focus is already in an
+   * editable element or the field is disabled. While the field is empty a key cap shows the key inside it (not on touch-only devices), and the input gets
+   * `aria-keyshortcuts`, which an `aria-keyshortcuts` prop overrides. Not for modifier combinations.
+   */
+  shortcut?: string;
   /** Keys the field leaves alone: Enter, Escape and Tab whenever the list is closed, and every other key. While the list is open it owns Up, Down, Enter, Tab and Escape. */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   /** Class for the outer element. */
@@ -2718,6 +2739,7 @@ declare global {
       Label: typeof Label;
       MultiSelect: typeof MultiSelect;
       QueryBar: typeof QueryBar;
+      QueryHelpButton: typeof QueryHelpButton;
       QueryInput: typeof QueryInput;
       Radio: typeof Radio;
       SearchInput: typeof SearchInput;

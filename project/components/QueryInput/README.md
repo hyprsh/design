@@ -2,7 +2,7 @@
 
 A text field whose text is the value, with suggestions that complete the word at the caret, for search and filter queries such as `is:open label:bug,docs crash`.
 
-**You provide:** an accessible name (`aria-label`, `aria-labelledby` or an outside `<label htmlFor>` pointing at `id`), `value` and `onChange(text)` (or `defaultValue` to let the field keep the text). Then either `qualifiers` (the names and values your screen understands) or `suggestions(text, caret)` to compute completions yourself. Optional: `help={false}` to hide the “?” button, `size` (`small` 32px, `medium` 36px by default, `large` 40px), `placeholder`, `disabled`, `id`, `onKeyDown`, `className`.
+**You provide:** an accessible name (`aria-label`, `aria-labelledby` or an outside `<label htmlFor>` pointing at `id`), `value` and `onChange(text)` (or `defaultValue` to let the field keep the text). Then either `qualifiers` (the names and values your screen understands) or `suggestions(text, caret)` to compute completions yourself. Optional: `help={false}` to hide the “?” button (`QueryHelpButton` places it elsewhere), `shortcut` (one key, such as `"/"`, that focuses the field), `size` (`small` 32px, `medium` 36px by default, `large` 40px), `placeholder`, `disabled`, `id`, `onKeyDown`, `className`.
 
 - Use it when the text is the value. For picking one option from a list use Combobox, and for a plain search box SearchInput.
 - The field is controlled and typing is never reverted, not even by Escape.
@@ -10,6 +10,7 @@ A text field whose text is the value, with suggestions that complete the word at
 - With `qualifiers` the field uses the shared syntax: `name:a,b` (values are alternatives), the same qualifier twice must match both, a leading `-` excludes (`excludable: true`), `no:name` finds what has no value (`none: true`; it's flagged for any other qualifier), double quotes protect spaces and commas, and unknown qualifiers are free text. An empty field lists every qualifier name on focus; qualifier names are suggested by prefix, so `la` suggests `label:` and `o` opens no list, and picking a name lists its values.
 - Problems (a value the qualifier does not take, an exclude it does not allow) show under the field as a warning once the caret leaves the term, tied to the input with `aria-describedby`. The “?” button opens a popover with each qualifier's `help` line and the rules, so write `help` as one short line.
 - Up and Down move through the open list and wrap, Enter or Tab picks, Escape closes it until the next edit, and clicking a row keeps focus in the field. With the list closed the field leaves Enter and Escape to your `onKeyDown`, so submit or run the search there. It never blurs itself.
+- **Shortcut.** `shortcut="/"` shows a small key cap at the end of the empty field (hidden once there is text, and on touch-only devices) and sets `aria-keyshortcuts` on the input (an `aria-keyshortcuts` prop of yours wins). Pressing the key anywhere on the page focuses the field and is not typed. It is ignored with Ctrl, ⌘ or Alt held, during an IME composition, while focus is in an input, textarea, select or editable element (so `/` types as usual inside a query), and while the field is `disabled`. One key only, no modifiers. If two mounted fields share a key, which one wins is not defined.
 - Suggestions are synchronous. Under touch sizing rows are 44px tall.
 - The syntax is also exported for your own code: `parseQuery`, `suggestQuery`, `termText`, `withValue`, `withoutValue`, `withoutTerm`, `valuesOf`, with the types `Qualifier`, `Term`, `Query` and `QuerySuggestion`. Use `parseQuery(value, qualifiers)` to read the query, and `valuesOf(query, name)` for what a qualifier asks for (null when it is absent, an empty list when nothing can match).
 
@@ -110,5 +111,21 @@ export default function Example() {
       <QueryInput size="large" aria-label="Large query" qualifiers={qualifiers} defaultValue="is:open" />
     </div>
   );
+}
+```
+
+### Shortcut
+`shortcut` focuses the field from anywhere on the page and shows the key while the field is empty.
+
+```jsx
+import { QueryInput } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs', 'enhancement'], excludable: true },
+];
+
+export default function Example() {
+  return <QueryInput aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} shortcut="/" />;
 }
 ```

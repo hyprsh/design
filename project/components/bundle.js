@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"NavList"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryHelpButton"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"NavList"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -2422,7 +2422,8 @@
        The query text is the only state: each menu reads its value off it and writes back with the helpers in _query.js
        (queryMenu, withQueryMenu, querySingle, withQuerySingle), which touch only that qualifier's terms. The announcements
        come from FilterMenu itself. The menus wrap onto more rows when they don't fit (wrap, default true); wrap={false}
-       keeps them on one row in a Scroller that scrolls sideways. */
+       keeps them on one row in a Scroller that scrolls sideways.
+       help: true (default) keeps the "?" button beside the field, false hides it, 'menus' puts it last in the menu row. */
     var QueryBarContext = React.createContext(null);
 
     function QueryBarMenu(props) {
@@ -2457,14 +2458,18 @@
       var value = vs[0] == null ? '' : String(vs[0]);
       var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
       var qualifiers = props.qualifiers || [];
-      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children', 'wrap']);
+      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children', 'wrap', 'help']);
       var ctx = { value: value, onChange: vs[1], qualifiers: qualifiers, size: size };
       var menus = React.Children.toArray(props.children);
       var wrap = props.wrap !== false;
 
+      /* help="menus" moves the button into the menu row, after the menus; with no menus (or no qualifiers) it stays beside the field. */
+      var inMenus = props.help === 'menus' && menus.length > 0;
+      var helpButton = inMenus && qualifiers.length > 0 ? h(HY.QueryHelpButton, { key: 'help', qualifiers: qualifiers, size: size }) : null;
+
       var menuGroup = null;
       if (menus.length) {
-        var bound = h(QueryBarContext.Provider, { value: ctx }, menus);
+        var bound = [h(QueryBarContext.Provider, { key: 'menus', value: ctx }, menus), helpButton];
         menuGroup = h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
           wrap ? h('div', { className: 'hy-querybar__row' }, bound)
             : h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' }, bound));
@@ -2473,13 +2478,36 @@
       return h('div', { className: cx('hy-querybar', props.className) },
         h('div', { className: 'hy-querybar__bar' },
           h('div', { className: 'hy-querybar__field' },
-            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size }))),
+            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size, help: inMenus ? false : props.help === 'menus' ? true : props.help }))),
           menuGroup));
     }
     QueryBar.Menu = QueryBarMenu;
 
     define('QueryBar', QueryBar);
     define('QueryBarMenu', QueryBarMenu);
+  })();
+
+  /* ---- QueryHelpButton ---- */
+  (function () {
+    /* QueryHelpButton: the "?" button that opens the Query Help popover, a list of a query's qualifiers and its rules.
+       QueryInput draws it beside the field; a QueryBar can move it into its menu row (help="menus"), and an app can place it anywhere. */
+    function QueryHelpButton(p) {
+      var qualifiers = p.qualifiers;
+      var hasNone = qualifiers.some(function (q) { return q.none; });
+      var code = function (t) { return h('code', { className: 'hy-query__code' }, t); };
+      return h(HY.Popover, {
+        trigger: h(HY.Button, { svgOnly: true, variant: 'tertiary', size: p.size, 'aria-label': 'Query Help', className: 'hy-query__help' }, h(HY.Icon, { name: 'circle-help' })),
+        label: 'Query Help', position: 'bottom-end', width: 320
+      },
+        h('div', { className: 'hy-query__guide' },
+          h('dl', { className: 'hy-query__qualifiers' }, qualifiers.map(function (q) {
+            return h(React.Fragment, { key: q.name }, h('dt', null, q.name + ':'), h('dd', null, q.help));
+          })),
+          h('p', null, code('a,b'), ' matches either value. Different qualifiers must all match, and so must the same one typed twice. A leading ', code('-'), ' leaves values out, where a qualifier allows it. Double quotes keep spaces and commas in a value.',
+            hasNone ? h(React.Fragment, null, ' ', code('no:name'), ' matches what has no value for that qualifier.') : null, ' Other words are free text.')));
+    }
+
+    define('QueryHelpButton', QueryHelpButton);
   })();
 
   /* ---- QueryInput ---- */
@@ -2496,22 +2524,6 @@
       return [label.slice(0, a), h('mark', { key: 'm', className: 'hy-query__match' }, label.slice(a, b)), label.slice(b)];
     }
 
-    function QueryHelp(p) {
-      var qualifiers = p.qualifiers;
-      var hasNone = qualifiers.some(function (q) { return q.none; });
-      var code = function (t) { return h('code', { className: 'hy-query__code' }, t); };
-      return h(HY.Popover, {
-        trigger: h(HY.Button, { svgOnly: true, variant: 'tertiary', size: p.size, 'aria-label': 'Query Help', className: 'hy-query__help' }, h(HY.Icon, { name: 'circle-help' })),
-        label: 'Query Help', position: 'bottom-end', width: 320
-      },
-        h('div', { className: 'hy-query__guide' },
-          h('dl', { className: 'hy-query__qualifiers' }, qualifiers.map(function (q) {
-            return h(React.Fragment, { key: q.name }, h('dt', null, q.name + ':'), h('dd', null, q.help));
-          })),
-          h('p', null, code('a,b'), ' matches either value. Different qualifiers must all match, and so must the same one typed twice. A leading ', code('-'), ' leaves values out, where a qualifier allows it. Double quotes keep spaces and commas in a value.',
-            hasNone ? h(React.Fragment, null, ' ', code('no:name'), ' matches what has no value for that qualifier.') : null, ' Other words are free text.')));
-    }
-
     function QueryInput(props) {
       var auto = useId();
       var id = props.id || auto;
@@ -2524,6 +2536,7 @@
       var as = useState(0), active = as[0], setActive = as[1];
       var ds = useState(false), dismissed = ds[0], setDismissed = ds[1];
       var input = useRef(null), field = useRef(null), listRef = useRef(null);
+      var shortcut = typeof props.shortcut === 'string' && props.shortcut ? props.shortcut : null;
       /* Where the caret goes once a picked suggestion is in the field. */
       var placeCaret = useRef(null);
 
@@ -2548,6 +2561,20 @@
       useLayoutEffect(function () {
         if (open && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
       }, [open, suggestions.length, fieldWidth]);
+      /* The shortcut key focuses the field from anywhere on the page, unless focus is already in something editable (this field too). */
+      useEffect(function () {
+        if (!shortcut || props.disabled) return;
+        function onKey(e) {
+          if (e.key !== shortcut || e.metaKey || e.ctrlKey || e.altKey || e.isComposing || e.keyCode === 229) return;
+          var t = e.target;
+          if (t && (t.isContentEditable || /^(input|textarea|select)$/i.test(t.tagName || ''))) return;
+          if (!input.current) return;
+          e.preventDefault();
+          input.current.focus();
+        }
+        window.addEventListener('keydown', onKey);
+        return function () { window.removeEventListener('keydown', onKey); };
+      }, [shortcut, props.disabled]);
       var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start', offset: 4 });
 
       function edit(text, at, close) {
@@ -2584,12 +2611,14 @@
       }) : [];
       var problemsId = id + '-problems';
       var showHelp = props.help !== false && qualifiers && qualifiers.length > 0;
-      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
+      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style', 'shortcut']);
 
       return h('div', { className: cx('hy-query', props.className), style: props.style },
         h('div', { className: 'hy-query__row' },
           h('div', { ref: field, className: 'hy-query__field' },
             h(HY.Input, Object.assign({}, rest, {
+              'aria-keyshortcuts': props['aria-keyshortcuts'] || shortcut || undefined,
+              suffix: shortcut && value === '' ? h(HY.KeyboardInput, { small: true, 'aria-hidden': 'true' }, shortcut) : undefined, suffixStyling: shortcut ? false : undefined,
               ref: input, id: id, size: size, value: value, role: 'combobox', autoComplete: 'off', spellCheck: false,
               'aria-autocomplete': 'list', 'aria-expanded': open, 'aria-controls': open ? listId : undefined,
               'aria-activedescendant': open ? id + '-opt-' + current : undefined,
@@ -2600,7 +2629,7 @@
               onBlur: function () { setCaret(null); },
               onKeyDown: onKeyDown
             }))),
-          showHelp ? h(QueryHelp, { qualifiers: qualifiers, size: size }) : null),
+          showHelp ? h(HY.QueryHelpButton, { qualifiers: qualifiers, size: size }) : null),
         problems.length ? h(HY.Note, { id: problemsId, variant: 'warning', size: 'small', role: 'status' }, problems.map(function (p) { return p.message; }).join(' · ')) : null,
         open ? portal(h('ul', {
           ref: listRef, id: listId, role: 'listbox', 'aria-label': 'Suggestions',
