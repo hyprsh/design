@@ -44,11 +44,11 @@ export default function Example() {
 }
 ```
 
-### Sections, Shortcuts and Destructive Items
-Group longer lists with sections. Destructive items go last, after a divider, with a full label.
+### Sections, Shortcuts, Submenus and Destructive Items
+Group longer lists with sections, put related actions behind a submenu trigger, and end with the destructive item after a divider and with a full label.
 
 ```jsx
-import { Menu, MenuButton, MenuContainer, MenuDivider, MenuItem, MenuSection } from '@hyprsh/design';
+import { Menu, MenuButton, MenuContainer, MenuDivider, MenuItem, MenuSection, MenuSub, MenuSubTrigger } from '@hyprsh/design';
 import { Copy, GitBranch, Trash2 } from 'lucide-react';
 
 export default function Example() {
@@ -60,6 +60,14 @@ export default function Example() {
           <MenuItem prefix={<Copy />} shortcut="⌘ C">Copy Deployment URL</MenuItem>
           <MenuItem prefix={<GitBranch />}>View Branch</MenuItem>
         </MenuSection>
+        <MenuSub>
+          <MenuSubTrigger>Open In</MenuSubTrigger>
+          <Menu>
+            <MenuItem>Editor</MenuItem>
+            <MenuItem>Terminal</MenuItem>
+            <MenuItem>Browser</MenuItem>
+          </Menu>
+        </MenuSub>
         <MenuDivider />
         <MenuItem type="error" prefix={<Trash2 />}>Delete Deployment…</MenuItem>
       </Menu>
@@ -177,33 +185,6 @@ export default function Example() {
         <MenuItem checked={columns.branch} onClick={() => toggle('branch')}>Branch</MenuItem>
         <MenuItem checked={columns.author} onClick={() => toggle('author')}>Author</MenuItem>
         <MenuItem checked={columns.duration} onClick={() => toggle('duration')}>Duration</MenuItem>
-      </Menu>
-    </MenuContainer>
-  );
-}
-```
-
-### Submenu
-An Open In item whose submenu holds the places a project can open. On a phone its items replace the list under a Back row.
-
-```jsx
-import { Menu, MenuButton, MenuContainer, MenuItem, MenuSub, MenuSubTrigger } from '@hyprsh/design';
-
-export default function Example() {
-  return (
-    <MenuContainer>
-      <MenuButton variant="secondary" showChevron>Project</MenuButton>
-      <Menu width={220}>
-        <MenuItem>Rename Project</MenuItem>
-        <MenuSub>
-          <MenuSubTrigger>Open In</MenuSubTrigger>
-          <Menu>
-            <MenuItem>Editor</MenuItem>
-            <MenuItem>Terminal</MenuItem>
-            <MenuItem>Browser</MenuItem>
-          </Menu>
-        </MenuSub>
-        <MenuItem>Duplicate Project</MenuItem>
       </Menu>
     </MenuContainer>
   );
