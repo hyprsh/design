@@ -2509,6 +2509,21 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-menu__section { display: block; }
 .hy-menu__section-title { display: block; padding: 8px 8px 4px; font-size: 12px; line-height: 16px; color: var(--gray-900); }
 .hy-menu__group { margin: 0; padding: 0; list-style: none; }
+/* Submenus: the trigger's chevron points right (down is the shared glyph); the list opens beside its parent (placed by useFloating) */
+.hy-menu__chev { display: inline-flex; flex: none; margin-left: auto; color: var(--gray-900); transform: rotate(-90deg); }
+.hy-menu__chev--back { margin-left: 0; transform: rotate(90deg); }
+.hy-menu__item--sub.is-open { background: var(--gray-alpha-100); }
+.hy-menu__item--sub[aria-disabled="true"] .hy-menu__chev { color: inherit; }
+.hy-menu__list--sub { transform-origin: top left; }
+.hy-menu__list--sub.hy-menu__list--left { transform-origin: top right; }
+/* Under touch sizing a submenu's items replace the open list's contents in place: its wrapper draws nothing of its own, and the rows it replaces are hidden */
+.hy-menu__drill { display: contents; }
+.hy-menu__list--drill {
+  position: static; z-index: auto; min-width: 0; max-width: none; max-height: none; overflow: visible; padding: 0;
+  border-radius: 0; background: none; box-shadow: none; animation: none;
+}
+.hy-menu__back { font-weight: 500; }
+.hy-menu__hide { display: none; }
 /* Touch sizing: rows and the unstyled trigger are drawn at the touch target */
 @media (pointer: coarse), (max-width: 639px) {
   .hy-menu__item { min-height: var(--touch-target); }

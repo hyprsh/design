@@ -1,4 +1,4 @@
-<!-- @dsCard group="Overlays" height=440 subtitle="MenuContainer, MenuButton, sections, locked and error items, checked items, typeahead; older label + items API" -->
+<!-- @dsCard group="Overlays" height=440 subtitle="MenuContainer, MenuButton, sections, locked and error items, checked items, a submenu, typeahead; older label + items API" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Menu</title></head>
@@ -10,7 +10,7 @@ function noop() {}
 function Checks() {
   var a = React.useState('1m'), b = React.useState({ branch: true, author: false });
   var opts = [['30s', 'Every 30 Seconds'], ['1m', 'Every Minute'], ['5m', 'Every 5 Minutes']];
-  return h(H.MenuContainer, { defaultOpen: true, style: { marginRight: 180 } },
+  return h(H.MenuContainer, { defaultOpen: true, style: { marginRight: 110 } },
     h(H.MenuButton, null, 'Monitoring'),
     h(H.Menu, { width: 220 },
       h(H.MenuSection, { title: 'Check Interval' }, opts.map(function (o) {
@@ -21,8 +21,22 @@ function Checks() {
         return h(H.MenuItem, { key: k, checked: b[0][k], onClick: function () { var n = Object.assign({}, b[0]); n[k] = !n[k]; b[1](n); } }, k === 'branch' ? 'Show Branch' : 'Show Author');
       })));
 }
+function Sub() {
+  return h(H.MenuContainer, { defaultOpen: true, style: { marginRight: 220 } },
+    h(H.MenuButton, null, 'Project'),
+    h(H.Menu, { width: 180 },
+      h(H.MenuItem, { onClick: noop }, 'Rename Project'),
+      h(H.MenuSub, { defaultOpen: true },
+        h(H.MenuSubTrigger, { prefix: h(H.Icon, { name: 'external-link' }) }, 'Open In'),
+        h(H.Menu, { width: 140 },
+          h(H.MenuItem, { onClick: noop }, 'Editor'),
+          h(H.MenuItem, { onClick: noop }, 'Terminal'),
+          h(H.MenuItem, { onClick: noop }, 'Browser'))),
+      h(H.MenuItem, { onClick: noop }, 'Duplicate Project')));
+}
 function Demo() {
   return h(F, null,
+    h(Sub),
     h(Checks),
     h(H.MenuContainer, { defaultOpen: true },
       h(H.MenuButton, null, 'Actions'),

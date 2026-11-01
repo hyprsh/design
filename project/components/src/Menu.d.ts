@@ -68,6 +68,16 @@ export interface MenuItemProps {
   shortcut?: React.ReactNode;
   className?: string;
 }
+export interface MenuSubProps {
+  /** A `MenuSubTrigger` and the `Menu` it opens. */
+  children: React.ReactNode;
+  /** Opens the submenu when it first renders (docs and previews). */
+  defaultOpen?: boolean;
+}
+export interface MenuSubTriggerProps extends Pick<MenuItemProps, 'prefix' | 'disabled' | 'description' | 'className'> {
+  /** The label. Under touch sizing it also heads the Back row of the drilled-in list. */
+  children: React.ReactNode;
+}
 export interface MenuSectionProps { title: React.ReactNode; children: React.ReactNode }
 
 export declare function Menu(props: MenuProps): React.ReactElement;
@@ -79,6 +89,8 @@ export declare namespace Menu {
   const ItemLocked: typeof MenuItemLocked;
   const Section: typeof MenuSection;
   const Divider: typeof MenuDivider;
+  const Sub: typeof MenuSub;
+  const SubTrigger: typeof MenuSubTrigger;
 }
 export declare function MenuContainer(props: MenuContainerProps): React.ReactElement;
 export declare const MenuButton: React.ForwardRefExoticComponent<MenuButtonProps & React.RefAttributes<HTMLButtonElement>>;
@@ -89,3 +101,7 @@ export declare function MenuLink(props: Omit<MenuItemProps, 'href' | 'checked' |
 export declare function MenuItemLocked(props: MenuItemProps): React.ReactElement;
 export declare function MenuSection(props: MenuSectionProps): React.ReactElement;
 export declare function MenuDivider(): React.ReactElement;
+/** A menu opened from an item of another menu. Wraps a `MenuSubTrigger` and a `Menu` of the same item parts; nests to any depth. Beside its parent on desktop, drilled in place under touch sizing. */
+export declare function MenuSub(props: MenuSubProps): React.ReactElement;
+/** The item row that opens a submenu: a `menuitem` with `aria-haspopup="menu"` and a trailing chevron. */
+export declare function MenuSubTrigger(props: MenuSubTriggerProps): React.ReactElement | null;

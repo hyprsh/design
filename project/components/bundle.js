@@ -6811,7 +6811,9 @@
   (function () {
     /*
      * Menu uses a compound API:
-     *   MenuContainer > MenuButton + Menu > MenuItem | MenuLink | MenuItemLocked | MenuSection | MenuDivider
+     *   MenuContainer > MenuButton + Menu > MenuItem | MenuLink | MenuItemLocked | MenuSection | MenuDivider | MenuSub
+     *   MenuSub > MenuSubTrigger + Menu (the same parts again, to any depth): a submenu opens beside its parent, or under
+     *   touch sizing replaces the open list's contents in place under a Back row.
      * The older one-piece API (<Menu label items>) still works and renders the same parts.
      * MenuContainer.Context is shared with DotsMenu, SplitButton and ContextMenu.
      */
@@ -6845,6 +6847,11 @@
       var open = controlled ? !!props.open : st[0];
       var rootRef = useRef(null), triggerRef = useRef(null), listRef = useRef(null);
       var focusOnOpen = useRef(null);
+      /* The submenu lists are portalled like the list itself: a pointer-down in one is not an outside click. */
+      var subEls = useRef([]);
+      var subsRef = useMemo(function () {
+        return { current: { contains: function (t) { return subEls.current.some(function (el) { return el.contains(t); }); } } };
+      }, []);
       var base = useId();
       var pos = parsePosition(props.position);
 
@@ -6859,10 +6866,10 @@
       }
 
       /* The list is portalled to <body>, so it is passed to useDismiss alongside the trigger. */
-      useDismiss(open, [triggerRef, listRef], function (why) { close(why === 'escape'); });
+      useDismiss(open, [triggerRef, listRef, subsRef], function (why) { close(why === 'escape'); });
 
       var ctx = {
-        open: open, openMenu: openMenu, close: close, rootRef: rootRef, triggerRef: triggerRef, listRef: listRef, focusOnOpen: focusOnOpen,
+        open: open, openMenu: openMenu, close: close, rootRef: rootRef, triggerRef: triggerRef, listRef: listRef, focusOnOpen: focusOnOpen, subEls: subEls,
         menuId: base + '-menu', buttonId: base + '-button',
         side: pos.side, align: pos.align, anchorPoint: props.anchorPoint
       };
@@ -6905,8 +6912,9 @@
 
     /* Menu: the popup list inside a MenuContainer. Given `items` (and usually `label`), it is the older one-piece menu. */
     function Menu(props) {
-      var ctx = React.useContext(MenuCtx);
+      var ctx = React.useContext(MenuCtx), sub = React.useContext(SubCtx);
       if (!ctx || props.items) return h(LegacyMenu, props);
+      if (sub) return h(SubList, props);
       return h(MenuList, Object.assign({}, props, { ctx: ctx }));
     }
 
@@ -6946,40 +6954,265 @@
         (el || list).focus({ preventScroll: true });
       }, [placed]);
 
-      function onKeyDown(e) {
-        var typeahead = e.key.length === 1 && /\S/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey;
-        if (MENU_KEYS.indexOf(e.key) >= 0 || typeahead) e.stopPropagation();
-        /* Escape is closed here: the document listener in useDismiss no longer hears a stopped key. */
-        if (e.key === 'Escape') { ctx.close(true); return; }
-        var items = menuItems(ctx.listRef.current);
-        if (!items.length) { if (e.key === 'Tab') ctx.close(false); return; }
-        var i = items.indexOf(document.activeElement);
-        var next = null;
-        if (e.key === 'ArrowDown') next = items[(i + 1) % items.length];
-        else if (e.key === 'ArrowUp') next = i === 0 && menuRowStop(ctx.listRef.current) || items[(i - 1 + items.length) % items.length];
-        else if (e.key === 'Home') next = items[0];
-        else if (e.key === 'End') next = items[items.length - 1];
-        else if (e.key === 'Tab') { ctx.close(false); return; }
-        else if (typeahead) {
-          var now = Date.now();
-          typed.current.text = (now - typed.current.at > 600 ? '' : typed.current.text) + e.key.toLowerCase();
-          typed.current.at = now;
-          var q = typed.current.text;
-          var order = items.slice(i + 1).concat(items.slice(0, i + 1));
-          if (q.length > 1) order = items.slice(i).concat(items.slice(0, i));
-          next = order.filter(function (el) { return itemText(el).indexOf(q) === 0; })[0] || null;
-        }
-        if (next) { e.preventDefault(); next.focus(); }
-      }
+      var lvl = useLevel();
+      function onKeyDown(e) { menuKeyDown(e, typed, ctx.listRef.current, ctx, null); }
       var side = pos ? pos.side : (anchor ? 'bottom' : ctx.side);
       var align = anchor ? 'start' : ctx.align;
       var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(320px, calc(100vw - 16px))' },
         props.width !== undefined ? { width: props.width } : null, props.style));
       return portal(h('ul', {
         ref: ctx.listRef, id: ctx.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': anchor ? undefined : ctx.buttonId,
-        'aria-label': props['aria-label'], onKeyDown: onKeyDown, style: style,
+        'aria-label': props['aria-label'], onKeyDown: onKeyDown, onFocus: lvl.focusIn, onMouseMove: lvl.move, style: style,
         className: cx('hy-menu__list', 'hy-menu__list--' + side, 'hy-menu__list--' + align, anchor && 'hy-menu__list--point', props.className)
-      }, props.children));
+      }, h(LevelCtx.Provider, { value: lvl }, props.children)));
+    }
+
+    /* The keys of an open list: roving focus, Home/End, typeahead. `back` is set for a submenu: Left and Escape close it. */
+    function menuKeyDown(e, typed, list, ctx, back) {
+      var typeahead = e.key.length === 1 && /\S/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey;
+      if (MENU_KEYS.indexOf(e.key) >= 0 || typeahead) e.stopPropagation();
+      /* Escape is closed here: the document listener in useDismiss no longer hears a stopped key. */
+      if (e.key === 'Escape') { if (back) back(); else ctx.close(true); return; }
+      if (back && e.key === 'ArrowLeft') { e.preventDefault(); back(); return; }
+      var items = menuItems(list);
+      if (!items.length) { if (e.key === 'Tab') ctx.close(false); return; }
+      var i = items.indexOf(document.activeElement);
+      var next = null;
+      if (e.key === 'ArrowDown') next = items[(i + 1) % items.length];
+      else if (e.key === 'ArrowUp') next = i === 0 && menuRowStop(list) || items[(i - 1 + items.length) % items.length];
+      else if (e.key === 'Home') next = items[0];
+      else if (e.key === 'End') next = items[items.length - 1];
+      else if (e.key === 'Tab') { ctx.close(false); return; }
+      else if (typeahead) {
+        var now = Date.now();
+        typed.current.text = (now - typed.current.at > 600 ? '' : typed.current.text) + e.key.toLowerCase();
+        typed.current.at = now;
+        var q = typed.current.text;
+        var order = items.slice(i + 1).concat(items.slice(0, i + 1));
+        if (q.length > 1) order = items.slice(i).concat(items.slice(0, i));
+        next = order.filter(function (el) { return itemText(el).indexOf(q) === 0; })[0] || null;
+      }
+      if (next) { e.preventDefault(); next.focus(); }
+    }
+
+    /* ---- submenus ---- */
+    var SubCtx = React.createContext(null);    /* the MenuSub that a trigger and its Menu belong to */
+    var LevelCtx = React.createContext(null);  /* the open list an item sits in: which of its submenus is open, hover intent */
+
+    var SUB_DELAY = 120;   /* ms the pointer rests on a trigger before its submenu opens */
+    var INTENT_WAIT = 300; /* ms before a row the pointer crossed on its way to the submenu counts as hovered */
+    var TOUCH_QUERY = '(pointer: coarse), (max-width: 639px)';
+
+    /* Touch sizing, as the stylesheets define it. */
+    function useTouchSizing() {
+      var st = useState(function () { return !!(window.matchMedia && window.matchMedia(TOUCH_QUERY).matches); });
+      useEffect(function () {
+        var mql = window.matchMedia && window.matchMedia(TOUCH_QUERY);
+        if (!mql) return;
+        function on() { st[1](mql.matches); }
+        on();
+        if (mql.addEventListener) mql.addEventListener('change', on); else mql.addListener(on);
+        return function () { if (mql.removeEventListener) mql.removeEventListener('change', on); else mql.removeListener(on); };
+      }, []);
+      return st[0];
+    }
+
+    /* Is the pointer, now at p, inside the triangle from where it was (a) to the near edge of the submenu's box r? Then it is on its way there. */
+    function towardSub(a, p, r) {
+      if (a.x > r.left && a.x < r.right) return false;
+      var ex = a.x <= r.left ? r.left : r.right;
+      var v = [a, { x: ex, y: r.top }, { x: ex, y: r.bottom }];
+      function side(p1, p2) { return (p.x - p2.x) * (p1.y - p2.y) - (p1.x - p2.x) * (p.y - p2.y); }
+      var d1 = side(v[0], v[1]), d2 = side(v[1], v[2]), d3 = side(v[2], v[0]);
+      return !((d1 < 0 || d2 < 0 || d3 < 0) && (d1 > 0 || d2 > 0 || d3 > 0));
+    }
+
+    /* State of one open list (the top one or a submenu's): which submenu is open (one per level) and the pointer's last position. */
+    function useLevel() {
+      var st = useState(null), openId = st[0], setOpenId = st[1];
+      var touch = useTouchSizing();
+      var t = useRef({ cur: null, timer: null, subEls: {} }).current;
+      useEffect(function () { return function () { clearTimeout(t.timer); }; }, []);
+      return {
+        openId: openId, setOpenId: setOpenId, touch: touch, drilled: touch && openId !== null, t: t,
+        move: function (e) { t.cur = { x: e.clientX, y: e.clientY }; },
+        /* A row of this list was entered. With a submenu open and the pointer heading for it, the row waits: apply runs
+           only if the pointer is still on it after INTENT_WAIT. Otherwise the open submenu closes and apply runs. */
+        hover: function (el, e, apply) {
+          clearTimeout(t.timer);
+          if (openId === null || el.id === openId + '-trigger') { apply(); return; }
+          var box = t.subEls[openId], from = t.cur;
+          if (box && from && towardSub(from, { x: e.clientX, y: e.clientY }, box.getBoundingClientRect())) {
+            t.timer = setTimeout(function () { if (el.matches(':hover')) { setOpenId(null); apply(); } }, INTENT_WAIT);
+            return;
+          }
+          setOpenId(null);
+          apply();
+        },
+        /* Focus reaching another row of this list (the arrow keys) closes the open submenu. */
+        focusIn: function (e) {
+          var el = e.target;
+          if (openId !== null && el.closest && el.closest('[role="menu"]') === e.currentTarget && el.id !== openId + '-trigger') setOpenId(null);
+        }
+      };
+    }
+
+    function focusFirst(list) {
+      var items = menuItems(list, true).filter(function (el) { return !el.classList.contains('hy-menu__back'); });
+      if (!items.length) items = menuItems(list);
+      (menuRowStop(list) || items[0] || list).focus({ preventScroll: true });
+    }
+
+    /* MenuSub wraps a MenuSubTrigger and the Menu it opens. */
+    function MenuSub(props) {
+      var lv = React.useContext(LevelCtx);
+      var id = useId();
+      var touch = useTouchSizing();
+      var trigRef = useRef(null), listRef = useRef(null), focusOn = useRef(null), label = useRef(null), refocus = useRef(false);
+      var open = !!lv && lv.openId === id;
+      useEffect(function () { if (props.defaultOpen && lv) lv.setOpenId(id); }, []);
+      /* Back on the trigger once it is drawn again (under touch sizing it is hidden while its items replace the list). */
+      useLayoutEffect(function () {
+        if (!open && refocus.current) { refocus.current = false; if (trigRef.current) trigRef.current.focus({ preventScroll: true }); }
+      }, [open]);
+      function close(focusTrigger) {
+        refocus.current = !!focusTrigger;
+        if (lv) lv.setOpenId(null);
+      }
+      function openSub(which) {
+        if (!lv) return;
+        if (open && listRef.current) { which === 'list' ? listRef.current.focus({ preventScroll: true }) : focusFirst(listRef.current); return; }
+        focusOn.current = which;
+        lv.setOpenId(id);
+      }
+      var value = {
+        id: id, open: open, touch: touch, lv: lv, trigRef: trigRef, listRef: listRef, focusOn: focusOn, label: label,
+        triggerId: id + '-trigger', menuId: id + '-menu', openSub: openSub, close: close
+      };
+      return h(SubCtx.Provider, { value: value }, props.children);
+    }
+
+    /* MenuSubTrigger: the item row that opens its submenu, with a trailing chevron. */
+    function MenuSubTrigger(props) {
+      var sub = React.useContext(SubCtx);
+      var lv = sub && sub.lv;
+      var descId = useId();
+      var timer = useRef(null);
+      var disabled = !!props.disabled;
+      useEffect(function () { return function () { clearTimeout(timer.current); }; }, []);
+      if (!sub) return null;
+      sub.label.current = props.children;
+      function onClick(e) {
+        clearTimeout(timer.current);
+        if (disabled) { e.preventDefault(); return; }
+        sub.openSub(sub.touch || e.detail === 0 ? 'first' : 'list');
+      }
+      function onKeyDown(e) {
+        if (disabled) return;
+        if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowRight') {
+          e.preventDefault(); e.stopPropagation();
+          sub.openSub('first');
+        }
+      }
+      function onMouseEnter(e) {
+        var el = e.currentTarget;
+        function apply() {
+          if (disabled) return;
+          el.focus({ preventScroll: true });
+          if (!sub.touch && !sub.open) timer.current = setTimeout(function () { sub.openSub(null); }, SUB_DELAY);
+        }
+        if (lv) lv.hover(el, e, apply); else apply();
+      }
+      return h('li', {
+        ref: sub.trigRef, id: sub.triggerId, role: 'menuitem', tabIndex: -1, 'aria-haspopup': 'menu', 'aria-expanded': sub.open,
+        'aria-controls': sub.open ? sub.menuId : undefined, 'aria-disabled': disabled || undefined,
+        'aria-describedby': props.description ? descId : undefined, 'data-focusable': disabled && props.description ? '' : undefined,
+        className: cx('hy-menu__item', 'hy-menu__item--sub', sub.open && 'is-open', lv && lv.drilled && 'hy-menu__hide', props.className),
+        onClick: onClick, onKeyDown: onKeyDown, onMouseEnter: onMouseEnter, onMouseLeave: function () { clearTimeout(timer.current); }
+      }, itemInner({
+        children: props.children, prefix: props.prefix, description: props.description,
+        suffix: h('span', { className: 'hy-menu__chev' }, h(Glyph, { name: 'chevron', size: 16 }))
+      }, descId, false));
+    }
+
+    /* The submenu's list: beside its trigger on desktop, in place of the parent's contents under touch sizing. */
+    function SubList(props) {
+      var sub = React.useContext(SubCtx);
+      if (!sub.open) return null;
+      return h(sub.touch ? DrillList : SubPopup, props);
+    }
+
+    function useSubFocus(sub, ready) {
+      useLayoutEffect(function () {
+        if (!ready) return;
+        var which = sub.focusOn.current, list = sub.listRef.current;
+        sub.focusOn.current = null;
+        if (!which || !list) return;
+        if (which === 'list') list.focus({ preventScroll: true }); else focusFirst(list);
+      }, [ready]);
+    }
+
+    function SubPopup(props) {
+      var ctx = React.useContext(MenuCtx), sub = React.useContext(SubCtx);
+      var typed = useRef({ text: '', at: 0 });
+      var lvl = useLevel();
+      /* Beside the parent list (so it flips to the left of it), its top level with the trigger's: the list's own 6px
+         padding is taken off, so that the first item, not the box, lines up. */
+      var anchorRef = useMemo(function () {
+        return { get current() {
+          var trig = sub.trigRef.current;
+          if (!trig) return null;
+          var parent = trig.closest('[role="menu"]') || trig;
+          return { getBoundingClientRect: function () {
+            var p = parent.getBoundingClientRect(), t = trig.getBoundingClientRect();
+            return { left: p.left, right: p.right, top: t.top - 6, bottom: t.bottom, width: p.width, height: t.height };
+          } };
+        } };
+      }, []);
+      var pos = useFloating(true, anchorRef, sub.listRef, { side: 'right', align: 'start', offset: 2 });
+      useSubFocus(sub, !!pos);
+      /* Registered, so that a pointer-down inside is not an outside click, and as the box the pointer is heading for. */
+      useLayoutEffect(function () {
+        var el = sub.listRef.current, subs = ctx.subEls.current, boxes = sub.lv && sub.lv.t.subEls;
+        subs.push(el);
+        if (boxes) boxes[sub.id] = el;
+        return function () {
+          subs.splice(subs.indexOf(el), 1);
+          if (boxes && boxes[sub.id] === el) delete boxes[sub.id];
+        };
+      }, []);
+      var side = pos ? pos.side : 'right';
+      var style = floatingStyle(pos, Object.assign({ maxWidth: 'min(320px, calc(100vw - 16px))' },
+        props.width !== undefined ? { width: props.width } : null, props.style));
+      return portal(h('ul', {
+        ref: sub.listRef, id: sub.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': sub.triggerId, 'aria-label': props['aria-label'],
+        onKeyDown: function (e) { menuKeyDown(e, typed, sub.listRef.current, ctx, function () { sub.close(true); }); },
+        onFocus: lvl.focusIn, onMouseMove: lvl.move, style: style,
+        onMouseEnter: function () { if (sub.lv) { sub.lv.t.cur = null; clearTimeout(sub.lv.t.timer); } },
+        className: cx('hy-menu__list', 'hy-menu__list--sub', 'hy-menu__list--' + side, 'hy-menu__list--start', props.className)
+      }, h(LevelCtx.Provider, { value: lvl }, props.children)));
+    }
+
+    /* Touch sizing: the items replace the open list's contents, under a Back row headed by the trigger's label. */
+    function DrillList(props) {
+      var ctx = React.useContext(MenuCtx), sub = React.useContext(SubCtx);
+      var typed = useRef({ text: '', at: 0 });
+      var lvl = useLevel();
+      useSubFocus(sub, true);
+      function back() { sub.close(true); }
+      return h('li', { role: 'none', className: 'hy-menu__drill' },
+        h('ul', {
+          ref: sub.listRef, id: sub.menuId, role: 'menu', tabIndex: -1, 'aria-labelledby': sub.triggerId, 'aria-label': props['aria-label'],
+          onKeyDown: function (e) { menuKeyDown(e, typed, sub.listRef.current, ctx, back); },
+          onFocus: lvl.focusIn, className: cx('hy-menu__list', 'hy-menu__list--drill', props.className)
+        },
+          h('li', {
+            role: 'menuitem', tabIndex: -1, className: cx('hy-menu__item', 'hy-menu__back', lvl.drilled && 'hy-menu__hide'), onClick: back,
+            onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); back(); } }
+          },
+            h('span', { className: 'hy-menu__affix hy-menu__chev hy-menu__chev--back', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 16 })),
+            h('span', { className: 'hy-menu__text' }, sub.label.current)),
+          h(LevelCtx.Provider, { value: lvl }, props.children)));
     }
 
     /* Typeahead matches the label, not the description. */
@@ -7025,7 +7258,13 @@
         /* A checkbox item stays open, with focus where it was, so several can be toggled. */
         if (ctx && !(checkable && !radio)) ctx.close(true);
       }
-      function hover(e) { if (!disabled) e.currentTarget.focus({ preventScroll: true }); }
+      var lv = React.useContext(LevelCtx);
+      if (lv && lv.drilled) cls = cx(cls, 'hy-menu__hide');
+      function hover(e) {
+        var el = e.currentTarget;
+        function apply() { if (!disabled) el.focus({ preventScroll: true }); }
+        if (lv) lv.hover(el, e, apply); else apply();
+      }
       if (isLink) {
         return h('li', { role: 'none', className: 'hy-menu__li' },
           h('a', Object.assign({
@@ -7051,12 +7290,16 @@
 
     function MenuSection(props) {
       var id = useId();
+      var lv = React.useContext(LevelCtx);
       return h('li', { role: 'none', className: 'hy-menu__section' },
-        h('span', { id: id, className: 'hy-menu__section-title', 'aria-hidden': 'true' }, props.title),
+        h('span', { id: id, className: cx('hy-menu__section-title', lv && lv.drilled && 'hy-menu__hide'), 'aria-hidden': 'true' }, props.title),
         h('ul', { role: 'group', 'aria-labelledby': id, className: 'hy-menu__group' }, props.children));
     }
 
-    function MenuDivider() { return h('li', { role: 'separator', className: 'hy-menu__sep' }); }
+    function MenuDivider() {
+      var lv = React.useContext(LevelCtx);
+      return h('li', { role: 'separator', className: cx('hy-menu__sep', lv && lv.drilled && 'hy-menu__hide') });
+    }
 
     /* The older API: <Menu label="Actions" items={[{ label, onSelect, shortcut, prefix, disabled, danger } | { separator: true }]} /> */
     function LegacyMenu(props) {
@@ -7081,6 +7324,8 @@
     Menu.ItemLocked = MenuItemLocked;
     Menu.Section = MenuSection;
     Menu.Divider = MenuDivider;
+    Menu.Sub = MenuSub;
+    Menu.SubTrigger = MenuSubTrigger;
 
     define('Menu', Menu);
     define('MenuContainer', MenuContainer);
@@ -7090,6 +7335,8 @@
     define('MenuItemLocked', MenuItemLocked);
     define('MenuSection', MenuSection);
     define('MenuDivider', MenuDivider);
+    define('MenuSub', MenuSub);
+    define('MenuSubTrigger', MenuSubTrigger);
   })();
 
   /* ---- Modal ---- */
