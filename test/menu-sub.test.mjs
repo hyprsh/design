@@ -1,6 +1,6 @@
 // Tests for Menu's nested submenus (hyprsh/design#63), driven through real input in headless Chrome: React and the built
 // bundle are needed for focus, placement and pointer paths. Needs network access for React (a CDN) and Chrome
-// (see scripts/chrome.mjs); without Chrome the suite is skipped.
+// (see scripts/chrome.mjs); without Chrome the suite is skipped, or fails when CI is set.
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { createServer } from 'node:http';
@@ -46,6 +46,13 @@ const MENU = (style) => `show(h('div', { id: 'wrap', style: ${style || '{ paddin
 
 let server, chrome, port;
 const canRun = existsSync(CHROME);
+// Locally a missing Chrome skips the suite; under CI (process.env.CI set) it is a failure, so the suite cannot pass by skipping.
+const skipNoChrome = !canRun && !process.env.CI && 'Chrome not found';
+describe('Chrome', () => {
+  it('is installed when CI is set', { skip: !process.env.CI && 'only enforced in CI' }, () => {
+    assert.ok(canRun, 'Chrome not found at ' + CHROME + ': the Chrome-driven tests cannot run');
+  });
+});
 before(async () => {
   if (!canRun) return;
   build();
@@ -107,7 +114,7 @@ const menus = () => ev(`document.querySelectorAll('[role="menu"]').length`);
 const itemSel = (label) => `[role^="menuitem"][data-label="${label}"]`;
 
 describe('Menu.Sub', { concurrency: false }, () => {
-describe('on desktop', { skip: !canRun && 'Chrome not found' }, () => {
+describe('on desktop', { skip: skipNoChrome }, () => {
   before(() => fresh(1000));
 
   it('opens beside the parent on hover, its first item level with the trigger', async () => {
@@ -273,7 +280,7 @@ describe('on desktop', { skip: !canRun && 'Chrome not found' }, () => {
   });
 });
 
-describe('in ContextMenu and DotsMenu', { skip: !canRun && 'Chrome not found' }, () => {
+describe('in ContextMenu and DotsMenu', { skip: skipNoChrome }, () => {
   before(() => fresh(1000));
 
   it('works in DotsMenu', async () => {
@@ -301,7 +308,7 @@ describe('in ContextMenu and DotsMenu', { skip: !canRun && 'Chrome not found' },
   });
 });
 
-describe('under touch sizing', { skip: !canRun && 'Chrome not found' }, () => {
+describe('under touch sizing', { skip: skipNoChrome }, () => {
   before(() => fresh(375, true));
 
   it('drills in place with a Back row and nothing beside the list', async () => {
@@ -344,7 +351,7 @@ describe('under touch sizing', { skip: !canRun && 'Chrome not found' }, () => {
   });
 });
 
-describe('without submenus', { skip: !canRun && 'Chrome not found' }, () => {
+describe('without submenus', { skip: skipNoChrome }, () => {
   before(() => fresh(1000));
   it('render no chevron or haspopup rows and still select and close', async () => {
     await ev(`show(h('div', { id: 'wrap', style: { padding: 40 } }, h(H.MenuContainer, null, h(H.MenuButton, null, 'Actions'),
