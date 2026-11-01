@@ -3916,6 +3916,10 @@
     /* A segment's tone, as StatusDot's states: success, info, warning, error, neutral. */
     var PROGRESS_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
 
+    /* Segment spacing in px: the gap between neighbours with `gap`, and the narrowest a segment above zero may be. */
+    var SEGMENT_GAP = 2;
+    var SEGMENT_MIN = 2;
+
     function Progress(props) {
       var max = props.max || 100;
       var segmented = Array.isArray(props.segments);
@@ -3938,13 +3942,16 @@
         filled += v;
         runs.push({ value: v, tone: PROGRESS_TONES.indexOf(s.tone) >= 0 ? s.tone : 'neutral' });
       });
+      /* Every segment is at least SEGMENT_MIN wide; with gap, neighbours are SEGMENT_GAP apart. Shrinking takes the space from the others. */
+      var gapPx = props.gap ? SEGMENT_GAP : 0;
+      var runMin = runs.length * SEGMENT_MIN + Math.max(0, runs.length - 1) * gapPx;
 
       var named = { 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress') };
       var track = segmented ?
         h('div', Object.assign({ className: 'hy-progress__track', role: 'img' }, named),
-          runs.length ? h('div', { className: 'hy-progress__run', style: { width: (filled / max * 100) + '%', minWidth: runs.length * (props.gap ? 5 : 4) } },
+          runs.length ? h('div', { className: cx('hy-progress__run', props.gap && 'has-gap'), style: { width: (filled / max * 100) + '%', minWidth: runMin } },
             runs.map(function (r, i) {
-              return h('span', { key: i, className: cx('hy-progress__segment', 'hy-progress__segment--' + r.tone, props.gap && i > 0 && 'has-gap'), style: { flexBasis: (r.value / filled * 100) + '%' } });
+              return h('span', { key: i, className: cx('hy-progress__segment', 'hy-progress__segment--' + r.tone), style: { flexBasis: (r.value / filled * 100) + '%', minWidth: SEGMENT_MIN, marginLeft: gapPx && i > 0 ? gapPx : undefined } });
             })) : null) :
         h('div', Object.assign({
           className: 'hy-progress__track', role: 'progressbar', 'aria-valuemin': 0, 'aria-valuemax': max, 'aria-valuenow': value,
