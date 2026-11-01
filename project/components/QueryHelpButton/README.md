@@ -25,7 +25,7 @@ export default function Example() {
 }
 ```
 
-### Beside A Title
+### Beside a Title
 With the field's own button hidden, the button goes wherever the layout needs it.
 
 ```jsx
@@ -44,6 +44,28 @@ export default function Example() {
         <QueryHelpButton qualifiers={qualifiers} />
       </div>
       <QueryInput aria-label="Search issues" placeholder="Search issues…" qualifiers={qualifiers} help={false} />
+    </div>
+  );
+}
+```
+
+### Sizes
+Match the button to the field or toolbar it sits beside.
+
+```jsx
+import { QueryHelpButton } from '@hyprsh/design';
+
+const qualifiers = [
+  { name: 'is', help: 'Open or closed', values: ['open', 'closed'] },
+  { name: 'label', help: 'Has this label', suggestions: ['bug', 'docs'], excludable: true },
+];
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+      <QueryHelpButton qualifiers={qualifiers} size="small" />
+      <QueryHelpButton qualifiers={qualifiers} size="medium" />
+      <QueryHelpButton qualifiers={qualifiers} size="large" />
     </div>
   );
 }
