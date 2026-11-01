@@ -10,11 +10,17 @@ import vm from 'node:vm';
 const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components/src');
 const registry = {};
 const warnings = [];
+const slots = [];
+const slot = { i: 0 };
+const mount = () => { slots.length = 0; };
+const render = (props) => { slot.i = 0; return registry.NavList(props); };
 const context = vm.createContext({
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity) }),
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),
   useId: () => 'id',
+  // refs persist per "instance": mount() starts a new one, a render pass restarts the slot index
+  useRef: (init) => (slots[slot.i] || (slots[slot.i] = { current: init }), slots[slot.i++]),
   console: { warn: (m) => warnings.push(m) },
   define: (name, fn) => { registry[name] = fn; },
 });
@@ -124,12 +130,29 @@ describe('NavList', () => {
   });
   it('warns in development without an accessible name, not with one', () => {
     warnings.length = 0;
-    registry.NavList({ children: [] });
+    mount();
+    render({ children: [] });
     assert.equal(warnings.length, 1);
     assert.match(warnings[0], /NavList/);
-    registry.NavList({ 'aria-label': 'Views', children: [] });
-    registry.NavList({ 'aria-labelledby': 'x', children: [] });
+    mount();
+    render({ 'aria-label': 'Views', children: [] });
+    mount();
+    render({ 'aria-labelledby': 'x', children: [] });
     assert.equal(warnings.length, 1);
+  });
+  it('warns once per instance, not on every render', () => {
+    warnings.length = 0;
+    mount();
+    for (let i = 0; i < 5; i++) render({ children: [] });
+    assert.equal(warnings.length, 1);
+    mount();
+    render({ children: [] });
+    assert.equal(warnings.length, 2);
+  });
+  it('hides the spoken parts with core .hy-sr', () => {
+    const c = control(item({ href: '/x', trailing: 3 }));
+    assert.ok(find(c, (n) => n.props.className === 'hy-sr'));
+    assert.equal(find(c, (n) => n.props.className === 'hy-nav-item__sr'), null);
   });
   it('group heading labels its list', () => {
     const g = registry.NavGroup({ title: 'Account', children: [] });
