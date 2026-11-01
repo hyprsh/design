@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"NavList"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -3254,6 +3254,65 @@
     });
 
     define('Link', Link);
+  })();
+
+  /* ---- NavList ---- */
+  (function () {
+    /* A vertical list of destinations for a sidebar or settings page, one marked current.
+       NavList is a <nav> around a <ul>; NavGroup is an <li> with a heading and its own labelled <ul>; NavItem is an <li>
+       holding an <a> (with href) or a <button>. The app decides which item is current. */
+    function NavList(props) {
+      var rest = omit(props, ['className', 'children']);
+      if (!props['aria-label'] && !props['aria-labelledby']) {
+        var prod = false;
+        try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
+        if (!prod && typeof console !== 'undefined') console.warn('hyprsh: NavList needs an accessible name. Pass aria-label or aria-labelledby.');
+      }
+      return h('nav', Object.assign({}, rest, { className: cx('hy-nav-list', props.className) }),
+        h('ul', { className: 'hy-nav-list__list', role: 'list' }, props.children));
+    }
+
+    function NavGroup(props) {
+      var id = useId();
+      var rest = omit(props, ['title', 'className', 'children']);
+      return h('li', Object.assign({}, rest, { className: cx('hy-nav-group', props.className) }),
+        h('div', { id: id, className: 'hy-nav-group__title' }, props.title),
+        h('ul', { className: 'hy-nav-list__list', role: 'list', 'aria-labelledby': id }, props.children));
+    }
+
+    function NavItem(props) {
+      var isLink = props.href !== undefined;
+      var rest = omit(props, ['icon', 'trailing', 'trailingLabel', 'current', 'disabled', 'className', 'children', 'onClick']);
+      var count = typeof props.trailing === 'number';
+      var spoken = count ? String(props.trailing) : props.trailingLabel;
+      var current = props.current ? (props.current === true ? 'page' : props.current) : undefined;
+      var attrs = Object.assign({}, rest, {
+        className: cx('hy-nav-item', props.current && 'is-current', props.disabled && !isLink && 'is-disabled', props.className),
+        'aria-current': current
+      });
+      if (isLink) {
+        attrs.onClick = props.onClick;
+      } else {
+        attrs.type = 'button';
+        attrs.onClick = props.disabled ? function (e) { e.preventDefault(); } : props.onClick;
+        if (props.disabled) attrs['aria-disabled'] = 'true';
+      }
+      var hasTrailing = props.trailing !== undefined && props.trailing !== null && props.trailing !== false;
+      return h('li', { className: 'hy-nav-item-row' },
+        h(isLink ? 'a' : 'button', attrs,
+          props.icon ? h('span', { className: 'hy-nav-item__icon', 'aria-hidden': 'true' }, props.icon) : null,
+          h('span', { className: 'hy-nav-item__label' }, props.children),
+          spoken ? h('span', { className: 'hy-nav-item__sr' }, ', ') : null,
+          hasTrailing ? h('span', Object.assign({ className: cx('hy-nav-item__trailing', count && 'hy-nav-item__count') }, count ? {} : { 'aria-hidden': 'true' }), props.trailing) : null,
+          spoken && !count ? h('span', { className: 'hy-nav-item__sr' }, spoken) : null));
+    }
+
+    NavList.Group = NavGroup;
+    NavList.Item = NavItem;
+
+    define('NavList', NavList);
+    define('NavGroup', NavGroup);
+    define('NavItem', NavItem);
   })();
 
   /* ---- Pager ---- */
