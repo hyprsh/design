@@ -2286,6 +2286,24 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
   .hy-jv__toggle { transition: none; }
 }
 
+/* ---------- Sparkbars ---------- */
+/* Tones are Progress segments' colours. */
+.hy-sparkbars { display: inline-flex; align-items: flex-end; gap: 2px; vertical-align: middle; max-width: 100%; box-sizing: border-box; }
+.hy-sparkbars:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-sparkbars__bar {
+  flex: none; width: 6px; border-radius: 2px 2px 0 0; background: var(--hy-bar, var(--gray-700));
+  transition: opacity .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-sparkbars__bar--success { --hy-bar: var(--green-700); }
+.hy-sparkbars__bar--info { --hy-bar: var(--blue-700); }
+.hy-sparkbars__bar--warning { --hy-bar: var(--amber-700); }
+.hy-sparkbars__bar--error { --hy-bar: var(--red-800); }
+.hy-sparkbars__bar--neutral { --hy-bar: var(--gray-700); }
+.hy-sparkbars.has-active .hy-sparkbars__bar:not(.is-active) { opacity: .55; }
+/* The box follows the emphasis from bar to bar, so it doesn't fade in each time. */
+.hy-tooltip__box.hy-sparkbars__tip { animation: none; }
+@media (prefers-reduced-motion: reduce) { .hy-sparkbars__bar { transition: none; } }
+
 /* ---------- CommandMenu ---------- */
 .hy-cmd-overlay.hy-overlay--top { padding-top: min(15vh, 120px); }
 .hy-cmd {

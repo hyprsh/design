@@ -1,0 +1,48 @@
+<!-- @dsCard group="Data" height=352 subtitle="Job history, jobs with their last status, custom height" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Sparkbars</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var TONES = ['success', 'success', 'success', 'warning', 'success', 'success', 'error', 'success', 'success', 'info'];
+var NAMES = { success: 'Passed', warning: 'Slow', error: 'Failed', info: 'Running', neutral: 'Skipped' };
+function history(n) {
+  var out = [];
+  for (var i = 0; i < n; i++) {
+    var tone = TONES[i % TONES.length];
+    out.push({ value: tone === 'error' ? 4 : 20 + ((i * 7) % 40), tone: tone, label: 'Run ' + (i + 1) + ' – ' + NAMES[tone] });
+  }
+  return out;
+}
+var JOBS = [
+  { name: 'Build Preview', status: 'success', runs: [12, 14, 13, 30, 12, 15, 14, 13] },
+  { name: 'Deploy Production', status: 'error', runs: [40, 42, 38, 5, 5, 41, 39, 6] },
+  { name: 'Purge Cache', status: 'neutral', runs: [0, 0, 3, 0, 2, 0, 0, 1] }
+];
+function Demo() {
+  return h(F, null,
+    h('span', { className: 'label-13' }, 'Job History'),
+    h(H.Sparkbars, { runs: history(30), 'aria-label': 'Rebuild Search Index' }),
+    h('span', { className: 'label-13' }, 'Jobs'),
+    JOBS.map(function (job) {
+      return h('div', { key: job.name, style: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16 } },
+        h(H.StatusDot, { state: job.status }, job.name),
+        h(H.Sparkbars, {
+          'aria-label': job.name + ' history',
+          runs: job.runs.map(function (value, i) {
+            return { value: value, tone: job.status === 'error' && value < 10 ? 'error' : value === 0 ? 'neutral' : 'success', label: 'Run ' + (i + 1) };
+          })
+        }));
+    }),
+    h('span', { className: 'label-13' }, 'Custom Height'),
+    h(H.Sparkbars, {
+      max: 120, height: 48, 'aria-label': 'Build Duration',
+      runs: [30, 45, 60, 20, 80, 100, 55, 70].map(function (value, i) { return { value: value, tone: value === 20 ? 'warning' : 'info', label: 'Run ' + (i + 1) + ' – ' + value + 's' }; })
+    }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
