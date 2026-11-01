@@ -26,7 +26,7 @@ function menus() {
 function Demo() {
   var q = React.useState('is:open label:bug sort:newest');
   return h(F, null,
-    h(H.QueryBar, { 'aria-label': 'Search issues', placeholder: 'Search issues…', value: q[0], onChange: q[1], qualifiers: qualifiers }, menus()),
+    h(H.QueryBar, { help: 'menus', 'aria-label': 'Search issues', placeholder: 'Search issues…', value: q[0], onChange: q[1], qualifiers: qualifiers }, menus()),
     h('p', { className: 'copy-13', style: { margin: '16px 0 0' } }, 'Query: ', h('code', null, q[0] || '(empty)')),
     h(Sidebar));
 }
