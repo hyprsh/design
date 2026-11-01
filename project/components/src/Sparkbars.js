@@ -24,7 +24,7 @@ function Sparkbars(props) {
   var runs = (props.runs || []).map(function (r) {
     return { value: Math.max(0, Number(r && r.value) || 0), tone: SPARKBARS_TONES.indexOf(r && r.tone) >= 0 ? r.tone : 'neutral', label: String((r && r.label) || '') };
   });
-  var box = props.height !== undefined ? props.height : 24;
+  var rowHeight = props.height !== undefined ? props.height : 24;
   var max = props.max;
   if (!(max > 0)) max = runs.reduce(function (m, r) { return Math.max(m, r.value); }, 0);
   var id = useId();
@@ -55,9 +55,9 @@ function Sparkbars(props) {
   var bars = runs.map(function (r, i) {
     var ratio = max > 0 ? Math.min(1, r.value / max) : 0;
     return h('div', {
-      key: i, id: id + '-' + i, role: 'option', 'aria-label': r.label, 'aria-selected': i === active ? 'true' : 'false',
+      key: i, id: id + '-' + i, role: 'option', 'aria-label': r.label,
       className: cx('hy-sparkbars__bar', 'hy-sparkbars__bar--' + r.tone, i === active && 'is-active'),
-      style: { height: Math.max(4, ratio * box) },
+      style: { height: Math.max(4, ratio * rowHeight) },
       ref: i === active ? function (el) { anchorRef.current = el; } : undefined
     });
   });
@@ -66,7 +66,7 @@ function Sparkbars(props) {
     role: 'listbox', 'aria-orientation': 'horizontal', tabIndex: 0, 'aria-label': name,
     'aria-activedescendant': active >= 0 ? id + '-' + active : undefined,
     className: cx('hy-sparkbars', active >= 0 && 'has-active', props.className),
-    style: Object.assign({ height: box }, props.style),
+    style: Object.assign({ height: rowHeight }, props.style),
     onKeyDown: onKeyDown,
     onFocus: function () { if (focus < 0) setFocus(Math.min(lastRef.current, Math.max(0, count - 1))); },
     onBlur: function () { setFocus(-1); },

@@ -5604,16 +5604,16 @@
       }
       var items = props.items || [];
       if (!items.length) return props.empty === undefined ? null : props.empty;
-      var top = props.max;
-      if (typeof top !== 'number' || !(top > 0)) {
-        top = 0;
-        items.forEach(function (it) { if (it.value > top) top = it.value; });
+      var scaleMax = props.max;
+      if (typeof scaleMax !== 'number' || !(scaleMax > 0)) {
+        scaleMax = 0;
+        items.forEach(function (it) { if (it.value > scaleMax) scaleMax = it.value; });
       }
       var format = props.valueFormatter || new Intl.NumberFormat().format;
       var rest = omit(props, ['items', 'max', 'valueFormatter', 'unit', 'mono', 'empty', 'className']);
       return h('ul', Object.assign({}, rest, { className: cx('hy-bar-list', props.mono && 'hy-bar-list--mono', props.className), role: 'list' }),
         items.map(function (it) {
-          var pct = it.value > 0 && top > 0 ? Math.min(100, it.value / top * 100) : 0;
+          var pct = it.value > 0 && scaleMax > 0 ? Math.min(100, it.value / scaleMax * 100) : 0;
           var inner = [
             h('span', { key: 'l', className: 'hy-bar-list__label', title: it.label }, it.label),
             h('span', { key: 'a', className: 'hy-sr' }, ', '),
@@ -5636,11 +5636,13 @@
   (function () {
     /* ColumnChart: stacked columns on one y scale, with a legend, hover and focus tooltips, one Tab stop with roving keys,
        and a table view. Drawn from plain elements and tokens (ADR 0004). The pure parts (ticks, segment geometry, label
-       thinning, names) hang off the component so tests can reach them. */
+       thinning, names) are module-private functions: tests read them from the vm context. */
     var CC_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
     var CC_GAP = 2, CC_MIN = 2, CC_MAX_TICKS = 5;
 
     function ccAmount(v) { v = Number(v); return v > 0 && isFinite(v) ? v : 0; }
+    /* One series' value in a column, never negative: 0 when missing or invalid. */
+    function ccValue(datum, series) { return ccAmount(datum.values && datum.values[series.key]); }
 
     /* Clean ticks from 0 (steps of 1, 2 or 5 times a power of ten), at most 5, the last at or above `max`. */
     function ccTicks(max) {
@@ -5662,23 +5664,24 @@
       try { return new Intl.NumberFormat(undefined, opts).format(v); } catch (e) { return String(v); }
     }
 
-    function ccTotal(series, values) {
+    function ccTotal(series, datum) {
       var t = 0;
-      series.forEach(function (s) { t += ccAmount(values && values[s.key]); });
+      series.forEach(function (s) { t += ccValue(datum, s); });
       return t;
     }
 
     /* Where each non-zero segment goes: `bottom` and `height` in px up a plot `height` px tall for 0 to `max`.
-       A segment that touches one below it leaves a 2px gap under it, and none is under 2px. `top` marks the last one. */
-    function ccSegments(series, values, max, height) {
+       A segment that touches one below it leaves a 2px gap under it, and none is under 2px. Each carries its series' `tone`,
+       and `top` marks the last one. */
+    function ccSegments(series, datum, max, height) {
       var out = [], cursor = 0;
       series.forEach(function (s) {
-        var v = ccAmount(values && values[s.key]);
+        var v = ccValue(datum, s);
         if (!v) return;
         var slice = max > 0 ? v / max * height : 0;
         var gap = out.length ? CC_GAP : 0;
         var h = Math.max(CC_MIN, slice - gap);
-        out.push({ key: s.key, bottom: cursor + gap, height: h, top: false });
+        out.push({ key: s.key, tone: s.tone, bottom: cursor + gap, height: h, top: false });
         cursor += Math.max(slice, h + gap);
       });
       if (out.length) out[out.length - 1].top = true;
@@ -5693,16 +5696,17 @@
 
     /* "Oct 28: 25 ready, 1 canceled, 0 error" */
     function ccColumnName(datum, series, fmt) {
-      return datum.label + ': ' + series.map(function (s) { return fmt(ccAmount(datum.values && datum.values[s.key])) + ' ' + s.label; }).join(', ');
+      return datum.label + ': ' + series.map(function (s) { return fmt(ccValue(datum, s)) + ' ' + s.label; }).join(', ');
     }
 
     /* Tooltip rows from the top of the stack down, and the total's text. */
     function ccTooltipRows(datum, series, fmt) {
       return series.slice().reverse().map(function (s) {
-        return { key: s.key, label: s.label, tone: s.tone, value: fmt(ccAmount(datum.values && datum.values[s.key])) };
+        return { key: s.key, label: s.label, tone: s.tone, value: fmt(ccValue(datum, s)) };
       });
     }
-    function ccTooltipTotal(datum, series, fmt) { return fmt(ccTotal(series, datum.values)); }
+    /* The total, formatted: the tooltip's last row and the table's Total column. */
+    function ccTotalText(datum, series, fmt) { return fmt(ccTotal(series, datum)); }
 
     /* A tone's colour, as Progress segments map it; a series without one is the single-series colour. */
     function ccToneClass(prefix, s) { return prefix + '--' + (CC_TONES.indexOf(s.tone) >= 0 ? s.tone : 'series'); }
@@ -5710,27 +5714,40 @@
     function ColumnChart(props) {
       var series = props.series || [], data = props.data || [];
       var height = props.height > 0 ? props.height : 200;
-      var vs = useControllable(props.view, props.defaultView || 'chart', props.onViewChange);
-      var view = vs[0] === 'table' ? 'table' : 'chart', setView = vs[1];
+      var warned = useRef(false);
+      if (!warned.current && !props['aria-label'] && !props['aria-labelledby']) {
+        warned.current = true;
+        var prod = false;
+        try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
+        if (!prod && typeof console !== 'undefined') console.warn('hyprsh: ColumnChart needs an accessible name. Pass aria-label or aria-labelledby.');
+      }
+      var viewState = useControllable(props.view, props.defaultView || 'chart', props.onViewChange);
+      var view = viewState[0] === 'table' ? 'table' : 'chart', setView = viewState[1];
       var fmt = useMemo(function () {
         if (props.valueFormatter) return props.valueFormatter;
         try { var nf = new Intl.NumberFormat(undefined); return function (v) { return nf.format(v); }; } catch (e) { return String; }
       }, [props.valueFormatter]);
-      var hover = useState(null), focus = useState(null), cur = useState(0), width = useState(0), tipPos = useState(null);
+      var hoverState = useState(null), hovered = hoverState[0], setHovered = hoverState[1];
+      var focusState = useState(null), focused = focusState[0], setFocused = focusState[1];
+      var rovingState = useState(0), rovingIndex = rovingState[0], setRovingIndex = rovingState[1];
+      var widthState = useState(0), plotWidth = widthState[0], setPlotWidth = widthState[1];
+      var tipState = useState(null), tipPos = tipState[0], setTipPos = tipState[1];
       var rootRef = useRef(null), plotRef = useRef(null), tipRef = useRef(null);
       var named = { 'aria-label': props['aria-label'], 'aria-labelledby': props['aria-labelledby'] };
 
       var n = data.length;
-      var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d.values); }))));
+      var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d); }))));
       var max = ticks[ticks.length - 1];
-      var active = hover[0] !== null ? hover[0] : focus[0];
+      var active = hovered !== null ? hovered : focused;
+      /* The Tab stop stays on a column that exists when `data` shrinks. */
+      var tabStop = Math.min(rovingIndex, n - 1);
       if (active !== null && active >= n) active = null;
       var showLegend = props.legend !== false && series.length >= 2;
 
       useLayoutEffect(function () {
         var el = plotRef.current;
         if (!el || view !== 'chart') return;
-        function measure() { width[1](el.clientWidth); }
+        function measure() { setPlotWidth(el.clientWidth); }
         measure();
         if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure); return function () { window.removeEventListener('resize', measure); }; }
         var ro = new ResizeObserver(measure);
@@ -5740,14 +5757,14 @@
 
       /* The tooltip sits above the column, clamped inside the chart's bounds. */
       useLayoutEffect(function () {
-        if (active === null || !tipRef.current || !plotRef.current || !rootRef.current) { tipPos[1](null); return; }
+        if (active === null || !tipRef.current || !plotRef.current || !rootRef.current) { setTipPos(null); return; }
         var tip = tipRef.current, pr = plotRef.current.getBoundingClientRect(), cr = rootRef.current.getBoundingClientRect();
         var tw = tip.offsetWidth, th = tip.offsetHeight;
         var center = pr.left - cr.left + (active + 0.5) / n * pr.width;
-        var colTop = pr.top - cr.top + height - ccTotal(series, data[active].values) / max * height;
+        var colTop = pr.top - cr.top + height - ccTotal(series, data[active]) / max * height;
         var next = { left: Math.round(Math.max(0, Math.min(center - tw / 2, cr.width - tw))), top: Math.round(Math.max(0, colTop - 8 - th)) };
-        tipPos[1](function (p) { return p && p.left === next.left && p.top === next.top ? p : next; });
-      }, [active, width[0], height, n, view]);
+        setTipPos(function (p) { return p && p.left === next.left && p.top === next.top ? p : next; });
+      }, [active, plotWidth, height, n, view, data]);
 
       function focusColumn(i) {
         var el = plotRef.current && plotRef.current.querySelector('[data-index="' + i + '"]');
@@ -5772,7 +5789,7 @@
           h('span', { className: cx('hy-column-chart__swatch', ccToneClass('hy-column-chart__swatch', s)), 'aria-hidden': 'true' }), s.label);
       })) : null;
 
-      var table = h('div', { className: view === 'table' ? 'hy-column-chart__tablewrap' : 'hy-column-chart__tablewrap hy-column-chart__tablewrap--hidden' }, h('table', Object.assign({ className: 'hy-column-chart__table' }, named),
+      var table = h('div', { className: view === 'table' ? 'hy-column-chart__tablewrap' : 'hy-sr' }, h('table', Object.assign({ className: 'hy-column-chart__table' }, named),
         h('thead', null, h('tr', null,
           h('th', { scope: 'col' }, 'Label'),
           series.map(function (s) { return h('th', { key: s.key, scope: 'col' }, s.label); }),
@@ -5780,13 +5797,13 @@
         h('tbody', null, data.map(function (d, i) {
           return h('tr', { key: i },
             h('th', { scope: 'row' }, d.label),
-            series.map(function (s) { return h('td', { key: s.key }, fmt(ccAmount(d.values && d.values[s.key]))); }),
-            h('td', null, ccTooltipTotal(d, series, fmt)));
+            series.map(function (s) { return h('td', { key: s.key }, fmt(ccValue(d, s))); }),
+            h('td', null, ccTotalText(d, series, fmt)));
         }))));
 
       var tickChars = Math.max.apply(null, ticks.map(function (t) { return ccTickLabel(t).length; }));
       var labelChars = Math.max.apply(null, data.map(function (d) { return String(d.label).length; }));
-      var step = ccThinStep(width[0] / n, labelChars);
+      var step = ccThinStep(plotWidth / n, labelChars);
 
       var plot = h('div', { className: 'hy-column-chart__body', style: { gridTemplateColumns: (tickChars * 7 + 12) + 'px minmax(0, 1fr)' } },
         h('div', { className: 'hy-column-chart__yaxis', style: { height: height }, 'aria-hidden': 'true' }, ticks.map(function (t) {
@@ -5798,17 +5815,16 @@
           }),
           h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
             return h('div', {
-              key: i, role: 'img', 'data-index': i, tabIndex: cur[0] === i ? 0 : -1,
+              key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
               'aria-label': ccColumnName(d, series, fmt),
               className: cx('hy-column-chart__slot', active === i && 'is-active'),
-              onMouseEnter: function () { hover[1](i); }, onMouseLeave: function () { hover[1](null); },
-              onFocus: function () { focus[1](i); cur[1](i); }, onBlur: function () { focus[1](null); }
+              onMouseEnter: function () { setHovered(i); }, onMouseLeave: function () { setHovered(null); },
+              onFocus: function () { setFocused(i); setRovingIndex(i); }, onBlur: function () { setFocused(null); }
             },
-              h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, ccSegments(series, d.values, max, height).map(function (g, k) {
-                var s = series.filter(function (x) { return x.key === g.key; })[0];
+              h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, ccSegments(series, d, max, height).map(function (g) {
                 return h('span', {
-                  key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', s), k > 0 && 'has-gap', g.top && 'is-top'),
-                  style: { bottom: g.bottom - (k > 0 ? CC_GAP : 0), height: g.height + (k > 0 ? CC_GAP : 0) }
+                  key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', g), g.top && 'is-top'),
+                  style: { bottom: g.bottom, height: g.height }
                 });
               })));
           }))),
@@ -5818,7 +5834,7 @@
 
       var tip = view === 'chart' && active !== null ? h('div', {
         ref: tipRef, className: 'hy-tooltip__box hy-tooltip__box--start hy-column-chart__tip', 'aria-hidden': 'true',
-        style: { left: tipPos[0] ? tipPos[0].left : 0, top: tipPos[0] ? tipPos[0].top : 0, visibility: tipPos[0] ? 'visible' : 'hidden' }
+        style: { left: tipPos ? tipPos.left : 0, top: tipPos ? tipPos.top : 0, visibility: tipPos ? 'visible' : 'hidden' }
       },
         h('div', { className: 'hy-column-chart__tip-title' }, data[active].label),
         ccTooltipRows(data[active], series, fmt).map(function (r) {
@@ -5829,7 +5845,7 @@
         }),
         h('div', { className: 'hy-column-chart__tip-row hy-column-chart__tip-total' },
           h('span', { className: 'hy-column-chart__tip-label' }, 'Total'),
-          h('span', { className: 'hy-column-chart__tip-value' }, ccTooltipTotal(data[active], series, fmt)))) : null;
+          h('span', { className: 'hy-column-chart__tip-value' }, ccTotalText(data[active], series, fmt)))) : null;
 
       return h('div', { ref: rootRef, className: cx('hy-column-chart', props.className), style: props.style },
         h('div', { className: 'hy-column-chart__toolbar' }, legend, toggle),
@@ -5837,14 +5853,6 @@
         table,
         tip);
     }
-    ColumnChart.ticks = ccTicks;
-    ColumnChart.tickLabel = ccTickLabel;
-    ColumnChart.segments = ccSegments;
-    ColumnChart.total = ccTotal;
-    ColumnChart.thinStep = ccThinStep;
-    ColumnChart.columnName = ccColumnName;
-    ColumnChart.tooltipRows = ccTooltipRows;
-    ColumnChart.tooltipTotal = ccTooltipTotal;
 
     define('ColumnChart', ColumnChart);
   })();
@@ -6455,7 +6463,7 @@
       var runs = (props.runs || []).map(function (r) {
         return { value: Math.max(0, Number(r && r.value) || 0), tone: SPARKBARS_TONES.indexOf(r && r.tone) >= 0 ? r.tone : 'neutral', label: String((r && r.label) || '') };
       });
-      var box = props.height !== undefined ? props.height : 24;
+      var rowHeight = props.height !== undefined ? props.height : 24;
       var max = props.max;
       if (!(max > 0)) max = runs.reduce(function (m, r) { return Math.max(m, r.value); }, 0);
       var id = useId();
@@ -6486,9 +6494,9 @@
       var bars = runs.map(function (r, i) {
         var ratio = max > 0 ? Math.min(1, r.value / max) : 0;
         return h('div', {
-          key: i, id: id + '-' + i, role: 'option', 'aria-label': r.label, 'aria-selected': i === active ? 'true' : 'false',
+          key: i, id: id + '-' + i, role: 'option', 'aria-label': r.label,
           className: cx('hy-sparkbars__bar', 'hy-sparkbars__bar--' + r.tone, i === active && 'is-active'),
-          style: { height: Math.max(4, ratio * box) },
+          style: { height: Math.max(4, ratio * rowHeight) },
           ref: i === active ? function (el) { anchorRef.current = el; } : undefined
         });
       });
@@ -6497,7 +6505,7 @@
         role: 'listbox', 'aria-orientation': 'horizontal', tabIndex: 0, 'aria-label': name,
         'aria-activedescendant': active >= 0 ? id + '-' + active : undefined,
         className: cx('hy-sparkbars', active >= 0 && 'has-active', props.className),
-        style: Object.assign({ height: box }, props.style),
+        style: Object.assign({ height: rowHeight }, props.style),
         onKeyDown: onKeyDown,
         onFocus: function () { if (focus < 0) setFocus(Math.min(lastRef.current, Math.max(0, count - 1))); },
         onBlur: function () { setFocus(-1); },

@@ -2196,8 +2196,6 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-column-chart__slot:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-column-chart__col { position: absolute; top: 0; bottom: 0; left: 0; right: 0; margin: 0 auto; width: 24px; max-width: 100%; }
 .hy-column-chart__seg { position: absolute; left: 0; right: 0; background: var(--hy-seg); }
-/* The gap under a stacked segment is drawn in the surface colour, over the slot's tint. */
-.hy-column-chart__seg.has-gap { box-sizing: border-box; border-bottom: 2px solid var(--background-100); background-clip: padding-box; }
 .hy-column-chart__seg.is-top { border-radius: 4px 4px 0 0; }
 
 .hy-column-chart__xaxis { grid-column: 2; display: flex; margin-top: 8px; }
@@ -2218,17 +2216,13 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-column-chart__tip-total { margin-top: 4px; padding-top: 4px; border-top: 1px solid color-mix(in srgb, var(--tip-fg) 30%, transparent); font-weight: 600; }
 .hy-column-chart__tip-total .hy-column-chart__tip-label { padding-left: 16px; }
 
-/* Table view, and the same table visually hidden in chart view. */
+/* Table view. In chart view the same table is visually hidden with core's .hy-sr. */
 .hy-column-chart__table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; color: var(--gray-1000); font-variant-numeric: tabular-nums; }
 .hy-column-chart__table th, .hy-column-chart__table td { padding: 6px 12px; border-bottom: 1px solid var(--gray-alpha-200); text-align: right; white-space: nowrap; }
 .hy-column-chart__table th:first-child { text-align: left; }
 .hy-column-chart__table thead th { font-weight: 500; color: var(--gray-900); }
 .hy-column-chart__table tbody th { font-weight: 400; }
 .hy-column-chart__tablewrap { min-width: 0; overflow-x: auto; }
-.hy-column-chart__tablewrap--hidden {
-  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; overflow: hidden;
-  clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
-}
 
 @media (pointer: coarse), (max-width: 639px) {
   .hy-column-chart__toolbar { min-height: var(--touch-target); }
@@ -2390,7 +2384,7 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 
 /* ---------- Sparkbars ---------- */
 /* Tones are Progress segments' colours. */
-.hy-sparkbars { display: inline-flex; align-items: flex-end; gap: 2px; vertical-align: middle; max-width: 100%; box-sizing: border-box; }
+.hy-sparkbars { position: relative; display: inline-flex; align-items: flex-end; gap: 2px; vertical-align: middle; max-width: 100%; box-sizing: border-box; }
 .hy-sparkbars:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-sparkbars__bar {
   flex: none; width: 6px; border-radius: 2px 2px 0 0; background: var(--hy-bar, var(--gray-700));
@@ -2404,6 +2398,11 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-sparkbars.has-active .hy-sparkbars__bar:not(.is-active) { opacity: .55; }
 /* The box follows the emphasis from bar to bar, so it doesn't fade in each time. */
 .hy-tooltip__box.hy-sparkbars__tip { animation: none; }
+/* Touch sizing: the row keeps its drawn height; an invisible layer grows the hit area to the touch target. Pointer events
+   on it land on the row, and the run comes from the pointer's x. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-sparkbars::after { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: max(100%, var(--touch-target)); transform: translateY(-50%); }
+}
 @media (prefers-reduced-motion: reduce) { .hy-sparkbars__bar { transition: none; } }
 
 /* ---------- CommandMenu ---------- */

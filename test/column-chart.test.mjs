@@ -1,6 +1,6 @@
 // Tests for ColumnChart's pure parts (hyprsh/design#74): tick choice, scaling, segment geometry, label thinning and the
 // accessible names. ColumnChart.js is plain script for the bundle's scope, so it runs here in a vm context with stub
-// globals and the parts are read back from the component it hands to `define` (ColumnChart.ticks and so on).
+// globals and the parts are read back from the context: top-level functions of a script are properties of its global.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -22,7 +22,12 @@ const context = vm.createContext({
   define: (name, fn) => { registry[name] = fn; },
 });
 vm.runInContext(readFileSync(file, 'utf8'), context, { filename: file });
-const C = registry.ColumnChart;
+// The helpers are module-private in the bundle, so they are not on the component or in its d.ts.
+const C = {
+  ticks: context.ccTicks, tickLabel: context.ccTickLabel, segments: context.ccSegments, total: context.ccTotal,
+  thinStep: context.ccThinStep, columnName: context.ccColumnName, tooltipRows: context.ccTooltipRows,
+  totalText: context.ccTotalText, value: context.ccValue,
+};
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
 describe('ColumnChart.ticks', () => {
@@ -62,7 +67,7 @@ describe('ColumnChart.tickLabel', () => {
 
 describe('ColumnChart.segments', () => {
   const series = [{ key: 'a' }, { key: 'b' }, { key: 'c' }];
-  const seg = (values, max, height) => plain(C.segments(series, values, max, height));
+  const seg = (values, max, height) => plain(C.segments(series, { values }, max, height));
   it('stacks bottom first on a shared scale, with a 2px gap between touching segments', () => {
     // 200px for 0-40: 10 is 50px, 20 is 100px.
     assert.deepEqual(seg({ a: 10, b: 20 }, 40, 200), [
@@ -87,15 +92,35 @@ describe('ColumnChart.segments', () => {
     assert.equal(s[1].height, 2);
     assert.equal(s[1].bottom, 4);
   });
+  it('carries each series\' tone, so the renderer needs no lookup', () => {
+    const toned = [{ key: 'a', tone: 'success' }, { key: 'b' }];
+    assert.deepEqual(plain(C.segments(toned, { values: { a: 10, b: 10 } }, 40, 200)).map((g) => g.tone), ['success', undefined]);
+  });
   it('treats negative and non-numeric values as zero', () => {
     assert.deepEqual(seg({ a: -5, b: 'x', c: 10 }, 40, 200), [{ key: 'c', bottom: 0, height: 50, top: true }]);
   });
 });
 
+describe('ColumnChart helpers stay private', () => {
+  it('hangs nothing off the public component', () => {
+    assert.deepEqual(Object.keys(registry.ColumnChart), []);
+  });
+});
+
+describe('ColumnChart.value', () => {
+  it('reads one series value as a non-negative number, 0 when missing or invalid', () => {
+    assert.equal(C.value({ values: { a: 5 } }, { key: 'a' }), 5);
+    assert.equal(C.value({ values: { a: -5 } }, { key: 'a' }), 0);
+    assert.equal(C.value({ values: { a: 'x' } }, { key: 'a' }), 0);
+    assert.equal(C.value({ values: {} }, { key: 'a' }), 0);
+    assert.equal(C.value({}, { key: 'a' }), 0);
+  });
+});
+
 describe('ColumnChart.total', () => {
   it('adds the non-negative values of the series', () => {
-    assert.equal(C.total([{ key: 'a' }, { key: 'b' }], { a: 25, b: 1, z: 99 }), 26);
-    assert.equal(C.total([{ key: 'a' }, { key: 'b' }], { a: -3 }), 0);
+    assert.equal(C.total([{ key: 'a' }, { key: 'b' }], { values: { a: 25, b: 1, z: 99 } }), 26);
+    assert.equal(C.total([{ key: 'a' }, { key: 'b' }], { values: { a: -3 } }), 0);
   });
 });
 
@@ -130,6 +155,6 @@ describe('ColumnChart.tooltipRows', () => {
     const series = [{ key: 'a', label: 'Ready' }, { key: 'b', label: 'Error' }];
     const rows = plain(C.tooltipRows({ label: 'x', values: { a: 3, b: 1 } }, series, String));
     assert.deepEqual(rows.map((r) => [r.key, r.value]), [['b', '1'], ['a', '3']]);
-    assert.equal(C.tooltipTotal({ label: 'x', values: { a: 3, b: 1 } }, series, String), '4');
+    assert.equal(C.totalText({ label: 'x', values: { a: 3, b: 1 } }, series, String), '4');
   });
 });

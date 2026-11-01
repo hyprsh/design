@@ -6,7 +6,7 @@ A stacked column chart with a legend, tooltips, a keyboard path and a table view
 
 - Use it for amounts over an ordered axis, split by outcome or kind: deployments per day by result, requests per day by status. For ranked bars use BarList.
 - Give a `tone` to a series that means an outcome or state. The tones colour exactly as `Progress` segments do. A series without a tone uses `--chart-series`, the single-series colour, so leave the tone off for a one-series chart.
-- Values are never negative, and the y scale always starts at 0 with at most five clean ticks (compact from 1,000: 1K, 2K).
+- Values are never negative, and the y scale always starts at 0 with at most five clean ticks (compact from 1,000: 1K, 2K). The y-axis ticks use their own compact format, not `valueFormatter`.
 - Two or more series get a legend above the plot; one series has none.
 - Hovering or focusing a column tints its slot and opens a tooltip with each series from the top of the stack down and a Total.
 - The plot is one Tab stop. ←/→ move between columns, Home and End jump to the ends, and each column is named like “Oct 28: 25 Ready, 1 Canceled, 0 Error”. Under touch sizing a tap opens the tooltip.

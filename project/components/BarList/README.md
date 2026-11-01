@@ -2,12 +2,12 @@
 
 Labelled horizontal bars, one row per item, for ranking amounts.
 
-**You provide:** `items` (each with a `label`, a non-negative `value` and optionally an `href` and a `key`) and an accessible name (`aria-label` or `aria-labelledby`; BarList warns in development without one). Bars scale to `max`, or to the largest value. `valueFormatter` defaults to `Intl.NumberFormat`. `unit` (for example "minutes") is spoken after each value. `mono` sets labels in Geist Mono. `empty` shows when `items` is empty, and without it nothing renders.
+**You provide:** `items` (each with a `label`, a non-negative `value` and optionally an `href` and a `key`) and an accessible name (`aria-label` or `aria-labelledby`; BarList warns in development without one). Bars scale to `max`, or to the largest value. `valueFormatter` defaults to `Intl.NumberFormat`. `unit` (for example “minutes”) is spoken after each value. `mono` sets labels in Geist Mono. `empty` shows when `items` is empty, and without it nothing renders.
 
 - Use it for top-N rankings (projects, sources, routes). For change over time or several series, use a chart that has a legend.
 - Items render in the order given: sort them before passing them in.
 - A zero value draws no bar and a non-zero value is never under 2px. The value is always visible, so there is no tooltip.
-- Each row reads "label, value unit" to assistive technology and the bar is hidden. An item with `href` is a link; other rows are plain text.
+- Each row reads “label, value unit” to assistive technology and the bar is hidden. An item with `href` is a link; other rows are plain text.
 - Don't use it for negative values or as a progress indicator (use Progress).
 
 ## Examples

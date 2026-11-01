@@ -42,7 +42,8 @@ const jobs = [
   { name: 'Deploy Production', status: 'error', runs: [40, 42, 38, 5, 5, 41, 39, 6] },
   { name: 'Purge Cache', status: 'neutral', runs: [0, 0, 3, 0, 2, 0, 0, 1] },
 ];
-const tone = (job, value, i) => (job.status === 'error' && value < 10 ? 'error' : value === 0 ? 'neutral' : 'success');
+const tone = (job, value) => (job.status === 'error' && value < 10 ? 'error' : value === 0 ? 'neutral' : 'success');
+const outcome = { success: 'Succeeded', error: 'Failed', neutral: 'Skipped' };
 
 export default function Example() {
   return (
@@ -52,7 +53,10 @@ export default function Example() {
           <StatusDot state={job.status}>{job.name}</StatusDot>
           <Sparkbars
             aria-label={`${job.name} history`}
-            runs={job.runs.map((value, i) => ({ value, tone: tone(job, value, i), label: `Run ${i + 1}` }))}
+            runs={job.runs.map((value, i) => {
+              const t = tone(job, value);
+              return { value, tone: t, label: `Run ${i + 1} · ${outcome[t]} · ${value}s` };
+            })}
           />
         </div>
       ))}

@@ -10,16 +10,16 @@ function BarList(props) {
   }
   var items = props.items || [];
   if (!items.length) return props.empty === undefined ? null : props.empty;
-  var top = props.max;
-  if (typeof top !== 'number' || !(top > 0)) {
-    top = 0;
-    items.forEach(function (it) { if (it.value > top) top = it.value; });
+  var scaleMax = props.max;
+  if (typeof scaleMax !== 'number' || !(scaleMax > 0)) {
+    scaleMax = 0;
+    items.forEach(function (it) { if (it.value > scaleMax) scaleMax = it.value; });
   }
   var format = props.valueFormatter || new Intl.NumberFormat().format;
   var rest = omit(props, ['items', 'max', 'valueFormatter', 'unit', 'mono', 'empty', 'className']);
   return h('ul', Object.assign({}, rest, { className: cx('hy-bar-list', props.mono && 'hy-bar-list--mono', props.className), role: 'list' }),
     items.map(function (it) {
-      var pct = it.value > 0 && top > 0 ? Math.min(100, it.value / top * 100) : 0;
+      var pct = it.value > 0 && scaleMax > 0 ? Math.min(100, it.value / scaleMax * 100) : 0;
       var inner = [
         h('span', { key: 'l', className: 'hy-bar-list__label', title: it.label }, it.label),
         h('span', { key: 'a', className: 'hy-sr' }, ', '),
