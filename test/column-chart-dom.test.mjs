@@ -193,7 +193,7 @@ describe('ColumnChart', { concurrency: false }, () => {
 
     it('keeps a visually hidden table with every value in chart view', async () => {
       await mount('chart()');
-      const t = await rectOf('.hy-column-chart__tablewrap');
+      const t = await rectOf('.hy-sr');
       assert.ok(t.w <= 1 && t.h <= 1, 'one pixel at most');
       assert.equal(await count('.hy-column-chart__table tbody tr'), 4);
       assert.equal(await count('.hy-column-chart__table tbody td'), 16);
@@ -210,6 +210,72 @@ describe('ColumnChart', { concurrency: false }, () => {
       assert.equal(await count('.hy-column-chart__plot'), 0);
       await mount(`chart({ defaultView: 'table' })`);
       assert.equal(await ev(`document.querySelector('.hy-column-chart__toggle').textContent`), 'View as Chart');
+    });
+
+    it('keeps exactly one Tab stop when data shrinks below the roving index', async () => {
+      await mount('chart()');
+      await ev(`document.querySelector(${q(SLOT + '[tabindex="0"]')}).focus()`);
+      await press('End');
+      assert.equal(await focusedIndex(), '3');
+      await ev(`document.activeElement.blur()`);
+      await ev(`show(chart({ data: DATA.slice(0, 2) }))`);
+      await until(`document.querySelectorAll(${q(SLOT)}).length === 2`, 'two columns');
+      assert.equal(await count(`${SLOT}[tabindex="0"]`), 1);
+      assert.equal(await ev(`document.querySelector(${q(SLOT + '[tabindex="0"]')}).getAttribute('data-index')`), '1');
+    });
+
+    it('moves the tooltip with the active column when data changes', async () => {
+      await mount('chart()');
+      await ev(`document.querySelector(${q(SLOT + '[tabindex="0"]')}).focus()`);
+      await press('End');
+      await until(`document.querySelector('.hy-column-chart__tip')`, 'the tooltip');
+      await sleep(50);
+      const before = await rectOf('.hy-column-chart__tip');
+      await ev(`show(chart({ data: DATA.slice(0, 3).concat([{ label: 'Oct 29', values: { ready: 2 } }]) }))`);
+      await sleep(150);
+      const after = await rectOf('.hy-column-chart__tip');
+      const col = await rectOf(`${SLOT}:nth-child(4) .hy-column-chart__seg`);
+      assert.ok(after.y > before.y + 20, 'the tooltip dropped with the column');
+      assert.ok(Math.abs(col.y - 8 - after.b) < 1.5, `tooltip sits 8px above the column (${col.y - after.b})`);
+    });
+
+    it('draws the gaps between stacked segments as real gaps: no border, and the slot tint shows through', async () => {
+      await mount('chart({ height: 200 })');
+      const lower = await rectOf(`${SLOT}:nth-child(4) .hy-column-chart__seg--success`);
+      const mid = await rectOf(`${SLOT}:nth-child(4) .hy-column-chart__seg--neutral`);
+      assert.equal(Math.round(lower.y - mid.b), 2, 'a 2px gap');
+      assert.equal(await ev(`getComputedStyle(document.querySelector(${q(SLOT + ':nth-child(4) .hy-column-chart__seg--neutral')})).borderBottomWidth`), '0px');
+      await ev(`document.querySelector(${q(SLOT + '[data-index="3"]')}).focus()`);
+      await sleep(250);
+      const px = await ev(`(function () { var m = document.querySelector(${q(SLOT + ':nth-child(4) .hy-column-chart__seg--neutral')}).getBoundingClientRect(); var el = document.elementFromPoint(m.left + 4, m.bottom + 1); return el.className; })()`);
+      assert.match(px, /hy-column-chart__(slot|col)/, 'nothing is drawn in the gap');
+    });
+
+    it('hides the table with core\'s .hy-sr, and says nothing of the old modifier', async () => {
+      await mount('chart()');
+      assert.equal(await count('.hy-sr .hy-column-chart__table'), 1);
+      assert.equal(await count('.hy-column-chart__tablewrap'), 0);
+      await click('.hy-column-chart__toggle');
+      await until(`!document.querySelector('.hy-column-chart__plot')`, 'table view');
+      assert.equal(await count('.hy-column-chart__tablewrap .hy-column-chart__table'), 1);
+    });
+
+    it('warns once per instance without an accessible name, and not when named', async () => {
+      await ev(`window.__warns = []; console.warn = function (m) { window.__warns.push(String(m)); }`);
+      await mount(`chart({ 'aria-label': undefined })`);
+      await ev(`show(chart({ 'aria-label': undefined, height: 150 }))`);
+      await sleep(50);
+      const w = await ev('window.__warns');
+      assert.equal(w.length, 1);
+      assert.match(w[0], /ColumnChart/);
+      await ev(`window.__warns.length = 0`);
+      await mount(`chart()`);
+      await mount(`chart({ 'aria-label': undefined, 'aria-labelledby': 'x' })`);
+      assert.equal((await ev('window.__warns')).length, 0);
+    });
+
+    it('does not expose the helpers on the public component', async () => {
+      assert.equal(await ev(`Object.keys(H.ColumnChart).filter(function (k) { return k !== 'displayName'; }).length`), 0);
     });
 
     it('shows the empty content when there is no data', async () => {
