@@ -1413,7 +1413,7 @@ export interface ProgressProps extends ProgressBase {
 export interface ProgressSegmentsProps extends ProgressBase {
   /** One bar split into tones, drawn left to right and cut off at max. Replaces value, colors and type. */
   segments: ProgressSegment[];
-  /** A 1px gap in the page colour between segments. Default false. */
+  /** A 2px gap in the page colour between segments. Default false. Every segment above 0 is at least 2px wide either way. */
   gap?: boolean;
   value?: never;
   colors?: never;
@@ -1897,6 +1897,36 @@ export interface TextWithCopyButtonProps extends Omit<React.ButtonHTMLAttributes
 }
 export declare function TextWithCopyButton(props: TextWithCopyButtonProps): React.ReactElement;
 
+export interface BarListItem {
+  /** Row label. It truncates with an ellipsis and its full text is in `title`. */
+  label: string;
+  /** A non-negative amount. Zero draws no bar. */
+  value: number;
+  /** Renders the row as a link, so Cmd/Ctrl-click works. */
+  href?: string;
+  /** React key. Defaults to `label`. */
+  key?: string;
+}
+export interface BarListProps {
+  /** One row per item, in the order given. BarList never sorts. */
+  items: BarListItem[];
+  /** The value a full-width bar stands for. Defaults to the largest value. */
+  max?: number;
+  /** Formats each value. Defaults to `Intl.NumberFormat`. */
+  valueFormatter?: (v: number) => string;
+  /** Spoken after each value ("api-gateway, 318 minutes"). Not shown. */
+  unit?: string;
+  /** Sets labels in Geist Mono, for identifiers. */
+  mono?: boolean;
+  /** Shown when `items` is empty. Without it an empty list renders nothing. */
+  empty?: React.ReactNode;
+  /** Names the list. Give this or `aria-labelledby`: BarList warns in development without one. */
+  'aria-label'?: string;
+  'aria-labelledby'?: string;
+  className?: string;
+}
+export declare function BarList(props: BarListProps): React.ReactElement | null;
+
 export interface FileTreeProps extends React.HTMLAttributes<HTMLUListElement> {
   /** FileTree.Folder and FileTree.File items. */
   children?: React.ReactNode;
@@ -2023,6 +2053,28 @@ export declare function makeJsonViewHighlightPattern(terms: string | string[]): 
 export declare const JsonView: ((props: JsonViewProps) => React.ReactElement) & {
   makeJsonViewHighlightPattern: typeof makeJsonViewHighlightPattern;
 };
+
+export interface SparkbarsRun {
+  /** Bar height, scaled to max. */
+  value: number;
+  /** The run's outcome, coloured as StatusDot and Progress segments of the same name. */
+  tone: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /** The run's accessible name and its tooltip text. */
+  label: string;
+}
+export interface SparkbarsProps {
+  /** One bar per run, oldest first, drawn left to right. */
+  runs: SparkbarsRun[];
+  /** The value that fills the box. Default: the largest value. A bar is never under 4px. */
+  max?: number;
+  /** Height of the box in px. Default 24. */
+  height?: number;
+  /** Names the row; the component adds a per-tone summary, such as "27 success, 2 warning, 1 error". */
+  'aria-label': string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Sparkbars(props: SparkbarsProps): React.ReactElement;
 
 export interface CommandItem { label: string; onSelect?: () => void; keywords?: string[]; shortcut?: React.ReactNode; icon?: React.ReactNode; disabled?: boolean }
 
@@ -2835,10 +2887,12 @@ declare global {
       Snippet: typeof Snippet;
       Table: typeof Table;
       TextWithCopyButton: typeof TextWithCopyButton;
+      BarList: typeof BarList;
       FileTree: typeof FileTree;
       FilterParams: typeof FilterParams;
       Gauge: typeof Gauge;
       JsonView: typeof JsonView;
+      Sparkbars: typeof Sparkbars;
       CommandMenu: typeof CommandMenu;
       ContextCard: typeof ContextCard;
       ContextMenu: typeof ContextMenu;

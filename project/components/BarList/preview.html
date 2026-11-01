@@ -1,0 +1,38 @@
+<!-- @dsCard group="Data" height=660 subtitle="Default, links, unit with mono labels, empty state" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BarList</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var projects = [
+  { label: 'Marketing Site', value: 1280 },
+  { label: 'Docs', value: 940 },
+  { label: 'Dashboard', value: 615 },
+  { label: 'A Very Long Project Name That Truncates', value: 302 },
+  { label: 'Playground', value: 0 }
+];
+var services = [
+  { label: 'api-gateway', value: 318 },
+  { label: 'edge-cache', value: 204 },
+  { label: 'build-runner', value: 1 }
+];
+function Demo() {
+  return h(F, null,
+    h('div', { className: 'label-13' }, 'Top Projects'),
+    h(H.BarList, { 'aria-label': 'Top projects by deployments', items: projects }),
+    h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Links'),
+    h(H.BarList, { 'aria-label': 'Top routes', items: [
+      { label: '/docs', value: 5200, href: '#docs' },
+      { label: '/pricing', value: 3100, href: '#pricing' }
+    ] }),
+    h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Unit And Mono'),
+    h(H.BarList, { 'aria-label': 'Build minutes by service', items: services, unit: 'minutes', mono: true }),
+    h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Empty'),
+    h(H.BarList, { 'aria-label': 'Top sources', items: [], empty: h('div', { className: 'copy-14' }, 'No Data Yet') }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

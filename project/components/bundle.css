@@ -1642,8 +1642,9 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 }
 /* Segments: a run as wide as what is filled, rounded only at its outer ends by the clip. Tones are StatusDot's colours. */
 .hy-progress__run { display: flex; max-width: 100%; height: 100%; border-radius: inherit; overflow: hidden; }
-.hy-progress__segment { flex: 0 1 auto; min-width: 4px; height: 100%; background: var(--hy-seg, var(--gray-700)); }
-.hy-progress__segment.has-gap { min-width: 5px; box-shadow: inset 1px 0 0 var(--background-100); }
+/* With gap, the run is page-coloured so the 2px space between segments shows the page. Widths and gaps are set inline. */
+.hy-progress__run.has-gap { background: var(--background-100); }
+.hy-progress__segment { flex: 0 1 auto; height: 100%; background: var(--hy-seg, var(--gray-700)); }
 .hy-progress__segment--success { --hy-seg: var(--green-700); }
 .hy-progress__segment--info { --hy-seg: var(--blue-700); }
 .hy-progress__segment--warning { --hy-seg: var(--amber-700); }
@@ -2135,6 +2136,28 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
   .hy-twcb__glyph.is-out { transform: none; }
 }
 
+/* ---------- BarList ---------- */
+.hy-bar-list { display: block; min-width: 0; margin: 0; padding: 0; list-style: none; font-family: var(--font-sans); }
+.hy-bar-list--mono .hy-bar-list__label { font-family: var(--font-mono); }
+.hy-bar-list__row {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto; align-items: center; column-gap: 12px;
+  box-sizing: border-box; height: 36px; padding: 0 8px; border-radius: var(--radius-md);
+  color: var(--gray-1000); font-size: 14px; line-height: 20px; text-decoration: none;
+  transition: background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-bar-list__row:hover { background: var(--gray-100); }
+.hy-bar-list__row--link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-bar-list__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--gray-1000); }
+.hy-bar-list__bar { display: block; min-width: 0; height: 8px; }
+.hy-bar-list__fill { display: block; height: 100%; background: var(--chart-series); border-radius: 0 4px 4px 0; }
+.hy-bar-list__value { min-width: 4ch; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-bar-list__row { height: var(--touch-target); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-bar-list__row { transition: none; }
+}
+
 /* ---------- FileTree ---------- */
 .hy-ft, .hy-ft__group { list-style: none; margin: 0; padding: 0; }
 .hy-ft { font-family: var(--font-mono); font-size: 13px; line-height: 20px; color: var(--gray-1000); min-width: 0; }
@@ -2284,6 +2307,24 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 @media (prefers-reduced-motion: reduce) {
   .hy-jv__toggle { transition: none; }
 }
+
+/* ---------- Sparkbars ---------- */
+/* Tones are Progress segments' colours. */
+.hy-sparkbars { display: inline-flex; align-items: flex-end; gap: 2px; vertical-align: middle; max-width: 100%; box-sizing: border-box; }
+.hy-sparkbars:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-sparkbars__bar {
+  flex: none; width: 6px; border-radius: 2px 2px 0 0; background: var(--hy-bar, var(--gray-700));
+  transition: opacity .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-sparkbars__bar--success { --hy-bar: var(--green-700); }
+.hy-sparkbars__bar--info { --hy-bar: var(--blue-700); }
+.hy-sparkbars__bar--warning { --hy-bar: var(--amber-700); }
+.hy-sparkbars__bar--error { --hy-bar: var(--red-800); }
+.hy-sparkbars__bar--neutral { --hy-bar: var(--gray-700); }
+.hy-sparkbars.has-active .hy-sparkbars__bar:not(.is-active) { opacity: .55; }
+/* The box follows the emphasis from bar to bar, so it doesn't fade in each time. */
+.hy-tooltip__box.hy-sparkbars__tip { animation: none; }
+@media (prefers-reduced-motion: reduce) { .hy-sparkbars__bar { transition: none; } }
 
 /* ---------- CommandMenu ---------- */
 .hy-cmd-overlay.hy-overlay--top { padding-top: min(15vh, 120px); }
