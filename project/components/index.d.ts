@@ -1744,6 +1744,8 @@ export interface TableColumn<R> {
   minWidth?: number;
   /** Resizable: the widest the column can go, in px. No maximum by default. */
   maxWidth?: number;
+  /** Reorderable: the column keeps its index in the default order. It can't be dragged or moved, and other columns can't be moved into its slot; they reorder around it. See `columnOrder` on the table. */
+  pinned?: boolean;
   render?: (row: R) => React.ReactNode
 }
 
@@ -1758,6 +1760,9 @@ export interface TableColumnWidthsChange {
   /** `'drag'` while the pointer moves; `'end'` on release, on each keyboard step and on reset. */
   phase: 'drag' | 'end';
 }
+
+/** What moved: `{ key, from, to }` (indexes in the full order) for a move by drag, Alt+Left or Alt+Right, or the Columns menu; `{ reset: true }` for Reset Order. */
+export type TableColumnOrderChange = { key: string; from: number; to: number } | { reset: true };
 
 type TablePart<E> = React.HTMLAttributes<E> & { children?: React.ReactNode };
 
@@ -1837,8 +1842,23 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
   defaultColumnWidths?: TableColumnWidths;
   /** A column was resized or reset. Fires on every change: `phase: 'drag'` while dragging, `'end'` on release, on each keyboard step and on reset. Save the widths on `'end'`. */
   onColumnWidthsChange?: (widths: TableColumnWidths, change: TableColumnWidthsChange) => void;
+  /** Reorderable columns, controlled (data form): the column keys in display order. Keys missing from it follow in their `columns` order, unknown keys are ignored, and `[]` or no value is the default order. Pinned columns keep their index whatever it says. Giving any of the three order props makes the heads draggable (and Alt+Left and Alt+Right move the focused head). Widths stay keyed by column key, so they follow their column. */
+  columnOrder?: string[];
+  /** Reorderable columns, uncontrolled: the starting order. Default `[]`. */
+  defaultColumnOrder?: string[];
+  /** A column was moved or the order was reset. Gets the full new order and what changed. Saving the order is up to the app. */
+  onColumnOrderChange?: (order: string[], change: TableColumnOrderChange) => void;
   children?: React.ReactNode;
 }
+export interface TableColumnsMenuProps<R = Record<string, unknown>> {
+  columns: TableColumn<R>[];
+  /** The current order, as given to the table: the menu is controlled and keeps no order of its own. */
+  columnOrder: string[];
+  onColumnOrderChange: TableProps<R>['onColumnOrderChange'];
+  /** The menu button's text. Default “Columns”. */
+  label?: React.ReactNode;
+}
+export declare function TableColumnsMenu<R>(props: TableColumnsMenuProps<R>): React.ReactElement;
 export declare function TableRoot(props: TablePart<HTMLDivElement>): React.ReactElement;
 export declare function TableColgroup(props: React.ColgroupHTMLAttributes<HTMLTableColElement> & { children?: React.ReactNode }): React.ReactElement;
 export declare function TableCol(props: React.ColHTMLAttributes<HTMLTableColElement>): React.ReactElement;
@@ -1860,6 +1880,7 @@ export declare function TableSkeletonRow(props: TableSkeletonRowProps): React.Re
 export declare const Table: (<R>(props: TableProps<R>) => React.ReactElement) & {
   Root: typeof TableRoot; Colgroup: typeof TableColgroup; Col: typeof TableCol; Header: typeof TableHeader; Body: typeof TableBody;
   Footer: typeof TableFooter; Row: typeof TableRow; Head: typeof TableHead; Cell: typeof TableCell; SkeletonRow: typeof TableSkeletonRow;
+  ColumnsMenu: typeof TableColumnsMenu;
 };
 
 export interface TextWithCopyButtonProps extends Omit<React.ButtonHTMLAttributes<HTMLButtonElement>, 'onCopy'> {

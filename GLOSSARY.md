@@ -40,6 +40,10 @@ _Avoid_: emoji, quick action
 The draggable edge at the end of a column header that changes the column's width.
 _Avoid_: resizer, grip, splitter, separator (that's the divider component)
 
+**Pinned column**:
+A table column that keeps its index in the default order: it can't be dragged or moved, and the other columns reorder around it.
+_Avoid_: frozen column, locked column, sticky column (that is a sticky header)
+
 **Pager**:
 Moves through a long set of results one page at a time, in place, showing which range is on screen.
 _Avoid_: table pagination, paginator

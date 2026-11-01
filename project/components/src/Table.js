@@ -50,12 +50,34 @@ function TableRow(props) {
    The head registers its declared width and limits with Table, and its element so Table can find it in the header row. */
 function TableHead(props) {
   var ctx = React.useContext(widthsContext());
+  var oc = React.useContext(orderContext());
   var uid = useId();
   var key = props.columnKey;
   var resizable = !!(ctx && props.resizable && key != null);
   var labelId = resizable ? uid + '-label' : undefined;
   var state = { scope: 'col' };
   if (props.sort) state['aria-sort'] = props.sort;
+  var reorder = !!(oc && oc.reorder && key != null);
+  var movable = reorder && !props.pinned && !oc.loading;
+  var dragState = '';
+  if (reorder) {
+    state['data-column-key'] = key;
+    if (oc.drag && oc.drag.key === key) dragState = 'is-dragging';
+    else if (oc.drag && oc.drag.target === key) dragState = 'is-drop-' + oc.drag.side;
+  }
+  if (movable) {
+    state['aria-keyshortcuts'] = 'Alt+ArrowLeft Alt+ArrowRight';
+    if (!props.onSort) state.tabIndex = 0;
+    /* The resize handle and the sort button keep their own pointer and keys: a press on the handle never picks the column up. */
+    state.onPointerDown = function (e) {
+      if (e.button !== 0 || (e.target.closest && e.target.closest('.hy-table__resize'))) return;
+      oc.startDrag(key, e);
+    };
+    state.onKeyDown = function (e) {
+      if (e.target.closest && e.target.closest('.hy-table__resize')) return;
+      if (oc.keyDown(key, e)) e.preventDefault();
+    };
+  }
   if (resizable) {
     ctx.heads[key] = { width: props.width, minWidth: props.minWidth, maxWidth: props.maxWidth };
     state.ref = function (el) { if (el) ctx.els[key] = el; };
@@ -69,8 +91,8 @@ function TableHead(props) {
   } else if (resizable) {
     label = h('span', { className: 'hy-table__head-label', id: labelId }, props.children);
   }
-  var th = Object.assign(state, partProps(props, cx('hy-table__head', props.onSort && 'hy-table__head--sortable', props.onSort && props.sort && props.sort !== 'none' && 'is-sorted', resizable && 'hy-table__head--resizable', cellClass(props)),
-    ['align', 'wrap', 'truncate', 'sort', 'onSort', 'sortDisabled', 'resizable', 'columnKey', 'minWidth', 'maxWidth'].concat(resizable ? ['width'] : [])));
+  var th = Object.assign(state, partProps(props, cx('hy-table__head', props.onSort && 'hy-table__head--sortable', props.onSort && props.sort && props.sort !== 'none' && 'is-sorted', resizable && 'hy-table__head--resizable', movable && 'hy-table__head--reorder', dragState, cellClass(props)),
+    ['align', 'wrap', 'truncate', 'sort', 'onSort', 'sortDisabled', 'resizable', 'columnKey', 'pinned', 'minWidth', 'maxWidth'].concat(resizable ? ['width'] : [])));
   if (!(resizable && ctx.ready)) return h('th', th, label);
   /* Sticky heads are stacking contexts and the handle overhangs the next head, so each sits above the heads after it. */
   if (ctx.sticky) th.style = Object.assign({}, props.style, { zIndex: ctx.stack(key) });
@@ -239,6 +261,207 @@ function columnWidthEditor(o) {
   };
 }
 
+/* ---- Reorderable columns (ADR 0003) ----
+   Pure order maths first, then TableOrder (state, drag, keys, announcements) and the Columns menu. An order is an array of
+   column keys. resolveColumnOrder makes it a full order: unknown and repeated keys go, missing ones follow in their column
+   order, and a pinned column keeps the index it has in the default order, so the others fill the slots around it. */
+function resolveColumnOrder(columns, order) {
+  var known = {}, pinned = {}, seen = {}, free = [];
+  columns.forEach(function (c) { known[c.key] = true; if (c.pinned) pinned[c.key] = true; });
+  (order || []).forEach(function (k) {
+    if (known[k] && !pinned[k] && !seen[k]) { seen[k] = true; free.push(k); }
+  });
+  columns.forEach(function (c) { if (!pinned[c.key] && !seen[c.key]) free.push(c.key); });
+  var i = 0;
+  return columns.map(function (c) { return c.pinned ? c.key : free[i++]; });
+}
+
+/* Move key to a slot among the movable (not pinned) columns, picked by pick(free, at). { order, change: { key, from, to } },
+   or null when it can't move. */
+function placeColumn(columns, order, key, pick) {
+  var cur = resolveColumnOrder(columns, order);
+  var pinned = {};
+  columns.forEach(function (c) { if (c.pinned) pinned[c.key] = true; });
+  var free = cur.filter(function (k) { return !pinned[k]; });
+  var at = free.indexOf(key);
+  var to = at < 0 ? -1 : pick(free, at);
+  if (to < 0 || to >= free.length || to === at) return null;
+  free.splice(at, 1);
+  free.splice(to, 0, key);
+  var i = 0;
+  var next = cur.map(function (k) { return pinned[k] ? k : free[i++]; });
+  return { order: next, change: { key: key, from: cur.indexOf(key), to: next.indexOf(key) } };
+}
+/* One step left (-1) or right (1), skipping pinned columns. */
+function moveColumn(columns, order, key, step) {
+  return placeColumn(columns, order, key, function (free, at) { return at + step; });
+}
+/* A drop: the column takes the target's slot. A pinned target, or a pinned column, doesn't move. */
+function moveColumnTo(columns, order, key, target) {
+  return placeColumn(columns, order, key, function (free) { return free.indexOf(target); });
+}
+function columnName(columns, key) {
+  var c = columns.filter(function (x) { return x.key === key; })[0];
+  return c && typeof c.header === 'string' ? c.header : key;
+}
+function orderMessage(columns, order, change) {
+  if (change.reset) return 'Column order reset';
+  return columnName(columns, change.key) + ' moved to position ' + (change.to + 1) + ' of ' + order.length;
+}
+
+/* The columns in display order. */
+function orderedColumns(columns, order) {
+  var by = {};
+  columns.forEach(function (c) { by[c.key] = c; });
+  return resolveColumnOrder(columns, order).map(function (k) { return by[k]; });
+}
+/* The order behaviour without the DOM. emit(order, change) fires on every change. getOrder is the order as the app gave it
+   (possibly partial); every move starts from its resolved form. key() reports whether the key was Alt+Left or Alt+Right,
+   moved or not, so the browser's own Alt+Left (back) stays out of it. */
+function columnOrderEditor(o) {
+  function apply(r) {
+    if (!r) return false;
+    o.emit(r.order, r.change);
+    return true;
+  }
+  return {
+    move: function (key, step) { return apply(moveColumn(o.getColumns(), o.getOrder(), key, step)); },
+    drop: function (key, target) { return apply(moveColumnTo(o.getColumns(), o.getOrder(), key, target)); },
+    reset: function () { o.emit([], { reset: true }); },
+    key: function (key, e) {
+      if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return false;
+      var step = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+      if (!step) return false;
+      apply(moveColumn(o.getColumns(), o.getOrder(), key, step));
+      return true;
+    },
+  };
+}
+/* A drag starts after this many px of movement, so a click on a sortable head still sorts. */
+var DRAG_SLOP = 4;
+function dragStarted(dx, dy) { return Math.sqrt(dx * dx + dy * dy) >= DRAG_SLOP; }
+/* The edge of the target head the dragged column will arrive at. */
+function dropSide(order, from, to) { return order.indexOf(to) > order.indexOf(from) ? 'after' : 'before'; }
+
+var orderCtx = null;
+function orderContext() { return orderCtx || (orderCtx = React.createContext(null)); }
+
+/* Owns the order for the data form (controlled through columnOrder, else defaultColumnOrder), the pointer drag, the Alt+arrow
+   keys and the polite announcement. Heads read it through orderContext. A moved head keeps focus: the keyed DOM move can
+   drop it, so it is given back after the render. */
+function TableOrder(props) {
+  var ctl = useControllable(props.columnOrder, props.defaultColumnOrder || []);
+  var order = ctl[0] || [];
+  var ds = useState(null), drag = ds[0], setDrag = ds[1];
+  var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
+  var live = useRef({});
+  var focusEl = useRef(null);
+  live.current = { columns: props.columns, order: order, set: ctl[1], onChange: props.onColumnOrderChange };
+  var editor = useMemo(function () {
+    return columnOrderEditor({
+      getColumns: function () { return live.current.columns; },
+      getOrder: function () { return live.current.order; },
+      emit: function (next, change) {
+        live.current.order = next;
+        live.current.set(next);
+        if (live.current.onChange) live.current.onChange(next, change);
+        setSaid(function (s) { return { text: orderMessage(live.current.columns, next, change), n: s.n + 1 }; });
+      },
+    });
+  }, []);
+  useLayoutEffect(function () {
+    var el = focusEl.current;
+    focusEl.current = null;
+    if (el && el.isConnected && document.activeElement !== el) el.focus();
+  });
+
+  var loading = props.loading === true || (typeof props.loading === 'number' && props.loading > 0);
+  var ctx = {
+    reorder: true, loading: loading, drag: drag,
+    keyDown: function (key, e) {
+      var el = document.activeElement;
+      var handled = editor.key(key, e);
+      if (handled) focusEl.current = el;
+      return handled;
+    },
+    startDrag: function (key, e) {
+      var x0 = e.clientX, y0 = e.clientY, table = e.currentTarget.closest('table');
+      var active = false, done = false, target = null;
+      function head(ev) {
+        var el = document.elementFromPoint(ev.clientX, ev.clientY);
+        var th = el && el.closest('[data-column-key]');
+        return th && th.closest('table') === table ? th.getAttribute('data-column-key') : null;
+      }
+      function move(ev) {
+        if (!active) {
+          if (!dragStarted(ev.clientX - x0, ev.clientY - y0)) return;
+          active = true;
+        }
+        var t = head(ev);
+        var cols = live.current.columns;
+        var full = resolveColumnOrder(cols, live.current.order);
+        var ok = t != null && t !== key && !(cols.filter(function (c) { return c.key === t; })[0] || {}).pinned;
+        target = ok ? t : null;
+        setDrag({ key: key, target: target, side: ok ? dropSide(full, key, t) : null });
+      }
+      function finish(commit) {
+        if (done) return;
+        done = true;
+        document.removeEventListener('pointermove', move);
+        document.removeEventListener('pointerup', up);
+        document.removeEventListener('pointercancel', cancel);
+        document.removeEventListener('keydown', esc, true);
+        if (active) {
+          /* The release that ends a drag must not also click the sort button. */
+          var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+          document.addEventListener('click', swallow, true);
+          setTimeout(function () { document.removeEventListener('click', swallow, true); }, 0);
+          if (commit && target) editor.drop(key, target);
+        }
+        setDrag(null);
+      }
+      function up() { finish(true); }
+      function cancel() { finish(false); }
+      function esc(ev) { if (ev.key === 'Escape') { ev.stopPropagation(); finish(false); } }
+      document.addEventListener('pointermove', move);
+      document.addEventListener('pointerup', up);
+      document.addEventListener('pointercancel', cancel);
+      document.addEventListener('keydown', esc, true);
+    },
+  };
+  var text = said.text ? said.text + (said.n % 2 ? '' : ' ') : '';
+  return h(orderContext().Provider, { value: ctx },
+    h(React.Fragment, null, dataTable(props, orderedColumns(props.columns, order), { reorder: true }),
+      h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, text)));
+}
+
+/* A Menu the app places, for example in a toolbar: each column in its current order with Move Left and Move Right, then Reset
+   Order. It needs the controlled form: it never holds the order itself, and announces its own moves. */
+function TableColumnsMenu(props) {
+  var cols = props.columns;
+  var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
+  var editor = columnOrderEditor({
+    getColumns: function () { return cols; },
+    getOrder: function () { return props.columnOrder; },
+    emit: function (next, change) {
+      if (props.onColumnOrderChange) props.onColumnOrderChange(next, change);
+      setSaid({ text: orderMessage(cols, next, change), n: said.n + 1 });
+    },
+  });
+  var items = [];
+  resolveColumnOrder(cols, props.columnOrder).forEach(function (k) {
+    var name = columnName(cols, k);
+    [['Left', -1], ['Right', 1]].forEach(function (d) {
+      items.push({ label: 'Move ' + name + ' ' + d[0], disabled: !moveColumn(cols, props.columnOrder, k, d[1]), onSelect: function () { editor.move(k, d[1]); } });
+    });
+  });
+  items.push({ separator: true });
+  items.push({ label: 'Reset Order', onSelect: editor.reset });
+  return h(React.Fragment, null,
+    h(HY.Menu, { label: props.label == null ? 'Columns' : props.label, items: items }),
+    h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, said.text ? said.text + (said.n % 2 ? '' : ' ') : ''));
+}
+
 /* Created on first use, so the pure parts above run without React (see test/table-resize.test.mjs). */
 var widthsCtx = null;
 function widthsContext() { return widthsCtx || (widthsCtx = React.createContext(null)); }
@@ -375,10 +598,14 @@ function TableWidths(props) {
 function Table(props) {
   if (!props.columns) {
     return h(TableWidths, { columnWidths: props.columnWidths, defaultColumnWidths: props.defaultColumnWidths, onColumnWidthsChange: props.onColumnWidthsChange, stickyHeader: props.stickyHeader, loading: props.loading, pending: !!props.loading },
-      h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent', 'sort', 'onSortChange', 'loading', 'columnWidths', 'defaultColumnWidths', 'onColumnWidthsChange']),
+      h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent', 'sort', 'onSortChange', 'loading', 'columnWidths', 'defaultColumnWidths', 'onColumnWidthsChange', 'columnOrder', 'defaultColumnOrder', 'onColumnOrderChange']),
         props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null, props.children));
   }
-  var cols = props.columns;
+  if (props.columnOrder !== undefined || props.defaultColumnOrder !== undefined || props.onColumnOrderChange) return h(TableOrder, props);
+  return dataTable(props, props.columns, null);
+}
+/* The data form's tree for `cols`, already in display order. opts.reorder marks the heads for TableOrder. */
+function dataTable(props, cols, opts) {
   var rows = props.rows || [];
   var skeletons = props.loading === true ? 5 : typeof props.loading === 'number' && props.loading > 0 ? Math.floor(props.loading) : 0;
   var loading = skeletons > 0;
@@ -391,6 +618,7 @@ function Table(props) {
         var active = props.sort && props.sort.key === c.key ? props.sort.direction : 'none';
         var head = { key: c.key, align: alignOf(c), wrap: c.wrap, sort: c.sortable ? active : undefined, onSort: c.sortable ? sortClick(props, c.key) : undefined, sortDisabled: loading };
         if (resizable) Object.assign(head, { truncate: c.truncate, resizable: !!c.resizable && !c.truncate, columnKey: c.key, width: c.width, minWidth: c.minWidth, maxWidth: c.maxWidth });
+        if (opts && opts.reorder) Object.assign(head, { columnKey: c.key, pinned: !!c.pinned });
         return h(TableHead, head, c.header);
       }))),
       h(TableBody, { striped: props.striped, bordered: props.bordered, interactive: props.interactive }, loading ? Array.apply(null, Array(skeletons)).map(function (_, i) {
@@ -415,6 +643,7 @@ Table.Row = TableRow;
 Table.Head = TableHead;
 Table.Cell = TableCell;
 Table.SkeletonRow = TableSkeletonRow;
+Table.ColumnsMenu = TableColumnsMenu;
 
 define('Table', Table);
 define('TableRoot', TableRoot);
@@ -427,3 +656,4 @@ define('TableRow', TableRow);
 define('TableHead', TableHead);
 define('TableCell', TableCell);
 define('TableSkeletonRow', TableSkeletonRow);
+define('TableColumnsMenu', TableColumnsMenu);
