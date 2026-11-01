@@ -83,6 +83,11 @@ describe('Sparkbars logic', () => {
     assert.equal(row.props['aria-label'], 'Rebuild search index: 27 success, 2 warning, 1 error');
   });
 
+  it('does not mark runs as selected: selection is out of scope', () => {
+    const b = bars(render({ runs: runs([1, 2, 3]), 'aria-label': 'x' }));
+    b.forEach((n) => assert.equal('aria-selected' in n.props, false));
+  });
+
   it('is a single tab stop, and the runs are not', () => {
     const tree = render({ runs: runs([1, 2, 3]), 'aria-label': 'x' });
     assert.equal(find(tree, (n) => n.props.tabIndex !== undefined).length, 1);
@@ -211,6 +216,35 @@ describe('Sparkbars in Chrome', { skip: skipNoChrome, concurrency: false }, () =
     const n = await ev(`(function () { var row = document.querySelector('.hy-sparkbars'); return { name: row.getAttribute('aria-label'), first: row.querySelector('.hy-sparkbars__bar').getAttribute('aria-label') }; })()`);
     assert.match(n.name, /^Nightly build: \d+ success, /);
     assert.equal(n.first, 'Run 1 of 30');
+  });
+
+  it('points aria-activedescendant at the active run, and nothing is aria-selected', async () => {
+    await ev(`document.getElementById('before').focus()`);
+    await press('Tab');
+    await press('ArrowRight');
+    const a = await ev(`(function () { var row = document.querySelector('.hy-sparkbars'); var id = row.getAttribute('aria-activedescendant'); return { id: !!id, label: id && document.getElementById(id).getAttribute('aria-label'), selected: document.querySelectorAll('[aria-selected]').length }; })()`);
+    assert.equal(a.id, true);
+    assert.equal(a.label, 'Run 2 of 30');
+    assert.equal(a.selected, 0);
+    await ev(`document.getElementById('after').focus()`);
+  });
+
+  it('grows the hit area to the touch target under touch sizing and keeps the drawn size', async () => {
+    const hit = (dy) => ev(`(function () { var row = document.querySelector('.hy-sparkbars'), r = row.getBoundingClientRect(); var el = document.elementFromPoint(r.left + 20, ${dy < 0 ? 'r.top' : 'r.bottom'} + (${dy})); return { row: el === row, h: r.height }; })()`);
+    assert.equal((await hit(-8)).row, false, 'desktop: no extra hit area');
+    await chrome.emulate({ width: 600, height: 400, scale: 1 });
+    await sleep(100);
+    const up = await hit(-8), down = await hit(8), far = await hit(-14);
+    assert.equal(up.h, 24, 'drawn size is unchanged');
+    assert.equal(up.row, true); assert.equal(down.row, true);
+    assert.equal(far.row, false, 'the hit area stops at the touch target');
+    // Picking still comes from the pointer's x.
+    const r = await barRect(10);
+    await moveTo(r.x + 3, r.y - 6);
+    await until(`document.querySelector('[role="tooltip"]')`, 'tooltip');
+    assert.equal(await tip(), 'Run 11 of 30');
+    await moveTo(5, 5);
+    await chrome.emulate({ width: 800, height: 400, scale: 1 });
   });
 
   it('transitions opacity only, over 150ms, and not at all under reduced motion', async () => {
