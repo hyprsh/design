@@ -1,0 +1,32 @@
+<!-- @dsCard group="Navigation" height=420 subtitle="Sidebar with counts, groups, status trailing node, disabled, long label" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NavList</title></head>
+<body>
+<div id="root" class="hy-col"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function Demo() {
+  var cur = React.useState('inbox');
+  function item(id, label, props) {
+    return h(H.NavItem, Object.assign({ key: id, current: cur[0] === id, onClick: function () { cur[1](id); } }, props), label);
+  }
+  return h(F, null,
+    h(H.NavList, { 'aria-label': 'Views' },
+      item('inbox', 'Inbox', { icon: h(H.Icon, { name: 'inbox' }), trailing: 12 }),
+      item('downloads', 'Downloads', { icon: h(H.Icon, { name: 'download' }), trailing: 3 }),
+      item('health', 'Health', { icon: h(H.Icon, { name: 'activity' }), trailing: h(H.StatusDot, { state: 'error' }), trailingLabel: 'Failing' }),
+      item('long', 'A Very Long Project Name That Truncates', { icon: h(H.Icon, { name: 'folder' }), trailing: 128 }),
+      item('archive', 'Archive', { icon: h(H.Icon, { name: 'archive' }), disabled: true })),
+    h('div', { style: { height: 16 } }),
+    h(H.NavList, { 'aria-label': 'Settings' },
+      h(H.NavList.Group, { title: 'Account' },
+        h(H.NavItem, { href: '#profile', current: true }, 'Profile'),
+        h(H.NavItem, { href: '#security' }, 'Security')),
+      h(H.NavList.Group, { title: 'Project' },
+        h(H.NavItem, { href: '#domains' }, 'Domains'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

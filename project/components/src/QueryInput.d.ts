@@ -85,10 +85,16 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
   suggestions?: (text: string, caret: number) => QuerySuggestion[];
   /** The qualifiers the app understands: suggested with `suggestQuery`, explained in the help popover, and checked with `parseQuery` (problems show under the field). */
   qualifiers?: readonly Qualifier[];
-  /** false hides the "?" button that opens the help popover. Needs `qualifiers`. Default true. */
+  /** false hides the "?" button that opens the help popover. Needs `qualifiers`. Default true. To place the button yourself, hide it and render `QueryHelpButton`. */
   help?: boolean;
   /** small 32px, medium 36px (default), large 40px. */
   size?: 'small' | 'medium' | 'large';
+  /**
+   * A single key, with no modifiers, such as `"/"`. Pressing it anywhere on the page focuses the field (and the key is not typed), unless focus is already in an
+   * editable element or the field is disabled. While the field is empty a key cap shows the key inside it (not on touch-only devices), and the input gets
+   * `aria-keyshortcuts`, which an `aria-keyshortcuts` prop overrides. Not for modifier combinations.
+   */
+  shortcut?: string;
   /** Keys the field leaves alone: Enter, Escape and Tab whenever the list is closed, and every other key. While the list is open it owns Up, Down, Enter, Tab and Escape. */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   /** Class for the outer element. */

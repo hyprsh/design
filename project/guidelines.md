@@ -33,6 +33,7 @@ Touch sizing applies under `@media (pointer: coarse), (max-width: 639px)`: a coa
 ## Navigation
 
 - **Should:** at phone width, move between an app's main screens with a TabBar: at most five destinations, with a More item (opening a Drawer) for the rest. From `sm` up use a rail or sidebar.
+- **Should:** list a sidebar's or settings page's destinations in a NavList, with an accessible name, one item marked `current` and `href` on items that go to a URL. It is not a TabBar or Tabs.
 - **Must:** Tabs switch sections inside one page; a TabBar switches screens. Never use one for the other, and never nest them.
 - **Must:** give a scroll area `padding-bottom: var(--tab-bar-height)` so its last rows never sit under a TabBar.
 

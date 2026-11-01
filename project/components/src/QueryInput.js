@@ -10,22 +10,6 @@ function queryHighlight(label, match) {
   return [label.slice(0, a), h('mark', { key: 'm', className: 'hy-query__match' }, label.slice(a, b)), label.slice(b)];
 }
 
-function QueryHelp(p) {
-  var qualifiers = p.qualifiers;
-  var hasNone = qualifiers.some(function (q) { return q.none; });
-  var code = function (t) { return h('code', { className: 'hy-query__code' }, t); };
-  return h(HY.Popover, {
-    trigger: h(HY.Button, { svgOnly: true, variant: 'tertiary', size: p.size, 'aria-label': 'Query Help', className: 'hy-query__help' }, h(HY.Icon, { name: 'circle-help' })),
-    label: 'Query Help', position: 'bottom-end', width: 320
-  },
-    h('div', { className: 'hy-query__guide' },
-      h('dl', { className: 'hy-query__qualifiers' }, qualifiers.map(function (q) {
-        return h(React.Fragment, { key: q.name }, h('dt', null, q.name + ':'), h('dd', null, q.help));
-      })),
-      h('p', null, code('a,b'), ' matches either value. Different qualifiers must all match, and so must the same one typed twice. A leading ', code('-'), ' leaves values out, where a qualifier allows it. Double quotes keep spaces and commas in a value.',
-        hasNone ? h(React.Fragment, null, ' ', code('no:name'), ' matches what has no value for that qualifier.') : null, ' Other words are free text.')));
-}
-
 function QueryInput(props) {
   var auto = useId();
   var id = props.id || auto;
@@ -38,6 +22,7 @@ function QueryInput(props) {
   var as = useState(0), active = as[0], setActive = as[1];
   var ds = useState(false), dismissed = ds[0], setDismissed = ds[1];
   var input = useRef(null), field = useRef(null), listRef = useRef(null);
+  var shortcut = typeof props.shortcut === 'string' && props.shortcut ? props.shortcut : null;
   /* Where the caret goes once a picked suggestion is in the field. */
   var placeCaret = useRef(null);
 
@@ -62,6 +47,20 @@ function QueryInput(props) {
   useLayoutEffect(function () {
     if (open && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
   }, [open, suggestions.length, fieldWidth]);
+  /* The shortcut key focuses the field from anywhere on the page, unless focus is already in something editable (this field too). */
+  useEffect(function () {
+    if (!shortcut || props.disabled) return;
+    function onKey(e) {
+      if (e.key !== shortcut || e.metaKey || e.ctrlKey || e.altKey || e.isComposing || e.keyCode === 229) return;
+      var t = e.target;
+      if (t && (t.isContentEditable || /^(input|textarea|select)$/i.test(t.tagName || ''))) return;
+      if (!input.current) return;
+      e.preventDefault();
+      input.current.focus();
+    }
+    window.addEventListener('keydown', onKey);
+    return function () { window.removeEventListener('keydown', onKey); };
+  }, [shortcut, props.disabled]);
   var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start', offset: 4 });
 
   function edit(text, at, close) {
@@ -98,12 +97,14 @@ function QueryInput(props) {
   }) : [];
   var problemsId = id + '-problems';
   var showHelp = props.help !== false && qualifiers && qualifiers.length > 0;
-  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
+  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style', 'shortcut']);
 
   return h('div', { className: cx('hy-query', props.className), style: props.style },
     h('div', { className: 'hy-query__row' },
       h('div', { ref: field, className: 'hy-query__field' },
         h(HY.Input, Object.assign({}, rest, {
+          'aria-keyshortcuts': props['aria-keyshortcuts'] || shortcut || undefined,
+          suffix: shortcut && value === '' ? h(HY.KeyboardInput, { small: true, 'aria-hidden': 'true' }, shortcut) : undefined, suffixStyling: shortcut ? false : undefined,
           ref: input, id: id, size: size, value: value, role: 'combobox', autoComplete: 'off', spellCheck: false,
           'aria-autocomplete': 'list', 'aria-expanded': open, 'aria-controls': open ? listId : undefined,
           'aria-activedescendant': open ? id + '-opt-' + current : undefined,
@@ -114,7 +115,7 @@ function QueryInput(props) {
           onBlur: function () { setCaret(null); },
           onKeyDown: onKeyDown
         }))),
-      showHelp ? h(QueryHelp, { qualifiers: qualifiers, size: size }) : null),
+      showHelp ? h(HY.QueryHelpButton, { qualifiers: qualifiers, size: size }) : null),
     problems.length ? h(HY.Note, { id: problemsId, variant: 'warning', size: 'small', role: 'status' }, problems.map(function (p) { return p.message; }).join(' · ')) : null,
     open ? portal(h('ul', {
       ref: listRef, id: listId, role: 'listbox', 'aria-label': 'Suggestions',

@@ -1,4 +1,4 @@
-/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
+/* @ds-bundle: {"format":4,"namespace":"Hyprsh","components":[{"name":"Button"},{"name":"CopyButton"},{"name":"LoadMoreButton"},{"name":"SplitButton"},{"name":"AddressInput"},{"name":"Calendar"},{"name":"Checkbox"},{"name":"Choicebox"},{"name":"ClearableInput"},{"name":"Combobox"},{"name":"Feedback"},{"name":"Fieldset"},{"name":"FilterMenu"},{"name":"Input"},{"name":"Label"},{"name":"MultiSelect"},{"name":"QueryBar"},{"name":"QueryHelpButton"},{"name":"QueryInput"},{"name":"Radio"},{"name":"SearchInput"},{"name":"Select"},{"name":"Slider"},{"name":"Switch"},{"name":"Textarea"},{"name":"ThemeSwitcher"},{"name":"Toggle"},{"name":"Breadcrumbs"},{"name":"CommandMenuTrigger"},{"name":"Link"},{"name":"NavList"},{"name":"Pager"},{"name":"Pagination"},{"name":"TabBar"},{"name":"Tabs"},{"name":"Badge"},{"name":"Pill"},{"name":"StatusDot"},{"name":"Banner"},{"name":"EmptyState"},{"name":"Error"},{"name":"ErrorCard"},{"name":"LoadingDots"},{"name":"Note"},{"name":"Progress"},{"name":"ProjectBanner"},{"name":"Skeleton"},{"name":"Spinner"},{"name":"Toast"},{"name":"Bubble"},{"name":"Code"},{"name":"CodeBlock"},{"name":"Description"},{"name":"Entity"},{"name":"Icon"},{"name":"KeyboardInput"},{"name":"MiddleTruncate"},{"name":"Snippet"},{"name":"Table"},{"name":"TextWithCopyButton"},{"name":"FileTree"},{"name":"FilterParams"},{"name":"Gauge"},{"name":"JsonView"},{"name":"CommandMenu"},{"name":"ContextCard"},{"name":"ContextMenu"},{"name":"DestructiveActionModal"},{"name":"DotsMenu"},{"name":"Drawer"},{"name":"Menu"},{"name":"Modal"},{"name":"Popover"},{"name":"RelativeTimeCard"},{"name":"Sheet"},{"name":"Tooltip"},{"name":"Collapse"},{"name":"Grid"},{"name":"Scroller"},{"name":"Separator"},{"name":"ShowMore"},{"name":"Avatar"},{"name":"Browser"},{"name":"Logo"},{"name":"Phone"},{"name":"Video"},{"name":"Waveform"}]} */
 (function () {
   'use strict';
   var React = window.React;
@@ -2422,7 +2422,8 @@
        The query text is the only state: each menu reads its value off it and writes back with the helpers in _query.js
        (queryMenu, withQueryMenu, querySingle, withQuerySingle), which touch only that qualifier's terms. The announcements
        come from FilterMenu itself. The menus wrap onto more rows when they don't fit (wrap, default true); wrap={false}
-       keeps them on one row in a Scroller that scrolls sideways. */
+       keeps them on one row in a Scroller that scrolls sideways.
+       help: true (default) keeps the "?" button beside the field, false hides it, 'menus' puts it last in the menu row. */
     var QueryBarContext = React.createContext(null);
 
     function QueryBarMenu(props) {
@@ -2457,14 +2458,18 @@
       var value = vs[0] == null ? '' : String(vs[0]);
       var size = props.size === 'small' || props.size === 'large' ? props.size : 'medium';
       var qualifiers = props.qualifiers || [];
-      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children', 'wrap']);
+      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'qualifiers', 'size', 'className', 'children', 'wrap', 'help']);
       var ctx = { value: value, onChange: vs[1], qualifiers: qualifiers, size: size };
       var menus = React.Children.toArray(props.children);
       var wrap = props.wrap !== false;
 
+      /* help="menus" moves the button into the menu row, after the menus; with no menus (or no qualifiers) it stays beside the field. */
+      var inMenus = props.help === 'menus' && menus.length > 0;
+      var helpButton = inMenus && qualifiers.length > 0 ? h(HY.QueryHelpButton, { key: 'help', qualifiers: qualifiers, size: size }) : null;
+
       var menuGroup = null;
       if (menus.length) {
-        var bound = h(QueryBarContext.Provider, { value: ctx }, menus);
+        var bound = [h(QueryBarContext.Provider, { key: 'menus', value: ctx }, menus), helpButton];
         menuGroup = h('div', { className: 'hy-querybar__menus', role: 'group', 'aria-label': 'Filters' },
           wrap ? h('div', { className: 'hy-querybar__row' }, bound)
             : h(HY.Scroller, { overflow: 'x', childrenContainerClassName: 'hy-querybar__row' }, bound));
@@ -2473,13 +2478,36 @@
       return h('div', { className: cx('hy-querybar', props.className) },
         h('div', { className: 'hy-querybar__bar' },
           h('div', { className: 'hy-querybar__field' },
-            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size }))),
+            h(HY.QueryInput, Object.assign({}, rest, { value: value, onChange: vs[1], qualifiers: qualifiers, size: size, help: inMenus ? false : props.help === 'menus' ? true : props.help }))),
           menuGroup));
     }
     QueryBar.Menu = QueryBarMenu;
 
     define('QueryBar', QueryBar);
     define('QueryBarMenu', QueryBarMenu);
+  })();
+
+  /* ---- QueryHelpButton ---- */
+  (function () {
+    /* QueryHelpButton: the "?" button that opens the Query Help popover, a list of a query's qualifiers and its rules.
+       QueryInput draws it beside the field; a QueryBar can move it into its menu row (help="menus"), and an app can place it anywhere. */
+    function QueryHelpButton(p) {
+      var qualifiers = p.qualifiers;
+      var hasNone = qualifiers.some(function (q) { return q.none; });
+      var code = function (t) { return h('code', { className: 'hy-query__code' }, t); };
+      return h(HY.Popover, {
+        trigger: h(HY.Button, { svgOnly: true, variant: 'tertiary', size: p.size, 'aria-label': 'Query Help', className: 'hy-query__help' }, h(HY.Icon, { name: 'circle-help' })),
+        label: 'Query Help', position: 'bottom-end', width: 320
+      },
+        h('div', { className: 'hy-query__guide' },
+          h('dl', { className: 'hy-query__qualifiers' }, qualifiers.map(function (q) {
+            return h(React.Fragment, { key: q.name }, h('dt', null, q.name + ':'), h('dd', null, q.help));
+          })),
+          h('p', null, code('a,b'), ' matches either value. Different qualifiers must all match, and so must the same one typed twice. A leading ', code('-'), ' leaves values out, where a qualifier allows it. Double quotes keep spaces and commas in a value.',
+            hasNone ? h(React.Fragment, null, ' ', code('no:name'), ' matches what has no value for that qualifier.') : null, ' Other words are free text.')));
+    }
+
+    define('QueryHelpButton', QueryHelpButton);
   })();
 
   /* ---- QueryInput ---- */
@@ -2496,22 +2524,6 @@
       return [label.slice(0, a), h('mark', { key: 'm', className: 'hy-query__match' }, label.slice(a, b)), label.slice(b)];
     }
 
-    function QueryHelp(p) {
-      var qualifiers = p.qualifiers;
-      var hasNone = qualifiers.some(function (q) { return q.none; });
-      var code = function (t) { return h('code', { className: 'hy-query__code' }, t); };
-      return h(HY.Popover, {
-        trigger: h(HY.Button, { svgOnly: true, variant: 'tertiary', size: p.size, 'aria-label': 'Query Help', className: 'hy-query__help' }, h(HY.Icon, { name: 'circle-help' })),
-        label: 'Query Help', position: 'bottom-end', width: 320
-      },
-        h('div', { className: 'hy-query__guide' },
-          h('dl', { className: 'hy-query__qualifiers' }, qualifiers.map(function (q) {
-            return h(React.Fragment, { key: q.name }, h('dt', null, q.name + ':'), h('dd', null, q.help));
-          })),
-          h('p', null, code('a,b'), ' matches either value. Different qualifiers must all match, and so must the same one typed twice. A leading ', code('-'), ' leaves values out, where a qualifier allows it. Double quotes keep spaces and commas in a value.',
-            hasNone ? h(React.Fragment, null, ' ', code('no:name'), ' matches what has no value for that qualifier.') : null, ' Other words are free text.')));
-    }
-
     function QueryInput(props) {
       var auto = useId();
       var id = props.id || auto;
@@ -2524,6 +2536,7 @@
       var as = useState(0), active = as[0], setActive = as[1];
       var ds = useState(false), dismissed = ds[0], setDismissed = ds[1];
       var input = useRef(null), field = useRef(null), listRef = useRef(null);
+      var shortcut = typeof props.shortcut === 'string' && props.shortcut ? props.shortcut : null;
       /* Where the caret goes once a picked suggestion is in the field. */
       var placeCaret = useRef(null);
 
@@ -2548,6 +2561,20 @@
       useLayoutEffect(function () {
         if (open && listRef.current) listRef.current.dispatchEvent(new Event('scroll'));
       }, [open, suggestions.length, fieldWidth]);
+      /* The shortcut key focuses the field from anywhere on the page, unless focus is already in something editable (this field too). */
+      useEffect(function () {
+        if (!shortcut || props.disabled) return;
+        function onKey(e) {
+          if (e.key !== shortcut || e.metaKey || e.ctrlKey || e.altKey || e.isComposing || e.keyCode === 229) return;
+          var t = e.target;
+          if (t && (t.isContentEditable || /^(input|textarea|select)$/i.test(t.tagName || ''))) return;
+          if (!input.current) return;
+          e.preventDefault();
+          input.current.focus();
+        }
+        window.addEventListener('keydown', onKey);
+        return function () { window.removeEventListener('keydown', onKey); };
+      }, [shortcut, props.disabled]);
       var pos = useFloating(open, field, listRef, { side: 'bottom', align: 'start', offset: 4 });
 
       function edit(text, at, close) {
@@ -2584,12 +2611,14 @@
       }) : [];
       var problemsId = id + '-problems';
       var showHelp = props.help !== false && qualifiers && qualifiers.length > 0;
-      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style']);
+      var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style', 'shortcut']);
 
       return h('div', { className: cx('hy-query', props.className), style: props.style },
         h('div', { className: 'hy-query__row' },
           h('div', { ref: field, className: 'hy-query__field' },
             h(HY.Input, Object.assign({}, rest, {
+              'aria-keyshortcuts': props['aria-keyshortcuts'] || shortcut || undefined,
+              suffix: shortcut && value === '' ? h(HY.KeyboardInput, { small: true, 'aria-hidden': 'true' }, shortcut) : undefined, suffixStyling: shortcut ? false : undefined,
               ref: input, id: id, size: size, value: value, role: 'combobox', autoComplete: 'off', spellCheck: false,
               'aria-autocomplete': 'list', 'aria-expanded': open, 'aria-controls': open ? listId : undefined,
               'aria-activedescendant': open ? id + '-opt-' + current : undefined,
@@ -2600,7 +2629,7 @@
               onBlur: function () { setCaret(null); },
               onKeyDown: onKeyDown
             }))),
-          showHelp ? h(QueryHelp, { qualifiers: qualifiers, size: size }) : null),
+          showHelp ? h(HY.QueryHelpButton, { qualifiers: qualifiers, size: size }) : null),
         problems.length ? h(HY.Note, { id: problemsId, variant: 'warning', size: 'small', role: 'status' }, problems.map(function (p) { return p.message; }).join(' · ')) : null,
         open ? portal(h('ul', {
           ref: listRef, id: listId, role: 'listbox', 'aria-label': 'Suggestions',
@@ -3254,6 +3283,65 @@
     });
 
     define('Link', Link);
+  })();
+
+  /* ---- NavList ---- */
+  (function () {
+    /* A vertical list of destinations for a sidebar or settings page, one marked current.
+       NavList is a <nav> around a <ul>; NavGroup is an <li> with a heading and its own labelled <ul>; NavItem is an <li>
+       holding an <a> (with href) or a <button>. The app decides which item is current. */
+    function NavList(props) {
+      var rest = omit(props, ['className', 'children']);
+      if (!props['aria-label'] && !props['aria-labelledby']) {
+        var prod = false;
+        try { prod = process.env.NODE_ENV === 'production'; } catch (e) { /* no process: not a production build */ }
+        if (!prod && typeof console !== 'undefined') console.warn('hyprsh: NavList needs an accessible name. Pass aria-label or aria-labelledby.');
+      }
+      return h('nav', Object.assign({}, rest, { className: cx('hy-nav-list', props.className) }),
+        h('ul', { className: 'hy-nav-list__list', role: 'list' }, props.children));
+    }
+
+    function NavGroup(props) {
+      var id = useId();
+      var rest = omit(props, ['title', 'className', 'children']);
+      return h('li', Object.assign({}, rest, { className: cx('hy-nav-group', props.className) }),
+        h('div', { id: id, className: 'hy-nav-group__title' }, props.title),
+        h('ul', { className: 'hy-nav-list__list', role: 'list', 'aria-labelledby': id }, props.children));
+    }
+
+    function NavItem(props) {
+      var isLink = props.href !== undefined;
+      var rest = omit(props, ['icon', 'trailing', 'trailingLabel', 'current', 'disabled', 'className', 'children', 'onClick']);
+      var count = typeof props.trailing === 'number';
+      var spoken = count ? String(props.trailing) : props.trailingLabel;
+      var current = props.current ? (props.current === true ? 'page' : props.current) : undefined;
+      var attrs = Object.assign({}, rest, {
+        className: cx('hy-nav-item', props.current && 'is-current', props.disabled && !isLink && 'is-disabled', props.className),
+        'aria-current': current
+      });
+      if (isLink) {
+        attrs.onClick = props.onClick;
+      } else {
+        attrs.type = 'button';
+        attrs.onClick = props.disabled ? function (e) { e.preventDefault(); } : props.onClick;
+        if (props.disabled) attrs['aria-disabled'] = 'true';
+      }
+      var hasTrailing = props.trailing !== undefined && props.trailing !== null && props.trailing !== false;
+      return h('li', { className: 'hy-nav-item-row' },
+        h(isLink ? 'a' : 'button', attrs,
+          props.icon ? h('span', { className: 'hy-nav-item__icon', 'aria-hidden': 'true' }, props.icon) : null,
+          h('span', { className: 'hy-nav-item__label' }, props.children),
+          spoken ? h('span', { className: 'hy-nav-item__sr' }, ', ') : null,
+          hasTrailing ? h('span', Object.assign({ className: cx('hy-nav-item__trailing', count && 'hy-nav-item__count') }, count ? {} : { 'aria-hidden': 'true' }), props.trailing) : null,
+          spoken && !count ? h('span', { className: 'hy-nav-item__sr' }, spoken) : null));
+    }
+
+    NavList.Group = NavGroup;
+    NavList.Item = NavItem;
+
+    define('NavList', NavList);
+    define('NavGroup', NavGroup);
+    define('NavItem', NavItem);
   })();
 
   /* ---- Pager ---- */
@@ -3998,19 +4086,26 @@
     var TOAST_WORD = { success: 'Success', error: 'Error', warning: 'Warning' };
     var toastStore = { list: [], subs: [], seq: 0, hosts: 0, auto: false };
 
+    function toastAction(action, onAction) {
+      if (typeof action === 'string') action = { label: action, onClick: onAction };
+      return action && action.label ? action : null;
+    }
+    function toastDuration(o, undo) {
+      return o.preserve ? Infinity : (o.duration !== undefined ? o.duration : (o.timeout !== undefined ? o.timeout : (undo ? 8000 : 6000)));
+    }
     function toastNormalize(input, type) {
       var o = typeof input === 'string' || React.isValidElement(input) ? { text: input } : Object.assign({}, input);
-      var action = o.action;
-      if (typeof action === 'string') action = { label: action, onClick: o.onAction };
       var undo = typeof o.onUndoAction === 'function';
-      var duration = o.preserve ? Infinity : (o.duration !== undefined ? o.duration : (o.timeout !== undefined ? o.timeout : (undo ? 8000 : 6000)));
+      var duration = toastDuration(o, undo);
       return {
         id: o.id !== undefined ? o.id : 'toast-' + (++toastStore.seq),
         text: o.text !== undefined ? o.text : o.message,
         type: type || o.type,
-        action: action && action.label ? action : null,
+        action: toastAction(o.action, o.onAction),
         onUndoAction: undo ? o.onUndoAction : null,
-        duration: duration
+        duration: duration,
+        progress: o.progress || null,
+        timer: 0
       };
     }
     function toastEmit() { toastStore.subs.forEach(function (fn) { fn(toastStore.list); }); }
@@ -4046,20 +4141,55 @@
       toastStore.list = toastStore.list.filter(function (x) { return x.id !== id; });
       toastEmit();
     }
+    /* Changes a shown toast in place: same slot in the stack, same component, so it neither moves nor enters again.
+       `timer` counts the restarts: it changes only when the update carries duration or preserve, and ToastItem restarts
+       its dismiss timer when it does. */
+    function toastUpdate(id, changes) {
+      var at = -1;
+      toastStore.list.forEach(function (x, i) { if (x.id === id) at = i; });
+      if (at < 0) return false;
+      var c = changes || {}, next = Object.assign({}, toastStore.list[at]);
+      if (c.text !== undefined || c.message !== undefined) next.text = c.text !== undefined ? c.text : c.message;
+      if (c.type !== undefined) next.type = c.type || undefined;
+      if (c.action !== undefined) next.action = toastAction(c.action, c.onAction);
+      else if (c.onAction !== undefined && next.action) next.action = { label: next.action.label, onClick: c.onAction };
+      if (c.onUndoAction !== undefined) next.onUndoAction = typeof c.onUndoAction === 'function' ? c.onUndoAction : null;
+      if (c.progress !== undefined) next.progress = c.progress || null;
+      var undo = !!next.onUndoAction;
+      var timeout = c.duration !== undefined ? c.duration : c.timeout;
+      if (c.preserve !== undefined || timeout !== undefined) {
+        var wasPreserved = next.duration === Infinity;
+        next.duration = toastDuration({ preserve: c.preserve !== undefined ? c.preserve : (timeout === undefined && wasPreserved), duration: timeout }, undo);
+        next.timer = next.timer + 1;
+      }
+      toastStore.list = toastStore.list.map(function (x, i) { return i === at ? next : x; });
+      toastEmit();
+      return true;
+    }
     var toastApi = {
       message: function (o) { return toastAdd(o); },
       success: function (o) { return toastAdd(o, 'success'); },
       error: function (o) { return toastAdd(o, 'error'); },
       warning: function (o) { return toastAdd(o, 'warning'); },
+      update: toastUpdate,
       dismiss: toastRemove,
       clear: function () { toastStore.list = []; toastEmit(); }
     };
     function useToasts() { return toastApi; }
 
+    /* The plain text of a node, to name the progress bar after the toast's text. */
+    function toastPlain(node) {
+      if (node === null || node === undefined || typeof node === 'boolean') return '';
+      if (typeof node === 'string' || typeof node === 'number') return String(node);
+      if (Array.isArray(node)) return node.map(toastPlain).join('');
+      return node.props ? toastPlain(node.props.children) : '';
+    }
+
     function ToastItem(p) {
       var t = p.toast;
       var ref = useRef(null);
       var left = useRef(t.duration);
+      var timerRev = useRef(t.timer);
       var entered = useState(!!p.inline);
       useEffect(function () {
         if (entered[0]) return;
@@ -4069,11 +4199,13 @@
       /* Measure the inner box so a collapsed toast, forced to the front toast's height, still reports its own. */
       useLayoutEffect(function () { if (ref.current && p.onHeight) p.onHeight(t.id, ref.current.offsetHeight); });
       useEffect(function () {
+        /* An update that carries duration or preserve starts the timer over; any other leaves what is left. */
+        if (timerRev.current !== t.timer) { timerRev.current = t.timer; left.current = t.duration; }
         if (p.paused || left.current === Infinity) return;
         var start = Date.now();
         var timer = setTimeout(function () { p.onDismiss(t.id); }, left.current);
         return function () { clearTimeout(timer); left.current -= Date.now() - start; };
-      }, [t.id, p.paused]);
+      }, [t.id, p.paused, t.timer]);
       var glyph = TOAST_WORD[t.type] ? t.type : null;
       function dismiss() { p.onDismiss(t.id); }
       var style = p.inline ? undefined : (entered[0] ? p.style : Object.assign({}, p.style, { transform: 'translateY(100%)', opacity: 0 }));
@@ -4084,6 +4216,8 @@
           h('div', { className: 'hy-toast__text' }, glyph ? h('span', { className: 'hy-sr' }, TOAST_WORD[glyph] + ': ') : null, t.text),
           t.action && !t.onUndoAction ? h(HY.Button, { size: 'small', variant: 'secondary', onClick: function () { if (t.action.onClick) t.action.onClick(); dismiss(); } }, t.action.label) : null,
           !t.onUndoAction && t.duration === Infinity ? h('button', { type: 'button', className: 'hy-toast__close', 'aria-label': 'Dismiss', onClick: dismiss }, h(Glyph, { name: 'x', size: 14 })) : null),
+        t.progress ? h('div', { className: 'hy-toast__progress' },
+          h(HY.Progress, { value: t.progress.value, max: t.progress.max, height: 4, 'aria-label': toastPlain(t.text) || undefined })) : null,
         t.onUndoAction ? h('div', { className: 'hy-toast__actions' },
           h(HY.Button, { size: 'small', variant: 'tertiary', onClick: dismiss }, 'Dismiss'),
           h(HY.Button, { size: 'small', variant: 'primary', onClick: function () { t.onUndoAction(); dismiss(); } }, (t.action && t.action.label) || 'Undo')) : null));
@@ -4784,12 +4918,34 @@
        The head registers its declared width and limits with Table, and its element so Table can find it in the header row. */
     function TableHead(props) {
       var ctx = React.useContext(widthsContext());
+      var oc = React.useContext(orderContext());
       var uid = useId();
       var key = props.columnKey;
       var resizable = !!(ctx && props.resizable && key != null);
       var labelId = resizable ? uid + '-label' : undefined;
       var state = { scope: 'col' };
       if (props.sort) state['aria-sort'] = props.sort;
+      var reorder = !!(oc && oc.reorder && key != null);
+      var movable = reorder && !props.pinned && !oc.loading;
+      var dragState = '';
+      if (reorder) {
+        state['data-column-key'] = key;
+        if (oc.drag && oc.drag.key === key) dragState = 'is-dragging';
+        else if (oc.drag && oc.drag.target === key) dragState = 'is-drop-' + oc.drag.side;
+      }
+      if (movable) {
+        state['aria-keyshortcuts'] = 'Alt+ArrowLeft Alt+ArrowRight';
+        if (!props.onSort) state.tabIndex = 0;
+        /* The resize handle and the sort button keep their own pointer and keys: a press on the handle never picks the column up. */
+        state.onPointerDown = function (e) {
+          if (e.button !== 0 || (e.target.closest && e.target.closest('.hy-table__resize'))) return;
+          oc.startDrag(key, e);
+        };
+        state.onKeyDown = function (e) {
+          if (e.target.closest && e.target.closest('.hy-table__resize')) return;
+          if (oc.keyDown(key, e)) e.preventDefault();
+        };
+      }
       if (resizable) {
         ctx.heads[key] = { width: props.width, minWidth: props.minWidth, maxWidth: props.maxWidth };
         state.ref = function (el) { if (el) ctx.els[key] = el; };
@@ -4803,8 +4959,8 @@
       } else if (resizable) {
         label = h('span', { className: 'hy-table__head-label', id: labelId }, props.children);
       }
-      var th = Object.assign(state, partProps(props, cx('hy-table__head', props.onSort && 'hy-table__head--sortable', props.onSort && props.sort && props.sort !== 'none' && 'is-sorted', resizable && 'hy-table__head--resizable', cellClass(props)),
-        ['align', 'wrap', 'truncate', 'sort', 'onSort', 'sortDisabled', 'resizable', 'columnKey', 'minWidth', 'maxWidth'].concat(resizable ? ['width'] : [])));
+      var th = Object.assign(state, partProps(props, cx('hy-table__head', props.onSort && 'hy-table__head--sortable', props.onSort && props.sort && props.sort !== 'none' && 'is-sorted', resizable && 'hy-table__head--resizable', movable && 'hy-table__head--reorder', dragState, cellClass(props)),
+        ['align', 'wrap', 'truncate', 'sort', 'onSort', 'sortDisabled', 'resizable', 'columnKey', 'pinned', 'minWidth', 'maxWidth'].concat(resizable ? ['width'] : [])));
       if (!(resizable && ctx.ready)) return h('th', th, label);
       /* Sticky heads are stacking contexts and the handle overhangs the next head, so each sits above the heads after it. */
       if (ctx.sticky) th.style = Object.assign({}, props.style, { zIndex: ctx.stack(key) });
@@ -4973,6 +5129,207 @@
       };
     }
 
+    /* ---- Reorderable columns (ADR 0003) ----
+       Pure order maths first, then TableOrder (state, drag, keys, announcements) and the Columns menu. An order is an array of
+       column keys. resolveColumnOrder makes it a full order: unknown and repeated keys go, missing ones follow in their column
+       order, and a pinned column keeps the index it has in the default order, so the others fill the slots around it. */
+    function resolveColumnOrder(columns, order) {
+      var known = {}, pinned = {}, seen = {}, free = [];
+      columns.forEach(function (c) { known[c.key] = true; if (c.pinned) pinned[c.key] = true; });
+      (order || []).forEach(function (k) {
+        if (known[k] && !pinned[k] && !seen[k]) { seen[k] = true; free.push(k); }
+      });
+      columns.forEach(function (c) { if (!pinned[c.key] && !seen[c.key]) free.push(c.key); });
+      var i = 0;
+      return columns.map(function (c) { return c.pinned ? c.key : free[i++]; });
+    }
+
+    /* Move key to a slot among the movable (not pinned) columns, picked by pick(free, at). { order, change: { key, from, to } },
+       or null when it can't move. */
+    function placeColumn(columns, order, key, pick) {
+      var cur = resolveColumnOrder(columns, order);
+      var pinned = {};
+      columns.forEach(function (c) { if (c.pinned) pinned[c.key] = true; });
+      var free = cur.filter(function (k) { return !pinned[k]; });
+      var at = free.indexOf(key);
+      var to = at < 0 ? -1 : pick(free, at);
+      if (to < 0 || to >= free.length || to === at) return null;
+      free.splice(at, 1);
+      free.splice(to, 0, key);
+      var i = 0;
+      var next = cur.map(function (k) { return pinned[k] ? k : free[i++]; });
+      return { order: next, change: { key: key, from: cur.indexOf(key), to: next.indexOf(key) } };
+    }
+    /* One step left (-1) or right (1), skipping pinned columns. */
+    function moveColumn(columns, order, key, step) {
+      return placeColumn(columns, order, key, function (free, at) { return at + step; });
+    }
+    /* A drop: the column takes the target's slot. A pinned target, or a pinned column, doesn't move. */
+    function moveColumnTo(columns, order, key, target) {
+      return placeColumn(columns, order, key, function (free) { return free.indexOf(target); });
+    }
+    function columnName(columns, key) {
+      var c = columns.filter(function (x) { return x.key === key; })[0];
+      return c && typeof c.header === 'string' ? c.header : key;
+    }
+    function orderMessage(columns, order, change) {
+      if (change.reset) return 'Column order reset';
+      return columnName(columns, change.key) + ' moved to position ' + (change.to + 1) + ' of ' + order.length;
+    }
+
+    /* The columns in display order. */
+    function orderedColumns(columns, order) {
+      var by = {};
+      columns.forEach(function (c) { by[c.key] = c; });
+      return resolveColumnOrder(columns, order).map(function (k) { return by[k]; });
+    }
+    /* The order behaviour without the DOM. emit(order, change) fires on every change. getOrder is the order as the app gave it
+       (possibly partial); every move starts from its resolved form. key() reports whether the key was Alt+Left or Alt+Right,
+       moved or not, so the browser's own Alt+Left (back) stays out of it. */
+    function columnOrderEditor(o) {
+      function apply(r) {
+        if (!r) return false;
+        o.emit(r.order, r.change);
+        return true;
+      }
+      return {
+        move: function (key, step) { return apply(moveColumn(o.getColumns(), o.getOrder(), key, step)); },
+        drop: function (key, target) { return apply(moveColumnTo(o.getColumns(), o.getOrder(), key, target)); },
+        reset: function () { o.emit([], { reset: true }); },
+        key: function (key, e) {
+          if (!e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return false;
+          var step = e.key === 'ArrowLeft' ? -1 : e.key === 'ArrowRight' ? 1 : 0;
+          if (!step) return false;
+          apply(moveColumn(o.getColumns(), o.getOrder(), key, step));
+          return true;
+        },
+      };
+    }
+    /* A drag starts after this many px of movement, so a click on a sortable head still sorts. */
+    var DRAG_SLOP = 4;
+    function dragStarted(dx, dy) { return Math.sqrt(dx * dx + dy * dy) >= DRAG_SLOP; }
+    /* The edge of the target head the dragged column will arrive at. */
+    function dropSide(order, from, to) { return order.indexOf(to) > order.indexOf(from) ? 'after' : 'before'; }
+
+    var orderCtx = null;
+    function orderContext() { return orderCtx || (orderCtx = React.createContext(null)); }
+
+    /* Owns the order for the data form (controlled through columnOrder, else defaultColumnOrder), the pointer drag, the Alt+arrow
+       keys and the polite announcement. Heads read it through orderContext. A moved head keeps focus: the keyed DOM move can
+       drop it, so it is given back after the render. */
+    function TableOrder(props) {
+      var ctl = useControllable(props.columnOrder, props.defaultColumnOrder || []);
+      var order = ctl[0] || [];
+      var ds = useState(null), drag = ds[0], setDrag = ds[1];
+      var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
+      var live = useRef({});
+      var focusEl = useRef(null);
+      live.current = { columns: props.columns, order: order, set: ctl[1], onChange: props.onColumnOrderChange };
+      var editor = useMemo(function () {
+        return columnOrderEditor({
+          getColumns: function () { return live.current.columns; },
+          getOrder: function () { return live.current.order; },
+          emit: function (next, change) {
+            live.current.order = next;
+            live.current.set(next);
+            if (live.current.onChange) live.current.onChange(next, change);
+            setSaid(function (s) { return { text: orderMessage(live.current.columns, next, change), n: s.n + 1 }; });
+          },
+        });
+      }, []);
+      useLayoutEffect(function () {
+        var el = focusEl.current;
+        focusEl.current = null;
+        if (el && el.isConnected && document.activeElement !== el) el.focus();
+      });
+
+      var loading = props.loading === true || (typeof props.loading === 'number' && props.loading > 0);
+      var ctx = {
+        reorder: true, loading: loading, drag: drag,
+        keyDown: function (key, e) {
+          var el = document.activeElement;
+          var handled = editor.key(key, e);
+          if (handled) focusEl.current = el;
+          return handled;
+        },
+        startDrag: function (key, e) {
+          var x0 = e.clientX, y0 = e.clientY, table = e.currentTarget.closest('table');
+          var active = false, done = false, target = null;
+          function head(ev) {
+            var el = document.elementFromPoint(ev.clientX, ev.clientY);
+            var th = el && el.closest('[data-column-key]');
+            return th && th.closest('table') === table ? th.getAttribute('data-column-key') : null;
+          }
+          function move(ev) {
+            if (!active) {
+              if (!dragStarted(ev.clientX - x0, ev.clientY - y0)) return;
+              active = true;
+            }
+            var t = head(ev);
+            var cols = live.current.columns;
+            var full = resolveColumnOrder(cols, live.current.order);
+            var ok = t != null && t !== key && !(cols.filter(function (c) { return c.key === t; })[0] || {}).pinned;
+            target = ok ? t : null;
+            setDrag({ key: key, target: target, side: ok ? dropSide(full, key, t) : null });
+          }
+          function finish(commit) {
+            if (done) return;
+            done = true;
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            document.removeEventListener('pointercancel', cancel);
+            document.removeEventListener('keydown', esc, true);
+            if (active) {
+              /* The release that ends a drag must not also click the sort button. */
+              var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
+              document.addEventListener('click', swallow, true);
+              setTimeout(function () { document.removeEventListener('click', swallow, true); }, 0);
+              if (commit && target) editor.drop(key, target);
+            }
+            setDrag(null);
+          }
+          function up() { finish(true); }
+          function cancel() { finish(false); }
+          function esc(ev) { if (ev.key === 'Escape') { ev.stopPropagation(); finish(false); } }
+          document.addEventListener('pointermove', move);
+          document.addEventListener('pointerup', up);
+          document.addEventListener('pointercancel', cancel);
+          document.addEventListener('keydown', esc, true);
+        },
+      };
+      var text = said.text ? said.text + (said.n % 2 ? '' : ' ') : '';
+      return h(orderContext().Provider, { value: ctx },
+        h(React.Fragment, null, dataTable(props, orderedColumns(props.columns, order), { reorder: true }),
+          h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, text)));
+    }
+
+    /* A Menu the app places, for example in a toolbar: each column in its current order with Move Left and Move Right, then Reset
+       Order. It needs the controlled form: it never holds the order itself, and announces its own moves. */
+    function TableColumnsMenu(props) {
+      var cols = props.columns;
+      var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
+      var editor = columnOrderEditor({
+        getColumns: function () { return cols; },
+        getOrder: function () { return props.columnOrder; },
+        emit: function (next, change) {
+          if (props.onColumnOrderChange) props.onColumnOrderChange(next, change);
+          setSaid({ text: orderMessage(cols, next, change), n: said.n + 1 });
+        },
+      });
+      var items = [];
+      resolveColumnOrder(cols, props.columnOrder).forEach(function (k) {
+        var name = columnName(cols, k);
+        [['Left', -1], ['Right', 1]].forEach(function (d) {
+          items.push({ label: 'Move ' + name + ' ' + d[0], disabled: !moveColumn(cols, props.columnOrder, k, d[1]), onSelect: function () { editor.move(k, d[1]); } });
+        });
+      });
+      items.push({ separator: true });
+      items.push({ label: 'Reset Order', onSelect: editor.reset });
+      return h(React.Fragment, null,
+        h(HY.Menu, { label: props.label == null ? 'Columns' : props.label, items: items }),
+        h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, said.text ? said.text + (said.n % 2 ? '' : ' ') : ''));
+    }
+
     /* Created on first use, so the pure parts above run without React (see test/table-resize.test.mjs). */
     var widthsCtx = null;
     function widthsContext() { return widthsCtx || (widthsCtx = React.createContext(null)); }
@@ -5109,10 +5466,14 @@
     function Table(props) {
       if (!props.columns) {
         return h(TableWidths, { columnWidths: props.columnWidths, defaultColumnWidths: props.defaultColumnWidths, onColumnWidthsChange: props.onColumnWidthsChange, stickyHeader: props.stickyHeader, loading: props.loading, pending: !!props.loading },
-          h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent', 'sort', 'onSortChange', 'loading', 'columnWidths', 'defaultColumnWidths', 'onColumnWidthsChange']),
+          h(TableEl, omit(props, ['caption', 'empty', 'rows', 'isSelected', 'isCurrent', 'sort', 'onSortChange', 'loading', 'columnWidths', 'defaultColumnWidths', 'onColumnWidthsChange', 'columnOrder', 'defaultColumnOrder', 'onColumnOrderChange']),
             props.caption ? h('caption', { className: 'hy-sr' }, props.caption) : null, props.children));
       }
-      var cols = props.columns;
+      if (props.columnOrder !== undefined || props.defaultColumnOrder !== undefined || props.onColumnOrderChange) return h(TableOrder, props);
+      return dataTable(props, props.columns, null);
+    }
+    /* The data form's tree for `cols`, already in display order. opts.reorder marks the heads for TableOrder. */
+    function dataTable(props, cols, opts) {
       var rows = props.rows || [];
       var skeletons = props.loading === true ? 5 : typeof props.loading === 'number' && props.loading > 0 ? Math.floor(props.loading) : 0;
       var loading = skeletons > 0;
@@ -5125,6 +5486,7 @@
             var active = props.sort && props.sort.key === c.key ? props.sort.direction : 'none';
             var head = { key: c.key, align: alignOf(c), wrap: c.wrap, sort: c.sortable ? active : undefined, onSort: c.sortable ? sortClick(props, c.key) : undefined, sortDisabled: loading };
             if (resizable) Object.assign(head, { truncate: c.truncate, resizable: !!c.resizable && !c.truncate, columnKey: c.key, width: c.width, minWidth: c.minWidth, maxWidth: c.maxWidth });
+            if (opts && opts.reorder) Object.assign(head, { columnKey: c.key, pinned: !!c.pinned });
             return h(TableHead, head, c.header);
           }))),
           h(TableBody, { striped: props.striped, bordered: props.bordered, interactive: props.interactive }, loading ? Array.apply(null, Array(skeletons)).map(function (_, i) {
@@ -5149,6 +5511,7 @@
     Table.Head = TableHead;
     Table.Cell = TableCell;
     Table.SkeletonRow = TableSkeletonRow;
+    Table.ColumnsMenu = TableColumnsMenu;
 
     define('Table', Table);
     define('TableRoot', TableRoot);
@@ -5161,6 +5524,7 @@
     define('TableHead', TableHead);
     define('TableCell', TableCell);
     define('TableSkeletonRow', TableSkeletonRow);
+    define('TableColumnsMenu', TableColumnsMenu);
   })();
 
   /* ---- TextWithCopyButton ---- */
