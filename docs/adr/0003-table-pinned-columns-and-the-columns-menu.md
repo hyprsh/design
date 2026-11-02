@@ -14,4 +14,5 @@ Reorderable Table columns can be pinned: a pinned column keeps the index it has 
 - The order resolves around pinned columns: a pinned key in `columnOrder` is ignored, and moving a column steps over a pinned one.
 - `Table.ColumnsMenu` is controlled: it takes `columns`, `columnOrder` and `onColumnOrderChange` and keeps no order of its own, so a table using it needs the controlled form. It announces its own moves, because it lives outside the table.
 - Widths stay keyed by column key, so a resized column keeps its width when moved; the table measures its columns again after a move.
+- The Columns menu also carries the non-drag path for widths (WCAG 2.2 SC 2.5.7): with `columnWidths` and `onColumnWidthsChange` it adds Wider, Narrower and Reset Width for each resizable column, using the table's width maths so the steps and limits match the resize handle's. A table that resizes but doesn't reorder can use it without the order props. The items are hidden on touch-only devices, like the handle. Because the menu sits outside the table, it reads the measured columns from the table that resizes the same keys.
 - Hiding and showing columns can later join the same menu.
