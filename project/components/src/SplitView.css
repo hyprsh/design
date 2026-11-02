@@ -1,0 +1,20 @@
+/* ---------- SplitView ---------- */
+/* From sm up: the list at a fixed width, the detail filling the rest, a hairline between them. */
+.hy-split-view {
+  display: grid; box-sizing: border-box; height: 100%; min-width: 0; min-height: 0;
+  grid-template-columns: var(--hy-split-list-width, 320px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+}
+.hy-split-view__list, .hy-split-view__detail { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.hy-split-view__detail { border-left: 1px solid var(--gray-alpha-400); }
+/* A pane (or anything else) fills its half; each Pane scrolls its own body. */
+.hy-split-view__list > *, .hy-split-view__detail > * { flex: 1 1 0; min-height: 0; }
+
+/* Below sm: both panes share one cell and `show` picks which is visible. visibility: hidden takes the other out of the
+   accessibility tree and the Tab order, but keeps its layout, so it keeps its scroll position when it comes back. */
+@media (max-width: 639px) {
+  .hy-split-view { grid-template-columns: minmax(0, 1fr); }
+  .hy-split-view__list, .hy-split-view__detail { grid-area: 1 / 1; }
+  .hy-split-view__detail { border-left: 0; }
+  .hy-split-view--show-list > .hy-split-view__detail { visibility: hidden; }
+  .hy-split-view--show-detail > .hy-split-view__list { visibility: hidden; }
+}
