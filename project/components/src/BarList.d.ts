@@ -7,6 +7,16 @@ export interface BarListItem {
   href?: string;
   /** React key. Defaults to `label`. */
   key?: string;
+  /** Figures for the extra `columns`, by column key, as text or nodes. A missing figure is an empty cell. */
+  columns?: Record<string, React.ReactNode>;
+}
+export interface BarListColumn {
+  /** Key into each item's `columns`. */
+  key: string;
+  /** The visible header of the column. */
+  label: string;
+  /** Which column survives longest when the list is too narrow: the largest number hides first, ties from the right, and a column without a priority before any with one. */
+  priority?: number;
 }
 export interface BarListProps {
   /** One row per item, in the order given. BarList never sorts. */
@@ -19,6 +29,14 @@ export interface BarListProps {
   unit?: string;
   /** Sets labels in Geist Mono, for identifiers. */
   mono?: boolean;
+  /** Extra figures per row, shown right-aligned under a header row. The list is then read as a table. Narrow lists hide columns by `priority`; their figures stay available to assistive technology. */
+  columns?: BarListColumn[];
+  /** Header over the labels when `columns` is set. Default 'Label'. */
+  labelHeader?: string;
+  /** Header over the bars and values when `columns` is set. Default 'Value'. */
+  valueHeader?: string;
+  /** Opens a row. A row with an `href` stays a link and calls this too, with the click event as the second argument, so an app can `preventDefault` and route in-app. Without an `href` the row is a button. */
+  onOpen?: (item: BarListItem, event?: React.MouseEvent) => void;
   /** Shown when `items` is empty. Without it an empty list renders nothing. */
   empty?: React.ReactNode;
   /** Names the list. Give this or `aria-labelledby`: BarList warns in development without one. */
