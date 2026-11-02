@@ -1,8 +1,8 @@
 # TabBar
 
-A floating pill tab bar for the main screens of an app at phone width. It follows the iOS 26 tab bar pattern, built from hyprsh's tokens (an opaque surface, no blur).
+A floating pill tab bar for the main screens of an app at phone width. It follows the iOS 26 tab bar pattern, built from hyprsh's tokens. Its capsule and accessory are a translucent, blurred surface, so content scrolling under the bar shows through. It turns solid under reduced transparency and without `backdrop-filter` support.
 
-**You provide:** `label` (the name of the `<nav>`) and `TabBar.Item` children, each with a `label` and an `icon`. Use `value` with `onChange` or `onValueChange` (controlled; both are called), or `defaultValue`. Optional: `accessory` (`{ label, icon, onClick?, href? }`), `minimizeOnScroll` with `scrollRef`, and `hideFrom` (`'sm'` by default; `false` shows it at every width). `TabBar.Item` is also exported as `TabBarItem`.
+**You provide:** `label` (the name of the `<nav>`) and `TabBar.Item` children, each with a `label` and an `icon`. Use `value` with `onChange` or `onValueChange` (controlled; both are called), or `defaultValue`. Optional: `accessory` (`{ label, icon, onClick?, href? }`), `minimizeOnScroll` with `scrollRef`, `opaque` (`false` by default) and `hideFrom` (`'sm'` by default; `false` shows it at every width). `TabBar.Item` is also exported as `TabBarItem`.
 
 **Items:** an item with a `value` selects it. An item with only `onClick` is an action, such as More opening a Drawer: pair it with `haspopup`. `href` renders a link. `current` takes the selection, for More while a screen that lives in More is open: while any item has it, no item is selected by `value`. The selected item carries `aria-current="page"`.
 
@@ -12,6 +12,7 @@ A floating pill tab bar for the main screens of an app at phone width. It follow
 
 - Use it for the 3–5 main destinations on a phone, with More for the rest. Use Tabs to switch sections inside a page.
 - Keep labels to one short word in Title Case. They are always visible.
+- The surface is `background-100` at 85% opacity with a blur, so the bar stays readable over any content (labels and icons keep at least 4.5:1 over flat black or white). It is solid, a plain `background-100` fill with no blur, under `prefers-reduced-transparency: reduce` and in browsers without `backdrop-filter`. Set `opaque` to keep it solid everywhere, for a screen where nothing scrolls under the bar or where a see-through bar would distract. Nothing else changes: the ring, shadow, size and `minimizeOnScroll` are the same either way.
 - The bar is fixed to the bottom and takes no layout space, so pad your scroll area with `--tab-bar-height`. It is `0px` when no visible TabBar is mounted (and from `sm` up while the bar is hidden), and it doesn't change when the bar is minimised:
 
   ```css
@@ -124,6 +125,31 @@ export default function Example() {
         scrollRef={scroller}
         defaultValue="activity"
       >
+        <TabBar.Item value="projects" label="Projects" icon={<Layers />} />
+        <TabBar.Item value="domains" label="Domains" icon={<Globe />} />
+        <TabBar.Item value="activity" label="Activity" icon={<Activity />} />
+      </TabBar>
+    </div>
+  );
+}
+```
+
+### Over Content
+Pass `style={{ position: 'absolute' }}` to float the bar over a scrolling area, and pad that area with `--tab-bar-height` so its last item clears the bar. Pass `opaque` for a solid bar.
+
+```jsx
+import { TabBar } from '@hyprsh/design';
+import { Activity, Globe, Layers } from 'lucide-react';
+
+const events = ['Deployed main to production', 'Preview ready for docs', 'Domain verified', 'Build failed on feat/tab-bar', 'Branch merged', 'Preview ready for api'];
+
+export default function Example() {
+  return (
+    <div style={{ position: 'relative', width: 375, maxWidth: '100%', height: 280, overflow: 'hidden', border: '1px solid var(--gray-alpha-400)', borderRadius: 24, boxSizing: 'border-box' }}>
+      <div tabIndex={0} role="region" aria-label="Activity feed" className="copy-14" style={{ height: '100%', overflowY: 'auto', padding: '16px 24px var(--tab-bar-height)', boxSizing: 'border-box' }}>
+        {events.map((text) => <p key={text} style={{ margin: '0 0 24px' }}>{text}</p>)}
+      </div>
+      <TabBar label="Screens" hideFrom={false} style={{ position: 'absolute' }} defaultValue="activity">
         <TabBar.Item value="projects" label="Projects" icon={<Layers />} />
         <TabBar.Item value="domains" label="Domains" icon={<Globe />} />
         <TabBar.Item value="activity" label="Activity" icon={<Activity />} />

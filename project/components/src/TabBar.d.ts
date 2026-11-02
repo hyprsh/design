@@ -37,6 +37,9 @@ export declare const TabBarItem: (props: TabBarItemProps) => React.ReactElement;
 /**
  * The floating pill tab bar for phones. Fixed to the bottom and out of
  * layout; while one is visible, the CSS variable `--tab-bar-height` holds its height (safe area included).
+ * Its surface is translucent: the capsule and the accessory are a blurred, see-through `background-100`, so content
+ * scrolling under the bar shows through. The bar is solid (a plain `background-100` fill, no blur) under
+ * `prefers-reduced-transparency: reduce` and in browsers without `backdrop-filter`, or when `opaque` is set.
  */
 export interface TabBarProps {
   /** The accessible name of the `<nav>`. */
@@ -53,6 +56,12 @@ export interface TabBarProps {
   minimizeOnScroll?: boolean;
   /** Watch this container instead of every scrolling element in the document. */
   scrollRef?: React.RefObject<HTMLElement>;
+  /**
+   * Restores the solid surface: a plain `background-100` fill with no blur. The bar also falls back to solid under
+   * `prefers-reduced-transparency: reduce` and without `backdrop-filter` support, whatever this is.
+   * @default false
+   */
+  opaque?: boolean;
   /** 'sm' (default): hidden from 640px up. false: shown at every width. */
   hideFrom?: 'sm' | false;
   className?: string;

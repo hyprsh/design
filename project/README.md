@@ -54,7 +54,7 @@ The rules behind every surface: colour, type, space, materials, states, motion, 
 
 ### Materials: radius and shadow
 
-Every raised thing is a *material*: a `background-100` fill, one of the `shadow-*` tokens and the radius that goes with it.
+Every raised thing is a *material*: a `background-100` fill, one of the `shadow-*` tokens and the radius that goes with it. The one exception is TabBar, whose capsule and accessory use a translucent, blurred `background-100` so content scrolls under it (solid with `opaque`, under reduced transparency and without `backdrop-filter`).
 
 | Material | Shadow | Radius | For |
 |---|---|---|---|
