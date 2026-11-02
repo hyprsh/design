@@ -19,11 +19,14 @@ const context = vm.createContext({
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),
   useRef: (init) => (slots[slot.i] || (slots[slot.i] = { current: init }), slots[slot.i++]),
+  useState: (init) => [init, () => {}],
+  useLayoutEffect: () => {},
   Intl,
   console: { warn: (m) => warnings.push(m) },
   define: (n, fn) => { registry[n] = fn; },
 });
 vm.runInContext(readFileSync(join(root, 'src/BarList.js'), 'utf8'), context, { filename: 'BarList.js' });
+const hiddenKeys = (columns, width) => Object.keys(context.blHiddenKeys(columns, width));
 
 const find = (node, pred) => {
   if (!node || typeof node !== 'object') return null;
@@ -174,5 +177,140 @@ describe('BarList files', () => {
     assert.match(css, /var\(--chart-series\)/);
     assert.match(css, /height: 36px/);
     assert.match(css, /var\(--touch-target\)/);
+  });
+});
+
+describe('BarList.hiddenKeys', () => {
+  const col = (key, priority) => ({ key, label: key, ...(priority === undefined ? {} : { priority }) });
+  // The label, bar and value need 320px, and each extra column 100px more.
+  it('hides nothing when everything fits or the width is not measured', () => {
+    assert.deepEqual(hiddenKeys([col('a', 1), col('b', 2)], 520), []);
+    assert.deepEqual(hiddenKeys([col('a', 1), col('b', 2)], 0), []);
+  });
+  it('hides the largest priority number first', () => {
+    assert.deepEqual(hiddenKeys([col('a', 2), col('b', 1), col('c', 3)], 520), ['c']);
+    assert.deepEqual(hiddenKeys([col('a', 2), col('b', 1), col('c', 3)], 420), ['c', 'a']);
+  });
+  it('hides ties from the right', () => {
+    assert.deepEqual(hiddenKeys([col('a', 1), col('b', 1), col('c', 1)], 520), ['c']);
+    assert.deepEqual(hiddenKeys([col('a', 1), col('b', 1), col('c', 1)], 420), ['c', 'b']);
+  });
+  it('hides a column without a priority before any column with one', () => {
+    assert.deepEqual(hiddenKeys([col('a'), col('b', 9), col('c')], 420), ['c', 'a']);
+    assert.deepEqual(hiddenKeys([col('a', 1), col('b')], 420), ['b']);
+  });
+  it('never hides the label, bar and value: at the narrowest every extra column is hidden', () => {
+    assert.deepEqual(hiddenKeys([col('a', 1), col('b', 2)], 100).sort(), ['a', 'b']);
+  });
+});
+
+describe('BarList columns', () => {
+  const columns = [{ key: 'p50', label: 'P50' }, { key: 'p99', label: 'P99', priority: 1 }];
+  const items = [{ label: 'api-gateway', value: 318, columns: { p50: '12 ms', p99: h2('240 ms') } }, { label: 'edge-cache', value: 204, columns: { p50: '9 ms' } }];
+  function h2(text) { return { type: 'b', props: {}, children: [text] }; }
+  const table = (props) => { mount(); return render({ ...NAMED, columns, items, ...props }); };
+  const cells = (row) => row.children.filter((n) => n && n.props && n.props.role);
+  it('is an ARIA table with a header row of column headers and a row of cells per item', () => {
+    const t = table();
+    assert.equal(t.type, 'div');
+    assert.equal(t.props.role, 'table');
+    assert.equal(t.props['aria-label'], 'Top routes');
+    const [head, ...body] = t.children;
+    assert.equal(head.props.role, 'row');
+    assert.deepEqual(cells(head).map((c) => [c.props.role, name(c)]), [['columnheader', 'Label'], ['columnheader', 'Value'], ['columnheader', 'P50'], ['columnheader', 'P99']]);
+    assert.equal(body.length, 2);
+    for (const row of body) {
+      assert.equal(row.props.role, 'row');
+      assert.deepEqual(cells(row).map((c) => c.props.role), ['cell', 'cell', 'cell', 'cell']);
+    }
+  });
+  it('names the first two headers with labelHeader and valueHeader', () => {
+    const head = table({ labelHeader: 'Route', valueHeader: 'Requests' }).children[0];
+    assert.deepEqual(cells(head).slice(0, 2).map(name), ['Route', 'Requests']);
+  });
+  it('puts the label, the value and each figure in its cell, and an empty cell for a missing figure', () => {
+    const [, a, b] = table({ unit: 'requests' }).children;
+    assert.deepEqual(cells(a).map(name), ['api-gateway', '318 requests', '12 ms', '240 ms']);
+    assert.deepEqual(cells(b).map(name), ['edge-cache', '204 requests', '9 ms', '']);
+    assert.equal(cells(b).length, 4);
+  });
+  it('lays every row out on the same column template', () => {
+    const t = table();
+    assert.match(t.props.style['--hy-bar-list-cols'], /repeat\(2, 88px\)/);
+  });
+  it('keeps the bar in the value cell, hidden from assistive technology', () => {
+    const [, a] = table().children;
+    assert.ok(hidden(find(a, (n) => /hy-bar-list__bar/.test(n.props.className || ''))));
+  });
+  it('treats an empty columns array as no columns', () => {
+    mount();
+    assert.equal(render({ ...NAMED, columns: [], items }).type, 'ul');
+  });
+});
+
+describe('BarList onOpen', () => {
+  const opened = [];
+  const item = { label: 'api-gateway', value: 318 };
+  const list = (props) => { mount(); return render({ ...NAMED, items: [item, { label: 'edge-cache', value: 4, href: '/edge' }], ...props }); };
+  it('renders a row as a button when it has onOpen and no href, and keeps a link for an href', () => {
+    const [a, b] = rows(list({ onOpen: () => {} }));
+    const button = find(a, (n) => n.type === 'button');
+    assert.equal(button.props.type, 'button');
+    assert.match(button.props.className, /hy-bar-list__row/);
+    assert.equal(find(b, (n) => n.type === 'a').props.href, '/edge');
+    assert.equal(find(b, (n) => n.type === 'button'), null);
+  });
+  it('names the row with its label first', () => {
+    const [a, b] = rows(list({ onOpen: () => {}, unit: 'minutes' }));
+    assert.equal(name(find(a, (n) => n.type === 'button')), 'api-gateway, 318 minutes');
+    assert.equal(name(find(b, (n) => n.type === 'a')), 'edge-cache, 4 minutes');
+  });
+  it('calls onOpen with the item on a button click', () => {
+    opened.length = 0;
+    const [a] = rows(list({ onOpen: (...args) => opened.push(args) }));
+    find(a, (n) => n.type === 'button').props.onClick({ type: 'click' });
+    assert.equal(opened.length, 1);
+    assert.equal(opened[0][0], item);
+  });
+  it('makes an item with both href and onOpen a link that calls onOpen with the event', () => {
+    opened.length = 0;
+    const li = rows(list({ onOpen: (...args) => opened.push(args) }))[1];
+    const link = find(li, (n) => n.type === 'a');
+    const event = { type: 'click' };
+    link.props.onClick(event);
+    assert.equal(opened[0][0].href, '/edge');
+    assert.equal(opened[0][1], event);
+  });
+  it('leaves a link without onOpen alone', () => {
+    const link = find(rows(list({}))[1], (n) => n.type === 'a');
+    assert.equal(link.props.onClick, undefined);
+  });
+  it('opens table rows from the label cell, with the label as the name', () => {
+    opened.length = 0;
+    mount();
+    const t = render({ ...NAMED, columns: [{ key: 'x', label: 'X' }], onOpen: (...a) => opened.push(a), items: [item, { label: 'edge-cache', value: 4, href: '/edge' }] });
+    const [, a, b] = t.children;
+    const button = find(a, (n) => n.type === 'button');
+    assert.equal(name(button), 'api-gateway');
+    button.props.onClick({});
+    assert.equal(opened[0][0], item);
+    assert.equal(find(b, (n) => n.type === 'a').props.href, '/edge');
+  });
+});
+
+describe('BarList without the new props', () => {
+  it('renders the same markup as before: a ul of li rows, with no table roles, buttons or handlers', () => {
+    mount();
+    const t = render({ ...NAMED, items: [{ label: 'a', value: 1 }, { label: 'b', value: 2, href: '/b' }] });
+    assert.equal(t.type, 'ul');
+    assert.equal(t.props.role, 'list');
+    assert.equal(t.props.ref, undefined);
+    assert.equal(t.props.style, undefined);
+    assert.equal(findAll(t, (n) => n.type === 'button' || n.props.role === 'row' || n.props.role === 'cell').length, 0);
+    const [a, b] = rows(t);
+    assert.equal(a.props.className, 'hy-bar-list__item');
+    assert.deepEqual(a.children.map((c) => c.props.className), ['hy-bar-list__row']);
+    assert.deepEqual({ ...find(b, (n) => n.type === 'a').props }, { className: 'hy-bar-list__row hy-bar-list__row--link', href: '/b' });
+    assert.deepEqual(find(a, (n) => /hy-bar-list__row/.test(n.props.className || '')).children.map((c) => c.props.className), ['hy-bar-list__label', 'hy-sr', 'hy-bar-list__bar', 'hy-bar-list__value']);
   });
 });

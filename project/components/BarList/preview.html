@@ -1,9 +1,9 @@
-<!-- @dsCard group="Data" height=660 subtitle="Default, links, unit with mono labels, empty state" -->
+<!-- @dsCard group="Data" height=900 subtitle="Default, links, extra columns with open, unit with mono labels, empty state" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BarList</title></head>
 <body>
-<div id="root" class="hy-col"></div>
+<div id="root" class="hy-col" style="max-width:560px"></div>
 <script>
 var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
 var projects = [
@@ -18,6 +18,18 @@ var services = [
   { label: 'edge-cache', value: 204 },
   { label: 'build-runner', value: 1 }
 ];
+function Open() {
+  var s = React.useState('Nothing opened'), text = s[0], set = s[1];
+  return h(F, null,
+    h(H.BarList, { 'aria-label': 'Requests by service', labelHeader: 'Service', valueHeader: 'Requests', onOpen: function (it) { set(it.label); },
+      columns: [{ key: 'p50', label: 'P50', priority: 3 }, { key: 'p99', label: 'P99', priority: 2 }, { key: 'errors', label: 'Errors', priority: 1 }],
+      items: [
+        { label: 'api-gateway', value: 5200, columns: { p50: '12 ms', p99: '240 ms', errors: '3' } },
+        { label: 'edge-cache', value: 3100, columns: { p50: '9 ms', p99: '80 ms', errors: '0' } },
+        { label: 'build-runner', value: 640, columns: { p50: '4 s', p99: '9 s' } }
+      ] }),
+    h('div', { className: 'copy-14', 'aria-live': 'polite' }, 'Opened: ' + text));
+}
 function Demo() {
   return h(F, null,
     h('div', { className: 'label-13' }, 'Top Projects'),
@@ -27,6 +39,8 @@ function Demo() {
       { label: '/docs', value: 5200, href: '#docs' },
       { label: '/pricing', value: 3100, href: '#pricing' }
     ] }),
+    h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Columns And Open'),
+    h(Open),
     h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Unit And Mono'),
     h(H.BarList, { 'aria-label': 'Build minutes by service', items: services, unit: 'minutes', mono: true }),
     h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Empty'),
