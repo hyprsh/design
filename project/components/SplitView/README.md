@@ -75,3 +75,42 @@ export default function Example() {
   );
 }
 ```
+
+### Selecting In The List
+An ActionBar at the end of the list pane's body stays at the list's foot, above its footer.
+
+```jsx
+import { useState } from 'react';
+import { ActionBar, Button, Checkbox, Entity, EntityContent, EntityList, Pane, SplitView } from '@hyprsh/design';
+
+const domains = ['hyprsh.dev', 'docs.hyprsh.dev', 'api.hyprsh.dev', 'status.hyprsh.dev', 'blog.hyprsh.dev', 'app.hyprsh.dev'];
+
+export default function Example() {
+  const [selected, setSelected] = useState(['api.hyprsh.dev']);
+  const toggle = (name) => setSelected((s) => (s.includes(name) ? s.filter((x) => x !== name) : [...s, name]));
+
+  return (
+    <div style={{ width: '100%', height: 320, border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' }}>
+      <SplitView listWidth="45%">
+        <Pane label="Domains" header={<strong className="label-14">Domains</strong>} footer={<span className="copy-13">{domains.length} domains</span>}>
+          <EntityList aria-label="Domains">
+            {domains.map((name) => (
+              <Entity key={name} left={<Checkbox aria-label={`Select ${name}`} checked={selected.includes(name)} onChange={() => toggle(name)} />}>
+                <EntityContent title={name} fill />
+              </Entity>
+            ))}
+          </EntityList>
+          <ActionBar
+            open={selected.length > 0}
+            selection={{ count: selected.length, total: domains.length, onSelectAll: () => setSelected(domains), onClear: () => setSelected([]) }}
+            actions={<Button size="small" variant="secondary">Monitor</Button>}
+          />
+        </Pane>
+        <Pane label="Details" header={<strong className="label-14">Details</strong>}>
+          <p className="copy-14" style={{ margin: 0, padding: 16 }}>{selected.length} of {domains.length} domains selected.</p>
+        </Pane>
+      </SplitView>
+    </div>
+  );
+}
+```
