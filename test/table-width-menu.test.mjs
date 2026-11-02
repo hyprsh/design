@@ -122,11 +122,24 @@ describe('Table.ColumnsMenu width items', () => {
     assert.equal(find(items, 'Move Status Right').keepOpen, undefined);
   });
 
-  it('disables steps for a column with no known width until its table has measured', () => {
+  it('disables Wider and Narrower until a table resizing those keys has measured, but still lists Reset Width', () => {
     unregister(); unregister = null;
-    const { items } = menu({ columns: [{ key: 'a', header: 'A', resizable: true }, { key: 'b', header: 'B', resizable: true, width: 100 }], columnWidths: {} });
-    assert.equal(find(items, 'Make A Wider').disabled, true);
-    assert.equal(find(items, 'Make B Wider').disabled, false);
+    const cols = [{ key: 'a', header: 'A', resizable: true, width: 100 }, { key: 'b', header: 'B', resizable: true, width: 100, maxWidth: 300 }];
+    const { items, calls } = menu({ columns: cols, columnWidths: { a: 140 } });
+    for (const l of ['Make A Wider', 'Make A Narrower', 'Make B Wider', 'Make B Narrower']) assert.equal(find(items, l).disabled, true, l);
+    assert.equal(find(items, 'Reset A Width').disabled, false);
+    assert.equal(find(items, 'Reset B Width').disabled, true);
+    find(items, 'Reset A Width').onSelect();
+    assert.deepEqual(calls, [[{}, { key: 'a', phase: 'end' }]]);
+  });
+
+  it('uses the first measured table that resizes the same keys', () => {
+    const second = measured();
+    second.cols[0].max = 130;
+    const off = registerWidthTable(second);
+    const { items } = menu({ columnWidths: { status: 120 } });
+    off();
+    assert.equal(find(items, 'Make Status Wider').disabled, false);
   });
 });
 
