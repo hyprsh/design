@@ -751,6 +751,13 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
    * `aria-keyshortcuts`, which an `aria-keyshortcuts` prop overrides. Not for modifier combinations.
    */
   shortcut?: string;
+  /**
+   * Shows an × button at the end of the field while it has text. It empties the field (`onChange('')` when controlled), closes the suggestions and keeps focus in the field.
+   * While the field is empty the slot shows the `shortcut` key cap, or nothing. Not drawn when the field is `disabled` or `readOnly`. Default false.
+   */
+  clearable?: boolean;
+  /** The clear button's accessible name. Default `'Clear'`. */
+  clearLabel?: string;
   /** Keys the field leaves alone: Enter, Escape and Tab whenever the list is closed, and every other key. While the list is open it owns Up, Down, Enter, Tab and Escape. */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   /** Class for the outer element. */
@@ -833,6 +840,28 @@ export interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectE
   wrapperClassName?: string;
 }
 export declare const Select: React.ForwardRefExoticComponent<SelectProps & React.RefAttributes<HTMLSelectElement>>;
+
+export interface SettingRowProps {
+  /** The setting's name. It is a `<label for>` tied to the control. */
+  label: React.ReactNode;
+  /** One line under the label. It becomes part of the control's accessible description. */
+  help?: React.ReactNode;
+  /**
+   * Marks the value as edited and not saved: a 2px accent mark on the row's leading edge, and `changedLabel` added to
+   * the control's description so the state doesn't rely on colour. Toggling it doesn't move layout.
+   */
+  changed?: boolean;
+  /** The words added to the control's description while `changed`. Default 'Unsaved change'. */
+  changedLabel?: string;
+  /**
+   * The control, as a single element such as an Input, Select, Switch, Checkbox or Textarea. It gets an `id` if it has
+   * none, and the row merges its help and changed ids into its `aria-describedby`.
+   */
+  children: React.ReactElement;
+  className?: string;
+}
+/** A label and help text beside a control, for the rows of a settings card. Stacked below `sm`. */
+export declare function SettingRow(props: SettingRowProps): React.ReactElement;
 
 export interface SliderProps {
   /** One number, or [start, end] for a range. A single-value [50] also works. */
@@ -1103,6 +1132,58 @@ export interface PaginationProps {
 }
 export declare function Pagination(props: PaginationProps): React.ReactElement;
 
+export interface RailItemProps {
+  /** Selects the item on press. Leave it off for an action item such as Settings opening a dialog. */
+  value?: string;
+  /** The item's accessible name and its tooltip: the item shows its icon only. */
+  label: string;
+  icon: React.ReactNode;
+  /** `true`: a dot. A number: a count bubble ("99+" above 99, nothing for 0). Any other node is rendered as given. */
+  badge?: boolean | number | React.ReactNode;
+  /**
+   * The colour of a dot or count badge: `'accent'` (default), `'error'` (red) or `'warning'` (amber). It is visual only
+   * and a node badge ignores it, so say the tone in `badgeLabel` ("2 blocking").
+   */
+  badgeTone?: 'accent' | 'error' | 'warning';
+  /** Added to the item's accessible name, such as "3 need attention". */
+  badgeLabel?: string;
+  /** Takes aria-current and the selected state: while any item has `current`, no item is selected by `value`. */
+  current?: boolean;
+  onClick?: (event: React.MouseEvent) => void;
+  /** Renders a link instead of a button. */
+  href?: string;
+  /** The item opens a dialog or sheet (aria-haspopup="dialog"). */
+  haspopup?: boolean;
+  className?: string;
+  style?: React.CSSProperties;
+}
+/** One icon-only destination or action in a Rail, with its label in a tooltip on its right. Takes the same props as TabBar.Item. */
+export declare const RailItem: (props: RailItemProps) => React.ReactElement;
+/** Pushes the children after it to the bottom of the Rail. */
+export declare const RailSpacer: () => React.ReactElement;
+
+/**
+ * The vertical strip of icon-only destinations at the edge of an app, from `sm` up: TabBar's counterpart at wider
+ * widths, with the same items. It sits in the page flow at full height and is sticky, so the app's layout places it.
+ */
+export interface RailProps {
+  /** The accessible name of the `<nav>`. */
+  label: string;
+  /** The selected item's value (controlled). */
+  value?: string;
+  defaultValue?: string;
+  onChange?: (value: string) => void;
+  /** Same as onChange; both are called. */
+  onValueChange?: (value: string) => void;
+  /** 'sm' (default): hidden below 640px. false: shown at every width. */
+  showFrom?: 'sm' | false;
+  /** Rail.Item and Rail.Spacer, and any other element, such as a ThemeSwitcher in the bottom group. */
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare const Rail: ((props: RailProps) => React.ReactElement) & { Item: typeof RailItem; Spacer: typeof RailSpacer };
+
 export interface TabBarAccessory {
   /** The accessible name; the accessory shows an icon only. */
   label: string;
@@ -1205,6 +1286,42 @@ export interface TabsProps {
 }
 export declare function Tabs(props: TabsProps): React.ReactElement;
 
+export interface TitleBarBack {
+  /** The back button's accessible name. @default 'Back' */
+  label?: string;
+  onClick?: () => void;
+  /** Renders the back button as a link. */
+  href?: string;
+}
+
+/**
+ * The header of a phone-width screen: a centred, truncating title drawn as the screen's heading, an optional back
+ * button and trailing actions. Sticky at the top of its scroll container, with `env(safe-area-inset-top)` padding.
+ * Its surface is translucent like TabBar's (a blurred, see-through `background-100`), and solid under
+ * `prefers-reduced-transparency: reduce`, without `backdrop-filter`, or with `opaque`.
+ */
+export interface TitleBarProps {
+  /** The screen's title, drawn as a heading. It is truncated with an ellipsis when it doesn't fit. */
+  title: React.ReactNode;
+  /** A chevron icon button on the leading side. */
+  back?: TitleBarBack;
+  /** Icon buttons on the trailing side. Each is at least `--touch-target` in both directions. */
+  actions?: React.ReactNode;
+  /**
+   * Restores the solid surface: a plain `background-100` fill with no blur. The bar also falls back to solid under
+   * `prefers-reduced-transparency: reduce` and without `backdrop-filter` support, whatever this is.
+   * @default false
+   */
+  opaque?: boolean;
+  /** 'sm' (default): hidden from 640px up. false: shown at every width. */
+  hideFrom?: 'sm' | false;
+  /** The title's heading level. @default 1 */
+  headingLevel?: 1 | 2 | 3;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare const TitleBar: (props: TitleBarProps) => React.ReactElement;
+
 export interface BadgeProps {
   /** Default 'gray'. Solid for the one key status; '-subtle' (or contrast="low") in dense UI. */
   variant?: Hue | `${Hue}-subtle` | 'inverted' | 'pill';
@@ -1231,6 +1348,15 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   size?: 'sm' | 'md' | 'lg' | Size;
   /** Leading icon or logo; sized to the pill (12/14/16px). */
   icon?: React.ReactNode;
+  /**
+   * A state dot before the label, scaled to the pill size (a StatusDot state). It takes the icon's place: with both, `status` wins.
+   * Say what it means in `statusLabel`.
+   */
+  status?: StatusDotState;
+  /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is hidden from it. */
+  statusLabel?: string;
+  /** A figure after the label, in tabular numbers and a quieter colour: `54/56`, `40%`. It is part of the accessible name as text. */
+  trailing?: React.ReactNode;
   /** Makes the pill a toggle chip: a <button> with `aria-pressed`. Controlled state. Several chips can be on at once. */
   pressed?: boolean;
   /** Toggle chip, uncontrolled initial state. */
@@ -1240,7 +1366,10 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   children?: React.ReactNode;
   className?: string;
 }
-export declare function Pill(props: PillProps): React.ReactElement;
+/**
+ * Forwards its ref to the rendered `<a>`, `<button>` or `<span>`, so it works as a `Popover` trigger. A pill with `aria-expanded="true"` is drawn in the pressed style, without the check.
+ */
+export declare const Pill: React.ForwardRefExoticComponent<PillProps & React.RefAttributes<HTMLElement>>;
 
 type StatusDotDeploymentState = 'queued' | 'building' | 'ready' | 'error' | 'canceled' | 'deleted';
 type StatusDotSemanticState = 'success' | 'warning' | 'error' | 'neutral' | 'pending' | 'info';
@@ -1272,6 +1401,54 @@ export interface StatusDotProps {
   className?: string;
 }
 export declare function StatusDot(props: StatusDotProps): React.ReactElement;
+
+export interface ActionBarSelection {
+  /** How many rows are ticked. The label reads “{count} selected”. */
+  count: number;
+  /** How many rows there are. Select All is hidden when `count === total`. */
+  total: number;
+  /** Ticks every row. Without it there is no Select All. */
+  onSelectAll?: () => void;
+  onClear: () => void;
+}
+
+/**
+ * The bar at the foot of a scrolling area while there is something to act on: ticked rows, or unsaved changes.
+ * It renders only while `open`, and the app owns both the selection and the dirty state.
+ *
+ * Put it as the last child of the scroll container. It is sticky at the bottom of that container, in the normal flow at
+ * the end of the content, so it never covers the last row and the app adds no padding. It sits above a mounted TabBar
+ * and the safe area. Its surface is translucent and blurred, solid with `opaque`, under
+ * `prefers-reduced-transparency: reduce` and without `backdrop-filter`.
+ *
+ * It never takes focus when it appears. Its label (and an error, when one appears) is announced politely, also when the
+ * text changes. When it closes with focus inside, focus returns to the element that had it before it entered the bar,
+ * or to the scroll container if that element is gone.
+ */
+export interface ActionBarProps {
+  /** The bar renders only while this is true. */
+  open: boolean;
+  /** The leading text, such as “3 unsaved changes”. `selection` replaces it with “{count} selected”. */
+  label?: React.ReactNode;
+  /** Buttons for what to do. A busy Save is a Button with `loading`. */
+  actions?: React.ReactNode;
+  /** Adds a × button that calls this. */
+  onClose?: () => void;
+  /** The close button's accessible name. @default 'Close' */
+  closeLabel?: string;
+  /** Selection mode: the count, Select All (hidden when all are selected), Clear, then `actions`. */
+  selection?: ActionBarSelection;
+  /** A problem to show in the bar, with an error icon. The bar stays open until the app closes it. */
+  error?: React.ReactNode;
+  /**
+   * Restores the solid surface: a plain `background-100` fill with no blur. It is also solid under
+   * `prefers-reduced-transparency: reduce` and without `backdrop-filter` support, whatever this is.
+   * @default false
+   */
+  opaque?: boolean;
+  className?: string;
+}
+export declare function ActionBar(props: ActionBarProps): React.ReactElement | null;
 
 export interface BannerButton {
   /** Where the link goes. */
@@ -1641,6 +1818,15 @@ export interface EntityProps extends Omit<React.HTMLAttributes<HTMLElement>, 'on
   disabled?: boolean;
   /** Marks the row that holds the keyboard cursor of a j/k list: sets `aria-current="true"` and draws the same tint and 2px marker as `TableRow current`. */
   current?: boolean;
+  /** Makes the row expandable: `left`, the content and `right` become one disclosure button (`aria-expanded`, `aria-controls`) that opens this region under the row, inside the same list item. The button is named by the left and content text. Put controls in the detail, not in `left` or `right`. `as="button"` is ignored. */
+  detail?: React.ReactNode;
+  /** Controlled open state of the detail. */
+  expanded?: boolean;
+  /** Initial open state when uncontrolled. */
+  defaultExpanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+  /** Inside an `Entity.List` with `onReorder`: the row name used in the drag handle's name ("Move {name}") and in the announcements. Default: the text of the row's left and content. */
+  reorderLabel?: string;
   leftClassName?: string;
   rightClassName?: string;
   children?: React.ReactNode;
@@ -1651,7 +1837,10 @@ export interface EntityContentProps extends Omit<React.HTMLAttributes<HTMLDivEle
   /** Take the remaining width, so columns line up across rows. */
   fill?: boolean;
 }
-export interface EntityListProps extends React.HTMLAttributes<HTMLUListElement> {}
+export interface EntityListProps extends React.HTMLAttributes<HTMLUListElement> {
+  /** Makes the rows reorderable: each gets a leading drag handle that is also a menu button (Move Up, Move Down, Move to Top, Move to Bottom), and Alt+↑/↓ on the handle moves the row a step. Called with the row's index and the index it lands at, counting rows only. The list never reorders itself: move the item in your data and re-render the rows. Every move is announced in a polite live region. */
+  onReorder?: (from: number, to: number) => void;
+}
 export declare function EntityContent(props: EntityContentProps): React.ReactElement;
 export declare function EntityList(props: EntityListProps): React.ReactElement;
 export declare const Entity: ((props: EntityProps) => React.ReactElement) & { Content: typeof EntityContent; List: typeof EntityList };
@@ -1861,9 +2050,13 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
 }
 export interface TableColumnsMenuProps<R = Record<string, unknown>> {
   columns: TableColumn<R>[];
-  /** The current order, as given to the table: the menu is controlled and keeps no order of its own. */
-  columnOrder: string[];
-  onColumnOrderChange: TableProps<R>['onColumnOrderChange'];
+  /** The current order, as given to the table: the menu is controlled and keeps no order of its own. With `onColumnOrderChange` it adds Move Left, Move Right and Reset Order. Optional when the width props are given. */
+  columnOrder?: string[];
+  onColumnOrderChange?: TableProps<R>['onColumnOrderChange'];
+  /** The current widths, as given to the table. With `onColumnWidthsChange` they add Wider, Narrower and Reset Width for each resizable column (32px a step, within the handle's limits); the items are hidden on touch-only devices, and a menu left with none doesn't render. Wider and Narrower keep the menu open. */
+  columnWidths?: TableColumnWidths;
+  /** A width item was chosen. Fires with `phase: 'end'`, like a keyboard resize on the handle. */
+  onColumnWidthsChange?: TableProps<R>['onColumnWidthsChange'];
   /** The menu button's text. Default “Columns”. */
   label?: React.ReactNode;
 }
@@ -1915,6 +2108,16 @@ export interface BarListItem {
   href?: string;
   /** React key. Defaults to `label`. */
   key?: string;
+  /** Figures for the extra `columns`, by column key, as text or nodes. A missing figure is an empty cell. */
+  columns?: Record<string, React.ReactNode>;
+}
+export interface BarListColumn {
+  /** Key into each item's `columns`. */
+  key: string;
+  /** The visible header of the column. */
+  label: string;
+  /** Which column survives longest when the list is too narrow: the largest number hides first, ties from the right, and a column without a priority before any with one. */
+  priority?: number;
 }
 export interface BarListProps {
   /** One row per item, in the order given. BarList never sorts. */
@@ -1927,6 +2130,14 @@ export interface BarListProps {
   unit?: string;
   /** Sets labels in Geist Mono, for identifiers. */
   mono?: boolean;
+  /** Extra figures per row, shown right-aligned under a header row. The list is then read as a table. Narrow lists hide columns by `priority`; their figures stay available to assistive technology. */
+  columns?: BarListColumn[];
+  /** Header over the labels when `columns` is set. Default 'Label'. */
+  labelHeader?: string;
+  /** Header over the bars and values when `columns` is set. Default 'Value'. */
+  valueHeader?: string;
+  /** Opens a row. A row with an `href` stays a link and calls this too, with the click event as the second argument, so an app can `preventDefault` and route in-app. Without an `href` the row is a button. */
+  onOpen?: (item: BarListItem, event?: React.MouseEvent) => void;
   /** Shown when `items` is empty. Without it an empty list renders nothing. */
   empty?: React.ReactNode;
   /** Names the list. Give this or `aria-labelledby`: BarList warns in development without one. */
@@ -1967,6 +2178,10 @@ export interface ColumnChartProps {
   defaultView?: 'chart' | 'table';
   /** The "View as Table" / "View as Chart" toggle was used. */
   onViewChange?: (view: 'chart' | 'table') => void;
+  /** Opens a column (`onOpen(datum)`) or, with two or more series, one series' mark in it (`onOpen(datum, seriesKey)`). Setting it makes every column and mark a button, or a link where `href` returns a URL. A link calls it too, with the click event as the third argument, so an app can `preventDefault` and route in-app. */
+  onOpen?: (datum: ColumnChartDatum, seriesKey?: string, event?: React.MouseEvent) => void;
+  /** The URL a column (`href(datum)`) or mark (`href(datum, seriesKey)`) opens, or `undefined` for none. A column or mark with a URL is a link. Without `onOpen`, one without a URL is not a target. */
+  href?: (datum: ColumnChartDatum, seriesKey?: string) => string | undefined;
   /** Shown when `data` is empty. Default 'No Data'. */
   empty?: React.ReactNode;
   /** Accessible name of the chart (required: this or `aria-labelledby`). */
@@ -2103,6 +2318,47 @@ export declare function makeJsonViewHighlightPattern(terms: string | string[]): 
 export declare const JsonView: ((props: JsonViewProps) => React.ReactElement) & {
   makeJsonViewHighlightPattern: typeof makeJsonViewHighlightPattern;
 };
+
+export interface MonthViewEntry {
+  /** Unique among the entries. */
+  key: string;
+  /** The day it belongs to (the time of day is ignored). */
+  date: Date;
+  label: React.ReactNode;
+  /** A small leading mark, coloured as StatusDot and Progress segments of the same name. The label carries the meaning. */
+  tone?: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /** Makes the entry a link. */
+  href?: string;
+  /** Makes the entry a button, or runs on a link's click as well. */
+  onOpen?: () => void;
+}
+
+export interface MonthViewProps {
+  /** The month shown: any date in it. Controlled with `onMonthChange`. */
+  month?: Date;
+  defaultMonth?: Date;
+  /** Called with the first day of the new month. */
+  onMonthChange?: (month: Date) => void;
+  /** Every entry, in the order a day should list them. */
+  entries: MonthViewEntry[];
+  /** Entries a day shows before "+N more". Default 3. */
+  maxPerDay?: number;
+  /** A day, or its "+N more", was activated. In the narrow form a day selects instead. */
+  onDayOpen?: (date: Date) => void;
+  /** The selected day in the narrow form, whose entries list below the grid. */
+  selectedDate?: Date;
+  defaultSelectedDate?: Date;
+  onSelectedDateChange?: (date: Date) => void;
+  /** 0 = Sunday (default) … 6 = Saturday. */
+  firstDayOfWeek?: number;
+  /** BCP 47 locale for month and weekday names; the user's by default. */
+  locale?: string;
+  /** Names the grid, before the month and year. */
+  label?: string;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function MonthView(props: MonthViewProps): React.ReactElement;
 
 export interface SparkbarsRun {
   /** Bar height, scaled to max. */
@@ -2375,7 +2631,7 @@ export interface DrawerTitleProps { className?: string; children?: React.ReactNo
 export declare function DrawerTitle(props: DrawerTitleProps): React.ReactElement;
 export declare const Drawer: ((props: DrawerProps) => React.ReactElement | null) & { Title: typeof DrawerTitle };
 
-interface MenuItemDataBase { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean }
+interface MenuItemDataBase { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean; keepOpen?: boolean }
 /** An item of the one-piece `items` API. With `href` it is a link, which can't be checked. */
 export type MenuItemData =
   | (MenuItemDataBase & { href?: undefined; checked?: boolean; role?: 'radio' | 'checkbox' })
@@ -2421,6 +2677,8 @@ export interface MenuButtonProps extends Omit<ButtonProps, 'type'> {
 export interface MenuItemProps {
   /** Renders the item as a link. A link can't be checked: use `MenuItem` without `href` for a checked item. */
   href?: string;
+  /** Choosing the item runs its handlers but leaves the menu open, with focus on the item, for actions you repeat (a step wider, a step narrower). Not for toggles: a checked item already stays open. */
+  keepOpen?: boolean;
   /** Shows a checkmark when true and keeps its space when false. Makes the item a `menuitemcheckbox` (or a `menuitemradio` with `role="radio"`) with `aria-checked`. Undefined: a plain `menuitem`. Ignored with `href`. */
   checked?: boolean;
   /** 'radio' makes a checked item a `menuitemradio`; choosing it closes the menu. A checkbox item (the default) stays open when chosen, with focus on it. Ignored without `checked`. */
@@ -2712,6 +2970,30 @@ export declare const Grid: ((props: GridProps) => React.ReactElement) & {
   Cross: typeof GridCross;
 };
 
+/**
+ * One region of a screen: a column that fills its container's height, with an optional `header`, a body that scrolls
+ * on its own and an optional `footer`. The header and footer are divided from the body by hairlines and never scroll.
+ *
+ * The body is the pane's scroll container and a focusable region, so an `ActionBar` placed at the end of the body
+ * sticks to the pane's foot. A Pane fills the height its container gives it, so give the container one (for example
+ * `100dvh`). It works on its own for a single-pane screen.
+ *
+ * It is `background-100`. To use `background-200` as app chrome (usually the list pane), set
+ * `--hy-pane-background: var(--background-200)` in the app's class or in `style`.
+ */
+export interface PaneProps {
+  /** A bar above the body, such as a title and its actions. It never scrolls. */
+  header?: React.ReactNode;
+  /** A bar below the body. It never scrolls. */
+  footer?: React.ReactNode;
+  /** Names the body as a region, for assistive tech. Give it when the screen has more than one Pane. */
+  label?: string;
+  children?: React.ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function Pane(props: PaneProps): React.ReactElement;
+
 export interface ScrollerProps {
   /** Scroll axis. Default "y". */
   overflow?: 'x' | 'y' | 'both';
@@ -2759,6 +3041,26 @@ export interface ShowMoreProps extends Omit<React.ButtonHTMLAttributes<HTMLButto
   'aria-controls'?: string;
 }
 export declare function ShowMore(props: ShowMoreProps): React.ReactElement;
+
+/**
+ * A list pane beside a detail pane. From `sm` (640px) up the list is a column of `listWidth` and the detail fills the
+ * rest, with a vertical divider between them. Below `sm` it shows one pane at a time, chosen by `show`; the hidden
+ * pane is out of the accessibility tree and the Tab order but keeps its scroll position. There is no transition.
+ *
+ * It fills the height its container gives it, so give the container one (for example `100dvh`). Each child is
+ * normally a `Pane`, and each scrolls on its own. The app switches panes, usually from a TitleBar back button.
+ */
+export interface SplitViewProps {
+  /** The list column's width from `sm` up. A number is px. @default 320 */
+  listWidth?: number | string;
+  /** Which pane is visible below `sm` (controlled). @default 'list' */
+  show?: 'list' | 'detail';
+  /** Exactly two children: the list, then the detail. */
+  children: [React.ReactNode, React.ReactNode];
+  className?: string;
+  style?: React.CSSProperties;
+}
+export declare function SplitView(props: SplitViewProps): React.ReactElement;
 
 export interface AvatarProps extends Omit<React.HTMLAttributes<HTMLSpanElement>, 'title'> {
   /** Diameter in px. Default 32. */
@@ -2899,6 +3201,7 @@ declare global {
       Radio: typeof Radio;
       SearchInput: typeof SearchInput;
       Select: typeof Select;
+      SettingRow: typeof SettingRow;
       Slider: typeof Slider;
       Switch: typeof Switch;
       Textarea: typeof Textarea;
@@ -2910,11 +3213,14 @@ declare global {
       NavList: typeof NavList;
       Pager: typeof Pager;
       Pagination: typeof Pagination;
+      Rail: typeof Rail;
       TabBar: typeof TabBar;
       Tabs: typeof Tabs;
+      TitleBar: typeof TitleBar;
       Badge: typeof Badge;
       Pill: typeof Pill;
       StatusDot: typeof StatusDot;
+      ActionBar: typeof ActionBar;
       Banner: typeof Banner;
       EmptyState: typeof EmptyState;
       Error: typeof Error;
@@ -2943,6 +3249,7 @@ declare global {
       FilterParams: typeof FilterParams;
       Gauge: typeof Gauge;
       JsonView: typeof JsonView;
+      MonthView: typeof MonthView;
       Sparkbars: typeof Sparkbars;
       CommandMenu: typeof CommandMenu;
       ContextCard: typeof ContextCard;
@@ -2958,9 +3265,11 @@ declare global {
       Tooltip: typeof Tooltip;
       Collapse: typeof Collapse;
       Grid: typeof Grid;
+      Pane: typeof Pane;
       Scroller: typeof Scroller;
       Separator: typeof Separator;
       ShowMore: typeof ShowMore;
+      SplitView: typeof SplitView;
       Avatar: typeof Avatar;
       Browser: typeof Browser;
       Logo: typeof Logo;
