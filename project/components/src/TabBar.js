@@ -111,7 +111,7 @@ function TabBar(props) {
   };
   return h('nav', {
     ref: navRef, 'aria-label': props.label,
-    className: cx('hy-tabbar', props.hideFrom !== false && 'hy-tabbar--hide-sm', props.className), style: props.style
+    className: cx('hy-tabbar', props.hideFrom !== false && 'hy-tabbar--hide-sm', props.opaque && 'hy-tabbar--opaque', props.className), style: props.style
   },
     h('div', { className: 'hy-tabbar__row' },
       /* Different class per direction, so the animation restarts on each change. */
