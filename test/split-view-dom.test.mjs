@@ -111,6 +111,13 @@ describe('Pane', { concurrency: false, skip: skipNoChrome }, () => {
     assert.equal(await ev(`document.activeElement.className`), 'hy-pane__body');
   });
 
+  it('is not a Tab stop without a label', async () => {
+    await fresh(900);
+    await ev(`show(h(Frame, null, h(H.Pane, {}, 'Short')))`);
+    await until(`document.querySelector('.hy-pane')`, 'the pane');
+    assert.equal(await ev(`document.querySelector('.hy-pane__body').tabIndex`), -1);
+  });
+
   it('keeps an ActionBar at the end of its body at the pane foot, above the footer', async () => {
     await fresh(900);
     await ev(`show(h(Frame, null, h(H.Pane, { header: 'Header', footer: 'Footer', label: 'Rows' },
