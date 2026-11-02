@@ -43,9 +43,9 @@ describe('Pane markup', () => {
     assert.equal(body.props.role, 'region');
     assert.equal(body.props['aria-label'], 'Deployments');
   });
-  it('is focusable but not a landmark without a label', () => {
+  it('is neither a Tab stop nor a region without a label', () => {
     const body = byClass(registry.Pane({ children: 'B' }), 'hy-pane__body')[0];
-    assert.equal(body.props.tabIndex, 0);
+    assert.equal(body.props.tabIndex, undefined);
     assert.equal(body.props.role, undefined);
     assert.equal(body.props['aria-label'], undefined);
   });

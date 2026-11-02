@@ -5,7 +5,7 @@ One region of a screen: a header, a body that scrolls on its own, and a footer.
 **You provide:** the body as `children`. Optional: `header`, `footer` (both nodes), `label` (names the body for assistive tech), `className` and `style`. A Pane fills its container's height, so the container needs one, for example `100dvh` on the screen or a fixed height in a frame.
 
 - **Fixed bars:** the header and footer never scroll. A hairline divides each from the body. Leave either off and the body takes the space.
-- **The body scrolls, not the page:** the body is the pane's scroll container. It is a focusable region, so keyboard users can scroll it with the arrow keys. Give it a `label` (“Deployments”) when a screen has more than one Pane: it becomes a named region.
+- **The body scrolls, not the page:** the body is the pane's scroll container. Give it a `label` (“Deployments”) and it becomes a focusable, named region, so keyboard users can reach it and scroll it with the arrow keys. Without a `label` the body is not a Tab stop and not a region, so a body that scrolls should always get a `label`.
 - **With an ActionBar:** put an ActionBar as the last child of the body and it sticks to the pane's foot while there are more rows above it, without covering the last row.
 - **Surface:** a Pane is `background-100`. To use `background-200` as app chrome (usually the list pane of a SplitView), set `--hy-pane-background: var(--background-200)` through `style` or your own class. The detail stays `background-100`.
 - **On its own:** a Pane works without a SplitView, for a single-pane screen. Put it in a SplitView to put a list beside a detail.
