@@ -10,7 +10,7 @@ import vm from 'node:vm';
 const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components/src');
 const registry = {};
 const context = vm.createContext({
-  React: {},
+  React: { Fragment: 'Fragment' },
   HY: { Button: 'Button' },
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity).filter((c) => c != null && c !== false) }),
   Glyph: 'Glyph',
@@ -35,15 +35,29 @@ const classes = (node) => String((node.props && node.props.className) || '').spl
 const byClass = (tree, cls) => walk(tree).filter((n) => classes(n).includes(cls));
 const buttons = (tree) => walk(tree).filter((n) => n.type === 'Button');
 const names = (tree) => buttons(tree).map((b) => text(b));
+const barOf = (tree) => byClass(tree, 'hy-action-bar')[0];
 
 describe('ActionBar markup', () => {
-  it('renders nothing while closed', () => {
-    assert.equal(registry.ActionBar({ open: false, label: 'x' }), null);
-    assert.equal(registry.ActionBar({ label: 'x' }), null);
+  it('renders no bar while closed, only the empty live region, so opening just changes its text', () => {
+    for (const props of [{ open: false, label: 'x' }, { label: 'x' }]) {
+      const tree = registry.ActionBar(props);
+      assert.equal(barOf(tree), undefined);
+      const regions = byClass(tree, 'hy-sr');
+      assert.equal(regions.length, 1);
+      assert.equal(regions[0].props.role, 'status');
+      assert.equal(regions[0].props['aria-live'], 'polite');
+      assert.equal(text(regions[0]), '');
+    }
+  });
+  it('keeps the live region at the same position in the tree whether open or closed', () => {
+    const last = (tree) => tree.children.at(-1);
+    assert.ok(classes(last(registry.ActionBar({ open: false }))).includes('hy-sr'));
+    assert.ok(classes(last(render({ label: 'x' }))).includes('hy-sr'));
+    assert.equal(last(registry.ActionBar({ open: false })).props.key, last(render({ label: 'x' })).props.key);
   });
   it('shows the label and the actions slot while open', () => {
     const tree = render({ label: '3 unsaved changes', actions: 'ACTIONS', className: 'mine' });
-    assert.ok(classes(tree).includes('hy-action-bar') && classes(tree).includes('mine'));
+    assert.ok(classes(barOf(tree)).includes('mine'));
     assert.equal(text(byClass(tree, 'hy-action-bar__label')[0]), '3 unsaved changes');
     assert.equal(text(byClass(tree, 'hy-action-bar__actions')[0]), 'ACTIONS');
   });
@@ -101,11 +115,11 @@ describe('ActionBar markup', () => {
   });
 
   describe('opaque', () => {
-    it('has no opaque class by default', () => assert.ok(!classes(render({})).includes('hy-action-bar--opaque')));
+    it('has no opaque class by default', () => assert.ok(!classes(barOf(render({}))).includes('hy-action-bar--opaque')));
     it('adds hy-action-bar--opaque and does not leak the prop', () => {
       const tree = render({ opaque: true });
-      assert.ok(classes(tree).includes('hy-action-bar--opaque'));
-      assert.equal(tree.props.opaque, undefined);
+      assert.ok(classes(barOf(tree)).includes('hy-action-bar--opaque'));
+      assert.equal(barOf(tree).props.opaque, undefined);
     });
   });
 });
@@ -133,8 +147,16 @@ describe('ActionBar CSS', () => {
   it('is sticky at the foot, raised by --tab-bar-height and the safe area', () => {
     const bar = rule('.hy-action-bar');
     assert.match(bar, /position:\s*sticky/);
-    assert.match(bar, /bottom:[^;]*var\(--tab-bar-height/);
-    assert.match(bar, /bottom:[^;]*env\(safe-area-inset-bottom/);
+    assert.match(bar, /--hy-action-bar-offset:[^;]*var\(--tab-bar-height/);
+    assert.match(bar, /--hy-action-bar-offset:[^;]*env\(safe-area-inset-bottom/);
+    assert.match(bar, /(?:^|[;\s])bottom:\s*var\(--hy-action-bar-offset\)/);
+  });
+  it('keeps clear room below itself equal to its sticky offset, so the last row clears it at the end of the scroll', () => {
+    const bar = rule('.hy-action-bar');
+    const offset = (prop) => bar.match(new RegExp('(?:^|[;\\s])' + prop + ':\\s*([^;]+);'))[1].trim();
+    assert.equal(offset('bottom'), 'var(--hy-action-bar-offset)');
+    assert.match(bar, /margin:[^;]*var\(--hy-action-bar-offset\);/);
+    assert.match(bar, /--hy-action-bar-offset:[^;]*var\(--tab-bar-height[^;]*env\(safe-area-inset-bottom/);
   });
   it('defines a translucent surface and the blur, and applies both backdrop-filter forms', () => {
     const bar = rule('.hy-action-bar');

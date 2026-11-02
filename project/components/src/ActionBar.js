@@ -25,54 +25,52 @@ function actionBarFocus(el) {
 
 function ActionBar(props) {
   var open = !!props.open;
-  var root = useRef(null);
+  var barRef = useRef(null);
   var labelRef = useRef(null);
   var errorRef = useRef(null);
-  var spoken = useState('');
-  var track = useRef({ prev: null, scroller: null, wasOpen: false, restore: false });
-  var t = track.current;
+  var announcementState = useState('');
+  var announced = announcementState[0], setAnnounced = announcementState[1];
+  /* prevFocus: the element that had focus before it entered the bar. scroller: the fallback. wasOpen and restoreFocus
+     carry the closing from render to effect. */
+  var focusMemory = useRef({ prevFocus: null, scroller: null, wasOpen: false, restoreFocus: false });
+  var memory = focusMemory.current;
 
   /* Closing with focus inside: read it now, while the bar is still in the DOM. A removed node drops focus to the body. */
-  if (!open && t.wasOpen && root.current && typeof document !== 'undefined' && root.current.contains(document.activeElement)) t.restore = true;
+  if (!open && memory.wasOpen && barRef.current && typeof document !== 'undefined' && barRef.current.contains(document.activeElement)) memory.restoreFocus = true;
 
   /* Remember the element that had focus before it entered the bar, and the scroll container as the fallback. */
   useEffect(function () {
     if (!open) return;
-    var bar = root.current;
+    var bar = barRef.current;
     var active = document.activeElement;
-    t.prev = active && active !== document.body && !bar.contains(active) ? active : null;
-    t.scroller = actionBarScroller(bar);
-    function onFocusIn(e) { if (!bar.contains(e.target)) t.prev = e.target; }
+    memory.prevFocus = active && active !== document.body && !bar.contains(active) ? active : null;
+    memory.scroller = actionBarScroller(bar);
+    function onFocusIn(e) { if (!bar.contains(e.target)) memory.prevFocus = e.target; }
     document.addEventListener('focusin', onFocusIn);
     return function () { document.removeEventListener('focusin', onFocusIn); };
   }, [open]);
 
   useEffect(function () {
-    t.wasOpen = open;
-    if (open || !t.restore) return;
-    t.restore = false;
-    var to = t.prev && t.prev.isConnected ? t.prev : (t.scroller && t.scroller.isConnected ? t.scroller : null);
-    t.prev = null;
-    actionBarFocus(to);
+    memory.wasOpen = open;
+    if (open || !memory.restoreFocus) return;
+    memory.restoreFocus = false;
+    var target = memory.prevFocus && memory.prevFocus.isConnected ? memory.prevFocus : (memory.scroller && memory.scroller.isConnected ? memory.scroller : null);
+    memory.prevFocus = null;
+    actionBarFocus(target);
   }, [open]);
 
-  /* The live region exists empty first and gets its text afterwards, so the appearance is announced too. */
-  var say = spoken[0], setSay = spoken[1];
+  /* The live region stays mounted, empty, while the bar is closed, so opening only changes its text. */
   useEffect(function () {
-    if (!open) { if (say) setSay(''); return; }
+    if (!open) { if (announced) setAnnounced(''); return; }
     var parts = [];
     if (labelRef.current) parts.push(labelRef.current.textContent);
     if (errorRef.current) parts.push('Error: ' + errorRef.current.textContent);
-    var next = parts.join('. ');
-    if (next === say) return;
-    if (!say) {
-      var timer = setTimeout(function () { setSay(next); }, 100);
-      return function () { clearTimeout(timer); };
-    }
-    setSay(next);
+    var text = parts.join('. ');
+    if (text !== announced) setAnnounced(text);
   });
 
-  if (!open) return null;
+  var liveRegion = h('div', { key: 'live', className: 'hy-sr', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, announced);
+  if (!open) return h(React.Fragment, null, null, liveRegion);
 
   var sel = props.selection;
   var label = sel ? sel.count + ' selected' : props.label;
@@ -83,7 +81,7 @@ function ActionBar(props) {
   ] : null;
   var hasError = props.error !== undefined && props.error !== null && props.error !== false;
 
-  return h('div', { ref: root, className: cx('hy-action-bar', props.opaque && 'hy-action-bar--opaque', props.className) },
+  return h(React.Fragment, null, h('div', { key: 'bar', ref: barRef, className: cx('hy-action-bar', props.opaque && 'hy-action-bar--opaque', props.className) },
     h('div', { className: 'hy-action-bar__surface' },
       h('div', { className: 'hy-action-bar__row' },
         label ? h('div', { ref: labelRef, className: 'hy-action-bar__label' }, label) : null,
@@ -96,8 +94,8 @@ function ActionBar(props) {
         ? h('p', { className: 'hy-action-bar__error' },
             h(Glyph, { name: 'error', size: 14 }),
             h('span', { ref: errorRef }, props.error))
-        : null),
-    h('div', { className: 'hy-sr', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, say));
+        : null)),
+    liveRegion);
 }
 
 define('ActionBar', ActionBar);

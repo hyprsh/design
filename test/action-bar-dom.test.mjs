@@ -73,7 +73,7 @@ async function until(js, what) {
 }
 const rectOf = (sel) => ev(`(function () { var r = document.querySelector(${JSON.stringify(sel)}).getBoundingClientRect(); return { y: r.y, b: r.bottom, h: r.height, x: r.x, r: r.right }; })()`);
 const active = () => ev(`document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : null`);
-const spoken = () => ev(`document.querySelector('.hy-action-bar .hy-sr').textContent`);
+const spoken = () => ev(`document.querySelector('#scroller .hy-sr').textContent`);
 
 describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
   before(fresh);
@@ -91,6 +91,34 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
     assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-action-bar')).position`), 'sticky');
   });
 
+  it('clears the last row at the end of the scroll when the offset is large (a notched phone)', async () => {
+    await fresh();
+    /* The offset is max(--tab-bar-height, safe area) + gap; a 34px --tab-bar-height stands in for a 34px safe area. */
+    await ev(`document.documentElement.style.setProperty('--tab-bar-height', '34px')`);
+    try {
+      await ev(`show(h(Screen))`);
+      await until(`document.querySelector('.hy-action-bar')`, 'the bar');
+      await ev(`document.getElementById('scroller').scrollTop = 1e6`);
+      await sleep(50);
+      const bar = await rectOf('.hy-action-bar'), last = await rectOf('#row-20'), box = await rectOf('#scroller');
+      assert.ok(bar.y >= last.b - 0.5, `the bar (${bar.y}) does not cover the last row (ends ${last.b})`);
+      assert.ok(Math.abs(bar.b - (box.b - 42)) < 1, `the bar ends 34px + 8px above the foot (${bar.b} vs ${box.b})`);
+    } finally { await ev(`document.documentElement.style.removeProperty('--tab-bar-height')`); }
+  });
+
+  it('renders no bar while closed but keeps the live region mounted and empty', async () => {
+    await fresh();
+    await ev(`show(h(Screen, { bar: { open: false } }))`);
+    await until(`document.querySelector('#scroller')`, 'the screen');
+    assert.equal(await ev(`document.querySelectorAll('.hy-action-bar').length`), 0);
+    assert.equal(await ev(`document.querySelector('#scroller .hy-sr[role="status"]').textContent`), '');
+    await ev(`window.__region = document.querySelector('#scroller .hy-sr[role="status"]'); 0`);
+    await ev(`show(h(Screen))`);
+    await until(`document.querySelector('.hy-action-bar')`, 'the bar');
+    assert.equal(await ev(`document.querySelector('#scroller .hy-sr[role="status"]') === window.__region`), true, 'the same node, so only its text changes');
+    await until(`window.__region.textContent === '3 unsaved changes'`, 'the announcement');
+  });
+
   it('renders nothing while closed', async () => {
     await fresh();
     await ev(`show(h(Screen, { bar: { open: false } }))`);
@@ -105,6 +133,11 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
     await until(`document.querySelector('.hy-action-bar') && document.querySelector('.hy-tabbar__capsule')`, 'the bar and the tab bar');
     const bar = await rectOf('.hy-action-bar'), cap = await rectOf('.hy-tabbar__capsule');
     assert.ok(bar.b <= cap.y + 0.5, `the bar (${bar.b}) ends above the capsule (${cap.y})`);
+    await ev(`document.getElementById('scroller').scrollTop = 1e6`);
+    await sleep(50);
+    const end = await rectOf('.hy-action-bar'), last = await rectOf('#row-20'), cap2 = await rectOf('.hy-tabbar__capsule');
+    assert.ok(end.y >= last.b - 0.5, 'the bar does not cover the last row at the end of the scroll');
+    assert.ok(end.b <= cap2.y + 0.5, 'and still ends above the capsule');
   });
 
   it('raises the bar by the safe area when there is no TabBar', async () => {
@@ -154,18 +187,18 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
       await fresh();
       await ev(`show(h(Screen, { bar: { selection: { count: 3, total: 8, onClear: function () {} }, label: undefined } }))`);
       await until(`document.querySelector('.hy-action-bar')`, 'the bar');
-      assert.equal(await ev(`document.querySelector('.hy-action-bar .hy-sr').getAttribute('aria-live')`), 'polite');
-      await until(`document.querySelector('.hy-action-bar .hy-sr').textContent === '3 selected'`, 'the first announcement');
+      assert.equal(await ev(`document.querySelector('#scroller .hy-sr').getAttribute('aria-live')`), 'polite');
+      await until(`document.querySelector('#scroller .hy-sr').textContent === '3 selected'`, 'the first announcement');
       await ev(`show(h(Screen, { bar: { selection: { count: 4, total: 8, onClear: function () {} }, label: undefined } }))`);
-      await until(`document.querySelector('.hy-action-bar .hy-sr').textContent === '4 selected'`, 'the changed announcement');
+      await until(`document.querySelector('#scroller .hy-sr').textContent === '4 selected'`, 'the changed announcement');
     });
 
     it('announces an error when it appears, with an icon, while the bar stays open', async () => {
       await fresh();
       await ev(`show(h(Screen))`);
-      await until(`document.querySelector('.hy-action-bar .hy-sr').textContent === '3 unsaved changes'`, 'the label');
+      await until(`document.querySelector('#scroller .hy-sr').textContent === '3 unsaved changes'`, 'the label');
       await ev(`show(h(Screen, { bar: { error: 'Couldn’t save the changes.' } }))`);
-      await until(`/Error: Couldn’t save the changes\\./.test(document.querySelector('.hy-action-bar .hy-sr').textContent)`, 'the error announcement');
+      await until(`/Error: Couldn’t save the changes\\./.test(document.querySelector('#scroller .hy-sr').textContent)`, 'the error announcement');
       assert.equal(await ev(`document.querySelectorAll('.hy-action-bar__error svg').length`), 1);
       assert.match(await spoken(), /^3 unsaved changes/);
     });

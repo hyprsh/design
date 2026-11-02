@@ -8,8 +8,11 @@
   /* In the flow at the end of the content, and held at the foot of the scroll container while there is more above it.
      --tab-bar-height already includes the safe area while a TabBar is mounted; without one the safe area raises the bar. */
   position: sticky; z-index: 1; box-sizing: border-box;
-  bottom: calc(max(var(--tab-bar-height, 0px), env(safe-area-inset-bottom, 0px)) + var(--hy-action-bar-gap));
-  margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) 0;
+  --hy-action-bar-offset: calc(max(var(--tab-bar-height, 0px), env(safe-area-inset-bottom, 0px)) + var(--hy-action-bar-gap));
+  bottom: var(--hy-action-bar-offset);
+  /* The bottom margin leaves the same room below the bar in the flow, so at the end of the scroll the bar already sits at
+     its sticky offset and doesn't ride up over the last row. */
+  margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) var(--hy-action-bar-offset);
   pointer-events: none; font-family: var(--font-sans);
 }
 .hy-action-bar__surface {
