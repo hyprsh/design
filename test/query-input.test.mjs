@@ -1,4 +1,4 @@
-// Tests for QueryInput's shortcut and QueryHelpButton / QueryBar's help placement (hyprsh/design#64).
+// Tests for QueryInput's clearable (hyprsh/design#82), shortcut and QueryHelpButton / QueryBar's help placement (hyprsh/design#64).
 // The component files are plain script that runs in the bundle's scope, so they run here in a vm context with stub
 // globals: `h` builds plain nodes, the hooks are stubs (effects are recorded and run by hand against a fake window),
 // and each component is called as a function so the tests read the tree it returns.
@@ -13,6 +13,7 @@ const dir = join(dirname(fileURLToPath(import.meta.url)), '../project/components
 const registry = {};
 const listeners = new Set();
 let effects = [];
+let setterCalls = [];
 const fakeWindow = {
   addEventListener: (type, fn) => { if (type === 'keydown') listeners.add(fn); },
   removeEventListener: (type, fn) => { if (type === 'keydown') listeners.delete(fn); },
@@ -29,8 +30,9 @@ const context = vm.createContext({
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity) }),
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),
+  Glyph: 'Glyph',
   useId: () => ':r0:',
-  useState: (v) => [v, () => {}],
+  useState: (v) => [v, (x) => setterCalls.push({ init: v, value: x })],
   useRef: (v) => ({ current: v === undefined ? null : v }),
   useMemo: (fn) => fn(),
   useLayoutEffect: () => {},
@@ -66,6 +68,7 @@ const all = (tree, type) => walk(tree).filter((n) => n.type === type);
 /* Renders QueryInput: returns its tree, with the effects it asked for and a fake <input> wired to its ref. */
 function render(props) {
   effects = [];
+  setterCalls = [];
   listeners.clear();
   const tree = QueryInput({ 'aria-label': 'Search', qualifiers, ...props });
   const input = all(tree, 'Input')[0];
@@ -265,5 +268,79 @@ describe('QueryInput shortcut key', () => {
     assert.equal(r2.field.focused, 0);
     press('s');
     assert.equal(r2.field.focused, 1);
+  });
+});
+
+describe('QueryInput clearable', () => {
+  const clearBtn = (tree) => all(tree, 'button').find((n) => n.props.className === 'hy-query__clear');
+  const suffixOf = (r) => r.input.props.suffix;
+  it('draws an × button named Clear at the end of a field with text, in the suffix slot', () => {
+    const r = render({ value: 'is:open', clearable: true });
+    const btn = clearBtn(r.tree);
+    assert.equal(btn.props.type, 'button');
+    assert.equal(btn.props['aria-label'], 'Clear');
+    assert.equal(suffixOf(r), btn);
+    assert.equal(all(btn, 'Glyph').length, 1);
+    assert.equal(all(btn, 'Glyph')[0].props.name, 'x');
+  });
+  it('is named by clearLabel', () => {
+    assert.equal(clearBtn(render({ value: 'x', clearable: true, clearLabel: 'Clear Search' }).tree).props['aria-label'], 'Clear Search');
+  });
+  it('draws nothing while the field is empty, or without clearable', () => {
+    assert.equal(clearBtn(render({ value: '', clearable: true }).tree), undefined);
+    assert.equal(clearBtn(render({ value: 'x' }).tree), undefined);
+    assert.equal(suffixOf(render({ value: 'x' })), undefined);
+  });
+  it('is not drawn on a disabled or read-only field', () => {
+    assert.equal(clearBtn(render({ value: 'x', clearable: true, disabled: true }).tree), undefined);
+    assert.equal(clearBtn(render({ value: 'x', clearable: true, readOnly: true }).tree), undefined);
+  });
+  it('does not pass clearable or clearLabel on to the input', () => {
+    const { input } = render({ value: 'x', clearable: true, clearLabel: 'Wipe' });
+    assert.equal('clearable' in input.props, false);
+    assert.equal('clearLabel' in input.props, false);
+  });
+  it('swaps with the shortcut key cap: the cap while empty, the button once there is text, aria-keyshortcuts throughout', () => {
+    const empty = render({ value: '', clearable: true, shortcut: '/' });
+    assert.equal(keycaps(empty.tree).length, 1);
+    assert.equal(clearBtn(empty.tree), undefined);
+    assert.equal(empty.input.props['aria-keyshortcuts'], '/');
+    const full = render({ value: 'x', clearable: true, shortcut: '/' });
+    assert.equal(keycaps(full.tree).length, 0);
+    assert.ok(clearBtn(full.tree));
+    assert.equal(full.input.props['aria-keyshortcuts'], '/');
+  });
+  it('shows no button, with the key cap gone, when there is text and no clearable', () => {
+    const r = render({ value: 'x', shortcut: '/' });
+    assert.equal(keycaps(r.tree).length, 0);
+    assert.equal(clearBtn(r.tree), undefined);
+  });
+  it('still focuses the field from the shortcut key', () => {
+    const r = render({ value: 'x', clearable: true, shortcut: '/' });
+    r.mount();
+    press('/');
+    assert.equal(r.field.focused, 1);
+  });
+  it('clicking calls onChange with an empty string, closes the list and keeps focus in the field', () => {
+    const changes = [];
+    const r = render({ value: 'is:', clearable: true, onChange: (v) => changes.push(v) });
+    clearBtn(r.tree).props.onClick();
+    assert.deepEqual(changes, ['']);
+    assert.ok(setterCalls.some((c) => c.init === false && c.value === true), 'the list is dismissed');
+    assert.equal(r.field.focused, 1);
+  });
+  it('does not reopen the list when its focus() lands on a field that was not focused', () => {
+    const r = render({ value: 'is:', clearable: true, onChange() {} });
+    r.field.focus = function () { this.focused++; r.input.props.onFocus({ currentTarget: { selectionStart: 0 } }); };
+    clearBtn(r.tree).props.onClick();
+    assert.equal(r.field.focused, 1);
+    assert.equal(setterCalls.some((c) => c.init === false && c.value === false), false, 'focus did not undo the dismissal');
+    r.input.props.onFocus({ currentTarget: { selectionStart: 0 } });
+    assert.ok(setterCalls.some((c) => c.init === false && c.value === false), 'a later focus still opens it');
+  });
+  it('keeps focus on the field when the button is pressed', () => {
+    const e = { defaultPrevented: false, preventDefault() { this.defaultPrevented = true; } };
+    clearBtn(render({ value: 'x', clearable: true }).tree).props.onMouseDown(e);
+    assert.equal(e.defaultPrevented, true);
   });
 });
