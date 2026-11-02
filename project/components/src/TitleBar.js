@@ -6,7 +6,9 @@
 function TitleBar(props) {
   var back = props.back;
   var level = props.headingLevel === 2 || props.headingLevel === 3 ? props.headingLevel : 1;
-  /* Both side slots are always drawn, so the title stays centred when only one has content. */
+  /* Both side slots are always drawn, and each holds a hidden copy of the other's content, so the two are as wide as the wider side:
+     the title stays on the bar's centre line, and truncates symmetrically, when only one side has content. */
+  function mirror(node, cls) { return node ? h('span', { className: cx('hy-titlebar__mirror', cls), 'aria-hidden': 'true' }, node) : null; }
   var lead = back
     ? h(HY.Button, {
       className: 'hy-titlebar__back', variant: 'tertiary', svgOnly: true,
@@ -18,9 +20,9 @@ function TitleBar(props) {
     style: props.style
   },
     h('div', { className: 'hy-titlebar__bar' },
-      h('div', { className: 'hy-titlebar__leading' }, lead),
+      h('div', { className: 'hy-titlebar__leading' }, lead, mirror(props.actions, 'hy-titlebar__actions')),
       h('h' + level, { className: 'hy-titlebar__title' }, props.title),
-      h('div', { className: 'hy-titlebar__trailing hy-titlebar__actions' }, props.actions)));
+      h('div', { className: 'hy-titlebar__trailing' }, h('div', { className: 'hy-titlebar__actions' }, props.actions), mirror(lead))));
 }
 
 define('TitleBar', TitleBar);

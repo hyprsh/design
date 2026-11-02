@@ -10,11 +10,15 @@
   border-bottom: 1px solid var(--gray-alpha-400);
 }
 @media (min-width: 640px) { .hy-titlebar--hide-sm { display: none; } }
-/* Two equal side columns keep the title centred whichever side has content; the title shrinks (and truncates) before they do. */
-.hy-titlebar__bar { display: grid; grid-template-columns: 1fr minmax(0, auto) 1fr; align-items: center; gap: 8px; min-height: 52px; }
-.hy-titlebar__bar > :not(.hy-titlebar__title) { display: flex; align-items: center; gap: 4px; }
+/* The side columns are equal (each slot holds a hidden mirror of the other), so the title is centred whichever side has content, and truncates symmetrically. */
+.hy-titlebar__bar { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 8px; min-height: 52px; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) { display: grid; align-items: center; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) > * { grid-area: 1 / 1; display: flex; align-items: center; gap: 4px; }
+.hy-titlebar__mirror { visibility: hidden; pointer-events: none; }
 .hy-titlebar__leading { justify-self: start; }
+.hy-titlebar__leading > * { justify-self: start; }
 .hy-titlebar__trailing { justify-self: end; }
+.hy-titlebar__trailing > * { justify-self: end; }
 .hy-titlebar__title {
   min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
   color: var(--gray-1000); font-size: 16px; line-height: 24px; font-weight: 600;

@@ -4,7 +4,7 @@ The header of a phone-width screen: a centred title, an optional back button and
 
 **You provide:** `title` (a node, drawn as the screen's heading). Optional: `back` (`{ label?, onClick?, href? }`), `actions` (icon buttons), `opaque` (`false` by default), `hideFrom` (`'sm'` by default; `false` shows it at every width) and `headingLevel` (`1` by default; `2` or `3`).
 
-- Use it at the top of each screen at phone width, with a TabBar below for the app's main screens. From `sm` up use a page header or a pane header instead.
+- Use it at the top of each screen at phone width, with a TabBar below for the app's main screens. From `sm` up use a rail or sidebar for navigation and a pane header for the content.
 - The title is the screen's heading, so a screen has one `h1`. When the bar sits inside a section of a larger page, set `headingLevel` to fit the outline.
 - The title is centred in the bar even when only one side has content, and is truncated with an ellipsis when it doesn't fit. Keep it to a few words.
 - `back` draws a chevron icon button. `label` is its accessible name and defaults to “Back”: name where it goes when that helps (“Projects”). With `href` it is a link; otherwise give it `onClick`. Show it on a pushed screen, not on a top-level one.
