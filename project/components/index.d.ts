@@ -1350,10 +1350,10 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   icon?: React.ReactNode;
   /**
    * A state dot before the label, scaled to the pill size (a StatusDot state). It takes the icon's place: with both, `status` wins.
-   * Say what it means in `statusLabel`.
+   * The dot is always hidden from assistive tech, so `statusLabel` is the only way the state is spoken.
    */
   status?: StatusDotState;
-  /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is hidden from it. */
+  /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is always hidden from it. */
   statusLabel?: string;
   /** A figure after the label, in tabular numbers and a quieter colour: `54/56`, `40%`. It is part of the accessible name as text. */
   trailing?: React.ReactNode;
@@ -1818,14 +1818,14 @@ export interface EntityProps extends Omit<React.HTMLAttributes<HTMLElement>, 'on
   disabled?: boolean;
   /** Marks the row that holds the keyboard cursor of a j/k list: sets `aria-current="true"` and draws the same tint and 2px marker as `TableRow current`. */
   current?: boolean;
-  /** Makes the row expandable: `left`, the content and `right` become one disclosure button (`aria-expanded`, `aria-controls`) that opens this region under the row, inside the same list item. The button is named by the left and content text. Put controls in the detail, not in `left` or `right`. `as="button"` is ignored. */
+  /** Makes the row expandable: the row becomes a disclosure button (a stretched cover button with `aria-expanded` and `aria-controls`) that opens this region under the row, inside the same list item. The button is named by the left and content text. Put controls in the detail, not in `left` or `right`. `as="button"` is ignored. */
   detail?: React.ReactNode;
   /** Controlled open state of the detail. */
   expanded?: boolean;
   /** Initial open state when uncontrolled. */
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
-  /** Inside an `Entity.List` with `onReorder`: the row name used in the drag handle's name ("Move {name}") and in the announcements. Default: the text of the row's left and content. */
+  /** Inside an `Entity.List` with `onReorder`: the row name used in the drag handle's name ("Move {name}") and in the announcements. Default: the `Entity.Content` title text, or the text of the row's left and content when there is no title. */
   reorderLabel?: string;
   leftClassName?: string;
   rightClassName?: string;
@@ -2330,7 +2330,7 @@ export interface MonthViewEntry {
   /** Makes the entry a link. */
   href?: string;
   /** Makes the entry a button, or runs on a link's click as well. */
-  onOpen?: () => void;
+  onOpen?: (event: React.MouseEvent) => void;
 }
 
 export interface MonthViewProps {
@@ -2883,6 +2883,8 @@ export interface TooltipProps {
   tip?: boolean;
   /** Centre the text. Default true. */
   center?: boolean;
+  /** Set `false` when the trigger's own accessible name already says what the tooltip says (an icon-only item named by `aria-label`): the tooltip is then visual only and the trigger gets no `aria-describedby`. Default true. */
+  describe?: boolean;
   /** hyprsh: start open (until the pointer leaves); for docs and previews. */
   defaultOpen?: boolean;
   /** The trigger. A single element gets aria-describedby; plain text is wrapped in a focusable span. */
@@ -2974,8 +2976,8 @@ export declare const Grid: ((props: GridProps) => React.ReactElement) & {
  * One region of a screen: a column that fills its container's height, with an optional `header`, a body that scrolls
  * on its own and an optional `footer`. The header and footer are divided from the body by hairlines and never scroll.
  *
- * The body is the pane's scroll container and a focusable region, so an `ActionBar` placed at the end of the body
- * sticks to the pane's foot. A Pane fills the height its container gives it, so give the container one (for example
+ * The body is the pane's scroll container, so an `ActionBar` placed at the end of the body sticks to the pane's foot.
+ * With a `label` the body is also a focusable, named region. A Pane fills the height its container gives it, so give the container one (for example
  * `100dvh`). It works on its own for a single-pane screen.
  *
  * It is `background-100`. To use `background-200` as app chrome (usually the list pane), set
@@ -2986,7 +2988,7 @@ export interface PaneProps {
   header?: React.ReactNode;
   /** A bar below the body. It never scrolls. */
   footer?: React.ReactNode;
-  /** Names the body as a region, for assistive tech. Give it when the screen has more than one Pane. */
+  /** Makes the body a named region and a Tab stop, so keyboard users can reach and scroll it. Give it whenever the body can scroll. */
   label?: string;
   children?: React.ReactNode;
   className?: string;

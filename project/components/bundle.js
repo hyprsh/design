@@ -2828,7 +2828,7 @@
       var hasHelp = props.help != null && props.help !== false && props.help !== '';
       var changed = !!props.changed;
       /* A group control such as Switch (a radiogroup div) can't be named by <label for>, so it is also labelled by id. */
-      var named = isEl && !child.props['aria-labelledby'] && !child.props['aria-label'];
+      var named = isEl && !child.props.label && !child.props['aria-labelledby'] && !child.props['aria-label'];
       var describedBy = cx(isEl && child.props['aria-describedby'], hasHelp && helpId, changed && changedId) || undefined;
       return h('div', { className: cx('hy-setting-row', changed && 'is-changed', props.className) },
         h('div', { className: 'hy-setting-row__text' },
@@ -3512,7 +3512,7 @@
       var control = props.href
         ? h('a', Object.assign({ href: props.href }, common), inner)
         : h('button', Object.assign({ type: 'button' }, common), inner);
-      return h(HY.Tooltip, { text: props.label, position: 'right' }, control);
+      return h(HY.Tooltip, { text: props.label, position: 'right', describe: false }, control);
     }
     RailItem.displayName = 'RailItem';
 
@@ -3528,7 +3528,7 @@
       });
       var navRef = useRef(null);
       var kids = React.Children.toArray(props.children);
-      var anyCurrent = kids.some(function (k) { return React.isValidElement(k) && k.type === RailItem && !!k.props.current; });
+      var anyCurrent = kids.filter(React.isValidElement).some(function (k) { return !!k.props.current; });
 
       /* Up/Down/Home/End move between the items; any other child is reached by Tab only. */
       function onKey(e) {
@@ -3752,7 +3752,9 @@
     function TitleBar(props) {
       var back = props.back;
       var level = props.headingLevel === 2 || props.headingLevel === 3 ? props.headingLevel : 1;
-      /* Both side slots are always drawn, so the title stays centred when only one has content. */
+      /* Both side slots are always drawn, and each holds a hidden copy of the other's content, so the two are as wide as the wider side:
+         the title stays on the bar's centre line, and truncates symmetrically, when only one side has content. */
+      function mirror(node, cls) { return node ? h('span', { className: cx('hy-titlebar__mirror', cls), 'aria-hidden': 'true' }, node) : null; }
       var lead = back
         ? h(HY.Button, {
           className: 'hy-titlebar__back', variant: 'tertiary', svgOnly: true,
@@ -3764,9 +3766,9 @@
         style: props.style
       },
         h('div', { className: 'hy-titlebar__bar' },
-          h('div', { className: 'hy-titlebar__leading' }, lead),
+          h('div', { className: 'hy-titlebar__leading' }, lead, mirror(props.actions, 'hy-titlebar__actions')),
           h('h' + level, { className: 'hy-titlebar__title' }, props.title),
-          h('div', { className: 'hy-titlebar__trailing hy-titlebar__actions' }, props.actions)));
+          h('div', { className: 'hy-titlebar__trailing' }, h('div', { className: 'hy-titlebar__actions' }, props.actions), mirror(lead))));
     }
 
     define('TitleBar', TitleBar);
@@ -3819,7 +3821,7 @@
       var lead = props.icon || (on ? h(Glyph, { name: 'check', size: 14 }) : null);
       var named = !!props.statusLabel;
       var dot = props.status ? h('span', { className: 'hy-pill__status' },
-        h(HY.StatusDot, { state: props.status, label: false, title: null, 'aria-hidden': named ? 'true' : undefined })) : null;
+        h(HY.StatusDot, { state: props.status, label: false, title: null, 'aria-hidden': 'true' })) : null;
       if (ref) rest.ref = ref;
       return h(tag, Object.assign(rest, { className: cx('hy-pill', 'hy-pill--' + size, toggle && 'hy-pill--toggle', on && 'is-pressed', props.className) }),
         dot || (lead ? h('span', { className: 'hy-pill__icon', 'aria-hidden': 'true' }, lead) : null),
@@ -3911,54 +3913,52 @@
 
     function ActionBar(props) {
       var open = !!props.open;
-      var root = useRef(null);
+      var barRef = useRef(null);
       var labelRef = useRef(null);
       var errorRef = useRef(null);
-      var spoken = useState('');
-      var track = useRef({ prev: null, scroller: null, wasOpen: false, restore: false });
-      var t = track.current;
+      var announcementState = useState('');
+      var announced = announcementState[0], setAnnounced = announcementState[1];
+      /* prevFocus: the element that had focus before it entered the bar. scroller: the fallback. wasOpen and restoreFocus
+         carry the closing from render to effect. */
+      var focusMemory = useRef({ prevFocus: null, scroller: null, wasOpen: false, restoreFocus: false });
+      var memory = focusMemory.current;
 
       /* Closing with focus inside: read it now, while the bar is still in the DOM. A removed node drops focus to the body. */
-      if (!open && t.wasOpen && root.current && typeof document !== 'undefined' && root.current.contains(document.activeElement)) t.restore = true;
+      if (!open && memory.wasOpen && barRef.current && typeof document !== 'undefined' && barRef.current.contains(document.activeElement)) memory.restoreFocus = true;
 
       /* Remember the element that had focus before it entered the bar, and the scroll container as the fallback. */
       useEffect(function () {
         if (!open) return;
-        var bar = root.current;
+        var bar = barRef.current;
         var active = document.activeElement;
-        t.prev = active && active !== document.body && !bar.contains(active) ? active : null;
-        t.scroller = actionBarScroller(bar);
-        function onFocusIn(e) { if (!bar.contains(e.target)) t.prev = e.target; }
+        memory.prevFocus = active && active !== document.body && !bar.contains(active) ? active : null;
+        memory.scroller = actionBarScroller(bar);
+        function onFocusIn(e) { if (!bar.contains(e.target)) memory.prevFocus = e.target; }
         document.addEventListener('focusin', onFocusIn);
         return function () { document.removeEventListener('focusin', onFocusIn); };
       }, [open]);
 
       useEffect(function () {
-        t.wasOpen = open;
-        if (open || !t.restore) return;
-        t.restore = false;
-        var to = t.prev && t.prev.isConnected ? t.prev : (t.scroller && t.scroller.isConnected ? t.scroller : null);
-        t.prev = null;
-        actionBarFocus(to);
+        memory.wasOpen = open;
+        if (open || !memory.restoreFocus) return;
+        memory.restoreFocus = false;
+        var target = memory.prevFocus && memory.prevFocus.isConnected ? memory.prevFocus : (memory.scroller && memory.scroller.isConnected ? memory.scroller : null);
+        memory.prevFocus = null;
+        actionBarFocus(target);
       }, [open]);
 
-      /* The live region exists empty first and gets its text afterwards, so the appearance is announced too. */
-      var say = spoken[0], setSay = spoken[1];
+      /* The live region stays mounted, empty, while the bar is closed, so opening only changes its text. */
       useEffect(function () {
-        if (!open) { if (say) setSay(''); return; }
+        if (!open) { if (announced) setAnnounced(''); return; }
         var parts = [];
         if (labelRef.current) parts.push(labelRef.current.textContent);
         if (errorRef.current) parts.push('Error: ' + errorRef.current.textContent);
-        var next = parts.join('. ');
-        if (next === say) return;
-        if (!say) {
-          var timer = setTimeout(function () { setSay(next); }, 100);
-          return function () { clearTimeout(timer); };
-        }
-        setSay(next);
+        var text = parts.join('. ');
+        if (text !== announced) setAnnounced(text);
       });
 
-      if (!open) return null;
+      var liveRegion = h('div', { key: 'live', className: 'hy-sr', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, announced);
+      if (!open) return h(React.Fragment, null, null, liveRegion);
 
       var sel = props.selection;
       var label = sel ? sel.count + ' selected' : props.label;
@@ -3969,7 +3969,7 @@
       ] : null;
       var hasError = props.error !== undefined && props.error !== null && props.error !== false;
 
-      return h('div', { ref: root, className: cx('hy-action-bar', props.opaque && 'hy-action-bar--opaque', props.className) },
+      return h(React.Fragment, null, h('div', { key: 'bar', ref: barRef, className: cx('hy-action-bar', props.opaque && 'hy-action-bar--opaque', props.className) },
         h('div', { className: 'hy-action-bar__surface' },
           h('div', { className: 'hy-action-bar__row' },
             label ? h('div', { ref: labelRef, className: 'hy-action-bar__label' }, label) : null,
@@ -3982,8 +3982,8 @@
             ? h('p', { className: 'hy-action-bar__error' },
                 h(Glyph, { name: 'error', size: 14 }),
                 h('span', { ref: errorRef }, props.error))
-            : null),
-        h('div', { className: 'hy-sr', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' }, say));
+            : null)),
+        liveRegion);
     }
 
     define('ActionBar', ActionBar);
@@ -5008,6 +5008,12 @@
       return out.replace(/\s+/g, ' ').trim();
     }
 
+    /* A row's default name: the Entity.Content title when it has one, else the whole left and content text. */
+    function entityRowName(el) {
+      var t = el && el.querySelector ? el.querySelector('.hy-entity__title') : null;
+      return (t ? entityDomText(t) : '') || entityDomText(el);
+    }
+
     /* The leading handle: a menu button named "Move {row name}". Drag it, press Alt+Up or Alt+Down on it, or open its menu. */
     function EntityHandle(props) {
       var rc = props.rc, i = rc.index, n = rc.count;
@@ -5015,19 +5021,19 @@
       var read = useState('');
       useLayoutEffect(function () {
         if (props.label != null) return;
-        var t = entityDomText(document.getElementById(props.labelId));
+        var t = entityRowName(document.getElementById(props.labelId));
         if (t !== read[0]) read[1](t);
       });
       var name = props.label != null ? props.label : read[0];
       var title = 'Move ' + (name || 'Row');
       var items = [['up', 'Move Up'], ['down', 'Move Down'], ['top', 'Move to Top'], ['bottom', 'Move to Bottom']].map(function (a) {
-        return h(HY.MenuItem, { key: a[0], disabled: reorderTarget(i, n, a[0]) === null, onSelect: function () { rc.act(a[0], name, ref.current); } }, a[1]);
+        return h(HY.MenuItem, { key: a[0], disabled: props.disabled || reorderTarget(i, n, a[0]) === null, onSelect: function () { rc.act(a[0], name, ref.current); } }, a[1]);
       });
       return h(HY.MenuContainer, { position: 'bottom-start', className: 'hy-entity__reorder' },
         h(HY.MenuButton, {
-          type: 'unstyled', ref: ref, className: 'hy-entity__handle', 'aria-label': title, 'aria-keyshortcuts': 'Alt+ArrowUp Alt+ArrowDown',
-          onKeyDown: function (e) { if (rc.key(e, name, e.currentTarget)) e.preventDefault(); },
-          onPointerDown: function (e) { if (e.button === 0) rc.startDrag(e, name); }
+          type: 'unstyled', ref: ref, className: 'hy-entity__handle', disabled: props.disabled, 'aria-label': title, 'aria-keyshortcuts': 'Alt+ArrowUp Alt+ArrowDown',
+          onKeyDown: function (e) { if (!props.disabled && rc.key(e, name, e.currentTarget)) e.preventDefault(); },
+          onPointerDown: function (e) { if (!props.disabled && e.button === 0) rc.startDrag(e, name); }
         },
           h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false' },
             [5, 11].map(function (x) { return [3, 8, 13].map(function (y) { return h('circle', { key: x + '-' + y, cx: x, cy: y, r: 1.25 }); }); }))),
@@ -5047,9 +5053,10 @@
 
     function hasDetail(props) { return props.detail !== undefined && props.detail !== null && props.detail !== false; }
 
-    /* An expandable row: item (<li> in a list) > div.hy-entity (the row) > button (left, right, chevron), then the detail region.
-       The row keeps current; the detail sits outside it, so the tint and marker don't spread. The detail is `hidden` while
-       collapsed, which also takes it out of the Tab order. */
+    /* An expandable row: item (<li> in a list) > div.hy-entity (the row, with a stretched cover button like as="button") and the detail
+       region. The cover button is the disclosure button, named by the left and content; left and right hold content only. The row
+       keeps current; the detail sits outside it, so the tint and marker don't spread. The detail is `hidden` while collapsed, which
+       also takes it out of the Tab order. */
     function EntityExpandable(props) {
       var inList = React.useContext(EntityListContext);
       var rc = React.useContext(EntityRowContext);
@@ -5062,22 +5069,26 @@
       var state = props.current ? { 'aria-current': 'true' } : {};
       var ro = reorderRow(rc, props.style);
       return h(tag, Object.assign(state, rest, ro.attrs, { className: cx('hy-entity-item', open && 'is-open', ro.cls, props.className) }),
-        h('div', { className: cx('hy-entity', 'hy-entity--expandable', props.current && 'is-current', props.disabled && 'hy-entity--disabled') },
-          rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel }) : null,
+        h('div', { className: cx('hy-entity', 'hy-entity--button', 'hy-entity--expandable', props.current && 'is-current', props.disabled && 'hy-entity--disabled') },
+          rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel, disabled: props.disabled }) : null,
           h('button', {
-            type: 'button', className: 'hy-entity__toggle', disabled: props.disabled,
+            type: 'button', className: 'hy-entity__cover', disabled: props.disabled,
             'aria-expanded': open, 'aria-controls': detailId, 'aria-labelledby': labelId,
             onClick: function (e) { if (props.onClick) props.onClick(e); ctl[1](!open); }
-          },
-            h('div', { id: labelId, className: cx('hy-entity__left', props.leftClassName) }, props.left, props.children),
-            props.right ? h('div', { className: cx('hy-entity__right', props.rightClassName) }, props.right) : null,
-            h('span', { className: 'hy-entity__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 16 })))),
-        h('div', { id: detailId, role: 'region', 'aria-labelledby': labelId, hidden: !open, className: 'hy-entity__detail' },
+          }),
+          h('div', { id: labelId, className: cx('hy-entity__left', props.leftClassName) }, props.left, props.children),
+          props.right ? h('div', { className: cx('hy-entity__right', props.rightClassName) }, props.right) : null,
+          h('span', { className: 'hy-entity__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 16 }))),
+        h('div', { id: detailId, hidden: !open, className: 'hy-entity__detail' },
           h('div', { className: 'hy-entity__detail-body' }, props.detail)));
     }
 
+    /* Entity has no hooks of its own, so `detail` can come and go on a mounted row: each form is its own component. */
     function Entity(props) {
-      if (hasDetail(props)) return h(EntityExpandable, props);
+      return h(hasDetail(props) ? EntityExpandable : EntityRow, props);
+    }
+
+    function EntityRow(props) {
       var inList = React.useContext(EntityListContext);
       var rc = React.useContext(EntityRowContext);
       var rowRef = useRef(null);
@@ -5095,7 +5106,7 @@
       var state = props.current ? { 'aria-current': 'true' } : {};
       var ro = reorderRow(rc, props.style);
       return h(tag, Object.assign(state, rest, ro.attrs, { ref: rowRef, className: cx('hy-entity', asButton && 'hy-entity--button', props.current && 'is-current', props.disabled && 'hy-entity--disabled', ro.cls, props.className) }),
-        rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel }) : null,
+        rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel, disabled: props.disabled }) : null,
         asButton ? h('button', {
           type: 'button', className: 'hy-entity__cover', onClick: props.onClick, disabled: props.disabled,
           'aria-labelledby': hasControls[0] ? undefined : labelId,
@@ -5105,14 +5116,23 @@
         props.right ? h('div', { className: cx('hy-entity__right', props.rightClassName) }, props.right) : null);
     }
 
+    /* The list's children as { el, key }, with a Fragment's children in its place (a Fragment of rows is rows, not one row). */
+    function entityRows(children, prefix, out) {
+      React.Children.toArray(children).forEach(function (c) {
+        if (React.isValidElement(c) && c.type === React.Fragment) entityRows(c.props.children, prefix + c.key + '/', out);
+        else out.push({ el: c, key: prefix + (React.isValidElement(c) && c.key != null ? c.key : out.length) });
+      });
+      return out;
+    }
+
     /* A list whose rows can be reordered. It never reorders itself: onReorder(from, to) tells the app, which moves the item in its
        data and re-renders the rows. A moved row's handle keeps focus: the keyed DOM move can drop it, so it is given back after the render. */
     function EntityReorderList(props) {
       var rest = omit(props, ['className', 'children', 'onReorder']);
       var ds = useState(null), drag = ds[0], setDrag = ds[1];
       var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
-      var rows = React.Children.toArray(props.children);
-      var count = rows.filter(React.isValidElement).length;
+      var rows = entityRows(props.children, '', []);
+      var count = rows.filter(function (r) { return React.isValidElement(r.el); }).length;
       var live = useRef({});
       var focusEl = useRef(null);
       live.current = { count: count, onReorder: props.onReorder };
@@ -5132,7 +5152,7 @@
       });
 
       function startDrag(from, e, name) {
-        var handle = e.currentTarget, listEl = handle.closest('.hy-entity-list');
+        var handle = e.currentTarget, listEl = handle.closest('.hy-entity-list'), rowEl = handle.closest('[data-entity-index]');
         var x0 = e.clientX, y0 = e.clientY, active = false, done = false, target = null;
         function rowAt(ev) {
           var el = document.elementFromPoint(ev.clientX, ev.clientY);
@@ -5143,6 +5163,8 @@
           if (!active) {
             if (!dragStarted(ev.clientX - x0, ev.clientY - y0)) return;
             active = true;
+            /* The dragged row is inert while it is carried; the handle gets focus back when it lands or the drag is cancelled. */
+            if (rowEl) rowEl.setAttribute('inert', '');
             if (window.getSelection) window.getSelection().removeAllRanges();
           }
           var over = rowAt(ev);
@@ -5157,11 +5179,13 @@
           document.removeEventListener('pointercancel', cancel);
           document.removeEventListener('keydown', esc, true);
           if (active) {
+            if (rowEl) rowEl.removeAttribute('inert');
+            focusEl.current = handle;
             /* The release that ends a drag must not also open the handle's menu. */
             var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
             document.addEventListener('click', swallow, true);
             setTimeout(function () { document.removeEventListener('click', swallow, true); }, 0);
-            if (commit && target != null) { focusEl.current = handle; editor.drop(from, target, name); }
+            if (commit && target != null) editor.drop(from, target, name);
           }
           setDrag(null);
         }
@@ -5175,11 +5199,12 @@
       }
 
       var at = 0;
-      var wrapped = rows.map(function (child) {
+      var wrapped = rows.map(function (item) {
+        var child = item.el;
         if (!React.isValidElement(child)) return child;
         var index = at++;
         return h(EntityRowContext.Provider, {
-          key: child.key,
+          key: item.key,
           value: {
             index: index, count: count, drag: drag,
             act: function (action, name, el) { focusEl.current = el; editor.act(index, action, name); },
@@ -5829,7 +5854,9 @@
 
     /* The tables that have measured their columns, for the Columns menu: it sits outside the table and can't measure, so it reads
        the measured columns, container and stickyHeader from the table that resizes the same keys. An entry is
-       { keys, cols, container, sticky }; TableWidths keeps it current and calls the listeners when it changes. */
+       { keys, cols, container, sticky }; TableWidths keeps it current and calls the listeners when it changes. The menu can't tell
+       two tables apart: with two that resize the same keys it uses the first one registered, so give such tables different column keys.
+       Until a table has measured, the menu has no limits: its steps are off. */
     var widthTables = [], widthListeners = [];
     function registerWidthTable(entry) {
       widthTables.push(entry);
@@ -5839,21 +5866,11 @@
     function widthTableFor(keys) {
       return widthTables.filter(function (t) { return keys.every(function (k) { return t.keys.indexOf(k) >= 0; }); })[0] || null;
     }
-    /* The columns the menu resizes: the table's measured ones, else (before it has measured) what the column definitions say.
-       Without a measured table a column with no `width` has no known width, so its steps stay disabled. */
+    /* The measured table behind the menu's columns, as { cols, opts } for columnLimits, or null while there is none. */
     function menuWidthColumns(columns) {
       var keys = columns.filter(function (c) { return c.resizable && !c.truncate; }).map(function (c) { return c.key; });
-      if (!keys.length) return null;
-      var t = widthTableFor(keys);
-      if (t) return { cols: t.cols, opts: { sticky: t.sticky, container: t.container } };
-      return {
-        cols: columns.map(function (c) {
-          if (!c.resizable || c.truncate) return { key: null, resizable: false, truncate: !!c.truncate, def: 0, min: 0, max: 0 };
-          var min = columnMin(0, c.minWidth);
-          return { key: c.key, resizable: true, truncate: false, def: c.width != null ? c.width : min, min: min, max: columnMax(min, c.maxWidth), unknown: c.width == null };
-        }),
-        opts: { sticky: false, container: Infinity }
-      };
+      var t = keys.length ? widthTableFor(keys) : null;
+      return t ? { cols: t.cols, opts: { sticky: t.sticky, container: t.container } } : null;
     }
     function widthMessage(columns, cols, key, next) {
       var c = cols.filter(function (x) { return x.key === key; })[0];
@@ -5866,23 +5883,25 @@
       var m = menuWidthColumns(columns), resetting = false;
       var editor = columnWidthEditor({
         getWidths: function () { return widths; },
-        emit: function (next, change) { emit(next, change, resetting, m.cols); }
+        emit: function (next, change) { emit(next, change, resetting, m ? m.cols : []); }
       });
-      function colOf(key) { return m.cols.filter(function (x) { return x.key === key && x.resizable; })[0]; }
+      function colOf(key) { return m && m.cols.filter(function (x) { return x.key === key && x.resizable; })[0]; }
       function session(key) {
         var c = colOf(key), lim = columnLimits(m.cols, widths, key, m.opts);
         return { key: key, width: resolveWidth(c, widths), def: c.def, min: lim.min, max: lim.max, dragMax: lim.dragMax };
       }
+      /* The key event the handle's Shift+Left or Shift+Right would be, so keyWidth gives the step and its clamp. */
       function step(dir) { return { key: dir < 0 ? 'ArrowLeft' : 'ArrowRight', shiftKey: true }; }
       return {
-        has: function (key) { return !!m && !!colOf(key); },
+        has: function (key) { return columns.some(function (c) { return c.key === key && c.resizable && !c.truncate; }); },
         items: function (key) {
-          var name = columnName(columns, key), s = session(key), out = [];
+          var name = columnName(columns, key), out = [];
           [['Wider', 1], ['Narrower', -1]].forEach(function (d) {
+            var s = colOf(key) && session(key);
             out.push({
               label: 'Make ' + name + ' ' + d[0], keepOpen: true,
-              disabled: !!colOf(key).unknown || (keyWidth(step(d[1]), s.width, s) - s.width) * d[1] <= 0,
-              onSelect: function () { editor.key(session(key), step(d[1])); }
+              disabled: !s || (keyWidth(step(d[1]), s.width, s) - s.width) * d[1] <= 0,
+              onSelect: function () { if (colOf(key)) editor.key(session(key), step(d[1])); }
             });
           });
           out.push({
@@ -6204,10 +6223,13 @@
   (function () {
     /* Labelled horizontal bars for ranking amounts: one row per item, in the order given, scaled to `max` or the largest value.
        The bar is decorative (aria-hidden): each row reads "label, value unit". An item with `href` is a link, and with `onOpen`
-       a button (a link that also calls `onOpen`). With `columns` the list is an ARIA table with a header row and extra figures
+       a button (a link that also calls `onOpen`). With `columns` the list is a native table with a header row and extra figures
        per row, and narrows by hiding extra columns in `priority` order. One series, so no legend. The pure parts (blHiddenKeys)
        are module-private functions: tests read them from the vm context. */
-    var BL_COL = 88, BL_GAP = 12, BL_BASE = 320;
+    /* How narrow a table list may get. The label, bar and value need BL_MIN_CORE px between them (a 120px label, a bar of at
+       least 80px and a 80px value, with their gaps and padding). Extra columns size to their content, so each is budgeted
+       BL_COL_ESTIMATE px: a typical figure with its gap. */
+    var BL_MIN_CORE = 320, BL_COL_ESTIMATE = 100;
 
     /* The keys of the extra columns that don't fit in `width` px, hidden one by one until the rest do: the largest `priority`
        number first, ties from the right, and a column without a `priority` before any column with one. The label, bar and
@@ -6219,7 +6241,7 @@
         return { key: c.key, i: i, p: typeof c.priority === 'number' && isFinite(c.priority) ? c.priority : Infinity };
       }).sort(function (a, b) { return a.p !== b.p ? (a.p > b.p ? -1 : 1) : b.i - a.i; });
       var shown = columns.length;
-      for (var n = 0; n < order.length && BL_BASE + shown * (BL_COL + BL_GAP) > width; n++) {
+      for (var n = 0; n < order.length && BL_MIN_CORE + shown * BL_COL_ESTIMATE > width; n++) {
         hidden[order[n].key] = true;
         shown--;
       }
@@ -6270,29 +6292,26 @@
 
       if (cols) {
         var hiddenKeys = blHiddenKeys(cols, width);
-        var shown = cols.filter(function (c) { return !hiddenKeys[c.key]; }).length;
-        var template = 'minmax(0, 1fr) minmax(0, 2fr)' + (shown ? ' repeat(' + shown + ', ' + BL_COL + 'px)' : '');
-        var cell = function (c, role, content, extra) {
-          return h('div', { key: c.key, role: role, className: cx('hy-bar-list__cell', 'hy-bar-list__cell--figure', hiddenKeys[c.key] && 'is-hidden', extra) }, content);
+        var figure = function (c, tag, content, extra) {
+          return h(tag, Object.assign({ key: c.key, className: cx('hy-bar-list__cell', 'hy-bar-list__cell--figure', hiddenKeys[c.key] && 'is-hidden') }, extra), content);
         };
-        return h('div', Object.assign({}, rest, {
-          ref: listRef, className: cx('hy-bar-list', 'hy-bar-list--table', props.mono && 'hy-bar-list--mono', props.className),
-          role: 'table', style: Object.assign({ '--hy-bar-list-cols': template }, props.style)
+        return h('table', Object.assign({}, rest, {
+          ref: listRef, className: cx('hy-bar-list', 'hy-bar-list--table', props.mono && 'hy-bar-list--mono', props.className)
         }),
-          h('div', { role: 'row', className: 'hy-bar-list__head' },
-            h('div', { role: 'columnheader', className: 'hy-bar-list__cell' }, props.labelHeader !== undefined ? props.labelHeader : 'Label'),
-            h('div', { role: 'columnheader', className: 'hy-bar-list__cell hy-bar-list__cell--value' }, props.valueHeader !== undefined ? props.valueHeader : 'Value'),
-            cols.map(function (c) { return cell(c, 'columnheader', c.label); })),
-          items.map(function (it) {
+          h('thead', null, h('tr', { className: 'hy-bar-list__head' },
+            h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, props.labelHeader !== undefined ? props.labelHeader : 'Label'),
+            h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--value' }, props.valueHeader !== undefined ? props.valueHeader : 'Value'),
+            cols.map(function (c) { return figure(c, 'th', c.label, { scope: 'col' }); }))),
+          h('tbody', null, items.map(function (it) {
             var label = h('span', { className: 'hy-bar-list__label', title: it.label }, it.label);
             var target = opener(it, { className: 'hy-bar-list__target' }, label);
-            return h('div', { key: it.key || it.label, role: 'row', className: cx('hy-bar-list__item', 'hy-bar-list__row', target && 'hy-bar-list__row--open') },
-              h('div', { role: 'cell', className: 'hy-bar-list__cell' }, target || label),
-              h('div', { role: 'cell', className: 'hy-bar-list__cell hy-bar-list__cell--value' },
+            return h('tr', { key: it.key || it.label, className: cx('hy-bar-list__item', 'hy-bar-list__tr', target && 'hy-bar-list__tr--open') },
+              h('th', { scope: 'row', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, target || label),
+              h('td', { className: 'hy-bar-list__cell hy-bar-list__cell--value' }, h('div', { className: 'hy-bar-list__valuebox' },
                 h('span', { className: 'hy-bar-list__bar', 'aria-hidden': 'true' }, fillOf(it)),
-                h('span', { className: 'hy-bar-list__value' }, format(it.value), props.unit ? h('span', { className: 'hy-sr' }, ' ' + props.unit) : null)),
-              cols.map(function (c) { return cell(c, 'cell', it.columns ? it.columns[c.key] : null); }));
-          }));
+                h('span', { className: 'hy-bar-list__value' }, format(it.value), props.unit ? h('span', { className: 'hy-sr' }, ' ' + props.unit) : null))),
+              cols.map(function (c) { return figure(c, 'td', it.columns ? it.columns[c.key] : null); }));
+          })));
       }
 
       return h('ul', Object.assign({}, rest, { className: cx('hy-bar-list', props.mono && 'hy-bar-list--mono', props.className), role: 'list' }),
@@ -6400,6 +6419,15 @@
     function ccOpenColumnName(datum, series, fmt) { return 'Open ' + ccColumnName(datum, series, fmt); }
     /* "Open Oct 28 canceled: 1" */
     function ccOpenMarkName(datum, s, fmt) { return 'Open ' + datum.label + ' ' + s.label + ': ' + fmt(ccValue(datum, s)); }
+    /* The column that Right, Left, Home and End lead to from column `i` of `n`, or null for any other key. */
+    function ccStepTo(key, i, n) {
+      return key === 'ArrowRight' ? Math.min(n - 1, i + 1) : key === 'ArrowLeft' ? Math.max(0, i - 1) : key === 'Home' ? 0 : key === 'End' ? n - 1 : null;
+    }
+    /* The series keys of a column's marks that can open: a non-zero value whose own target exists, with two or more series. */
+    function ccOpenMarks(props, series, datum) {
+      if (series.length < 2) return [];
+      return series.filter(function (s) { return ccValue(datum, s) && ccTarget(props, datum, s.key); }).map(function (s) { return s.key; });
+    }
     /* A mark drawn under 8px isn't a separate pointer target: a click there opens the column. */
     var CC_MIN_MARK = 8;
     function ccMarkPointer(height) { return height >= CC_MIN_MARK; }
@@ -6434,7 +6462,7 @@
       var n = data.length;
       /* Marks are only separate targets when there is more than one series to tell apart. */
       var marksOn = series.length >= 2;
-      var anyOpen = data.some(function (d) { return ccTarget(props, d); });
+      var anyOpen = data.some(function (d) { return ccTarget(props, d) || ccOpenMarks(props, series, d).length; });
       var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d); }))));
       var max = ticks[ticks.length - 1];
       var active = hovered !== null ? hovered : focused;
@@ -6477,29 +6505,22 @@
           : h('button', Object.assign({ type: 'button', onClick: onClick }, attrs), children);
       }
       function onKeyDown(e) {
-        var mark = e.target.getAttribute && e.target.getAttribute('data-mark');
-        if (mark !== null && mark !== undefined) {
-          /* On a mark: Up and Down walk the column's marks, Left and Right and Home and End go to a column. */
-          var col = Number(e.target.getAttribute('data-col'));
-          var marks = Array.prototype.slice.call(e.target.parentNode.querySelectorAll('[data-mark]'));
-          var at = marks.indexOf(e.target);
-          if (e.key === 'ArrowUp') { e.preventDefault(); if (marks[at + 1]) marks[at + 1].focus(); return; }
-          if (e.key === 'ArrowDown') { e.preventDefault(); if (at > 0) marks[at - 1].focus(); else focusColumn(col); return; }
-          var go = e.key === 'ArrowRight' ? Math.min(n - 1, col + 1) : e.key === 'ArrowLeft' ? Math.max(0, col - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
-          if (go === null) return;
-          e.preventDefault();
-          focusColumn(go);
-          return;
-        }
-        var raw = e.target.getAttribute && e.target.getAttribute('data-index');
+        var attr = function (name) { return e.target.getAttribute && e.target.getAttribute(name); };
+        var mark = attr('data-mark'), raw = mark !== null && mark !== undefined ? attr('data-col') : attr('data-index');
         if (raw === null || raw === undefined) return;
         var i = Number(raw);
-        if (e.key === 'ArrowUp') {
-          var first = e.target.parentNode.querySelector('[data-mark]');
-          if (first) { e.preventDefault(); first.focus(); }
+        var slot = e.target.closest('.hy-column-chart__slot');
+        var marks = slot ? Array.prototype.slice.call(slot.querySelectorAll('[data-mark]')) : [];
+        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+          /* Up goes from a column into its marks, bottom to top, and Down comes back down to the column. */
+          var at = mark !== null && mark !== undefined ? marks.indexOf(e.target) : -1;
+          var next = e.key === 'ArrowUp' ? marks[at + 1] : at > 0 ? marks[at - 1] : null;
+          if (next) { e.preventDefault(); next.focus(); }
+          else if (e.key === 'ArrowDown' && at === 0) { e.preventDefault(); focusColumn(i); }
+          else if (e.key === 'ArrowUp' && at >= 0) e.preventDefault();
           return;
         }
-        var to = e.key === 'ArrowRight' ? Math.min(n - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+        var to = ccStepTo(e.key, i, n);
         if (to === null) return;
         e.preventDefault();
         focusColumn(to);
@@ -6546,7 +6567,7 @@
             return h('span', { key: 'g' + t, className: cx('hy-column-chart__grid', i === 0 && 'is-baseline'), style: { bottom: (t / max * 100) + '%' }, 'aria-hidden': 'true' });
           }),
           h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
-            var target = ccTarget(props, d);
+            var target = ccTarget(props, d), markKeys = ccOpenMarks(props, series, d);
             var segs = ccSegments(series, d, max, height);
             var visual = h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, segs.map(function (g) {
               return h('span', {
@@ -6556,7 +6577,7 @@
             }));
             var enter = function () { setHovered(i); }, leave = function () { setHovered(null); };
             var focusIn = function () { setFocused(i); setRovingIndex(i); }, focusOut = function () { setFocused(null); };
-            if (!target) {
+            if (!target && !markKeys.length) {
               return h('div', {
                 key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
                 'aria-label': ccColumnName(d, series, fmt),
@@ -6564,9 +6585,10 @@
                 onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
               }, visual);
             }
-            /* An openable column: the slot wraps the picture, a full-slot link or button, and a layer of mark targets. */
-            var marks = marksOn ? segs.map(function (g) {
-              var s = series.filter(function (x) { return x.key === g.key; })[0], t = ccTarget(props, d, g.key);
+            /* An openable column or mark: the slot wraps the picture, a full-slot link or button (a plain image when only marks
+               open) and a layer of mark targets. */
+            var marks = markKeys.length ? segs.map(function (g) {
+              var s = series.filter(function (x) { return x.key === g.key; })[0], t = markKeys.indexOf(g.key) >= 0 ? ccTarget(props, d, g.key) : null;
               if (!t) return null;
               return openEl(t, {
                 key: g.key, 'data-col': i, 'data-mark': g.key, tabIndex: -1, 'aria-label': ccOpenMarkName(d, s, fmt),
@@ -6578,7 +6600,9 @@
               onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
             },
               visual,
-              openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d),
+              target
+                ? openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d)
+                : h('div', { role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccColumnName(d, series, fmt), className: 'hy-column-chart__open is-static' }),
               marks ? h('div', { className: 'hy-column-chart__marks' }, marks) : null);
           }))),
         h('div', { className: 'hy-column-chart__xaxis', 'aria-hidden': 'true' }, data.map(function (d, i) {
@@ -7213,6 +7237,15 @@
       var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
       return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
     }
+    function mvMonthStart(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+    function mvToneClass(tone) { return 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(tone) >= 0 ? tone : 'none'); }
+    /* Page Up/Down: the shown month moves by n, whatever month the focused day belongs to (a leading or trailing day does not),
+       and focus lands on the same day number, clamped to the new month's length. */
+    function mvPage(month, focus, n) {
+      var next = mvMonthStart(mvAddMonths(mvMonthStart(month), n));
+      var last = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+      return { month: next, focus: new Date(next.getFullYear(), next.getMonth(), Math.min(focus.getDate(), last)) };
+    }
     function mvStart(first) { return ((Math.floor(+first) || 0) % 7 + 7) % 7; }
 
     /* The weeks shown for `month`: rows of seven { date, inMonth }, from the week start on or before the 1st to the end of the
@@ -7233,7 +7266,8 @@
       }
       return out;
     }
-    /* Seven dates, one per weekday, starting at firstDayOfWeek, for the column headers. */
+    /* Seven dates, one per weekday, starting at firstDayOfWeek, for the column headers. 7 January 2024 is a Sunday, so adding
+       the week start to its date gives the weekday that starts the row. */
     function mvWeekdays(firstDayOfWeek) {
       var s = mvStart(firstDayOfWeek), out = [];
       for (var i = 0; i < 7; i++) out.push(new Date(2024, 0, 7 + s + i));
@@ -7260,10 +7294,10 @@
 
     function mvEntry(e, tab, onActivate) {
       var cls = 'hy-month-view__entry';
-      var mark = h('span', { className: 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(e.tone) >= 0 ? e.tone : 'none'), 'aria-hidden': 'true' });
+      var mark = h('span', { className: mvToneClass(e.tone), 'aria-hidden': 'true' });
       var body = [mark, h('span', { className: 'hy-month-view__entry-label' }, e.label)];
-      if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function () { e.onOpen(); } : undefined }, body);
-      if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function () { e.onOpen(); } }, body);
+      if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function (ev) { e.onOpen(ev); } : undefined }, body);
+      if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function (ev) { e.onOpen(ev); } }, body);
       return h('span', { className: cls }, body);
     }
 
@@ -7282,7 +7316,7 @@
       var max = props.maxPerDay != null ? props.maxPerDay : 3;
 
       var ms = useControllable(props.month, props.defaultMonth !== undefined ? props.defaultMonth : new Date(), props.onMonthChange);
-      var month = new Date(ms[0].getFullYear(), ms[0].getMonth(), 1);
+      var month = mvMonthStart(ms[0]);
       var setMonth = ms[1];
       var ss = useControllable(props.selectedDate, props.defaultSelectedDate !== undefined ? props.defaultSelectedDate : null, props.onSelectedDateChange);
       var selected = ss[0] ? mvDay(ss[0]) : null;
@@ -7296,10 +7330,15 @@
       useLayoutEffect(function () {
         var el = root.current;
         if (!el) return;
-        function measure() { setNarrow(el.clientWidth > 0 && el.clientWidth < MV_NARROW); }
+        /* The one source of "narrow": the content-box width (padding excluded), also what the styles key on via .is-narrow. */
+        function set(width) { setNarrow(width > 0 && width < MV_NARROW); }
+        function measure() {
+          var cs = getComputedStyle(el);
+          set(el.getBoundingClientRect().width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - (parseFloat(cs.borderLeftWidth) || 0) - (parseFloat(cs.borderRightWidth) || 0));
+        }
         measure();
         if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure); return function () { window.removeEventListener('resize', measure); }; }
-        var ro = new ResizeObserver(measure);
+        var ro = new ResizeObserver(function (entries) { set(entries[0].contentRect.width); });
         ro.observe(el);
         return function () { ro.disconnect(); };
       }, []);
@@ -7327,7 +7366,7 @@
         if (el) { el.focus(); return; }
         /* Off the drawn weeks: change the month and focus the day once it is drawn. */
         pending.current = d;
-        setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+        setMonth(mvMonthStart(d));
       }
       function shift(n) { setMonth(mvAddMonths(month, n)); }
       function activate(d) {
@@ -7351,11 +7390,11 @@
         else if (k === 'Home') to = mvAddDays(d, -col);
         else if (k === 'End') to = mvAddDays(d, 6 - col);
         else if (k === 'PageUp' || k === 'PageDown') {
-          to = mvAddMonths(d, k === 'PageUp' ? -1 : 1);
+          var page = mvPage(month, d, k === 'PageUp' ? -1 : 1);
           e.preventDefault();
-          pending.current = to;
-          setFocus(to);
-          setMonth(new Date(to.getFullYear(), to.getMonth(), 1));
+          pending.current = page.focus;
+          setFocus(page.focus);
+          setMonth(page.month);
           return;
         }
         else if (k === 'Enter' || k === ' ') { e.preventDefault(); activate(d); return; }
@@ -7400,7 +7439,7 @@
                 'aria-label': '+' + v.more + ' more, ' + fmt.full.format(d), onClick: function () { if (props.onDayOpen) props.onDayOpen(d); }
               }, '+' + v.more + ' more')) : null) : null,
             list.length ? h('span', { className: 'hy-month-view__dots', 'aria-hidden': 'true' }, list.slice(0, 3).map(function (e) {
-              return h('span', { key: e.key, className: 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(e.tone) >= 0 ? e.tone : 'none') });
+              return h('span', { key: e.key, className: mvToneClass(e.tone) });
             })) : null);
         }));
       });
@@ -7408,7 +7447,7 @@
       var below = null;
       if (narrow) {
         var sel = selected ? (byDay[mvKey(selected)] || []) : [];
-        below = h('div', { className: 'hy-month-view__list', 'aria-live': 'polite' },
+        below = h('div', { className: 'hy-month-view__list' },
           selected ? h('h3', { className: 'hy-month-view__list-title' }, fmt.full.format(selected)) : null,
           selected ? (sel.length ? h('ul', { className: 'hy-month-view__list-entries' }, sel.map(function (e) {
             return h('li', { key: e.key }, mvEntry(e, true));
@@ -7423,7 +7462,7 @@
             h('div', { className: 'hy-month-view__nav' },
               h(HY.Button, { variant: 'tertiary', size: 'small', 'aria-label': 'Previous Month', onClick: function () { shift(-1); } }, h(HY.Icon, { name: 'chevron-left', size: 16 })),
               h(HY.Button, { variant: 'tertiary', size: 'small', 'aria-label': 'Next Month', onClick: function () { shift(1); } }, h(HY.Icon, { name: 'chevron-right', size: 16 })),
-              h(HY.Button, { variant: 'secondary', size: 'small', onClick: function () { setFocus(today); setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); } }, 'Today'))),
+              h(HY.Button, { variant: 'secondary', size: 'small', onClick: function () { setFocus(today); setMonth(mvMonthStart(today)); } }, 'Today'))),
           h('div', { ref: grid, role: 'grid', className: 'hy-month-view__grid', 'aria-label': gridName, onKeyDown: onKeyDown },
             h('div', { role: 'row', className: 'hy-month-view__week hy-month-view__week--head' }, heads),
             rows),
@@ -9129,9 +9168,10 @@
       var tipStyle = null;
       if (pos) tipStyle = side === 'top' || side === 'bottom' ? { left: pos.arrowX - 7 } : { top: pos.arrowY - 3.5 };
       var child = props.children;
+      var describedby = open && props.describe !== false ? id : undefined;
       var trigger = React.isValidElement(child) && React.Children.count(child) === 1
-        ? React.cloneElement(child, { 'aria-describedby': open ? id : undefined })
-        : h('span', { tabIndex: 0, className: 'hy-tooltip__text', 'aria-describedby': open ? id : undefined }, child);
+        ? React.cloneElement(child, { 'aria-describedby': describedby })
+        : h('span', { tabIndex: 0, className: 'hy-tooltip__text', 'aria-describedby': describedby }, child);
       return h('span', { ref: anchorRef, className: cx('hy-tooltip', props.className), onPointerDown: onPointerDown, onMouseEnter: onEnter, onMouseLeave: onLeave, onFocus: onFocus, onBlur: hide, onKeyDown: onKey },
         trigger,
         open ? portal(h('span', {
@@ -9319,14 +9359,14 @@
   (function () {
     /*
      * Pane: one region of a screen. A column that fills its container's height: an optional header and footer that never
-     * scroll, and a body that is the pane's own scroll container (a focusable region, named by `label`). A sticky
+     * scroll, and a body that is the pane's own scroll container (a focusable region named by `label`; without a label it is neither a Tab stop nor a region). A sticky
      * ActionBar placed at the end of the body stays at the pane's foot.
      */
     function Pane(props) {
       var label = props.label;
       return h('div', { className: cx('hy-pane', props.className), style: props.style },
         props.header ? h('div', { className: 'hy-pane__header' }, props.header) : null,
-        h('div', { className: 'hy-pane__body', tabIndex: 0, role: label ? 'region' : undefined, 'aria-label': label || undefined }, props.children),
+        h('div', { className: 'hy-pane__body', tabIndex: label ? 0 : undefined, role: label ? 'region' : undefined, 'aria-label': label || undefined }, props.children),
         props.footer ? h('div', { className: 'hy-pane__footer' }, props.footer) : null);
     }
 

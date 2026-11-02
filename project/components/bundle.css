@@ -1531,11 +1531,15 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
   border-bottom: 1px solid var(--gray-alpha-400);
 }
 @media (min-width: 640px) { .hy-titlebar--hide-sm { display: none; } }
-/* Two equal side columns keep the title centred whichever side has content; the title shrinks (and truncates) before they do. */
-.hy-titlebar__bar { display: grid; grid-template-columns: 1fr minmax(0, auto) 1fr; align-items: center; gap: 8px; min-height: 52px; }
-.hy-titlebar__bar > :not(.hy-titlebar__title) { display: flex; align-items: center; gap: 4px; }
+/* The side columns are equal (each slot holds a hidden mirror of the other), so the title is centred whichever side has content, and truncates symmetrically. */
+.hy-titlebar__bar { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 8px; min-height: 52px; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) { display: grid; align-items: center; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) > * { grid-area: 1 / 1; display: flex; align-items: center; gap: 4px; }
+.hy-titlebar__mirror { visibility: hidden; pointer-events: none; }
 .hy-titlebar__leading { justify-self: start; }
+.hy-titlebar__leading > * { justify-self: start; }
 .hy-titlebar__trailing { justify-self: end; }
+.hy-titlebar__trailing > * { justify-self: end; }
 .hy-titlebar__title {
   min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
   color: var(--gray-1000); font-size: 16px; line-height: 24px; font-weight: 600;
@@ -1626,7 +1630,8 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 /* Toggle chip: pressed has a heavier ring, a tint and a check, so it never relies on colour alone. */
 .hy-pill--toggle.is-pressed { background: var(--gray-alpha-100); box-shadow: inset 0 0 0 1px var(--gray-1000); }
 button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
-/* State dot: StatusDot draws 10px, so the slot scales it to the pill (8 / 10 / 12px) and centres it on the label. */
+/* State dot: StatusDot has no size prop, so Pill sizes its dot from outside, through `.hy-status__dot` and `.hy-status__ring`.
+   A change to StatusDot's dot classes needs these rules updated. StatusDot draws 10px, so the slot scales it to the pill (8 / 10 / 12px) and centres it on the label. */
 .hy-pill__status { display: inline-flex; flex: none; align-items: center; margin-left: -2px; line-height: 0; --hy-pill-dot: 10px; }
 .hy-pill__status .hy-status { display: inline-flex; gap: 0; line-height: 0; }
 .hy-pill__status .hy-status__dot { width: var(--hy-pill-dot); height: var(--hy-pill-dot); }
@@ -1674,8 +1679,11 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
   /* In the flow at the end of the content, and held at the foot of the scroll container while there is more above it.
      --tab-bar-height already includes the safe area while a TabBar is mounted; without one the safe area raises the bar. */
   position: sticky; z-index: 1; box-sizing: border-box;
-  bottom: calc(max(var(--tab-bar-height, 0px), env(safe-area-inset-bottom, 0px)) + var(--hy-action-bar-gap));
-  margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) 0;
+  --hy-action-bar-offset: calc(max(var(--tab-bar-height, 0px), env(safe-area-inset-bottom, 0px)) + var(--hy-action-bar-gap));
+  bottom: var(--hy-action-bar-offset);
+  /* The bottom margin leaves the same room below the bar in the flow, so at the end of the scroll the bar already sits at
+     its sticky offset and doesn't ride up over the last row. */
+  margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) var(--hy-action-bar-offset);
   pointer-events: none; font-family: var(--font-sans);
 }
 .hy-action-bar__surface {
@@ -2160,21 +2168,13 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-entity.is-current { background-color: var(--gray-alpha-100); box-shadow: inset 2px 0 0 var(--gray-1000); }
 .hy-entity-list > .hy-entity + .hy-entity.is-current { box-shadow: inset 2px 0 0 var(--gray-1000), inset 0 1px 0 var(--gray-alpha-400); }
 
-/* detail: an expandable row. The row is one button; the detail region sits under it inside the same item. */
+/* detail: an expandable row. The row has a stretched cover button, as as="button" does; the detail region sits under it inside the same item. */
 .hy-entity-item { position: relative; min-width: 0; list-style: none; color: var(--gray-1000); }
 .hy-entity-list > .hy-entity + .hy-entity-item::before, .hy-entity-list > .hy-entity-item + .hy-entity::before, .hy-entity-list > .hy-entity-item + .hy-entity-item::before {
   content: ''; position: absolute; z-index: 1; top: 0; left: 0; right: 0; height: 1px; background: var(--gray-alpha-400); pointer-events: none;
 }
-.hy-entity--expandable { padding: 0; }
-.hy-entity__toggle {
-  display: flex; align-items: center; gap: 16px; flex: 1 1 auto; width: 100%; min-width: 0; margin: 0; padding: 16px; border: 0; border-radius: inherit;
-  background: transparent; font: inherit; text-align: start; color: inherit; cursor: pointer;
-  transition: background-color .15s cubic-bezier(.4,0,.2,1);
-}
-.hy-entity__toggle:hover { background-color: var(--gray-alpha-100); }
-.hy-entity__toggle:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
-.hy-entity__toggle:disabled { cursor: not-allowed; }
-.hy-entity__chev { display: grid; flex: none; color: var(--gray-900); transform: rotate(-90deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
+.hy-entity--expandable > .hy-entity__right { pointer-events: none; }
+.hy-entity__chev { display: grid; position: relative; pointer-events: none; flex: none; color: var(--gray-900); transform: rotate(-90deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
 .hy-entity-item.is-open .hy-entity__chev { transform: none; }
 /* Opening and closing move only transform and opacity. display flips at the end of the close (allow-discrete); a browser without it just snaps. */
 .hy-entity__detail {
@@ -2204,7 +2204,7 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 }
 .hy-entity.is-drop-after::after, .hy-entity-item.is-drop-after::after { top: auto; bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .hy-entity__chev, .hy-entity__toggle, .hy-entity__detail, .hy-entity__handle, .hy-entity.is-dragging, .hy-entity-item.is-dragging { transition: none; }
+  .hy-entity__chev, .hy-entity__cover, .hy-entity__detail, .hy-entity__handle, .hy-entity.is-dragging, .hy-entity-item.is-dragging { transition: none; }
 }
 
 /* ---------- Icon ---------- */
@@ -2409,23 +2409,35 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-bar-list__row--button:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-bar-list__row--link { cursor: pointer; }
 
-/* Columns: an ARIA table of div rows. Every row shares --hy-bar-list-cols, so the figures line up under their headers. The
-   bar and value share one cell. A hidden column's cells are visually hidden, so assistive tech still reads them. */
-.hy-bar-list--table { display: block; }
-.hy-bar-list__head { position: relative; display: grid; grid-template-columns: var(--hy-bar-list-cols); align-items: center; column-gap: 12px; padding: 0 8px; height: 32px; box-sizing: border-box; font-size: 13px; line-height: 20px; color: var(--gray-900); font-weight: 500; }
-.hy-bar-list--table .hy-bar-list__row { position: relative; grid-template-columns: var(--hy-bar-list-cols); }
-.hy-bar-list--table .hy-bar-list__cell { min-width: 0; }
-.hy-bar-list__cell--value { display: flex; align-items: center; gap: 12px; }
-.hy-bar-list__head .hy-bar-list__cell--value { justify-content: flex-end; }
-.hy-bar-list__cell--value .hy-bar-list__bar { flex: 1 1 0; }
-.hy-bar-list__cell--value .hy-bar-list__value { flex: none; }
-.hy-bar-list__cell--figure { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; color: var(--gray-900); }
-.hy-bar-list__cell.is-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+/* Columns: a native table. Extra columns size to their content and right-align in tabular numbers, so figures line up under
+   their headers. The label column takes a third of the width and truncates, the bar and value the rest. A hidden column
+   collapses to nothing but keeps its cells in the table, so assistive tech still reads them. */
+.hy-bar-list--table { display: table; width: 100%; border-collapse: collapse; table-layout: auto; font-size: 14px; line-height: 20px; color: var(--gray-1000); }
+.hy-bar-list__head { height: 32px; font-size: 13px; color: var(--gray-900); font-weight: 500; }
+.hy-bar-list--table th { font-weight: inherit; text-align: left; }
+.hy-bar-list__cell { padding: 0 6px; min-width: 0; }
+.hy-bar-list__cell:first-child { padding-left: 8px; }
+.hy-bar-list__cell:last-child { padding-right: 8px; }
+.hy-bar-list--table .hy-bar-list__tr { position: relative; height: 36px; }
+.hy-bar-list--table .hy-bar-list__tr:hover .hy-bar-list__cell { background: var(--gray-100); }
+.hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.hy-bar-list__cell--label { width: 33%; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-bar-list__cell--value { width: 67%; }
+.hy-bar-list__valuebox { display: flex; align-items: center; gap: 12px; }
+.hy-bar-list__valuebox .hy-bar-list__bar { flex: 1 1 0; min-width: 80px; }
+.hy-bar-list__valuebox .hy-bar-list__value { flex: none; min-width: 6ch; }
+.hy-bar-list__head .hy-bar-list__cell--value { text-align: right; }
+.hy-bar-list__cell--figure { width: 1%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+.hy-bar-list--table .hy-bar-list__cell--figure.is-hidden { width: 0; max-width: 0; padding: 0; overflow: hidden; clip-path: inset(50%); }
 /* The whole row is the target: the link or button in the label cell stretches over the row. */
-.hy-bar-list__target { display: block; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.hy-bar-list__target { display: block; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; text-decoration: none; cursor: pointer; overflow: hidden; text-overflow: ellipsis; }
 .hy-bar-list__target::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-md); }
 .hy-bar-list__target:focus { outline: none; }
 .hy-bar-list__target:focus-visible::after { outline: 2px solid var(--focus-color); outline-offset: 0; }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-bar-list--table .hy-bar-list__tr { height: var(--touch-target); }
+}
 
 /* ---------- ColumnChart ---------- */
 .hy-column-chart { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; width: 100%; font-family: var(--font-sans); }
@@ -2490,6 +2502,7 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-column-chart__body--open { overflow-x: auto; }
 .hy-column-chart__slot--open { min-width: 24px; }
 .hy-column-chart__open { position: absolute; inset: 0; z-index: 1; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.hy-column-chart__open.is-static { cursor: default; }
 .hy-column-chart__open:focus { outline: none; }
 .hy-column-chart__open:focus-visible, .hy-column-chart__mark:focus-visible, .hy-column-chart__tablelink:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-column-chart__marks { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 2; margin: 0 auto; width: 24px; max-width: 100%; pointer-events: none; }
@@ -2666,14 +2679,14 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 }
 
 /* ---------- MonthView ---------- */
-/* The component is its own container, so the narrow form follows its width, not the viewport's. */
-.hy-month-view { container-type: inline-size; width: 100%; min-width: 0; font-family: var(--font-sans); color: var(--gray-1000); }
+/* The narrow form follows the component's own content width, not the viewport's: the component sets .is-narrow below 640px (sm). */
+.hy-month-view { width: 100%; min-width: 0; font-family: var(--font-sans); color: var(--gray-1000); }
 .hy-month-view__inner { display: flex; flex-direction: column; gap: 12px; }
 .hy-month-view__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .hy-month-view__title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
 .hy-month-view__nav { display: flex; align-items: center; gap: 4px; }
 
-.hy-month-view__grid { border: 1px solid var(--gray-alpha-400); border-radius: 8px; overflow: hidden; background: var(--background-100); }
+.hy-month-view__grid { border: 1px solid var(--gray-alpha-400); border-radius: var(--radius-lg); overflow: hidden; background: var(--background-100); }
 .hy-month-view__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
 .hy-month-view__week + .hy-month-view__week { border-top: 1px solid var(--gray-alpha-200); }
 .hy-month-view__head { padding: 6px 8px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); background: var(--gray-100); }
@@ -2689,7 +2702,7 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-month-view__day.is-outside .hy-month-view__entry, .hy-month-view__day.is-outside .hy-month-view__more { color: var(--gray-900); }
 .hy-month-view__num {
   align-self: flex-start; min-width: 24px; height: 24px; padding: 0 4px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
-  font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums; border-radius: 12px;
+  font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums; border-radius: var(--radius-full);
 }
 /* Today: a ring and heavier digits, so the mark doesn't depend on colour. */
 .hy-month-view__day.is-today .hy-month-view__num { font-weight: 700; box-shadow: inset 0 0 0 2px var(--gray-1000); }
@@ -2700,7 +2713,7 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-month-view__entries li, .hy-month-view__list-entries li { min-width: 0; }
 .hy-month-view__entry, .hy-month-view__more {
   display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; min-height: 24px; box-sizing: border-box; padding: 0 4px; margin: 0;
-  border: 0; border-radius: 4px; background: transparent; font: inherit; font-size: 13px; line-height: 20px; color: var(--gray-1000); text-align: left; text-decoration: none;
+  border: 0; border-radius: var(--radius-sm); background: transparent; font: inherit; font-size: 13px; line-height: 20px; color: var(--gray-1000); text-align: left; text-decoration: none;
 }
 .hy-month-view__entry.is-link, .hy-month-view__entry.is-button, .hy-month-view__more { cursor: pointer; transition: background-color .15s; }
 .hy-month-view__entry.is-link:hover, .hy-month-view__entry.is-button:hover, .hy-month-view__more:hover { background: var(--gray-alpha-200); }
@@ -2710,7 +2723,7 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-month-view__more { color: var(--gray-900); font-weight: 500; }
 
 /* Tones are Progress's segment colours. */
-.hy-month-view__mark { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--hy-mark, var(--gray-700)); }
+.hy-month-view__mark { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--hy-mark, var(--gray-700)); }
 .hy-month-view__mark--none { display: none; }
 .hy-month-view__mark--success { --hy-mark: var(--green-700); }
 .hy-month-view__mark--info { --hy-mark: var(--blue-700); }
@@ -2726,13 +2739,11 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-month-view__list .hy-month-view__entry { min-height: var(--touch-target); padding: 0 8px; font-size: 14px; }
 
 /* Narrow (the sm width): days shrink to a number and up to three dots; the entries go to the list below the grid. */
-@container (max-width: 639px) {
-  .hy-month-view__head { padding: 6px 2px; text-align: center; }
-  .hy-month-view__day { align-items: center; min-height: var(--touch-target); padding: 4px 2px; gap: 2px; }
-  .hy-month-view__num { align-self: center; }
-  .hy-month-view__entries { display: none; }
-  .hy-month-view__dots { display: flex; gap: 3px; height: 8px; }
-}
+.is-narrow .hy-month-view__head { padding: 6px 2px; text-align: center; }
+.is-narrow .hy-month-view__day { align-items: center; min-height: var(--touch-target); padding: 4px 2px; gap: 2px; }
+.is-narrow .hy-month-view__num { align-self: center; }
+.is-narrow .hy-month-view__entries { display: none; }
+.is-narrow .hy-month-view__dots { display: flex; gap: 3px; height: 8px; }
 @media (prefers-reduced-motion: reduce) {
   .hy-month-view__entry, .hy-month-view__more { transition-duration: 0s; }
 }
