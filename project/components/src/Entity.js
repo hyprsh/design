@@ -76,6 +76,12 @@ function entityDomText(node) {
   return out.replace(/\s+/g, ' ').trim();
 }
 
+/* A row's default name: the Entity.Content title when it has one, else the whole left and content text. */
+function entityRowName(el) {
+  var t = el && el.querySelector ? el.querySelector('.hy-entity__title') : null;
+  return (t ? entityDomText(t) : '') || entityDomText(el);
+}
+
 /* The leading handle: a menu button named "Move {row name}". Drag it, press Alt+Up or Alt+Down on it, or open its menu. */
 function EntityHandle(props) {
   var rc = props.rc, i = rc.index, n = rc.count;
@@ -83,19 +89,19 @@ function EntityHandle(props) {
   var read = useState('');
   useLayoutEffect(function () {
     if (props.label != null) return;
-    var t = entityDomText(document.getElementById(props.labelId));
+    var t = entityRowName(document.getElementById(props.labelId));
     if (t !== read[0]) read[1](t);
   });
   var name = props.label != null ? props.label : read[0];
   var title = 'Move ' + (name || 'Row');
   var items = [['up', 'Move Up'], ['down', 'Move Down'], ['top', 'Move to Top'], ['bottom', 'Move to Bottom']].map(function (a) {
-    return h(HY.MenuItem, { key: a[0], disabled: reorderTarget(i, n, a[0]) === null, onSelect: function () { rc.act(a[0], name, ref.current); } }, a[1]);
+    return h(HY.MenuItem, { key: a[0], disabled: props.disabled || reorderTarget(i, n, a[0]) === null, onSelect: function () { rc.act(a[0], name, ref.current); } }, a[1]);
   });
   return h(HY.MenuContainer, { position: 'bottom-start', className: 'hy-entity__reorder' },
     h(HY.MenuButton, {
-      type: 'unstyled', ref: ref, className: 'hy-entity__handle', 'aria-label': title, 'aria-keyshortcuts': 'Alt+ArrowUp Alt+ArrowDown',
-      onKeyDown: function (e) { if (rc.key(e, name, e.currentTarget)) e.preventDefault(); },
-      onPointerDown: function (e) { if (e.button === 0) rc.startDrag(e, name); }
+      type: 'unstyled', ref: ref, className: 'hy-entity__handle', disabled: props.disabled, 'aria-label': title, 'aria-keyshortcuts': 'Alt+ArrowUp Alt+ArrowDown',
+      onKeyDown: function (e) { if (!props.disabled && rc.key(e, name, e.currentTarget)) e.preventDefault(); },
+      onPointerDown: function (e) { if (!props.disabled && e.button === 0) rc.startDrag(e, name); }
     },
       h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'currentColor', 'aria-hidden': 'true', focusable: 'false' },
         [5, 11].map(function (x) { return [3, 8, 13].map(function (y) { return h('circle', { key: x + '-' + y, cx: x, cy: y, r: 1.25 }); }); }))),
@@ -115,9 +121,10 @@ function reorderRow(rc, style) {
 
 function hasDetail(props) { return props.detail !== undefined && props.detail !== null && props.detail !== false; }
 
-/* An expandable row: item (<li> in a list) > div.hy-entity (the row) > button (left, right, chevron), then the detail region.
-   The row keeps current; the detail sits outside it, so the tint and marker don't spread. The detail is `hidden` while
-   collapsed, which also takes it out of the Tab order. */
+/* An expandable row: item (<li> in a list) > div.hy-entity (the row, with a stretched cover button like as="button") and the detail
+   region. The cover button is the disclosure button, named by the left and content; left and right hold content only. The row
+   keeps current; the detail sits outside it, so the tint and marker don't spread. The detail is `hidden` while collapsed, which
+   also takes it out of the Tab order. */
 function EntityExpandable(props) {
   var inList = React.useContext(EntityListContext);
   var rc = React.useContext(EntityRowContext);
@@ -130,22 +137,26 @@ function EntityExpandable(props) {
   var state = props.current ? { 'aria-current': 'true' } : {};
   var ro = reorderRow(rc, props.style);
   return h(tag, Object.assign(state, rest, ro.attrs, { className: cx('hy-entity-item', open && 'is-open', ro.cls, props.className) }),
-    h('div', { className: cx('hy-entity', 'hy-entity--expandable', props.current && 'is-current', props.disabled && 'hy-entity--disabled') },
-      rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel }) : null,
+    h('div', { className: cx('hy-entity', 'hy-entity--button', 'hy-entity--expandable', props.current && 'is-current', props.disabled && 'hy-entity--disabled') },
+      rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel, disabled: props.disabled }) : null,
       h('button', {
-        type: 'button', className: 'hy-entity__toggle', disabled: props.disabled,
+        type: 'button', className: 'hy-entity__cover', disabled: props.disabled,
         'aria-expanded': open, 'aria-controls': detailId, 'aria-labelledby': labelId,
         onClick: function (e) { if (props.onClick) props.onClick(e); ctl[1](!open); }
-      },
-        h('div', { id: labelId, className: cx('hy-entity__left', props.leftClassName) }, props.left, props.children),
-        props.right ? h('div', { className: cx('hy-entity__right', props.rightClassName) }, props.right) : null,
-        h('span', { className: 'hy-entity__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 16 })))),
-    h('div', { id: detailId, role: 'region', 'aria-labelledby': labelId, hidden: !open, className: 'hy-entity__detail' },
+      }),
+      h('div', { id: labelId, className: cx('hy-entity__left', props.leftClassName) }, props.left, props.children),
+      props.right ? h('div', { className: cx('hy-entity__right', props.rightClassName) }, props.right) : null,
+      h('span', { className: 'hy-entity__chev', 'aria-hidden': 'true' }, h(Glyph, { name: 'chevron', size: 16 }))),
+    h('div', { id: detailId, hidden: !open, className: 'hy-entity__detail' },
       h('div', { className: 'hy-entity__detail-body' }, props.detail)));
 }
 
+/* Entity has no hooks of its own, so `detail` can come and go on a mounted row: each form is its own component. */
 function Entity(props) {
-  if (hasDetail(props)) return h(EntityExpandable, props);
+  return h(hasDetail(props) ? EntityExpandable : EntityRow, props);
+}
+
+function EntityRow(props) {
   var inList = React.useContext(EntityListContext);
   var rc = React.useContext(EntityRowContext);
   var rowRef = useRef(null);
@@ -163,7 +174,7 @@ function Entity(props) {
   var state = props.current ? { 'aria-current': 'true' } : {};
   var ro = reorderRow(rc, props.style);
   return h(tag, Object.assign(state, rest, ro.attrs, { ref: rowRef, className: cx('hy-entity', asButton && 'hy-entity--button', props.current && 'is-current', props.disabled && 'hy-entity--disabled', ro.cls, props.className) }),
-    rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel }) : null,
+    rc ? h(EntityHandle, { rc: rc, labelId: labelId, label: props.reorderLabel, disabled: props.disabled }) : null,
     asButton ? h('button', {
       type: 'button', className: 'hy-entity__cover', onClick: props.onClick, disabled: props.disabled,
       'aria-labelledby': hasControls[0] ? undefined : labelId,
@@ -173,14 +184,23 @@ function Entity(props) {
     props.right ? h('div', { className: cx('hy-entity__right', props.rightClassName) }, props.right) : null);
 }
 
+/* The list's children as { el, key }, with a Fragment's children in its place (a Fragment of rows is rows, not one row). */
+function entityRows(children, prefix, out) {
+  React.Children.toArray(children).forEach(function (c) {
+    if (React.isValidElement(c) && c.type === React.Fragment) entityRows(c.props.children, prefix + c.key + '/', out);
+    else out.push({ el: c, key: prefix + (React.isValidElement(c) && c.key != null ? c.key : out.length) });
+  });
+  return out;
+}
+
 /* A list whose rows can be reordered. It never reorders itself: onReorder(from, to) tells the app, which moves the item in its
    data and re-renders the rows. A moved row's handle keeps focus: the keyed DOM move can drop it, so it is given back after the render. */
 function EntityReorderList(props) {
   var rest = omit(props, ['className', 'children', 'onReorder']);
   var ds = useState(null), drag = ds[0], setDrag = ds[1];
   var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
-  var rows = React.Children.toArray(props.children);
-  var count = rows.filter(React.isValidElement).length;
+  var rows = entityRows(props.children, '', []);
+  var count = rows.filter(function (r) { return React.isValidElement(r.el); }).length;
   var live = useRef({});
   var focusEl = useRef(null);
   live.current = { count: count, onReorder: props.onReorder };
@@ -200,7 +220,7 @@ function EntityReorderList(props) {
   });
 
   function startDrag(from, e, name) {
-    var handle = e.currentTarget, listEl = handle.closest('.hy-entity-list');
+    var handle = e.currentTarget, listEl = handle.closest('.hy-entity-list'), rowEl = handle.closest('[data-entity-index]');
     var x0 = e.clientX, y0 = e.clientY, active = false, done = false, target = null;
     function rowAt(ev) {
       var el = document.elementFromPoint(ev.clientX, ev.clientY);
@@ -211,6 +231,8 @@ function EntityReorderList(props) {
       if (!active) {
         if (!dragStarted(ev.clientX - x0, ev.clientY - y0)) return;
         active = true;
+        /* The dragged row is inert while it is carried; the handle gets focus back when it lands or the drag is cancelled. */
+        if (rowEl) rowEl.setAttribute('inert', '');
         if (window.getSelection) window.getSelection().removeAllRanges();
       }
       var over = rowAt(ev);
@@ -225,11 +247,13 @@ function EntityReorderList(props) {
       document.removeEventListener('pointercancel', cancel);
       document.removeEventListener('keydown', esc, true);
       if (active) {
+        if (rowEl) rowEl.removeAttribute('inert');
+        focusEl.current = handle;
         /* The release that ends a drag must not also open the handle's menu. */
         var swallow = function (ev) { ev.stopPropagation(); ev.preventDefault(); };
         document.addEventListener('click', swallow, true);
         setTimeout(function () { document.removeEventListener('click', swallow, true); }, 0);
-        if (commit && target != null) { focusEl.current = handle; editor.drop(from, target, name); }
+        if (commit && target != null) editor.drop(from, target, name);
       }
       setDrag(null);
     }
@@ -243,11 +267,12 @@ function EntityReorderList(props) {
   }
 
   var at = 0;
-  var wrapped = rows.map(function (child) {
+  var wrapped = rows.map(function (item) {
+    var child = item.el;
     if (!React.isValidElement(child)) return child;
     var index = at++;
     return h(EntityRowContext.Provider, {
-      key: child.key,
+      key: item.key,
       value: {
         index: index, count: count, drag: drag,
         act: function (action, name, el) { focusEl.current = el; editor.act(index, action, name); },

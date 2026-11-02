@@ -11,10 +11,11 @@ const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components
 const registry = {};
 let inList = false;
 let nextCtx = 0;
+let hooks = 0;
 let controlled; // what the stub useControllable sees as the stored state
 const calls = [];
 const context = vm.createContext({
-  React: { createContext: () => ({ Provider: 'Provider', n: nextCtx++ }), useContext: (c) => (c.n === 0 ? inList : null) },
+  React: { createContext: () => ({ Provider: 'Provider', n: nextCtx++ }), useContext: (c) => { hooks++; return c.n === 0 ? inList : null; } },
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),
@@ -56,22 +57,42 @@ describe('Entity detail', () => {
     assert.equal(b.props['aria-expanded'], false);
     const d = detailOf(r);
     assert.equal(b.props['aria-controls'], d.props.id);
-    assert.equal(d.props.role, 'region');
+    assert.equal(d.props.role, undefined);
+    assert.equal(d.props['aria-labelledby'], undefined);
+  });
+  it('uses a stretched cover button over a row of divs, so no block sits inside the button', () => {
+    const r = render({ detail: 'More', left: 'L', right: 'R', children: 'C' });
+    const b = toggle(r);
+    assert.ok(cls(b, 'hy-entity__cover'));
+    assert.deepEqual(b.children, []);
+    assert.equal(b.props.type, 'button');
+    const row = find(r, (n) => cls(n, 'hy-entity'))[0];
+    assert.ok(row.children.includes(b));
+    assert.equal(find(row, (n) => cls(n, 'hy-entity__left')).length, 1);
+    assert.equal(find(row, (n) => cls(n, 'hy-entity__right')).length, 1);
+  });
+  it('is a dispatcher with no hooks of its own, so detail can come and go on a mounted row', () => {
+    hooks = 0;
+    const a = registry.Entity({ detail: 'x' });
+    const b = registry.Entity({});
+    assert.equal(hooks, 0);
+    assert.notEqual(a.type, b.type);
+    assert.equal(typeof a.type, 'function');
+    assert.equal(typeof b.type, 'function');
   });
   it('names the button by the left and content, not the right', () => {
     const r = render({ detail: 'More', left: 'L', right: 'R' });
     const b = toggle(r);
     const labelled = find(r, (n) => n.props.id === b.props['aria-labelledby'])[0];
     assert.ok(cls(labelled, 'hy-entity__left'));
-    const right = find(b, (n) => cls(n, 'hy-entity__right'))[0];
+    const right = find(r, (n) => cls(n, 'hy-entity__right'))[0];
     assert.ok(right);
     assert.notEqual(right.props.id, b.props['aria-labelledby']);
   });
-  it('puts left, content and right inside the button', () => {
+  it('keeps the detail outside the row and its button', () => {
     const r = render({ detail: 'More', left: 'L', right: 'R', children: 'C' });
-    const b = toggle(r);
-    assert.ok(find(b, (n) => cls(n, 'hy-entity__left')).length === 1);
-    assert.ok(find(b, (n) => cls(n, 'hy-entity__right')).length === 1);
+    const row = find(r, (n) => cls(n, 'hy-entity'))[0];
+    assert.equal(find(row, (n) => cls(n, 'hy-entity__detail')).length, 0);
     assert.equal(find(detailOf(r), (n) => n.type === 'button').length, 0);
   });
   it('hides a collapsed detail (out of sight and the Tab order) and shows an open one', () => {
@@ -156,6 +177,6 @@ describe('Entity.css detail', () => {
     assert.match(m[0], /transition: none/);
   });
   it('gives the button a focus ring', () => {
-    assert.match(css, /\.hy-entity__toggle:focus-visible[^{]*\{[^}]*outline: 2px solid var\(--focus-color\)/);
+    assert.match(css, /\.hy-entity__cover:focus-visible/);
   });
 });

@@ -33,21 +33,13 @@
 .hy-entity.is-current { background-color: var(--gray-alpha-100); box-shadow: inset 2px 0 0 var(--gray-1000); }
 .hy-entity-list > .hy-entity + .hy-entity.is-current { box-shadow: inset 2px 0 0 var(--gray-1000), inset 0 1px 0 var(--gray-alpha-400); }
 
-/* detail: an expandable row. The row is one button; the detail region sits under it inside the same item. */
+/* detail: an expandable row. The row has a stretched cover button, as as="button" does; the detail region sits under it inside the same item. */
 .hy-entity-item { position: relative; min-width: 0; list-style: none; color: var(--gray-1000); }
 .hy-entity-list > .hy-entity + .hy-entity-item::before, .hy-entity-list > .hy-entity-item + .hy-entity::before, .hy-entity-list > .hy-entity-item + .hy-entity-item::before {
   content: ''; position: absolute; z-index: 1; top: 0; left: 0; right: 0; height: 1px; background: var(--gray-alpha-400); pointer-events: none;
 }
-.hy-entity--expandable { padding: 0; }
-.hy-entity__toggle {
-  display: flex; align-items: center; gap: 16px; flex: 1 1 auto; width: 100%; min-width: 0; margin: 0; padding: 16px; border: 0; border-radius: inherit;
-  background: transparent; font: inherit; text-align: start; color: inherit; cursor: pointer;
-  transition: background-color .15s cubic-bezier(.4,0,.2,1);
-}
-.hy-entity__toggle:hover { background-color: var(--gray-alpha-100); }
-.hy-entity__toggle:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
-.hy-entity__toggle:disabled { cursor: not-allowed; }
-.hy-entity__chev { display: grid; flex: none; color: var(--gray-900); transform: rotate(-90deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
+.hy-entity--expandable > .hy-entity__right { pointer-events: none; }
+.hy-entity__chev { display: grid; position: relative; pointer-events: none; flex: none; color: var(--gray-900); transform: rotate(-90deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
 .hy-entity-item.is-open .hy-entity__chev { transform: none; }
 /* Opening and closing move only transform and opacity. display flips at the end of the close (allow-discrete); a browser without it just snaps. */
 .hy-entity__detail {
@@ -77,5 +69,5 @@
 }
 .hy-entity.is-drop-after::after, .hy-entity-item.is-drop-after::after { top: auto; bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .hy-entity__chev, .hy-entity__toggle, .hy-entity__detail, .hy-entity__handle, .hy-entity.is-dragging, .hy-entity-item.is-dragging { transition: none; }
+  .hy-entity__chev, .hy-entity__cover, .hy-entity__detail, .hy-entity__handle, .hy-entity.is-dragging, .hy-entity-item.is-dragging { transition: none; }
 }

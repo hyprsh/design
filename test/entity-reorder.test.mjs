@@ -21,6 +21,7 @@ const context = vm.createContext({
     useContext: (c) => (c.n === 0 ? inList : rowCtx),
     Children: { toArray: (c) => [].concat(c || []).flat() },
     isValidElement: (x) => !!x && typeof x === 'object' && 'type' in x,
+    Fragment: 'Fragment',
   },
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
   cx: (...a) => a.filter(Boolean).join(' '),
@@ -35,7 +36,7 @@ const context = vm.createContext({
   define: (name, fn) => { registry[name] = fn; },
 });
 vm.runInContext(readFileSync(join(src, 'Entity.js'), 'utf8'), context, { filename: 'Entity.js' });
-const { entityStep, reorderTarget, reorderMessage, entityReorderEditor, entityDomText, dragStarted, dropSide, EntityHandle } = context;
+const { entityStep, reorderTarget, reorderMessage, entityReorderEditor, entityDomText, entityRowName, dragStarted, dropSide, EntityHandle } = context;
 
 const find = (node, pred, out = []) => {
   if (!node || typeof node !== 'object') return out;
@@ -172,7 +173,47 @@ describe('entityDomText (the row name)', () => {
   });
 });
 
+describe('entityRowName', () => {
+  const text = (s) => ({ nodeType: 3, textContent: s });
+  const el = (nodeName, children, attrs = {}) => {
+    const n = { nodeType: 1, nodeName, childNodes: children, getAttribute: (k) => attrs[k] ?? null };
+    n.querySelector = (sel) => {
+      const cls = sel.slice(1);
+      const walk = (x) => { for (const c of x.childNodes || []) { if (c.nodeType === 1 && c.cls === cls) return c; const f = walk(c); if (f) return f; } return null; };
+      return walk(n);
+    };
+    return n;
+  };
+  it('is the Entity.Content title when the row has one', () => {
+    const title = Object.assign(el('DIV', [text('4K')]), { cls: 'hy-entity__title' });
+    const desc = el('DIV', [text('3840 × 2160')]);
+    const left = el('DIV', [el('SPAN', [text('PT')]), el('DIV', [title, desc])]);
+    assert.equal(entityRowName(left), '4K');
+  });
+  it('is the left and content text when there is no title', () => {
+    const left = el('DIV', [el('SPAN', [text('PT')]), el('DIV', [text('Platform')])]);
+    assert.equal(entityRowName(left), 'PT Platform');
+  });
+  it('falls back to the whole text when the title is empty', () => {
+    const title = Object.assign(el('DIV', []), { cls: 'hy-entity__title' });
+    assert.equal(entityRowName(el('DIV', [text('x'), title])), 'x');
+  });
+});
+
 describe('EntityHandle', () => {
+  it('is disabled on a disabled row: no drag, no menu, no Alt+arrow moves', () => {
+    const seen = [];
+    const rc = { index: 1, count: 3, drag: null, act: () => seen.push('act'), key: () => { seen.push('key'); return true; }, startDrag: () => seen.push('drag') };
+    const r = EntityHandle({ labelId: 'l', rc, label: 'x', disabled: true });
+    const b = find(r, (n) => n.type === 'MenuButton')[0];
+    assert.equal(b.props.disabled, true);
+    let prevented = 0;
+    b.props.onKeyDown({ key: 'ArrowUp', altKey: true, currentTarget: {}, preventDefault() { prevented++; } });
+    b.props.onPointerDown({ button: 0 });
+    assert.deepEqual(seen, []);
+    assert.equal(prevented, 0);
+    assert.equal(find(r, (n) => n.type === 'MenuItem').every((n) => n.props.disabled), true);
+  });
   const rc = (over) => Object.assign({ index: 1, count: 3, drag: null, act() {}, key: () => false, startDrag() {} }, over);
   const render = (props) => EntityHandle(Object.assign({ labelId: 'l', rc: rc() }, props));
   const button = (r) => find(r, (n) => n.type === 'MenuButton')[0];
@@ -295,6 +336,13 @@ describe('Entity.List with onReorder', () => {
     assert.equal(live.props['aria-live'], 'polite');
     assert.equal(live.props['aria-atomic'], 'true');
     assert.ok(cls(live, 'hy-sr'));
+  });
+  it('counts the rows inside a Fragment as rows, not the Fragment as one', () => {
+    const frag = { type: 'Fragment', key: 'f', props: { children: rows(2) }, children: [] };
+    const r = list({ children: [rows(1)[0], frag, { ...rows(1)[0], key: 'z' }], onReorder() {} });
+    const wrapped = find(r, (n) => n.type === 'Provider' && n.props.value && typeof n.props.value === 'object' && 'index' in n.props.value);
+    assert.deepEqual(wrapped.map((n) => [n.props.value.index, n.props.value.count]), [[0, 4], [1, 4], [2, 4], [3, 4]]);
+    assert.equal(new Set(wrapped.map((n) => n.props.key)).size, 4);
   });
   it('counts rows only, not text between them', () => {
     const r = list({ children: ['\n', ...rows(2), null], onReorder() {} });

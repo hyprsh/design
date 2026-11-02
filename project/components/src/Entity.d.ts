@@ -10,14 +10,14 @@ export interface EntityProps extends Omit<React.HTMLAttributes<HTMLElement>, 'on
   disabled?: boolean;
   /** Marks the row that holds the keyboard cursor of a j/k list: sets `aria-current="true"` and draws the same tint and 2px marker as `TableRow current`. */
   current?: boolean;
-  /** Makes the row expandable: `left`, the content and `right` become one disclosure button (`aria-expanded`, `aria-controls`) that opens this region under the row, inside the same list item. The button is named by the left and content text. Put controls in the detail, not in `left` or `right`. `as="button"` is ignored. */
+  /** Makes the row expandable: the row becomes a disclosure button (a stretched cover button with `aria-expanded` and `aria-controls`) that opens this region under the row, inside the same list item. The button is named by the left and content text. Put controls in the detail, not in `left` or `right`. `as="button"` is ignored. */
   detail?: React.ReactNode;
   /** Controlled open state of the detail. */
   expanded?: boolean;
   /** Initial open state when uncontrolled. */
   defaultExpanded?: boolean;
   onExpandedChange?: (expanded: boolean) => void;
-  /** Inside an `Entity.List` with `onReorder`: the row name used in the drag handle's name ("Move {name}") and in the announcements. Default: the text of the row's left and content. */
+  /** Inside an `Entity.List` with `onReorder`: the row name used in the drag handle's name ("Move {name}") and in the announcements. Default: the `Entity.Content` title text, or the text of the row's left and content when there is no title. */
   reorderLabel?: string;
   leftClassName?: string;
   rightClassName?: string;
