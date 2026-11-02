@@ -13,7 +13,7 @@ A label and help text beside a control, with a changed mark, for the rows of a s
 - Use it for settings that sit in a list, one value per row. Use a plain Input with a `label` for a single field in a form.
 - Don't give the child its own `label` or `aria-label`: the row names it. Errors stay on the control, with its own `error` prop.
 - Keep labels in Title Case and help to one short sentence.
-- A Switch (a radio group) is named by the row's label through `aria-labelledby`, which the row sets unless the Switch has its own `aria-labelledby` or `aria-label`.
+- A Switch is named through `aria-labelledby`, because `<label for>` can't target its radio group `<div>`. The row sets it on any control that has no `label`, `aria-label` or `aria-labelledby` of its own, so an Input with its own `label` keeps it.
 
 ## Examples
 
