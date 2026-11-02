@@ -44,6 +44,16 @@ describe('TitleBar structure', () => {
     assert.equal(byClass(bar, 'hy-titlebar__trailing').length, 1);
     assert.equal(byClass(bar, 'hy-titlebar__title').length, 1);
   });
+  it('mirrors each side in the other as a hidden spacer, so both slots are as wide as the wider side', () => {
+    const action = { type: 'Button', props: { 'aria-label': 'Share' }, children: [] };
+    const bar = render({ back: {}, actions: action });
+    const mirrors = byClass(bar, 'hy-titlebar__mirror');
+    assert.equal(mirrors.length, 2);
+    for (const m of mirrors) assert.equal(m.props['aria-hidden'], 'true');
+    assert.ok(mirrors.some((m) => m.props.className.split(' ').includes('hy-titlebar__actions')), 'the mirrored actions are sized like the real ones');
+    assert.ok(all(byClass(bar, 'hy-titlebar__leading')[0]).includes(action), 'the actions are mirrored in the leading slot');
+    assert.ok(all(byClass(bar, 'hy-titlebar__trailing')[0]).some((n) => n.props.className === 'hy-titlebar__back'), 'the back button is mirrored in the trailing slot');
+  });
   it('renders the actions in the trailing slot', () => {
     const action = { type: 'Button', props: { 'aria-label': 'Share' }, children: [] };
     const trailing = byClass(render({ actions: action }), 'hy-titlebar__trailing')[0];
@@ -135,7 +145,7 @@ describe('TitleBar CSS', () => {
 
   describe('layout', () => {
     it('centres the title between two equal side columns', () => {
-      assert.match(rule('.hy-titlebar__bar'), /grid-template-columns:\s*1fr\s+minmax\(0,\s*auto\)\s+1fr/);
+      assert.match(rule('.hy-titlebar__bar'), /grid-template-columns:\s*max-content\s+minmax\(0,\s*1fr\)\s+max-content/);
     });
     it('truncates the title with an ellipsis', () => {
       const title = rule('.hy-titlebar__title');
@@ -143,6 +153,9 @@ describe('TitleBar CSS', () => {
       assert.match(title, /text-overflow:\s*ellipsis/);
       assert.match(title, /white-space:\s*nowrap/);
       assert.match(title, /text-align:\s*center/);
+    });
+    it('hides the mirrors but keeps their width', () => {
+      assert.match(rule('.hy-titlebar__mirror'), /visibility:\s*hidden/);
     });
     it('aligns the slots to their outer edges', () => {
       assert.match(rule('.hy-titlebar__leading'), /justify-self:\s*start/);
