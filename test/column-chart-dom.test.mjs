@@ -70,10 +70,11 @@ async function until(js, what) {
 const q = (sel) => JSON.stringify(sel);
 const count = (sel) => ev(`document.querySelectorAll(${q(sel)}).length`);
 const rectOf = (sel, nth = 0) => ev(`(function () { var r = document.querySelectorAll(${q(sel)})[${nth}].getBoundingClientRect(); return { x: r.x, y: r.y, w: r.width, h: r.height, r: r.right, b: r.bottom }; })()`);
-const KEYS = { ArrowRight: 39, ArrowLeft: 37, Home: 36, End: 35, Tab: 9, Enter: 13 };
+const KEYS = { ArrowRight: 39, ArrowLeft: 37, ArrowUp: 38, ArrowDown: 40, Home: 36, End: 35, Tab: 9, Enter: 13, ' ': 32 };
 async function press(key) {
   const p = { key, code: key, windowsVirtualKeyCode: KEYS[key] };
-  await chrome.send('Input.dispatchKeyEvent', { type: 'rawKeyDown', ...p });
+  const text = key === 'Enter' ? '\r' : key === ' ' ? ' ' : undefined;
+  await chrome.send('Input.dispatchKeyEvent', { type: text ? 'keyDown' : 'rawKeyDown', ...p, ...(text ? { text } : {}) });
   await chrome.send('Input.dispatchKeyEvent', { type: 'keyUp', ...p });
 }
 async function click(sel) {
@@ -293,6 +294,172 @@ describe('ColumnChart', { concurrency: false }, () => {
       for (let i = 1; i < labels.length; i++) assert.ok(labels[i][0] >= labels[i - 1][1], `label ${i} overlaps`);
       await mount(`chart({ data: ${many}.slice(0, 5) })`);
       assert.equal(await count('.hy-column-chart__xlabel'), 5);
+    });
+
+    describe('opening a column or a mark', () => {
+      // Oct 29 has three marks (33 ready, 3 canceled, 1 error) on a 0-40 scale at height 200: 165px, 15px and 5px.
+      const OPEN = `chart({ onOpen: function (d, k) { log.push(k ? d.label + '/' + k : d.label); } })`;
+      const COL = (i) => `.hy-column-chart__open[data-index="${i}"]`;
+      const MARK = (i, k) => `.hy-column-chart__mark[data-col="${i}"][data-mark="${k}"]`;
+      const clickAt = async (x, y) => {
+        await chrome.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+        await chrome.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+        await chrome.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+      };
+      const attr = (sel, a) => ev(`document.querySelector(${q(sel)}).getAttribute(${q(a)})`);
+      const activeAttr = (a) => ev(`document.activeElement.getAttribute(${q(a)})`);
+
+      it('renders a chart with neither prop exactly as before: images, no links or buttons, no open classes', async () => {
+        await mount('chart()');
+        assert.equal(await count(`${SLOT}[role="img"]`), 4);
+        assert.equal(await count('.hy-column-chart__plot a, .hy-column-chart__plot button, .hy-column-chart__table a, .hy-column-chart__table button'), 0);
+        assert.equal(await count('[class*="hy-column-chart__open"], [class*="--open"], .hy-column-chart__mark, .hy-column-chart__marks'), 0);
+        assert.equal(await ev(`document.querySelector(${q(SLOT)}).className`), 'hy-column-chart__slot');
+        assert.equal(await ev(`document.querySelector(${q(SLOT)}).children.length`), 1);
+        await mount(`chart({ onOpen: undefined, href: undefined })`);
+        assert.equal(await count(`${SLOT}[role="img"]`), 4);
+      });
+
+      it('makes each column a button named "Open ..." with onOpen, with a button per non-zero mark', async () => {
+        await mount(OPEN);
+        assert.equal(await count('button.hy-column-chart__open'), 4);
+        assert.equal(await count(`${SLOT}[role="img"]`), 0);
+        assert.deepEqual(await ev(`Array.from(document.querySelectorAll('button.hy-column-chart__open')).map(function (e) { return e.getAttribute('aria-label'); })`), [
+          'Open Oct 26: 4 ready, 0 canceled, 0 error', 'Open Oct 27: 6 ready, 1 canceled, 0 error', 'Open Oct 28: 25 ready, 1 canceled, 0 error', 'Open Oct 29: 33 ready, 3 canceled, 1 error']);
+        assert.deepEqual(await ev(`Array.from(document.querySelectorAll('.hy-column-chart__slot:nth-child(3) .hy-column-chart__mark')).map(function (e) { return e.getAttribute('aria-label'); })`), ['Open Oct 28 ready: 25', 'Open Oct 28 canceled: 1']);
+        assert.equal(await count('.hy-column-chart__slot:nth-child(1) .hy-column-chart__mark'), 1, 'a zero value has no mark');
+        assert.equal(await count('.hy-column-chart__open[tabindex="0"]'), 1);
+        assert.equal(await count('.hy-column-chart__mark[tabindex="-1"]'), await count('.hy-column-chart__mark'), 'marks are never a Tab stop');
+      });
+
+      it('opens a column by click, and a mark of 8px or more by click', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN);
+        const col = await rectOf(COL(3));
+        await clickAt(col.x + 2, col.y + 20); // above the stack: the column
+        await until('log.length === 1', 'the column to open');
+        const ready = await rectOf(MARK(3, 'ready'));
+        await clickAt(ready.x + ready.w / 2, ready.y + ready.h / 2);
+        await until('log.length === 2', 'the mark to open');
+        assert.deepEqual(await ev('log'), ['Oct 29', 'Oct 29/ready']);
+      });
+
+      it('sends a click on a mark under 8px to the column', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN);
+        const err = await rectOf(MARK(3, 'error'));
+        assert.ok(err.h < 8, `error mark is ${err.h}px`);
+        assert.equal(await ev(`getComputedStyle(document.querySelector(${q(MARK(3, 'error'))})).pointerEvents`), 'none');
+        await clickAt(err.x + err.w / 2, err.y + err.h / 2);
+        await until('log.length === 1', 'the column to open');
+        assert.deepEqual(await ev('log'), ['Oct 29']);
+      });
+
+      it('shows the tooltip on hover over a mark', async () => {
+        await mount(OPEN);
+        const m = await rectOf(MARK(3, 'ready'));
+        await chrome.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: m.x + m.w / 2, y: m.y + m.h / 2 });
+        await until(`document.querySelector('.hy-column-chart__tip')`, 'the tooltip');
+        assert.match(await tipText(), /^Oct 29/);
+      });
+
+      it('renders links for columns and marks with an href, and no target where it returns undefined', async () => {
+        await mount(`chart({ href: function (d, k) { return d.label === 'Oct 26' ? undefined : '/d/' + d.label.replace(' ', '-') + (k ? '/' + k : ''); } })`);
+        assert.equal(await count(`${SLOT}[role="img"]`), 1, 'Oct 26 is not a target');
+        assert.equal(await count('a.hy-column-chart__open'), 3);
+        assert.equal(await count('button.hy-column-chart__open'), 0);
+        assert.equal(await attr(COL(2), 'href'), '/d/Oct-28');
+        assert.equal(await attr(MARK(3, 'canceled'), 'href'), '/d/Oct-29/canceled');
+        assert.equal(await count(`${SLOT}[role="img"][aria-label^="Oct 26"]`), 1);
+      });
+
+      it('makes a link that has onOpen call it with the event, so an app can preventDefault', async () => {
+        await ev('log.length = 0');
+        await mount(`chart({ href: function (d) { return '#' + d.label.replace(' ', '-'); }, onOpen: function (d, k, e) { e.preventDefault(); log.push(d.label + '|' + k + '|' + typeof e.preventDefault); } })`);
+        const col = await rectOf(COL(1));
+        await clickAt(col.x + 2, col.y + 10);
+        await until('log.length === 1', 'the link to call onOpen');
+        assert.deepEqual(await ev('log'), ['Oct 27|undefined|function']);
+        assert.equal(await ev('location.hash'), '', 'preventDefault stopped the navigation');
+      });
+
+      it('mixes buttons and links when onOpen is set and href gives a URL for some', async () => {
+        await mount(`chart({ onOpen: function () {}, href: function (d) { return d.label === 'Oct 27' ? '/x' : undefined; } })`);
+        assert.equal(await count('a.hy-column-chart__open'), 1);
+        assert.equal(await count('button.hy-column-chart__open'), 3);
+      });
+
+      it('has no marks for a single series: only the column is a target', async () => {
+        await mount(`chart({ series: [SERIES[0]], onOpen: function () {} })`);
+        assert.equal(await count('button.hy-column-chart__open'), 4);
+        assert.equal(await count('.hy-column-chart__mark'), 0);
+      });
+
+      it('keeps one Tab stop, goes up into the marks and down out of them, and opens with Enter and Space', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN);
+        await ev(`document.querySelector(${q(COL(0))}).focus()`);
+        await press('ArrowRight'); await press('ArrowRight');
+        assert.equal(await focusedIndex(), '2');
+        assert.equal(await count('.hy-column-chart__open[tabindex="0"]'), 1);
+        await until(`document.querySelector('.hy-column-chart__tip')`, 'the tooltip');
+        await press('ArrowUp');
+        assert.equal(await activeAttr('data-mark'), 'ready', 'the bottom mark first');
+        assert.equal(await count('.hy-column-chart__tip'), 1, 'the tooltip follows focus into the mark');
+        await press('ArrowUp');
+        assert.equal(await activeAttr('data-mark'), 'canceled');
+        await press('ArrowUp');
+        assert.equal(await activeAttr('data-mark'), 'canceled', 'stops at the top mark');
+        await press('Enter');
+        await until('log.length === 1', 'the mark to open');
+        assert.deepEqual(await ev('log'), ['Oct 28/canceled']);
+        await press('ArrowDown');
+        assert.equal(await activeAttr('data-mark'), 'ready');
+        await press('ArrowDown');
+        assert.equal(await activeAttr('data-index'), '2', 'back on the column');
+        await press('ArrowDown');
+        assert.equal(await activeAttr('data-index'), '2');
+        await press('ArrowUp'); await press('ArrowRight');
+        assert.equal(await activeAttr('data-index'), '3', 'Right from a mark moves to the next column');
+        await press('ArrowUp'); await press('ArrowLeft');
+        assert.equal(await activeAttr('data-index'), '2');
+        await press('Enter'); await press(' ');
+        await until('log.length === 3', 'Enter and Space to open the column');
+        assert.deepEqual(await ev('log'), ['Oct 28/canceled', 'Oct 28', 'Oct 28']);
+      });
+
+      it('gives every target a 2px focus ring and columns at least 24px of width', async () => {
+        await mount(OPEN);
+        await ev(`document.querySelector(${q(COL(1))}).focus()`);
+        await press('ArrowRight'); await press('ArrowLeft'); // a key press makes :focus-visible match
+        assert.equal(await ev('getComputedStyle(document.activeElement).outlineWidth'), '2px');
+        await press('ArrowUp');
+        assert.equal(await ev('getComputedStyle(document.activeElement).outlineWidth'), '2px');
+        assert.ok((await rectOf(COL(0))).w >= 24);
+        const many = `Array.from({ length: 60 }, function (_, i) { return { label: 'D' + i, values: { ready: i + 1, canceled: 1 } }; })`;
+        await mount(`chart({ data: ${many}, onOpen: function () {} })`);
+        assert.ok((await rectOf(COL(0))).w >= 24, 'still 24px with many columns');
+      });
+
+      it('opens the same targets from the table view, with the same names, and only in table view', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN);
+        assert.equal(await count('.hy-column-chart__table a, .hy-column-chart__table button'), 0, 'the hidden table adds no Tab stops');
+        await click('.hy-column-chart__toggle');
+        await until(`document.querySelector('.hy-column-chart__tablewrap')`, 'the table view');
+        assert.deepEqual(await ev(`Array.from(document.querySelectorAll('.hy-column-chart__table tbody th button')).map(function (e) { return e.getAttribute('aria-label'); })`), [
+          'Open Oct 26: 4 ready, 0 canceled, 0 error', 'Open Oct 27: 6 ready, 1 canceled, 0 error', 'Open Oct 28: 25 ready, 1 canceled, 0 error', 'Open Oct 29: 33 ready, 3 canceled, 1 error']);
+        assert.deepEqual(await ev(`Array.from(document.querySelectorAll('.hy-column-chart__table tbody tr:last-child td button')).map(function (e) { return e.getAttribute('aria-label') + '=' + e.textContent; })`), [
+          'Open Oct 29 ready: 33=33', 'Open Oct 29 canceled: 3=3', 'Open Oct 29 error: 1=1']);
+        assert.equal(await count('.hy-column-chart__table tbody tr:first-child td button'), 1, 'zero figures are plain text');
+        await click('.hy-column-chart__table tbody tr:last-child td:nth-child(3) button');
+        await click('.hy-column-chart__table tbody tr:first-child th button');
+        await until('log.length === 2', 'the table targets to open');
+        assert.deepEqual(await ev('log'), ['Oct 29/canceled', 'Oct 26']);
+        await mount(`chart({ defaultView: 'table', href: function (d, k) { return '/' + d.label + (k || ''); } })`);
+        assert.equal(await count('.hy-column-chart__table tbody th a'), 4);
+        assert.equal(await count('.hy-column-chart__table tbody td a'), 8);
+      });
     });
   });
 
