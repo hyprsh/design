@@ -35,7 +35,7 @@ function RailItem(props) {
   var control = props.href
     ? h('a', Object.assign({ href: props.href }, common), inner)
     : h('button', Object.assign({ type: 'button' }, common), inner);
-  return h(HY.Tooltip, { text: props.label, position: 'right' }, control);
+  return h(HY.Tooltip, { text: props.label, position: 'right', describe: false }, control);
 }
 RailItem.displayName = 'RailItem';
 
@@ -51,7 +51,7 @@ function Rail(props) {
   });
   var navRef = useRef(null);
   var kids = React.Children.toArray(props.children);
-  var anyCurrent = kids.some(function (k) { return React.isValidElement(k) && k.type === RailItem && !!k.props.current; });
+  var anyCurrent = kids.filter(React.isValidElement).some(function (k) { return !!k.props.current; });
 
   /* Up/Down/Home/End move between the items; any other child is reached by Tab only. */
   function onKey(e) {

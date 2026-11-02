@@ -79,6 +79,10 @@ describe('SettingRow naming a group control', () => {
     assert.equal(label.props.htmlFor, s.props.id);
     assert.deepEqual(ids(s.props['aria-describedby']), [byClass(r, 'hy-setting-row__help').props.id]);
   });
+  it('leaves a control with its own label alone', () => {
+    const r = row({}, { type: 'Input', props: { label: 'Own' }, children: [] });
+    assert.equal(find(r, (n) => n.type === 'Input').props['aria-labelledby'], undefined);
+  });
   it('keeps an existing aria-labelledby or aria-label', () => {
     assert.equal(find(row({}, sw({ 'aria-labelledby': 'x' })), (n) => n.type === 'Switch').props['aria-labelledby'], 'x');
     assert.equal(find(row({}, sw({ 'aria-label': 'Name' })), (n) => n.type === 'Switch').props['aria-labelledby'], undefined);

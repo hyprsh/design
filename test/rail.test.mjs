@@ -131,6 +131,11 @@ describe('Rail selection', () => {
     assert.equal(control(item({ label: 'More', current: true })).props['aria-current'], 'page');
     assert.equal(control(item({ label: 'More', current: false })).props['aria-current'], undefined);
   });
+  it('lets current on any child, such as the app\'s own wrapper, take the selection like TabBar', () => {
+    const wrapped = { type: () => null, props: { label: 'More', icon: 'm', current: true }, children: [] };
+    renderRail({ value: 'projects' }, [wrapped, { type: registry.RailItem, props: { value: 'projects', label: 'Projects', icon: 'p' }, children: [] }]);
+    assert.equal(control(item({ value: 'projects' })).props['aria-current'], undefined);
+  });
   it('calls onChange and onValueChange when an item with a value is pressed, and the item onClick', () => {
     const calls = [];
     renderRail({ onChange: (v) => calls.push('change:' + v), onValueChange: (v) => calls.push('value:' + v) });
@@ -156,6 +161,7 @@ describe('Rail.Item', () => {
     assert.equal(root.type, 'Tooltip');
     assert.equal(root.props.text, 'Projects');
     assert.equal(root.props.position, 'right');
+    assert.equal(root.props.describe, false);
     const b = control(root);
     assert.equal(b.type, 'button');
     assert.equal(b.props.type, 'button');

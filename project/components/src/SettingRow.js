@@ -11,7 +11,7 @@ function SettingRow(props) {
   var hasHelp = props.help != null && props.help !== false && props.help !== '';
   var changed = !!props.changed;
   /* A group control such as Switch (a radiogroup div) can't be named by <label for>, so it is also labelled by id. */
-  var named = isEl && !child.props['aria-labelledby'] && !child.props['aria-label'];
+  var named = isEl && !child.props.label && !child.props['aria-labelledby'] && !child.props['aria-label'];
   var describedBy = cx(isEl && child.props['aria-describedby'], hasHelp && helpId, changed && changedId) || undefined;
   return h('div', { className: cx('hy-setting-row', changed && 'is-changed', props.className) },
     h('div', { className: 'hy-setting-row__text' },

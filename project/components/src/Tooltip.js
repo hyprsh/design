@@ -51,9 +51,10 @@ function Tooltip(props) {
   var tipStyle = null;
   if (pos) tipStyle = side === 'top' || side === 'bottom' ? { left: pos.arrowX - 7 } : { top: pos.arrowY - 3.5 };
   var child = props.children;
+  var describedby = open && props.describe !== false ? id : undefined;
   var trigger = React.isValidElement(child) && React.Children.count(child) === 1
-    ? React.cloneElement(child, { 'aria-describedby': open ? id : undefined })
-    : h('span', { tabIndex: 0, className: 'hy-tooltip__text', 'aria-describedby': open ? id : undefined }, child);
+    ? React.cloneElement(child, { 'aria-describedby': describedby })
+    : h('span', { tabIndex: 0, className: 'hy-tooltip__text', 'aria-describedby': describedby }, child);
   return h('span', { ref: anchorRef, className: cx('hy-tooltip', props.className), onPointerDown: onPointerDown, onMouseEnter: onEnter, onMouseLeave: onLeave, onFocus: onFocus, onBlur: hide, onKeyDown: onKey },
     trigger,
     open ? portal(h('span', {
