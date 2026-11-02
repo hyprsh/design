@@ -23,7 +23,8 @@ const context = vm.createContext({
   define: (name, fn) => { registry[name] = fn; },
 });
 vm.runInContext(readFileSync(join(src, 'Entity.js'), 'utf8'), context, { filename: 'Entity.js' });
-const row = (props, list = false) => { inList = list; return registry.Entity(props); };
+// Entity hands its row to a component of its own, which holds the hooks.
+const row = (props, list = false) => { inList = list; const r = registry.Entity(props); return typeof r.type === 'function' ? r.type(r.props) : r; };
 
 describe('Entity current', () => {
   for (const [name, props, list, tag] of [['as="li"', { as: 'li' }, false, 'li'], ['as="div"', { as: 'div' }, false, 'div'], ['as="button"', { as: 'button' }, false, 'div'], ['inside Entity.List', {}, true, 'li']]) {
