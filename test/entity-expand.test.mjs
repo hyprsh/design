@@ -10,10 +10,11 @@ import vm from 'node:vm';
 const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components/src');
 const registry = {};
 let inList = false;
+let nextCtx = 0;
 let controlled; // what the stub useControllable sees as the stored state
 const calls = [];
 const context = vm.createContext({
-  React: { createContext: () => ({ Provider: 'Provider' }), useContext: () => inList },
+  React: { createContext: () => ({ Provider: 'Provider', n: nextCtx++ }), useContext: (c) => (c.n === 0 ? inList : null) },
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),

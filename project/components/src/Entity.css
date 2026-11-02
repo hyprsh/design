@@ -57,6 +57,25 @@
 .hy-entity__detail[hidden] { display: none; opacity: 0; transform: translateY(-4px); }
 @starting-style { .hy-entity__detail { opacity: 0; transform: translateY(-4px); } }
 .hy-entity__detail-body { font-size: 14px; line-height: 20px; color: var(--gray-900); }
+
+/* onReorder on the list: a leading drag handle that is also a menu button. Dragging moves the row by transform only. */
+.hy-entity__reorder { position: relative; z-index: 1; flex: none; display: flex; margin: 0 -8px 0 -4px; }
+.hy-entity__handle {
+  width: 24px; height: 24px; color: var(--gray-900); cursor: grab; touch-action: none; border-radius: var(--radius-sm);
+  transition: background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-entity__handle:hover { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-entity__handle:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+@media (pointer: coarse), (max-width: 639px) { .hy-entity__handle { width: var(--touch-target); height: var(--touch-target); } }
+.hy-entity-list.is-reordering { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.hy-entity.is-dragging, .hy-entity-item.is-dragging {
+  z-index: 2; pointer-events: none; will-change: transform; background-color: var(--background-100);
+  box-shadow: var(--shadow-border), var(--shadow-medium); transition: box-shadow .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-entity.is-drop-before::after, .hy-entity-item.is-drop-before::after, .hy-entity.is-drop-after::after, .hy-entity-item.is-drop-after::after {
+  content: ''; position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 2px; background: var(--accent-900); pointer-events: none;
+}
+.hy-entity.is-drop-after::after, .hy-entity-item.is-drop-after::after { top: auto; bottom: 0; }
 @media (prefers-reduced-motion: reduce) {
-  .hy-entity__chev, .hy-entity__toggle, .hy-entity__detail { transition: none; }
+  .hy-entity__chev, .hy-entity__toggle, .hy-entity__detail, .hy-entity__handle, .hy-entity.is-dragging, .hy-entity-item.is-dragging { transition: none; }
 }
