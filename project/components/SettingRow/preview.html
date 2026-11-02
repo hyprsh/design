@@ -17,7 +17,7 @@ function Demo() {
       h(H.SettingRow, { label: 'Region', help: 'Where builds and functions run.', changed: true },
         h(H.Select, { name: 'region', defaultValue: 'iad1', options: [{ value: 'iad1', label: 'Washington, D.C.' }, { value: 'sfo1', label: 'San Francisco' }] })),
       h(H.SettingRow, { label: 'Preview Deployments', help: 'Deploy every branch.' },
-        h(H.Switch, { 'aria-label': 'Preview Deployments', defaultValue: 'on' },
+        h(H.Switch, { defaultValue: 'on' },
           h(H.SwitchControl, { label: 'On', value: 'on' }),
           h(H.SwitchControl, { label: 'Off', value: 'off' })))),
     h(H.FieldsetFooter, null,
