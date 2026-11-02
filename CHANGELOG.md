@@ -2,6 +2,15 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.18.0
+
+2026-11-02
+
+### Features
+
+- **tab-bar:** make the surface translucent by default and add opaque
+- **link:** soften the link underline until hover
+
 ## v0.17.1
 
 2026-11-01
