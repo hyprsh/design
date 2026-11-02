@@ -1,6 +1,6 @@
 # Link
 
-An inline text link in the design's link colour, underlined, with a focus ring.
+An inline text link in the design's link colour, with a soft underline that turns solid on hover, and a focus ring.
 
 **You provide:** the text as `children` and an `href`. Optional: `as="button"` for an action that reads as a link (“Show notices”), `disabled` for a link that can't be followed right now (it is greyed, takes no focus or clicks, and gets `aria-disabled`; say why nearby), and any anchor attributes such as `target` and `rel`. It takes a `ref`.
 
