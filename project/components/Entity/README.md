@@ -2,13 +2,14 @@
 
 A row that represents one thing (a member, token, domain or integration), with a leading visual, a title and description, and controls on the right.
 
-**You provide:** `left` (an Avatar, icon, Checkbox or Skeleton), children (usually `Entity.Content` with `title` and `description`, plus `fill` to take the free width), `right` (controls or meta text) and optionally `as` (`'div'`, `'li'` or `'button'`) with `onClick`, and `current` for a keyboard cursor. Wrap several rows in `Entity.List` (or `EntityList`), which draws the card and dividers and renders rows as list items.
+**You provide:** `left` (an Avatar, icon, Checkbox or Skeleton), children (usually `Entity.Content` with `title` and `description`, plus `fill` to take the free width), `right` (controls or meta text) and optionally `as` (`'div'`, `'li'` or `'button'`) with `onClick`, `current` for a keyboard cursor, and `detail` to make the row expandable. Wrap several rows in `Entity.List` (or `EntityList`), which draws the card and dividers and renders rows as list items.
 
 - Keep the right side to one or two controls. For more, use a single menu button.
 - Name buttons Verb + Noun in Title Case (Revoke Token, Remove Member), not just “Remove”.
 - Give a row checkbox a label such as `aria-label="Select ci-bot"`.
 - Use `as="button"` when the whole row opens something. It stays reachable by keyboard; when the row also has its own controls, those take focus instead and the stretched button is hidden from assistive tech.
 - **Current rows:** `current` sets `aria-current="true"` and draws the same tint and 2px marker at the row's start as `current` on `TableRow` (see Table's “Selected and current rows”), so the state isn't shown by colour alone. Use it for the row that holds the keyboard cursor of a j/k list, in or out of `Entity.List`, with any `as`. You move the cursor and focus yourself.
+- **Expandable rows:** pass `detail` and the row's `left`, content and `right` become one disclosure button (`aria-expanded`, `aria-controls`, named by the left and content text) that opens the detail under the row, inside the same list item. Control it with `expanded`/`onExpandedChange`, or start it with `defaultExpanded`. The detail is out of sight and out of the Tab order while collapsed, and opens with a short fade and slide that reduced motion removes. The button is the whole row, so `left` and `right` hold content only, such as an icon or a timestamp; put controls (buttons, links, inputs) in the detail. `current` still marks the row, not its detail. Several rows can be open at once; for one at a time, control `expanded` yourself. `as="button"` is ignored.
 - While loading, keep the row shape and put Skeletons in `left` and `Entity.Content`.
 
 ## Examples
@@ -142,6 +143,34 @@ export default function Example() {
         ))}
       </EntityList>
       <span className="copy-14" role="status">Selected {picked}.</span>
+    </div>
+  );
+}
+```
+
+### Expandable Row
+`detail` makes the whole row a disclosure button. The first row starts open, and the right side holds a timestamp, not a control.
+
+```jsx
+import { Entity, EntityContent, EntityList } from '@hyprsh/design';
+import { Rocket } from 'lucide-react';
+
+const deployments = [
+  { id: 'a1', name: 'Production Deploy', note: 'main · 3 files changed', time: '2m ago', log: 'Build completed in 41s. 12 routes, 3 functions.' },
+  { id: 'b2', name: 'Preview Deploy', note: 'feat/billing · 9 files changed', time: '1h ago', log: 'Build completed in 38s. 12 routes, 2 functions.' },
+  { id: 'c3', name: 'Preview Deploy', note: 'fix/redirects · 1 file changed', time: 'Yesterday', log: 'Build failed at step 3 of 5: type check.' },
+];
+
+export default function Example() {
+  return (
+    <div style={{ width: '100%', maxWidth: 480 }}>
+      <EntityList aria-label="Deployments">
+        {deployments.map((d, i) => (
+          <Entity key={d.id} left={<Rocket />} right={d.time} defaultExpanded={i === 0} detail={d.log}>
+            <EntityContent title={d.name} description={d.note} fill />
+          </Entity>
+        ))}
+      </EntityList>
     </div>
   );
 }
