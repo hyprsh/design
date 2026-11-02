@@ -1,0 +1,26 @@
+/* ---------- SettingRow ---------- */
+.hy-setting-row {
+  position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+  padding: 16px 0 16px 12px; font-family: var(--font-sans); color: var(--gray-1000);
+}
+/* Rows divide like Entity.List rows: a hairline between neighbours, none above the first. */
+.hy-setting-row + .hy-setting-row { border-top: 1px solid var(--gray-alpha-400); }
+/* The edge mark is always drawn and only fades in, so the changed state never moves layout. */
+.hy-setting-row::before {
+  content: ""; position: absolute; top: 12px; bottom: 12px; left: 0; width: 2px; border-radius: var(--radius-full);
+  background: var(--accent-900); opacity: 0; transition: opacity .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-setting-row.is-changed::before { opacity: 1; }
+.hy-setting-row__text { min-width: 0; }
+.hy-setting-row__label { display: block; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); }
+.hy-setting-row__help { margin-top: 2px; font-size: 13px; line-height: 20px; color: var(--gray-900); }
+.hy-setting-row__control { position: relative; display: flex; justify-content: flex-start; min-width: 0; }
+.hy-setting-row__control > .hy-field { flex: 1 1 auto; min-width: 0; }
+@media (min-width: 640px) {
+  .hy-setting-row { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .hy-setting-row__text { flex: 1 1 0; }
+  .hy-setting-row__control { flex: 0 1 280px; justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-setting-row::before { transition-duration: 0s; }
+}
