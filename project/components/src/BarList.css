@@ -25,20 +25,32 @@
 .hy-bar-list__row--button:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-bar-list__row--link { cursor: pointer; }
 
-/* Columns: an ARIA table of div rows. Every row shares --hy-bar-list-cols, so the figures line up under their headers. The
-   bar and value share one cell. A hidden column's cells are visually hidden, so assistive tech still reads them. */
-.hy-bar-list--table { display: block; }
-.hy-bar-list__head { position: relative; display: grid; grid-template-columns: var(--hy-bar-list-cols); align-items: center; column-gap: 12px; padding: 0 8px; height: 32px; box-sizing: border-box; font-size: 13px; line-height: 20px; color: var(--gray-900); font-weight: 500; }
-.hy-bar-list--table .hy-bar-list__row { position: relative; grid-template-columns: var(--hy-bar-list-cols); }
-.hy-bar-list--table .hy-bar-list__cell { min-width: 0; }
-.hy-bar-list__cell--value { display: flex; align-items: center; gap: 12px; }
-.hy-bar-list__head .hy-bar-list__cell--value { justify-content: flex-end; }
-.hy-bar-list__cell--value .hy-bar-list__bar { flex: 1 1 0; }
-.hy-bar-list__cell--value .hy-bar-list__value { flex: none; }
-.hy-bar-list__cell--figure { text-align: right; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; color: var(--gray-900); }
-.hy-bar-list__cell.is-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+/* Columns: a native table. Extra columns size to their content and right-align in tabular numbers, so figures line up under
+   their headers. The label column takes a third of the width and truncates, the bar and value the rest. A hidden column
+   collapses to nothing but keeps its cells in the table, so assistive tech still reads them. */
+.hy-bar-list--table { display: table; width: 100%; border-collapse: collapse; table-layout: auto; font-size: 14px; line-height: 20px; color: var(--gray-1000); }
+.hy-bar-list__head { height: 32px; font-size: 13px; color: var(--gray-900); font-weight: 500; }
+.hy-bar-list--table th { font-weight: inherit; text-align: left; }
+.hy-bar-list__cell { padding: 0 6px; min-width: 0; }
+.hy-bar-list__cell:first-child { padding-left: 8px; }
+.hy-bar-list__cell:last-child { padding-right: 8px; }
+.hy-bar-list--table .hy-bar-list__tr { position: relative; height: 36px; }
+.hy-bar-list--table .hy-bar-list__tr:hover .hy-bar-list__cell { background: var(--gray-100); }
+.hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.hy-bar-list__cell--label { width: 33%; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-bar-list__cell--value { width: 67%; }
+.hy-bar-list__valuebox { display: flex; align-items: center; gap: 12px; }
+.hy-bar-list__valuebox .hy-bar-list__bar { flex: 1 1 0; min-width: 80px; }
+.hy-bar-list__valuebox .hy-bar-list__value { flex: none; min-width: 6ch; }
+.hy-bar-list__head .hy-bar-list__cell--value { text-align: right; }
+.hy-bar-list__cell--figure { width: 1%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+.hy-bar-list--table .hy-bar-list__cell--figure.is-hidden { width: 0; max-width: 0; padding: 0; overflow: hidden; clip-path: inset(50%); }
 /* The whole row is the target: the link or button in the label cell stretches over the row. */
-.hy-bar-list__target { display: block; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; text-decoration: none; cursor: pointer; }
+.hy-bar-list__target { display: block; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; text-decoration: none; cursor: pointer; overflow: hidden; text-overflow: ellipsis; }
 .hy-bar-list__target::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-md); }
 .hy-bar-list__target:focus { outline: none; }
 .hy-bar-list__target:focus-visible::after { outline: 2px solid var(--focus-color); outline-offset: 0; }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-bar-list--table .hy-bar-list__tr { height: var(--touch-target); }
+}
