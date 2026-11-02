@@ -1,0 +1,14 @@
+/* ---------- Pane ---------- */
+/* The surface is a variable so an app can set the list pane to background-200 (app chrome) with its own class or `style`:
+   --hy-pane-background: var(--background-200). The detail stays background-100. */
+.hy-pane {
+  display: flex; flex-direction: column; box-sizing: border-box; height: 100%; min-width: 0; min-height: 0;
+  background-color: var(--hy-pane-background, var(--background-100)); font-family: var(--font-sans);
+}
+.hy-pane__header, .hy-pane__footer { flex: none; box-sizing: border-box; min-width: 0; padding: 8px 16px; }
+.hy-pane__header { display: flex; align-items: center; gap: 8px; min-height: 48px; border-bottom: 1px solid var(--gray-alpha-400); }
+.hy-pane__footer { border-top: 1px solid var(--gray-alpha-400); }
+/* The body is the scroll container: a sticky child (an ActionBar) holds at its foot. */
+.hy-pane__body { flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* The ring sits inside the body so the hairlines and the neighbouring pane don't clip it. */
+.hy-pane__body:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }

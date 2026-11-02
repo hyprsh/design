@@ -1,0 +1,28 @@
+<!-- @dsCard group="Layout" height=480 subtitle="A list of rows beside a detail, each pane with a header, footer and its own scrolling; one pane at a time below sm" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>SplitView</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var projects = ['hyprsh-docs', 'hyprsh-api', 'hyprsh-edge', 'hyprsh-billing', 'hyprsh-teams', 'hyprsh-status', 'hyprsh-blog', 'hyprsh-cdn'];
+var deploys = ['Production, main, 4f2a91c', 'Preview, feat/billing, 9c01d7e', 'Preview, fix/edge-cache, 1b77e02', 'Preview, docs/cli, e3a5f18', 'Production, main, 7d4c3b0', 'Preview, feat/teams, 02bd9aa', 'Production, main, a81e3c4'];
+function Demo() {
+  var s = React.useState('hyprsh-docs'), open = s[0], setOpen = s[1];
+  var back = h(H.Button, { size: 'small', variant: 'tertiary', onClick: function () { setOpen(null); } }, 'Back');
+  return h(F, null,
+    h('p', { className: 'label-13' }, 'From sm up the panes sit side by side; below it only the one named by show is visible (Back returns to the list)'),
+    h('div', { style: { height: 360, border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' } },
+      h(H.SplitView, { listWidth: 240, show: open ? 'detail' : 'list' },
+        h(H.Pane, { label: 'Projects', header: h('strong', { className: 'label-14' }, 'Projects'), footer: h('span', { className: 'copy-13' }, projects.length + ' projects'), style: { '--hy-pane-background': 'var(--background-200)' } },
+          h(H.Entity.List, { 'aria-label': 'Projects' }, projects.map(function (n) {
+            return h(H.Entity, { key: n, as: 'button', current: n === open, onClick: function () { setOpen(n); } }, h(H.Entity.Content, { title: n, fill: true }));
+          }))),
+        h(H.Pane, { label: 'Project', header: h(F, null, open ? back : null, h('strong', { className: 'label-14' }, open || 'No Project Selected')), footer: h('span', { className: 'copy-13' }, 'Updated 2 minutes ago') },
+          open ? deploys.map(function (d, i) { return h('p', { key: i, className: 'copy-14', style: { margin: 0, padding: '12px 16px', borderBottom: '1px solid var(--gray-alpha-400)' } }, d); }) : null))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>
