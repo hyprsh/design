@@ -83,6 +83,15 @@ function ccTarget(props, datum, key) {
 function ccOpenColumnName(datum, series, fmt) { return 'Open ' + ccColumnName(datum, series, fmt); }
 /* "Open Oct 28 canceled: 1" */
 function ccOpenMarkName(datum, s, fmt) { return 'Open ' + datum.label + ' ' + s.label + ': ' + fmt(ccValue(datum, s)); }
+/* The column that Right, Left, Home and End lead to from column `i` of `n`, or null for any other key. */
+function ccStepTo(key, i, n) {
+  return key === 'ArrowRight' ? Math.min(n - 1, i + 1) : key === 'ArrowLeft' ? Math.max(0, i - 1) : key === 'Home' ? 0 : key === 'End' ? n - 1 : null;
+}
+/* The series keys of a column's marks that can open: a non-zero value whose own target exists, with two or more series. */
+function ccOpenMarks(props, series, datum) {
+  if (series.length < 2) return [];
+  return series.filter(function (s) { return ccValue(datum, s) && ccTarget(props, datum, s.key); }).map(function (s) { return s.key; });
+}
 /* A mark drawn under 8px isn't a separate pointer target: a click there opens the column. */
 var CC_MIN_MARK = 8;
 function ccMarkPointer(height) { return height >= CC_MIN_MARK; }
@@ -117,7 +126,7 @@ function ColumnChart(props) {
   var n = data.length;
   /* Marks are only separate targets when there is more than one series to tell apart. */
   var marksOn = series.length >= 2;
-  var anyOpen = data.some(function (d) { return ccTarget(props, d); });
+  var anyOpen = data.some(function (d) { return ccTarget(props, d) || ccOpenMarks(props, series, d).length; });
   var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d); }))));
   var max = ticks[ticks.length - 1];
   var active = hovered !== null ? hovered : focused;
@@ -160,29 +169,22 @@ function ColumnChart(props) {
       : h('button', Object.assign({ type: 'button', onClick: onClick }, attrs), children);
   }
   function onKeyDown(e) {
-    var mark = e.target.getAttribute && e.target.getAttribute('data-mark');
-    if (mark !== null && mark !== undefined) {
-      /* On a mark: Up and Down walk the column's marks, Left and Right and Home and End go to a column. */
-      var col = Number(e.target.getAttribute('data-col'));
-      var marks = Array.prototype.slice.call(e.target.parentNode.querySelectorAll('[data-mark]'));
-      var at = marks.indexOf(e.target);
-      if (e.key === 'ArrowUp') { e.preventDefault(); if (marks[at + 1]) marks[at + 1].focus(); return; }
-      if (e.key === 'ArrowDown') { e.preventDefault(); if (at > 0) marks[at - 1].focus(); else focusColumn(col); return; }
-      var go = e.key === 'ArrowRight' ? Math.min(n - 1, col + 1) : e.key === 'ArrowLeft' ? Math.max(0, col - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
-      if (go === null) return;
-      e.preventDefault();
-      focusColumn(go);
-      return;
-    }
-    var raw = e.target.getAttribute && e.target.getAttribute('data-index');
+    var attr = function (name) { return e.target.getAttribute && e.target.getAttribute(name); };
+    var mark = attr('data-mark'), raw = mark !== null && mark !== undefined ? attr('data-col') : attr('data-index');
     if (raw === null || raw === undefined) return;
     var i = Number(raw);
-    if (e.key === 'ArrowUp') {
-      var first = e.target.parentNode.querySelector('[data-mark]');
-      if (first) { e.preventDefault(); first.focus(); }
+    var slot = e.target.closest('.hy-column-chart__slot');
+    var marks = slot ? Array.prototype.slice.call(slot.querySelectorAll('[data-mark]')) : [];
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      /* Up goes from a column into its marks, bottom to top, and Down comes back down to the column. */
+      var at = mark !== null && mark !== undefined ? marks.indexOf(e.target) : -1;
+      var next = e.key === 'ArrowUp' ? marks[at + 1] : at > 0 ? marks[at - 1] : null;
+      if (next) { e.preventDefault(); next.focus(); }
+      else if (e.key === 'ArrowDown' && at === 0) { e.preventDefault(); focusColumn(i); }
+      else if (e.key === 'ArrowUp' && at >= 0) e.preventDefault();
       return;
     }
-    var to = e.key === 'ArrowRight' ? Math.min(n - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+    var to = ccStepTo(e.key, i, n);
     if (to === null) return;
     e.preventDefault();
     focusColumn(to);
@@ -229,7 +231,7 @@ function ColumnChart(props) {
         return h('span', { key: 'g' + t, className: cx('hy-column-chart__grid', i === 0 && 'is-baseline'), style: { bottom: (t / max * 100) + '%' }, 'aria-hidden': 'true' });
       }),
       h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
-        var target = ccTarget(props, d);
+        var target = ccTarget(props, d), markKeys = ccOpenMarks(props, series, d);
         var segs = ccSegments(series, d, max, height);
         var visual = h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, segs.map(function (g) {
           return h('span', {
@@ -239,7 +241,7 @@ function ColumnChart(props) {
         }));
         var enter = function () { setHovered(i); }, leave = function () { setHovered(null); };
         var focusIn = function () { setFocused(i); setRovingIndex(i); }, focusOut = function () { setFocused(null); };
-        if (!target) {
+        if (!target && !markKeys.length) {
           return h('div', {
             key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
             'aria-label': ccColumnName(d, series, fmt),
@@ -247,9 +249,10 @@ function ColumnChart(props) {
             onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
           }, visual);
         }
-        /* An openable column: the slot wraps the picture, a full-slot link or button, and a layer of mark targets. */
-        var marks = marksOn ? segs.map(function (g) {
-          var s = series.filter(function (x) { return x.key === g.key; })[0], t = ccTarget(props, d, g.key);
+        /* An openable column or mark: the slot wraps the picture, a full-slot link or button (a plain image when only marks
+           open) and a layer of mark targets. */
+        var marks = markKeys.length ? segs.map(function (g) {
+          var s = series.filter(function (x) { return x.key === g.key; })[0], t = markKeys.indexOf(g.key) >= 0 ? ccTarget(props, d, g.key) : null;
           if (!t) return null;
           return openEl(t, {
             key: g.key, 'data-col': i, 'data-mark': g.key, tabIndex: -1, 'aria-label': ccOpenMarkName(d, s, fmt),
@@ -261,7 +264,9 @@ function ColumnChart(props) {
           onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
         },
           visual,
-          openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d),
+          target
+            ? openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d)
+            : h('div', { role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccColumnName(d, series, fmt), className: 'hy-column-chart__open is-static' }),
           marks ? h('div', { className: 'hy-column-chart__marks' }, marks) : null);
       }))),
     h('div', { className: 'hy-column-chart__xaxis', 'aria-hidden': 'true' }, data.map(function (d, i) {

@@ -61,6 +61,7 @@
 .hy-column-chart__body--open { overflow-x: auto; }
 .hy-column-chart__slot--open { min-width: 24px; }
 .hy-column-chart__open { position: absolute; inset: 0; z-index: 1; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.hy-column-chart__open.is-static { cursor: default; }
 .hy-column-chart__open:focus { outline: none; }
 .hy-column-chart__open:focus-visible, .hy-column-chart__mark:focus-visible, .hy-column-chart__tablelink:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-column-chart__marks { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 2; margin: 0 auto; width: 24px; max-width: 100%; pointer-events: none; }
