@@ -6,6 +6,15 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   size?: 'sm' | 'md' | 'lg' | Size;
   /** Leading icon or logo; sized to the pill (12/14/16px). */
   icon?: React.ReactNode;
+  /**
+   * A state dot before the label, scaled to the pill size (a StatusDot state). It takes the icon's place: with both, `status` wins.
+   * Say what it means in `statusLabel`.
+   */
+  status?: StatusDotState;
+  /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is hidden from it. */
+  statusLabel?: string;
+  /** A figure after the label, in tabular numbers and a quieter colour: `54/56`, `40%`. It is part of the accessible name as text. */
+  trailing?: React.ReactNode;
   /** Makes the pill a toggle chip: a <button> with `aria-pressed`. Controlled state. Several chips can be on at once. */
   pressed?: boolean;
   /** Toggle chip, uncontrolled initial state. */
@@ -15,4 +24,7 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   children?: React.ReactNode;
   className?: string;
 }
-export declare function Pill(props: PillProps): React.ReactElement;
+/**
+ * Forwards its ref to the rendered `<a>`, `<button>` or `<span>`, so it works as a `Popover` trigger. A pill with `aria-expanded="true"` is drawn in the pressed style, without the check.
+ */
+export declare const Pill: React.ForwardRefExoticComponent<PillProps & React.RefAttributes<HTMLElement>>;
