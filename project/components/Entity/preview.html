@@ -1,4 +1,4 @@
-<!-- @dsCard group="Content" height=710 subtitle="Single row, loading row, list with actions, selectable list, current row, fill" -->
+<!-- @dsCard group="Content" height=1150 subtitle="Single row, loading row, list with actions, expandable rows, reorderable list, selectable list, current row, fill" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Entity</title></head>
@@ -11,6 +11,24 @@ var tokens = [
   { id: 'pr', name: 'preview-bot', scope: 'Read only · Created Jan 18' }
 ];
 var members = ['Platform Team', 'Docs Team', 'Edge Kit'];
+function Priorities() {
+  var st = React.useState([
+    { id: 'edge', name: 'Edge Cache', note: 'Serves from the closest region', on: true },
+    { id: 'shield', name: 'Origin Shield', note: 'One request to the origin per region', on: true },
+    { id: 'static', name: 'Static Assets', note: 'Immutable files under /assets', on: false }
+  ]), items = st[0], setItems = st[1];
+  function move(from, to) {
+    setItems(function (list) { var next = list.slice(); next.splice(to, 0, next.splice(from, 1)[0]); return next; });
+  }
+  return h(H.EntityList, { 'aria-label': 'Cache priority', onReorder: move }, items.map(function (x) {
+    return h(H.Entity, { key: x.id, right: h(F, null,
+        h(H.Toggle, { 'aria-label': 'Enable ' + x.name, checked: x.on, onChange: function (on) {
+          setItems(function (list) { return list.map(function (y) { return y.id === x.id ? Object.assign({}, y, { on: on }) : y; }); });
+        } }),
+        h(H.DotsMenu, { 'aria-label': x.name + ' Actions' }, h(H.MenuItem, null, 'Rename Rule'), h(H.MenuItem, null, 'Duplicate Rule'))) },
+      h(H.EntityContent, { title: x.name, description: x.note, fill: true }));
+  }));
+}
 function Demo() {
   var sel = React.useState({ 'Docs Team': true });
   return h(F, null,
@@ -27,6 +45,14 @@ function Demo() {
     h(H.EntityList, { 'aria-label': 'Domains' }, ['hyprsh.dev', 'docs.hyprsh.dev', 'api.hyprsh.dev'].map(function (d, i) {
       return h(H.Entity, { key: d, current: i === 1 }, h(H.EntityContent, { title: d, fill: true }));
     })),
+    h(H.EntityList, { 'aria-label': 'Deployments' }, [
+      ['Production Deploy', 'main · 3 files changed', '2m ago', 'Build completed in 41s. 12 routes, 3 functions.'],
+      ['Preview Deploy', 'feat/billing · 9 files changed', '1h ago', 'Build completed in 38s. 12 routes, 2 functions.']
+    ].map(function (d, i) {
+      return h(H.Entity, { key: i, left: h(H.Icon, { name: 'rocket', size: 16 }), right: d[2], defaultExpanded: i === 0, detail: d[3] },
+        h(H.EntityContent, { title: d[0], description: d[1], fill: true }));
+    })),
+    h(Priorities),
     h(H.EntityList, { 'aria-label': 'Teams' }, members.map(function (m) {
       return h(H.Entity, { key: m, left: h(H.Checkbox, { 'aria-label': 'Select ' + m, checked: !!sel[0][m],
           onChange: function (e) { var n = Object.assign({}, sel[0]); n[m] = e.target.checked; sel[1](n); } }) },
