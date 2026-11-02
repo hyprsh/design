@@ -1,10 +1,11 @@
 /* ---------- Link ---------- */
 .hy-link {
   display: inline; margin: 0; padding: 0; border: 0; border-radius: var(--radius-sm); background: none;
-  color: var(--link); font: inherit; text-decoration: underline; text-decoration-color: currentColor;
+  color: var(--link); font: inherit; text-decoration: underline; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
   text-underline-offset: 3px; text-decoration-thickness: 1px; cursor: pointer; touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  -webkit-tap-highlight-color: transparent; transition: text-decoration-color .15s cubic-bezier(.4,0,.2,1);
 }
-.hy-link:hover { text-decoration-thickness: 2px; }
+/* the underline is soft at rest and solid on hover, so links read as links without a heavy line through the text */
+.hy-link:hover { text-decoration-color: currentColor; }
 .hy-link:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
-.hy-link:disabled, .hy-link[aria-disabled="true"] { color: var(--gray-700); cursor: not-allowed; text-decoration-thickness: 1px; }
+.hy-link:disabled, .hy-link[aria-disabled="true"] { color: var(--gray-700); cursor: not-allowed; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); }

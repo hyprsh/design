@@ -1,7 +1,8 @@
 /* The docs site's layout, on top of tokens.css and bundle.css. Tokens only; type comes from the type classes in the markup. */
 html { scroll-padding-top: 72px; }
 body { min-height: 100vh; }
-a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a { color: var(--link); text-underline-offset: 3px; text-decoration-thickness: 1px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); }
+a:hover { text-decoration-color: currentColor; }
 /* Zero specificity, so the components' own focus styles win inside live examples. */
 :where(a, button, input, iframe, summary, [tabindex]):focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .muted { color: var(--gray-900); }
