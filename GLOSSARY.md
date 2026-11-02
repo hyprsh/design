@@ -8,6 +8,34 @@ hyprsh's design system: plain React components, tokens and guidelines for hyprsh
 The floating bottom navigation between an app's screens at phone width.
 _Avoid_: bottom nav, phone nav, tabs
 
+**Rail**:
+The vertical strip of icon-only destinations at the edge of an app from `sm` up: the Tab bar's counterpart at wider widths.
+_Avoid_: sidebar (that holds a Nav list), side nav, icon bar
+
+**Title bar**:
+The header at the top of a phone-width screen: its title, an optional back button and trailing actions.
+_Avoid_: top bar, app bar, navigation bar, page header
+
+**Action bar**:
+The bar at the foot of a scrolling area while there's something to act on: ticked rows, or unsaved changes.
+_Avoid_: floating bar, selection bar, toolbar, save bar
+
+**Pane**:
+One region of a screen with its own header, a body that scrolls on its own, and a footer.
+_Avoid_: panel, column, section
+
+**Split view**:
+A list pane beside a detail pane, showing one pane at a time at phone width.
+_Avoid_: master-detail, two-column layout, sidebar layout
+
+**Month view**:
+A month of days that each list their entries, for browsing what happens when. Not a Calendar, which picks dates.
+_Avoid_: calendar (that's the date picker), month grid, schedule
+
+**Drag handle**:
+The grip at the start of a list row that moves the row: drag it, or open its menu to move without dragging.
+_Avoid_: grabber, grip (alone), resize handle (that changes a column's width)
+
 **Tabs**:
 Switches between sections inside one page.
 _Avoid_: tab bar
