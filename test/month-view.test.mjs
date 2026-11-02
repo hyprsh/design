@@ -11,7 +11,7 @@ import vm from 'node:vm';
 const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components/src');
 const context = vm.createContext({ h: () => null, cx: () => '', define: () => {} });
 vm.runInContext(readFileSync(join(src, 'MonthView.js'), 'utf8'), context, { filename: 'MonthView.js' });
-const { mvLayout, mvWeekdays, mvGroup, mvVisible, mvDayName, mvKey } = context;
+const { mvLayout, mvWeekdays, mvGroup, mvVisible, mvDayName, mvKey, mvPage, mvMonthStart, mvToneClass } = context;
 
 const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const flat = (weeks) => weeks.flat();
@@ -95,6 +95,39 @@ describe('mvGroup and mvVisible', () => {
     assert.equal(mvVisible(list, 0).more, 5);
     assert.equal(mvVisible(list, undefined).shown.length, 3);
     assert.equal(mvVisible(undefined, 3).more, 0);
+  });
+});
+
+describe('mvPage', () => {
+  it('moves the shown month by one and keeps the focused day number', () => {
+    const r = mvPage(new Date(2025, 10, 1), new Date(2025, 10, 15), 1);
+    assert.equal(iso(r.month), '2025-12-01');
+    assert.equal(iso(r.focus), '2025-12-15');
+  });
+  it('moves from the shown month, not the focused day\'s month (a trailing day)', () => {
+    // 31 December is drawn in January 2026's grid.
+    const down = mvPage(new Date(2026, 0, 1), new Date(2025, 11, 31), 1);
+    assert.equal(iso(down.month), '2026-02-01');
+    assert.equal(iso(down.focus), '2026-02-28', '31 clamps to the length of February');
+    const up = mvPage(new Date(2026, 0, 1), new Date(2025, 11, 31), -1);
+    assert.equal(iso(up.month), '2025-12-01');
+    assert.equal(iso(up.focus), '2025-12-31');
+  });
+  it('clamps to the length of the new month, across years and leap years', () => {
+    assert.equal(iso(mvPage(new Date(2024, 0, 1), new Date(2024, 0, 31), 1).focus), '2024-02-29');
+    assert.equal(iso(mvPage(new Date(2025, 11, 1), new Date(2025, 11, 31), 1).month), '2026-01-01');
+    assert.equal(iso(mvPage(new Date(2026, 0, 1), new Date(2026, 0, 5), -1).month), '2025-12-01');
+  });
+});
+
+describe('small helpers', () => {
+  it('mvMonthStart gives the first of the month', () => {
+    assert.equal(iso(mvMonthStart(new Date(2025, 10, 20, 15))), '2025-11-01');
+  });
+  it('mvToneClass maps unknown tones to none', () => {
+    assert.equal(mvToneClass('error'), 'hy-month-view__mark hy-month-view__mark--error');
+    assert.equal(mvToneClass('pink'), 'hy-month-view__mark hy-month-view__mark--none');
+    assert.equal(mvToneClass(undefined), 'hy-month-view__mark hy-month-view__mark--none');
   });
 });
 

@@ -21,6 +21,15 @@ function mvParseIso(s) {
   var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s || '');
   return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
 }
+function mvMonthStart(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
+function mvToneClass(tone) { return 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(tone) >= 0 ? tone : 'none'); }
+/* Page Up/Down: the shown month moves by n, whatever month the focused day belongs to (a leading or trailing day does not),
+   and focus lands on the same day number, clamped to the new month's length. */
+function mvPage(month, focus, n) {
+  var next = mvMonthStart(mvAddMonths(mvMonthStart(month), n));
+  var last = new Date(next.getFullYear(), next.getMonth() + 1, 0).getDate();
+  return { month: next, focus: new Date(next.getFullYear(), next.getMonth(), Math.min(focus.getDate(), last)) };
+}
 function mvStart(first) { return ((Math.floor(+first) || 0) % 7 + 7) % 7; }
 
 /* The weeks shown for `month`: rows of seven { date, inMonth }, from the week start on or before the 1st to the end of the
@@ -41,7 +50,8 @@ function mvLayout(month, firstDayOfWeek) {
   }
   return out;
 }
-/* Seven dates, one per weekday, starting at firstDayOfWeek, for the column headers. */
+/* Seven dates, one per weekday, starting at firstDayOfWeek, for the column headers. 7 January 2024 is a Sunday, so adding
+   the week start to its date gives the weekday that starts the row. */
 function mvWeekdays(firstDayOfWeek) {
   var s = mvStart(firstDayOfWeek), out = [];
   for (var i = 0; i < 7; i++) out.push(new Date(2024, 0, 7 + s + i));
@@ -68,10 +78,10 @@ function mvDayName(fmt, date, count, today) {
 
 function mvEntry(e, tab, onActivate) {
   var cls = 'hy-month-view__entry';
-  var mark = h('span', { className: 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(e.tone) >= 0 ? e.tone : 'none'), 'aria-hidden': 'true' });
+  var mark = h('span', { className: mvToneClass(e.tone), 'aria-hidden': 'true' });
   var body = [mark, h('span', { className: 'hy-month-view__entry-label' }, e.label)];
-  if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function () { e.onOpen(); } : undefined }, body);
-  if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function () { e.onOpen(); } }, body);
+  if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function (ev) { e.onOpen(ev); } : undefined }, body);
+  if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function (ev) { e.onOpen(ev); } }, body);
   return h('span', { className: cls }, body);
 }
 
@@ -90,7 +100,7 @@ function MonthView(props) {
   var max = props.maxPerDay != null ? props.maxPerDay : 3;
 
   var ms = useControllable(props.month, props.defaultMonth !== undefined ? props.defaultMonth : new Date(), props.onMonthChange);
-  var month = new Date(ms[0].getFullYear(), ms[0].getMonth(), 1);
+  var month = mvMonthStart(ms[0]);
   var setMonth = ms[1];
   var ss = useControllable(props.selectedDate, props.defaultSelectedDate !== undefined ? props.defaultSelectedDate : null, props.onSelectedDateChange);
   var selected = ss[0] ? mvDay(ss[0]) : null;
@@ -104,10 +114,15 @@ function MonthView(props) {
   useLayoutEffect(function () {
     var el = root.current;
     if (!el) return;
-    function measure() { setNarrow(el.clientWidth > 0 && el.clientWidth < MV_NARROW); }
+    /* The one source of "narrow": the content-box width (padding excluded), also what the styles key on via .is-narrow. */
+    function set(width) { setNarrow(width > 0 && width < MV_NARROW); }
+    function measure() {
+      var cs = getComputedStyle(el);
+      set(el.getBoundingClientRect().width - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0) - (parseFloat(cs.borderLeftWidth) || 0) - (parseFloat(cs.borderRightWidth) || 0));
+    }
     measure();
     if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure); return function () { window.removeEventListener('resize', measure); }; }
-    var ro = new ResizeObserver(measure);
+    var ro = new ResizeObserver(function (entries) { set(entries[0].contentRect.width); });
     ro.observe(el);
     return function () { ro.disconnect(); };
   }, []);
@@ -135,7 +150,7 @@ function MonthView(props) {
     if (el) { el.focus(); return; }
     /* Off the drawn weeks: change the month and focus the day once it is drawn. */
     pending.current = d;
-    setMonth(new Date(d.getFullYear(), d.getMonth(), 1));
+    setMonth(mvMonthStart(d));
   }
   function shift(n) { setMonth(mvAddMonths(month, n)); }
   function activate(d) {
@@ -159,11 +174,11 @@ function MonthView(props) {
     else if (k === 'Home') to = mvAddDays(d, -col);
     else if (k === 'End') to = mvAddDays(d, 6 - col);
     else if (k === 'PageUp' || k === 'PageDown') {
-      to = mvAddMonths(d, k === 'PageUp' ? -1 : 1);
+      var page = mvPage(month, d, k === 'PageUp' ? -1 : 1);
       e.preventDefault();
-      pending.current = to;
-      setFocus(to);
-      setMonth(new Date(to.getFullYear(), to.getMonth(), 1));
+      pending.current = page.focus;
+      setFocus(page.focus);
+      setMonth(page.month);
       return;
     }
     else if (k === 'Enter' || k === ' ') { e.preventDefault(); activate(d); return; }
@@ -208,7 +223,7 @@ function MonthView(props) {
             'aria-label': '+' + v.more + ' more, ' + fmt.full.format(d), onClick: function () { if (props.onDayOpen) props.onDayOpen(d); }
           }, '+' + v.more + ' more')) : null) : null,
         list.length ? h('span', { className: 'hy-month-view__dots', 'aria-hidden': 'true' }, list.slice(0, 3).map(function (e) {
-          return h('span', { key: e.key, className: 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(e.tone) >= 0 ? e.tone : 'none') });
+          return h('span', { key: e.key, className: mvToneClass(e.tone) });
         })) : null);
     }));
   });
@@ -216,7 +231,7 @@ function MonthView(props) {
   var below = null;
   if (narrow) {
     var sel = selected ? (byDay[mvKey(selected)] || []) : [];
-    below = h('div', { className: 'hy-month-view__list', 'aria-live': 'polite' },
+    below = h('div', { className: 'hy-month-view__list' },
       selected ? h('h3', { className: 'hy-month-view__list-title' }, fmt.full.format(selected)) : null,
       selected ? (sel.length ? h('ul', { className: 'hy-month-view__list-entries' }, sel.map(function (e) {
         return h('li', { key: e.key }, mvEntry(e, true));
@@ -231,7 +246,7 @@ function MonthView(props) {
         h('div', { className: 'hy-month-view__nav' },
           h(HY.Button, { variant: 'tertiary', size: 'small', 'aria-label': 'Previous Month', onClick: function () { shift(-1); } }, h(HY.Icon, { name: 'chevron-left', size: 16 })),
           h(HY.Button, { variant: 'tertiary', size: 'small', 'aria-label': 'Next Month', onClick: function () { shift(1); } }, h(HY.Icon, { name: 'chevron-right', size: 16 })),
-          h(HY.Button, { variant: 'secondary', size: 'small', onClick: function () { setFocus(today); setMonth(new Date(today.getFullYear(), today.getMonth(), 1)); } }, 'Today'))),
+          h(HY.Button, { variant: 'secondary', size: 'small', onClick: function () { setFocus(today); setMonth(mvMonthStart(today)); } }, 'Today'))),
       h('div', { ref: grid, role: 'grid', className: 'hy-month-view__grid', 'aria-label': gridName, onKeyDown: onKeyDown },
         h('div', { role: 'row', className: 'hy-month-view__week hy-month-view__week--head' }, heads),
         rows),
