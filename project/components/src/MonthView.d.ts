@@ -9,7 +9,7 @@ export interface MonthViewEntry {
   /** Makes the entry a link. */
   href?: string;
   /** Makes the entry a button, or runs on a link's click as well. */
-  onOpen?: () => void;
+  onOpen?: (event: React.MouseEvent) => void;
 }
 
 export interface MonthViewProps {

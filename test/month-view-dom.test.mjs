@@ -192,6 +192,35 @@ describe('MonthView', { concurrency: false }, () => {
       await until(`document.activeElement.getAttribute('data-day') === '2025-12-07'`, 'focus on 7 December');
     });
 
+    it('Page Up and Page Down change the shown month by one, also from a trailing day', async () => {
+      await mount(`mv({ defaultMonth: new Date(2026, 0, 1), onMonthChange: function (m) { log.push('month ' + m.getFullYear() + '-' + (m.getMonth() + 1)); } })`);
+      await ev(`document.querySelector('[data-day="2025-12-31"]').focus()`);
+      await key('PageDown');
+      await until(`document.querySelector('.hy-month-view__title').textContent === 'February 2026'`, 'February');
+      await until(`document.activeElement.getAttribute('data-day') === '2026-02-28'`, 'focus clamped to 28 February');
+      assert.deepEqual(await logged(), ['month 2026-2']);
+      await key('PageUp');
+      await until(`document.querySelector('.hy-month-view__title').textContent === 'January 2026'`, 'January');
+      await until(`document.activeElement.getAttribute('data-day') === '2026-01-28'`, 'focus on 28 January');
+      await ev(`document.querySelector('[data-day="2025-12-31"]').focus()`);
+      await key('PageUp');
+      await until(`document.querySelector('.hy-month-view__title').textContent === 'December 2025'`, 'December, one month back');
+      await until(`document.activeElement.getAttribute('data-day') === '2025-12-31'`, 'focus on 31 December');
+    });
+
+    it('passes the click event to onOpen, on buttons and links', async () => {
+      await mount(`mv({ entries: [{ key: 'x', date: on(4), label: 'Open Me', onOpen: function (e) { log.push('event ' + (e && e.type)); } }, { key: 'y', date: on(5), label: 'Link', href: '#l', onOpen: function (e) { log.push('link ' + (e && e.type)); } }] })`);
+      await click(`${DAY(4)} .hy-month-view__entry`);
+      await click(`${DAY(5)} .hy-month-view__entry`);
+      assert.deepEqual(await logged(), ['event click', 'link click']);
+    });
+
+    it('announces the month change from the heading only', async () => {
+      await mount('mv()');
+      assert.equal(await ev(`document.querySelector('.hy-month-view__title').getAttribute('aria-live')`), 'polite');
+      assert.equal(await count('.hy-month-view [aria-live]'), 1);
+    });
+
     it('Tab from the focused day walks its entries and +N more, and the next Tab leaves the grid', async () => {
       await mount(`h('div', null, mv(), h('button', { id: 'after' }, 'After'))`);
       await focusDay(4);
@@ -257,6 +286,25 @@ describe('MonthView', { concurrency: false }, () => {
       await tap(DAY(4));
       assert.deepEqual(await logged(), ['sel 4']);
       assert.equal(await ev(`document.querySelector('.hy-month-view__list-entries li').textContent`), 'Deploy docs', 'the app owns the selection');
+    });
+
+    it('has no live region on the day list, and switches on the content width when padded', async () => {
+      await mount(narrowMv());
+      await tap(DAY(4));
+      await until(`document.querySelector('.hy-month-view__list-entries')`, 'the list');
+      assert.equal(await count('.hy-month-view [aria-live]'), 1, 'only the heading');
+      const pad = { padding: '0 40px', boxSizing: 'border-box' };
+      // Content width 639 (under sm) inside 40px of padding each side: the outer box is 719.
+      await mount(`h('div', { style: { width: 719 } }, mv({ style: ${JSON.stringify(pad)} }))`);
+      await until(`document.querySelector('.hy-month-view.is-narrow')`, 'the narrow form at content width 639');
+      assert.equal(await ev(`getComputedStyle(document.querySelector(${q(DAY(4) + ' .hy-month-view__entries')})).display`), 'none');
+      // Content width 640 with the same padding: wide.
+      await mount(`h('div', { style: { width: 720 } }, mv({ style: ${JSON.stringify(pad)} }))`);
+      await sleep(150);
+      assert.equal(await count('.hy-month-view.is-narrow'), 0);
+      assert.notEqual(await ev(`getComputedStyle(document.querySelector(${q(DAY(4) + ' .hy-month-view__entries')})).display`), 'none');
+      await mount(`h('div', { style: { width: 639.5 } }, mv())`);
+      await until(`document.querySelector('.hy-month-view.is-narrow')`, 'narrow at a fractional width');
     });
 
     it('fits the phone width with no horizontal overflow', async () => {

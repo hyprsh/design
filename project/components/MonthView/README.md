@@ -7,9 +7,9 @@ A month of days that each list their entries, for browsing what happens when.
 - Use it to browse app entries by day: deployments, releases, maintenance windows. To pick a date, use Calendar.
 - The grid fills out whole weeks, so the leading and trailing days of the neighbouring months show quieter. Today has a ring and heavier digits.
 - The header has the month and year, then Previous Month, Next Month and Today buttons.
-- Entries show in the order given. An entry with `href` is a link, one with `onOpen` is a button and one with neither is text. A `tone` adds a small leading mark in the tone's colour; the label carries the meaning, so write it to stand alone.
+- Entries show in the order given. An entry with `href` is a link, one with `onOpen` is a button (`onOpen` receives the click event, on a link too) and one with neither is text. A `tone` adds a small leading mark in the tone's colour; the label carries the meaning, so write it to stand alone.
 - Activating a day or its “+N more” calls `onDayOpen(date)`, so the app can show the day's full list.
-- The days are a grid with one Tab stop. Arrows move by day, Page Up and Page Down by month, Home and End to the start and end of the week, and Enter opens the day. Tab from the focused day walks its entries and “+N more”; the next Tab leaves the grid. Each day is named like “Tuesday 4 November, 3 entries”.
+- The days are a grid with one Tab stop. Arrows move by day, Page Up and Page Down by month (the same day number, or the last day of a shorter month), Home and End to the start and end of the week, and Enter opens the day. Tab from the focused day walks its entries and “+N more”; the next Tab leaves the grid. Each day is named like “Tuesday 4 November, 3 entries”.
 - Narrow: when the component itself is under 640px (the `sm` width) each day shows a number and up to three dots, one per entry. A day selects instead of opening, and that day's entries list below the grid with their links and buttons. Place it in a container, not the viewport, to decide: a wide viewport with a narrow column gets the narrow form.
 - Don't use it for week or day views, to drag entries between days or for entries that span days.
 
