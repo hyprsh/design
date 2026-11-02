@@ -1,0 +1,27 @@
+<!-- @dsCard group="Navigation" height=360 subtitle="Icon-only rail: top group, spacer, bottom group with a theme switcher and Settings; selected item, count badge, tooltip on the right" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Rail</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function icon(name) { return h(H.Icon, { name: name, size: 20 }); }
+/* The rail is sticky and full height; the demo sits it in a frame instead. */
+var inFrame = { height: 'auto', position: 'static' };
+function Demo() {
+  var s = React.useState('projects'), screen = s[0], setScreen = s[1];
+  return h('div', { style: { display: 'flex', height: 300, border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' } },
+    h(H.Rail, { label: 'Screens', showFrom: false, style: inFrame, value: screen, onValueChange: setScreen },
+      h(H.Rail.Item, { value: 'projects', label: 'Projects', icon: icon('layers') }),
+      h(H.Rail.Item, { value: 'domains', label: 'Domains', icon: icon('globe'), badge: 3, badgeLabel: '3 need attention' }),
+      h(H.Rail.Item, { value: 'activity', label: 'Activity', icon: icon('activity') }),
+      h(H.Rail.Spacer),
+      h(H.ThemeSwitcher, { variant: 'cycle', storageKey: null, tooltipPosition: 'right' }),
+      h(H.Rail.Item, { value: 'settings', label: 'Settings', icon: icon('settings') })),
+    h('p', { className: 'heading-20', style: { margin: 24, textTransform: 'capitalize' } }, screen));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

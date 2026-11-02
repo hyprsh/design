@@ -1,0 +1,38 @@
+/* ---------- Rail ---------- */
+/* In the page flow, full height and sticky, so the app's layout places it. Hidden below sm unless showFrom is false. */
+.hy-rail {
+  position: sticky; top: 0; display: flex; flex: none; flex-direction: column; align-items: center; gap: 4px;
+  box-sizing: border-box; width: 64px; height: 100vh; height: 100dvh; padding: 12px 0; overflow-y: auto;
+  background: var(--background-200); border-inline-end: 1px solid var(--gray-alpha-400);
+  font-family: var(--font-sans); color: var(--gray-900);
+}
+.hy-rail--show-sm { display: none; }
+@media (min-width: 640px) { .hy-rail--show-sm { display: flex; } }
+/* Pushes everything after it to the bottom: the top group and the bottom group. */
+.hy-rail__spacer { flex: 1 1 auto; min-height: 8px; }
+
+.hy-rail__item {
+  position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: var(--touch-target); min-height: var(--touch-target); margin: 0; padding: 0; border: 0; border-radius: var(--radius-md);
+  background: none; color: var(--gray-900); font: inherit; text-decoration: none; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: color .15s cubic-bezier(.4,0,.2,1), background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-rail__item:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-rail__item.is-selected, .hy-rail__item.is-selected:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
+.hy-rail__item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-rail__icon { position: relative; display: inline-flex; width: 20px; height: 20px; }
+
+/* Badges sit on the icon's top-right corner, ringed in the rail's own surface. */
+.hy-rail__badge { position: absolute; top: -4px; left: 11px; }
+.hy-rail__badge--dot, .hy-rail__badge--count {
+  background: var(--accent-900); color: var(--background-100); box-shadow: 0 0 0 2px var(--background-200); border-radius: var(--radius-full);
+}
+.hy-rail__badge--dot.hy-rail__badge--error, .hy-rail__badge--count.hy-rail__badge--error { background: var(--red-800); color: var(--white); }
+.hy-rail__badge--dot.hy-rail__badge--warning, .hy-rail__badge--count.hy-rail__badge--warning { background: var(--amber-700); color: var(--black); }
+.hy-rail__badge--dot { top: -2px; left: 14px; width: 8px; height: 8px; }
+.hy-rail__badge--count { box-sizing: border-box; min-width: 16px; height: 16px; padding: 0 4px; font-size: 11px; line-height: 16px; font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-rail__item { transition-duration: 0s; }
+}
