@@ -8,10 +8,10 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
   icon?: React.ReactNode;
   /**
    * A state dot before the label, scaled to the pill size (a StatusDot state). It takes the icon's place: with both, `status` wins.
-   * Say what it means in `statusLabel`.
+   * The dot is always hidden from assistive tech, so `statusLabel` is the only way the state is spoken.
    */
   status?: StatusDotState;
-  /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is hidden from it. */
+  /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is always hidden from it. */
   statusLabel?: string;
   /** A figure after the label, in tabular numbers and a quieter colour: `54/56`, `40%`. It is part of the accessible name as text. */
   trailing?: React.ReactNode;

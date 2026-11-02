@@ -86,12 +86,14 @@ describe('Pill status', () => {
     assert.deepEqual(named.map((c) => c.props.className), ['hy-pill__label', 'hy-sr', 'hy-pill__trailing']);
     assert.equal(named.map(text).join(' ').replace(/ ,/g, ','), 'STD, Downloading 54/56');
   });
-  it('lets the dot name itself when there is no statusLabel', () => {
-    const p = render({ status: 'error', children: 'STD' });
-    const dot = walk(p).find((n) => n.type === 'StatusDot');
-    assert.equal(dot.props['aria-hidden'], undefined);
-    assert.equal(dot.props.title, null);
-    assert.equal(byClass(p, 'hy-sr'), undefined);
+  it('always hides the dot from assistive tech, with or without statusLabel', () => {
+    for (const props of [{ status: 'error' }, { status: 'error', statusLabel: 'Failed' }]) {
+      const p = render({ ...props, children: 'STD' });
+      const dot = walk(p).find((n) => n.type === 'StatusDot');
+      assert.equal(String(dot.props['aria-hidden']), 'true');
+      assert.equal(dot.props.title, null);
+    }
+    assert.equal(byClass(render({ status: 'error', children: 'STD' }), 'hy-sr'), undefined);
   });
   it('wins over icon, and draws no slot without status', () => {
     const p = render({ status: 'ready', icon: 'ICON', children: 'A' });
