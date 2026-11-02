@@ -1,4 +1,4 @@
-interface MenuItemDataBase { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean }
+interface MenuItemDataBase { label: string; description?: React.ReactNode; title?: string; onSelect?: () => void; shortcut?: React.ReactNode; prefix?: React.ReactNode; disabled?: boolean; danger?: boolean; keepOpen?: boolean }
 /** An item of the one-piece `items` API. With `href` it is a link, which can't be checked. */
 export type MenuItemData =
   | (MenuItemDataBase & { href?: undefined; checked?: boolean; role?: 'radio' | 'checkbox' })
@@ -44,6 +44,8 @@ export interface MenuButtonProps extends Omit<ButtonProps, 'type'> {
 export interface MenuItemProps {
   /** Renders the item as a link. A link can't be checked: use `MenuItem` without `href` for a checked item. */
   href?: string;
+  /** Choosing the item runs its handlers but leaves the menu open, with focus on the item, for actions you repeat (a step wider, a step narrower). Not for toggles: a checked item already stays open. */
+  keepOpen?: boolean;
   /** Shows a checkmark when true and keeps its space when false. Makes the item a `menuitemcheckbox` (or a `menuitemradio` with `role="radio"`) with `aria-checked`. Undefined: a plain `menuitem`. Ignored with `href`. */
   checked?: boolean;
   /** 'radio' makes a checked item a `menuitemradio`; choosing it closes the menu. A checkbox item (the default) stays open when chosen, with focus on it. Ignored without `checked`. */

@@ -454,11 +454,105 @@ function TableOrder(props) {
       h('div', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said))));
 }
 
+/* The tables that have measured their columns, for the Columns menu: it sits outside the table and can't measure, so it reads
+   the measured columns, container and stickyHeader from the table that resizes the same keys. An entry is
+   { keys, cols, container, sticky }; TableWidths keeps it current and calls the listeners when it changes. */
+var widthTables = [], widthListeners = [];
+function registerWidthTable(entry) {
+  widthTables.push(entry);
+  return function () { widthTables.splice(widthTables.indexOf(entry), 1); };
+}
+function notifyWidthTables() { widthListeners.slice().forEach(function (fn) { fn(); }); }
+function widthTableFor(keys) {
+  return widthTables.filter(function (t) { return keys.every(function (k) { return t.keys.indexOf(k) >= 0; }); })[0] || null;
+}
+/* The columns the menu resizes: the table's measured ones, else (before it has measured) what the column definitions say.
+   Without a measured table a column with no `width` has no known width, so its steps stay disabled. */
+function menuWidthColumns(columns) {
+  var keys = columns.filter(function (c) { return c.resizable && !c.truncate; }).map(function (c) { return c.key; });
+  if (!keys.length) return null;
+  var t = widthTableFor(keys);
+  if (t) return { cols: t.cols, opts: { sticky: t.sticky, container: t.container } };
+  return {
+    cols: columns.map(function (c) {
+      if (!c.resizable || c.truncate) return { key: null, resizable: false, truncate: !!c.truncate, def: 0, min: 0, max: 0 };
+      var min = columnMin(0, c.minWidth);
+      return { key: c.key, resizable: true, truncate: false, def: c.width != null ? c.width : min, min: min, max: columnMax(min, c.maxWidth), unknown: c.width == null };
+    }),
+    opts: { sticky: false, container: Infinity }
+  };
+}
+function widthMessage(columns, cols, key, next) {
+  var c = cols.filter(function (x) { return x.key === key; })[0];
+  return columnName(columns, key) + ' ' + (hasWidth(next, key) ? next[key] : c ? Math.round(c.def) : 0) + ' pixels wide';
+}
+/* Wider, Narrower and Reset Width for each resizable column. A step goes through the same keyWidth, columnLimits and commit as
+   Shift+Left and Shift+Right on the handle, and a reset through the same reset as Enter, so none can differ from the handle.
+   emit(widths, change, reset) fires on each change. */
+function columnWidthItems(columns, widths, emit) {
+  var m = menuWidthColumns(columns), resetting = false;
+  var editor = columnWidthEditor({
+    getWidths: function () { return widths; },
+    emit: function (next, change) { emit(next, change, resetting, m.cols); }
+  });
+  function colOf(key) { return m.cols.filter(function (x) { return x.key === key && x.resizable; })[0]; }
+  function session(key) {
+    var c = colOf(key), lim = columnLimits(m.cols, widths, key, m.opts);
+    return { key: key, width: resolveWidth(c, widths), def: c.def, min: lim.min, max: lim.max, dragMax: lim.dragMax };
+  }
+  function step(dir) { return { key: dir < 0 ? 'ArrowLeft' : 'ArrowRight', shiftKey: true }; }
+  return {
+    has: function (key) { return !!m && !!colOf(key); },
+    items: function (key) {
+      var name = columnName(columns, key), s = session(key), out = [];
+      [['Wider', 1], ['Narrower', -1]].forEach(function (d) {
+        out.push({
+          label: 'Make ' + name + ' ' + d[0], keepOpen: true,
+          disabled: !!colOf(key).unknown || (keyWidth(step(d[1]), s.width, s) - s.width) * d[1] <= 0,
+          onSelect: function () { editor.key(session(key), step(d[1])); }
+        });
+      });
+      out.push({
+        label: 'Reset ' + name + ' Width', keepOpen: true, disabled: !hasWidth(widths, key),
+        onSelect: function () { resetting = true; editor.reset(key); resetting = false; }
+      });
+      return out;
+    }
+  };
+}
+
+/* Touch-only: the media query the resize handle's CSS hides itself with. */
+var TOUCH_ONLY = '(hover: none) and (pointer: coarse)';
+function touchOnlyNow() { return typeof window !== 'undefined' && !!window.matchMedia && !!window.matchMedia(TOUCH_ONLY).matches; }
+function useTouchOnly() {
+  var st = useState(touchOnlyNow);
+  useEffect(function () {
+    var mql = typeof window !== 'undefined' && window.matchMedia && window.matchMedia(TOUCH_ONLY);
+    if (!mql) return;
+    function on() { st[1](mql.matches); }
+    on();
+    if (mql.addEventListener) mql.addEventListener('change', on); else mql.addListener(on);
+    return function () { if (mql.removeEventListener) mql.removeEventListener('change', on); else mql.removeListener(on); };
+  }, []);
+  return st[0];
+}
+
 /* A Menu the app places, for example in a toolbar: each column in its current order with Move Left and Move Right, then Reset
-   Order. It needs the controlled form: it never holds the order itself, and announces its own moves. */
+   Order; and, with the width props, Wider, Narrower and Reset Width for each resizable column (hidden on touch-only devices,
+   like the handle). It lists only what the table supports, and renders nothing when that is nothing. It needs the controlled
+   form: it never holds the order or the widths itself, and announces its own changes. */
 function TableColumnsMenu(props) {
   var cols = props.columns;
   var ms = useState({ text: '', n: 0 }), said = ms[0], setSaid = ms[1];
+  var ts = useState(0), setTick = ts[1];
+  var touch = useTouchOnly();
+  useEffect(function () {
+    function on() { setTick(function (n) { return n + 1; }); }
+    widthListeners.push(on);
+    return function () { widthListeners.splice(widthListeners.indexOf(on), 1); };
+  }, []);
+  var hasWidths = props.columnWidths !== undefined || !!props.onColumnWidthsChange;
+  var hasOrder = props.columnOrder !== undefined || !!props.onColumnOrderChange || !hasWidths;
   var editor = columnOrderEditor({
     getColumns: function () { return cols; },
     getOrder: function () { return props.columnOrder; },
@@ -467,18 +561,27 @@ function TableColumnsMenu(props) {
       setSaid({ text: orderMessage(cols, next, change), n: said.n + 1 });
     },
   });
+  var widthPart = hasWidths && !touch ? columnWidthItems(cols, props.columnWidths || {}, function (next, change, reset, measured) {
+    if (props.onColumnWidthsChange) props.onColumnWidthsChange(next, change);
+    setSaid({ text: reset ? columnName(cols, change.key) + ' width reset' : widthMessage(cols, measured, change.key, next), n: said.n + 1 });
+  }) : null;
   var items = [];
   resolveColumnOrder(cols, props.columnOrder).forEach(function (k) {
     var name = columnName(cols, k);
-    [['Left', -1], ['Right', 1]].forEach(function (d) {
+    if (hasOrder) [['Left', -1], ['Right', 1]].forEach(function (d) {
       items.push({ label: 'Move ' + name + ' ' + d[0], disabled: !moveColumn(cols, props.columnOrder, k, d[1]), onSelect: function () { editor.move(k, d[1]); } });
     });
+    if (widthPart && widthPart.has(k)) widthPart.items(k).forEach(function (i) { items.push(i); });
   });
-  items.push({ separator: true });
-  items.push({ label: 'Reset Order', onSelect: editor.reset });
+  if (hasOrder) {
+    items.push({ separator: true });
+    items.push({ label: 'Reset Order', onSelect: editor.reset });
+  }
+  var live = h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said));
+  if (!items.some(function (i) { return !i.separator; })) return live;
   return h(React.Fragment, null,
     h(HY.Menu, { label: props.label == null ? 'Columns' : props.label, items: items }),
-    h('span', { className: 'hy-sr', 'aria-live': 'polite', 'aria-atomic': 'true' }, liveText(said)));
+    live);
 }
 
 /* Created on first use, so the pure parts above run without React (see test/table-resize.test.mjs). */
@@ -569,6 +672,17 @@ function TableWidths(props) {
     if (m.truncate) return { key: null, resizable: false, truncate: true, def: 0, min: columnMin(m.min), max: Infinity };
     return { key: null, resizable: false, truncate: false, def: m.width, min: m.width, max: m.width };
   }) : null;
+  /* The Columns menu reads the measured columns from here (see registerWidthTable). */
+  var entry = useRef(null);
+  if (!entry.current) entry.current = { keys: [], cols: [], container: 0, sticky: false };
+  useEffect(function () { return registerWidthTable(entry.current); }, []);
+  useLayoutEffect(function () {
+    entry.current.cols = cols || [];
+    entry.current.keys = (cols || []).filter(function (c) { return c.resizable; }).map(function (c) { return c.key; });
+    entry.current.container = container;
+    entry.current.sticky = !!props.stickyHeader;
+    notifyWidthTables();
+  }, [measured, container, props.stickyHeader]);
   function colOf(key) { return cols.filter(function (c) { return c.key === key; })[0]; }
   function currentContainer() {
     var p = tableRef.current && tableRef.current.parentNode;
