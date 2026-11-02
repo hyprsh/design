@@ -86,11 +86,12 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
 
   it('exposes column headers and a row of cells per item to assistive technology', async () => {
     await mount(`list({ columns: COLUMNS, labelHeader: 'Service', valueHeader: 'Requests' })`);
-    assert.equal(await ev(`document.querySelector('.hy-bar-list').getAttribute('role')`), 'table');
-    assert.deepEqual(await texts('[role="columnheader"]'), ['Service', 'Requests', 'P50', 'P99', 'Errors']);
-    assert.equal(await count('[role="row"]'), 4);
-    assert.equal(await count('[role="row"]:not(:first-child) [role="cell"]'), 15);
-    assert.deepEqual(await texts('[role="row"]:nth-child(3) [role="cell"]'), ['edge-cache', '204', '9 ms', '80 ms', '']);
+    assert.equal(await ev(`document.querySelector('.hy-bar-list').tagName`), 'TABLE');
+    assert.deepEqual(await texts('thead th[scope="col"]'), ['Service', 'Requests', 'P50', 'P99', 'Errors']);
+    assert.equal(await count('tbody tr'), 3);
+    assert.equal(await count('tbody th[scope="row"], tbody td'), 15);
+    assert.deepEqual(await texts('tbody tr:nth-child(2) > *'), ['edge-cache', '204', '9 ms', '80 ms', '']);
+    assert.equal(await ev(`getComputedStyle(document.querySelector('tbody td')).display`), 'table-cell');
   });
 
   it('shows a header row and lines the figures up under their headers', async () => {
@@ -98,18 +99,18 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
     const rights = await ev(`(function () {
       var cols = [2, 3, 4], out = [];
       cols.forEach(function (c) {
-        var xs = Array.from(document.querySelectorAll('.hy-bar-list [role="row"]')).map(function (r) { return Math.round(r.children[c].getBoundingClientRect().right); });
+        var xs = Array.from(document.querySelectorAll('.hy-bar-list tr')).map(function (r) { return Math.round(r.children[c].getBoundingClientRect().right); });
         out.push(xs.every(function (x) { return x === xs[0]; }));
       });
       return out;
     })()`);
     assert.deepEqual(rights, [true, true, true]);
-    assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-bar-list [role="cell"]:nth-child(3)')).textAlign`), 'right');
-    assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-bar-list [role="cell"]:nth-child(3)')).fontVariantNumeric`), 'tabular-nums');
+    assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-bar-list tbody td:nth-child(3)')).textAlign`), 'right');
+    assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-bar-list tbody td:nth-child(3)')).fontVariantNumeric`), 'tabular-nums');
   });
 
   it('hides extra columns by priority as the list narrows, keeps their text for assistive technology, and never hides the label, bar and value', async () => {
-    const shown = () => visible('[role="columnheader"]');
+    const shown = () => visible('thead th');
     await mount(`list({ columns: COLUMNS })`, 900);
     assert.deepEqual(await shown(), ['Label', 'Value', 'P50', 'P99', 'Errors']);
     await mount(`list({ columns: COLUMNS })`, 540);
@@ -118,13 +119,19 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
     assert.deepEqual(await shown(), ['Label', 'Value', 'P99'], 'then the largest priority number');
     await ev('width(340)'); await sleep(150);
     assert.deepEqual(await shown(), ['Label', 'Value']);
-    assert.deepEqual(await visible('[role="row"]:nth-child(2) [role="cell"]'), ['api-gateway', '318']);
+    assert.deepEqual(await visible('tbody tr:nth-child(1) > *'), ['api-gateway', '318']);
     assert.ok((await ev(`document.querySelector('.hy-bar-list__fill').getBoundingClientRect().width`)) > 20, 'the bar stays');
-    assert.deepEqual(await texts('[role="row"]:nth-child(2) [role="cell"]'), ['api-gateway', '318', '12 ms', '240 ms', '3'], 'hidden figures are still in the tree');
+    assert.deepEqual(await texts('tbody tr:nth-child(1) > *'), ['api-gateway', '318', '12 ms', '240 ms', '3'], 'hidden figures are still in the tree');
     assert.equal(await ev(`document.documentElement.scrollWidth <= document.documentElement.clientWidth`), true);
     // The list's own width decides, not the viewport.
     await ev('width(900)'); await sleep(150);
     assert.deepEqual(await shown(), ['Label', 'Value', 'P50', 'P99', 'Errors']);
+  });
+
+  it('sizes extra columns to their content instead of clipping wide figures', async () => {
+    await mount(`list({ columns: [{ key: 'p50', label: 'P50' }], items: [{ label: 'a', value: 5, columns: { p50: '1,234,567,890 requests' } }, { label: 'b', value: 1, columns: { p50: '4' } }] })`);
+    assert.equal(await ev(`(function () { var c = document.querySelector('tbody td:nth-child(3)'); return c.scrollWidth <= c.clientWidth; })()`), true);
+    assert.ok((await ev(`document.querySelector('tbody td:nth-child(3)').getBoundingClientRect().width`)) > 120, 'wider than a fixed 88px');
   });
 
   it('opens a row with a click, Enter and Space, passes the item, and gives each row one Tab stop', async () => {
@@ -150,24 +157,24 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
     await ev('log.length = 0');
     await mount(`list({ columns: COLUMNS, onOpen: function (it, e) { log.push(it.label); if (it.href) e.preventDefault(); },
       items: ITEMS.map(function (it, i) { return i === 2 ? Object.assign({ href: '#x' }, it) : it; }) })`);
-    assert.equal(await count('[role="cell"] button'), 2);
-    assert.equal(await count('[role="cell"] a'), 1);
-    assert.deepEqual(await texts('[role="cell"] button'), ['api-gateway', 'edge-cache']);
+    assert.equal(await count('tbody button'), 2);
+    assert.equal(await count('tbody a'), 1);
+    assert.deepEqual(await texts('tbody button'), ['api-gateway', 'edge-cache']);
     await click('.hy-bar-list__bar', 1); // the bar, not the label
     await until('log.length === 1', 'the row to open');
-    await click('[role="row"]:nth-child(4) [role="cell"]:nth-child(5)', 0);
+    await click('tbody tr:nth-child(3) > :nth-child(5)', 0);
     await until('log.length === 2', 'the link row to open');
     assert.deepEqual(await ev('log'), ['edge-cache', 'build-runner']);
     assert.equal(await ev('location.hash'), '', 'preventDefault stopped the link');
-    await ev(`document.querySelector('[role="cell"] button').focus()`);
-    await press('Tab'); await ev(`document.querySelector('[role="cell"] button').focus()`);
-    assert.equal(await ev(`getComputedStyle(document.querySelector('[role="cell"] button'), '::after').outlineWidth`), '2px');
+    await ev(`document.querySelector('tbody button').focus()`);
+    await press('Tab'); await ev(`document.querySelector('tbody button').focus()`);
+    assert.equal(await ev(`getComputedStyle(document.querySelector('tbody button'), '::after').outlineWidth`), '2px');
   });
 
   it('keeps today’s markup for a list without the new props', async () => {
     await mount(`list()`);
     assert.equal(await ev(`document.querySelector('.hy-bar-list').tagName`), 'UL');
-    assert.equal(await count('.hy-bar-list [role="row"], .hy-bar-list [role="cell"], .hy-bar-list button, .hy-bar-list a'), 0);
+    assert.equal(await count('.hy-bar-list tr, .hy-bar-list td, .hy-bar-list button, .hy-bar-list a'), 0);
     assert.equal(await count('li.hy-bar-list__item > div.hy-bar-list__row'), 3);
   });
 });

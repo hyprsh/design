@@ -1,9 +1,12 @@
 /* Labelled horizontal bars for ranking amounts: one row per item, in the order given, scaled to `max` or the largest value.
    The bar is decorative (aria-hidden): each row reads "label, value unit". An item with `href` is a link, and with `onOpen`
-   a button (a link that also calls `onOpen`). With `columns` the list is an ARIA table with a header row and extra figures
+   a button (a link that also calls `onOpen`). With `columns` the list is a native table with a header row and extra figures
    per row, and narrows by hiding extra columns in `priority` order. One series, so no legend. The pure parts (blHiddenKeys)
    are module-private functions: tests read them from the vm context. */
-var BL_COL = 88, BL_GAP = 12, BL_BASE = 320;
+/* How narrow a table list may get. The label, bar and value need BL_MIN_CORE px between them (a 120px label, a bar of at
+   least 80px and a 80px value, with their gaps and padding). Extra columns size to their content, so each is budgeted
+   BL_COL_ESTIMATE px: a typical figure with its gap. */
+var BL_MIN_CORE = 320, BL_COL_ESTIMATE = 100;
 
 /* The keys of the extra columns that don't fit in `width` px, hidden one by one until the rest do: the largest `priority`
    number first, ties from the right, and a column without a `priority` before any column with one. The label, bar and
@@ -15,7 +18,7 @@ function blHiddenKeys(columns, width) {
     return { key: c.key, i: i, p: typeof c.priority === 'number' && isFinite(c.priority) ? c.priority : Infinity };
   }).sort(function (a, b) { return a.p !== b.p ? (a.p > b.p ? -1 : 1) : b.i - a.i; });
   var shown = columns.length;
-  for (var n = 0; n < order.length && BL_BASE + shown * (BL_COL + BL_GAP) > width; n++) {
+  for (var n = 0; n < order.length && BL_MIN_CORE + shown * BL_COL_ESTIMATE > width; n++) {
     hidden[order[n].key] = true;
     shown--;
   }
@@ -66,29 +69,26 @@ function BarList(props) {
 
   if (cols) {
     var hiddenKeys = blHiddenKeys(cols, width);
-    var shown = cols.filter(function (c) { return !hiddenKeys[c.key]; }).length;
-    var template = 'minmax(0, 1fr) minmax(0, 2fr)' + (shown ? ' repeat(' + shown + ', ' + BL_COL + 'px)' : '');
-    var cell = function (c, role, content, extra) {
-      return h('div', { key: c.key, role: role, className: cx('hy-bar-list__cell', 'hy-bar-list__cell--figure', hiddenKeys[c.key] && 'is-hidden', extra) }, content);
+    var figure = function (c, tag, content, extra) {
+      return h(tag, Object.assign({ key: c.key, className: cx('hy-bar-list__cell', 'hy-bar-list__cell--figure', hiddenKeys[c.key] && 'is-hidden') }, extra), content);
     };
-    return h('div', Object.assign({}, rest, {
-      ref: listRef, className: cx('hy-bar-list', 'hy-bar-list--table', props.mono && 'hy-bar-list--mono', props.className),
-      role: 'table', style: Object.assign({ '--hy-bar-list-cols': template }, props.style)
+    return h('table', Object.assign({}, rest, {
+      ref: listRef, className: cx('hy-bar-list', 'hy-bar-list--table', props.mono && 'hy-bar-list--mono', props.className)
     }),
-      h('div', { role: 'row', className: 'hy-bar-list__head' },
-        h('div', { role: 'columnheader', className: 'hy-bar-list__cell' }, props.labelHeader !== undefined ? props.labelHeader : 'Label'),
-        h('div', { role: 'columnheader', className: 'hy-bar-list__cell hy-bar-list__cell--value' }, props.valueHeader !== undefined ? props.valueHeader : 'Value'),
-        cols.map(function (c) { return cell(c, 'columnheader', c.label); })),
-      items.map(function (it) {
+      h('thead', null, h('tr', { className: 'hy-bar-list__head' },
+        h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, props.labelHeader !== undefined ? props.labelHeader : 'Label'),
+        h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--value' }, props.valueHeader !== undefined ? props.valueHeader : 'Value'),
+        cols.map(function (c) { return figure(c, 'th', c.label, { scope: 'col' }); }))),
+      h('tbody', null, items.map(function (it) {
         var label = h('span', { className: 'hy-bar-list__label', title: it.label }, it.label);
         var target = opener(it, { className: 'hy-bar-list__target' }, label);
-        return h('div', { key: it.key || it.label, role: 'row', className: cx('hy-bar-list__item', 'hy-bar-list__row', target && 'hy-bar-list__row--open') },
-          h('div', { role: 'cell', className: 'hy-bar-list__cell' }, target || label),
-          h('div', { role: 'cell', className: 'hy-bar-list__cell hy-bar-list__cell--value' },
+        return h('tr', { key: it.key || it.label, className: cx('hy-bar-list__item', 'hy-bar-list__tr', target && 'hy-bar-list__tr--open') },
+          h('th', { scope: 'row', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, target || label),
+          h('td', { className: 'hy-bar-list__cell hy-bar-list__cell--value' }, h('div', { className: 'hy-bar-list__valuebox' },
             h('span', { className: 'hy-bar-list__bar', 'aria-hidden': 'true' }, fillOf(it)),
-            h('span', { className: 'hy-bar-list__value' }, format(it.value), props.unit ? h('span', { className: 'hy-sr' }, ' ' + props.unit) : null)),
-          cols.map(function (c) { return cell(c, 'cell', it.columns ? it.columns[c.key] : null); }));
-      }));
+            h('span', { className: 'hy-bar-list__value' }, format(it.value), props.unit ? h('span', { className: 'hy-sr' }, ' ' + props.unit) : null))),
+          cols.map(function (c) { return figure(c, 'td', it.columns ? it.columns[c.key] : null); }));
+      })));
   }
 
   return h('ul', Object.assign({}, rest, { className: cx('hy-bar-list', props.mono && 'hy-bar-list--mono', props.className), role: 'list' }),

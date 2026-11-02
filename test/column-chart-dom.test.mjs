@@ -383,6 +383,27 @@ describe('ColumnChart', { concurrency: false }, () => {
         assert.equal(await ev('location.hash'), '', 'preventDefault stopped the navigation');
       });
 
+      it('keeps marks openable in a column that is no target, reachable by keys and pointer', async () => {
+        await mount(`chart({ href: function (d, k) { return k === 'canceled' ? '#' + d.label.replace(' ', '-') + '-' + k : undefined; } })`);
+        assert.equal(await count('a.hy-column-chart__open'), 0);
+        assert.equal(await count(`.hy-column-chart__open.is-static[role="img"]`), 3, 'columns with marks stay named images');
+        assert.equal(await count(`${SLOT}[role="img"]`), 1, 'Oct 26 has no mark to open, so it is a plain column');
+        assert.equal(await count('a.hy-column-chart__mark'), 3, 'Oct 27, 28 and 29 have a canceled mark');
+        assert.equal(await ev(`document.querySelector(${q(COL(2))}).getAttribute('aria-label')`), 'Oct 28: 25 ready, 1 canceled, 0 error');
+        assert.equal(await count('[data-index][tabindex="0"]'), 1);
+        await ev(`document.querySelector(${q(COL(2))}).focus()`);
+        await press('ArrowUp');
+        assert.equal(await activeAttr('data-mark'), 'canceled', 'Up skips the ready mark, which has no target');
+        await press('ArrowDown');
+        assert.equal(await activeAttr('data-index'), '2');
+        await press('ArrowRight');
+        assert.equal(await focusedIndex(), '3');
+        assert.equal(await count('.hy-column-chart__slot:nth-child(1) .hy-column-chart__mark'), 0);
+        await ev(`document.querySelector(${q(SLOT + '[data-index="0"]')}).focus()`);
+        await press('ArrowUp');
+        assert.equal(await focusedIndex(), '0', 'a column without marks ignores Up');
+      });
+
       it('mixes buttons and links when onOpen is set and href gives a URL for some', async () => {
         await mount(`chart({ onOpen: function () {}, href: function (d) { return d.label === 'Oct 27' ? '/x' : undefined; } })`);
         assert.equal(await count('a.hy-column-chart__open'), 1);

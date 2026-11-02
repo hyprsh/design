@@ -27,7 +27,7 @@ const C = {
   ticks: context.ccTicks, tickLabel: context.ccTickLabel, segments: context.ccSegments, total: context.ccTotal,
   thinStep: context.ccThinStep, columnName: context.ccColumnName, tooltipRows: context.ccTooltipRows,
   totalText: context.ccTotalText, value: context.ccValue,
-  target: context.ccTarget, openColumnName: context.ccOpenColumnName, openMarkName: context.ccOpenMarkName, markPointer: context.ccMarkPointer,
+  target: context.ccTarget, openColumnName: context.ccOpenColumnName, openMarkName: context.ccOpenMarkName, markPointer: context.ccMarkPointer, stepTo: context.ccStepTo, openMarks: context.ccOpenMarks,
 };
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
@@ -200,5 +200,30 @@ describe('ColumnChart.markPointer', () => {
     assert.equal(C.markPointer(8), true);
     assert.equal(C.markPointer(7.9), false);
     assert.equal(C.markPointer(2), false);
+  });
+});
+
+describe('ColumnChart.stepTo', () => {
+  it('maps Right, Left, Home and End to a column, clamped, and other keys to null', () => {
+    assert.equal(C.stepTo('ArrowRight', 1, 4), 2);
+    assert.equal(C.stepTo('ArrowRight', 3, 4), 3);
+    assert.equal(C.stepTo('ArrowLeft', 0, 4), 0);
+    assert.equal(C.stepTo('ArrowLeft', 2, 4), 1);
+    assert.equal(C.stepTo('Home', 2, 4), 0);
+    assert.equal(C.stepTo('End', 0, 4), 3);
+    assert.equal(C.stepTo('ArrowUp', 0, 4), null);
+  });
+});
+
+describe('ColumnChart.openMarks', () => {
+  const series = [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }, { key: 'c', label: 'C' }];
+  const d = { label: 'x', values: { a: 3, c: 1 } };
+  it('lists the non-zero series with a target of their own, whatever the column does', () => {
+    assert.deepEqual(plain(C.openMarks({ href: (_d, k) => (k === 'c' ? '/c' : undefined) }, series, d)), ['c']);
+    assert.deepEqual(plain(C.openMarks({ onOpen() {} }, series, d)), ['a', 'c']);
+    assert.deepEqual(plain(C.openMarks({}, series, d)), []);
+  });
+  it('has none for a single series', () => {
+    assert.deepEqual(plain(C.openMarks({ onOpen() {} }, series.slice(0, 1), d)), []);
   });
 });

@@ -209,37 +209,36 @@ describe('BarList columns', () => {
   const items = [{ label: 'api-gateway', value: 318, columns: { p50: '12 ms', p99: h2('240 ms') } }, { label: 'edge-cache', value: 204, columns: { p50: '9 ms' } }];
   function h2(text) { return { type: 'b', props: {}, children: [text] }; }
   const table = (props) => { mount(); return render({ ...NAMED, columns, items, ...props }); };
-  const cells = (row) => row.children.filter((n) => n && n.props && n.props.role);
-  it('is an ARIA table with a header row of column headers and a row of cells per item', () => {
+  const kids = (n) => n.children.filter((c) => c && typeof c === 'object');
+  it('is a native table with a thead of scoped column headers and a tbody row of cells per item', () => {
     const t = table();
-    assert.equal(t.type, 'div');
-    assert.equal(t.props.role, 'table');
+    assert.equal(t.type, 'table');
     assert.equal(t.props['aria-label'], 'Top routes');
-    const [head, ...body] = t.children;
-    assert.equal(head.props.role, 'row');
-    assert.deepEqual(cells(head).map((c) => [c.props.role, name(c)]), [['columnheader', 'Label'], ['columnheader', 'Value'], ['columnheader', 'P50'], ['columnheader', 'P99']]);
+    const [thead, tbody] = kids(t);
+    assert.equal(thead.type, 'thead');
+    assert.equal(tbody.type, 'tbody');
+    const head = kids(kids(thead)[0]);
+    assert.deepEqual(head.map((c) => [c.type, c.props.scope, name(c)]), [['th', 'col', 'Label'], ['th', 'col', 'Value'], ['th', 'col', 'P50'], ['th', 'col', 'P99']]);
+    const body = kids(tbody);
     assert.equal(body.length, 2);
     for (const row of body) {
-      assert.equal(row.props.role, 'row');
-      assert.deepEqual(cells(row).map((c) => c.props.role), ['cell', 'cell', 'cell', 'cell']);
+      assert.equal(row.type, 'tr');
+      assert.deepEqual(kids(row).map((c) => c.type), ['th', 'td', 'td', 'td']);
+      assert.equal(kids(row)[0].props.scope, 'row');
     }
   });
   it('names the first two headers with labelHeader and valueHeader', () => {
-    const head = table({ labelHeader: 'Route', valueHeader: 'Requests' }).children[0];
-    assert.deepEqual(cells(head).slice(0, 2).map(name), ['Route', 'Requests']);
+    const head = kids(kids(kids(table({ labelHeader: 'Route', valueHeader: 'Requests' }))[0])[0]);
+    assert.deepEqual(head.slice(0, 2).map(name), ['Route', 'Requests']);
   });
   it('puts the label, the value and each figure in its cell, and an empty cell for a missing figure', () => {
-    const [, a, b] = table({ unit: 'requests' }).children;
-    assert.deepEqual(cells(a).map(name), ['api-gateway', '318 requests', '12 ms', '240 ms']);
-    assert.deepEqual(cells(b).map(name), ['edge-cache', '204 requests', '9 ms', '']);
-    assert.equal(cells(b).length, 4);
-  });
-  it('lays every row out on the same column template', () => {
-    const t = table();
-    assert.match(t.props.style['--hy-bar-list-cols'], /repeat\(2, 88px\)/);
+    const [a, b] = kids(kids(table({ unit: 'requests' }))[1]);
+    assert.deepEqual(kids(a).map(name), ['api-gateway', '318 requests', '12 ms', '240 ms']);
+    assert.deepEqual(kids(b).map(name), ['edge-cache', '204 requests', '9 ms', '']);
+    assert.equal(kids(b).length, 4);
   });
   it('keeps the bar in the value cell, hidden from assistive technology', () => {
-    const [, a] = table().children;
+    const [a] = kids(kids(table())[1]);
     assert.ok(hidden(find(a, (n) => /hy-bar-list__bar/.test(n.props.className || ''))));
   });
   it('treats an empty columns array as no columns', () => {
@@ -289,7 +288,7 @@ describe('BarList onOpen', () => {
     opened.length = 0;
     mount();
     const t = render({ ...NAMED, columns: [{ key: 'x', label: 'X' }], onOpen: (...a) => opened.push(a), items: [item, { label: 'edge-cache', value: 4, href: '/edge' }] });
-    const [, a, b] = t.children;
+    const [a, b] = findAll(t, (n) => n.type === 'tr' && n.props.className.includes('hy-bar-list__item'));
     const button = find(a, (n) => n.type === 'button');
     assert.equal(name(button), 'api-gateway');
     button.props.onClick({});
@@ -299,14 +298,14 @@ describe('BarList onOpen', () => {
 });
 
 describe('BarList without the new props', () => {
-  it('renders the same markup as before: a ul of li rows, with no table roles, buttons or handlers', () => {
+  it('renders the same markup as before: a ul of li rows, with no table, buttons or handlers', () => {
     mount();
     const t = render({ ...NAMED, items: [{ label: 'a', value: 1 }, { label: 'b', value: 2, href: '/b' }] });
     assert.equal(t.type, 'ul');
     assert.equal(t.props.role, 'list');
     assert.equal(t.props.ref, undefined);
     assert.equal(t.props.style, undefined);
-    assert.equal(findAll(t, (n) => n.type === 'button' || n.props.role === 'row' || n.props.role === 'cell').length, 0);
+    assert.equal(findAll(t, (n) => n.type === 'button' || n.type === 'table' || n.type === 'tr').length, 0);
     const [a, b] = rows(t);
     assert.equal(a.props.className, 'hy-bar-list__item');
     assert.deepEqual(a.children.map((c) => c.props.className), ['hy-bar-list__row']);
