@@ -457,8 +457,8 @@ function MenuItem(props) {
     if (disabled) { e.preventDefault(); return; }
     if (props.onClick) props.onClick(e);
     if (props.onSelect) props.onSelect(props.value);
-    /* A checkbox item stays open, with focus where it was, so several can be toggled. */
-    if (ctx && !(checkable && !radio)) ctx.close(true);
+    /* A checkbox item, or one with keepOpen, stays open with focus where it was, so several can be chosen. */
+    if (ctx && !props.keepOpen && !(checkable && !radio)) ctx.close(true);
   }
   var lv = React.useContext(LevelCtx);
   function hover(e) {
@@ -512,7 +512,7 @@ function LegacyList(props) {
   return h(MenuList, { ctx: ctx, width: props.width, 'aria-label': typeof props.label === 'string' ? props.label : undefined },
     (props.items || []).map(function (it, i) {
       if (it.separator) return h(MenuDivider, { key: 'sep' + i });
-      return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title, checked: it.checked, role: it.role }, it.label);
+      return h(MenuItem, { key: it.label + i, onSelect: it.onSelect, shortcut: it.shortcut, prefix: it.prefix, disabled: it.disabled, type: it.danger ? 'error' : it.type, href: it.href, description: it.description, title: it.title, checked: it.checked, role: it.role, keepOpen: it.keepOpen }, it.label);
     }));
 }
 
