@@ -68,6 +68,23 @@ describe('SettingRow labelling', () => {
   });
 });
 
+describe('SettingRow naming a group control', () => {
+  const sw = (props) => ({ type: 'Switch', props: props || {}, children: [] });
+  it('gives the label an id and points aria-labelledby at it', () => {
+    const r = row({ help: 'Help' }, sw());
+    const label = find(r, (n) => n.type === 'label');
+    const s = find(r, (n) => n.type === 'Switch');
+    assert.ok(label.props.id);
+    assert.equal(s.props['aria-labelledby'], label.props.id);
+    assert.equal(label.props.htmlFor, s.props.id);
+    assert.deepEqual(ids(s.props['aria-describedby']), [byClass(r, 'hy-setting-row__help').props.id]);
+  });
+  it('keeps an existing aria-labelledby or aria-label', () => {
+    assert.equal(find(row({}, sw({ 'aria-labelledby': 'x' })), (n) => n.type === 'Switch').props['aria-labelledby'], 'x');
+    assert.equal(find(row({}, sw({ 'aria-label': 'Name' })), (n) => n.type === 'Switch').props['aria-labelledby'], undefined);
+  });
+});
+
 describe('SettingRow changed state', () => {
   it('is not marked by default and has no description text', () => {
     const r = row();
