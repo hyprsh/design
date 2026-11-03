@@ -226,6 +226,31 @@ describe('BarList.hiddenKeys', () => {
     assert.deepEqual(hiddenKeys(cols, 250, context.blCore(40, 48), w), ['ans', 'fail']);
     assert.deepEqual(hiddenKeys(cols, 100, context.blCore(40, 48), w), ['ans', 'fail'], 'the kept column stays even when nothing fits');
   });
+  it('reserves the natural label width, at least 80px and at most 160px, when sizing the core', () => {
+    assert.equal(context.blLabelMin(0), 80);
+    assert.equal(context.blLabelMin(50), 80);
+    assert.equal(context.blLabelMin(100.2), 101);
+    assert.equal(context.blLabelMin(400), 160);
+    assert.equal(context.blCore(30, 48, 120) - context.blCore(30, 48), 40);
+    assert.equal(context.blCore(30, 48, 0), context.blCore(30, 48), 'no label width means the 80px minimum');
+  });
+  it('hides hideable columns before the label drops below its natural width', () => {
+    const cols = [{ ...col('hit', 9), hideable: false }, col('ans', 2), col('fail', 1)];
+    const w = { hit: 32, ans: 52, fail: 20 };
+    const at = (label, width = 345) => hiddenKeys(cols, width, context.blCore(30, 48, context.blLabelMin(label)), w);
+    assert.deepEqual(at(0), [], 'an 80px label leaves room for all three');
+    assert.deepEqual(at(100), ['ans'], 'a 100px label hides Answer, the larger priority number');
+    assert.deepEqual(at(120, 300), ['ans', 'fail']);
+    assert.deepEqual(at(400, 420), [], 'a very long label is capped at 160px: 420px fits everything');
+    assert.deepEqual(at(400, 419), ['ans'], 'and 419px does not');
+    assert.deepEqual(at(900, 419), at(160, 419));
+  });
+  it('keeps the 80px label, then the bar floor, when only hideable: false columns are left', () => {
+    const cols = [{ ...col('hit'), hideable: false }];
+    const w = { hit: 32 };
+    assert.deepEqual(hiddenKeys(cols, 150, context.blCore(30, 48, 160), w), [], 'nothing to hide, however wide the label');
+    assert.equal(context.blCore(30, 24) + 32 + 12, context.blCore(30, 48) + 32 + 12 - 24, 'the fallback floor is 24px under the 80px label');
+  });
   it('hides nothing before the widths are measured', () => {
     assert.deepEqual(hiddenKeys([col('a', 1)], 300, 0, {}), []);
   });
