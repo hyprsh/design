@@ -3,6 +3,7 @@
 // the live examples, the theme control, the search field and the copy buttons. See docs/adr/0001-docs-site-without-dependencies.md.
 // Usage: node scripts/site.mjs [--serve [port]]   (--serve builds, then serves at http://127.0.0.1:4401)
 import { createServer } from 'node:http';
+import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import { readFileSync, writeFileSync, mkdirSync, rmSync, readdirSync, copyFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, extname, normalize, posix } from 'node:path';
@@ -18,6 +19,10 @@ const PROJECT = join(ROOT, 'project');
 const COMP = join(PROJECT, 'components');
 export const OUT = join(ROOT, '.cache/site');
 const read = (p) => readFileSync(p, 'utf8');
+// Pages caches files for 10 minutes under one URL, so a fresh page could run against the last deploy's bundle and miss
+// its new exports. Each page links these with a hash of their content, which buildSite fills in after copying them.
+const ASSET_HASH = { 'tokens.css': '', 'bundle.css': '', 'bundle.js': '', 'site.css': '', 'site.js': '' };
+const asset = (rel, f) => `${rel}${f}?v=${ASSET_HASH[f]}`;
 const CDN = 'https://cdn.jsdelivr.net/npm/';
 const REACT = [CDN + 'react@18.3.1/umd/react.production.min.js', CDN + 'react-dom@18.3.1/umd/react-dom.production.min.js'];
 const BABEL = CDN + '@babel/standalone@7.26.4/babel.min.js';
@@ -172,9 +177,9 @@ ${list}</div>`;
 <title>${esc(title)}${title === 'hyprsh design' ? '' : ' · hyprsh design'}</title>
 ${description ? `<meta name="description" content="${esc(description)}">\n` : ''}<link rel="icon" href="${rel}brand/logo-mark.svg" type="image/svg+xml">
 ${mdHref ? `<link rel="alternate" type="text/markdown" href="${mdHref}">\n` : ''}<script>${THEME_SCRIPT}</script>
-<link rel="stylesheet" href="${rel}tokens.css">
-<link rel="stylesheet" href="${rel}bundle.css">
-<link rel="stylesheet" href="${rel}site.css">
+<link rel="stylesheet" href="${asset(rel, 'tokens.css')}">
+<link rel="stylesheet" href="${asset(rel, 'bundle.css')}">
+<link rel="stylesheet" href="${asset(rel, 'site.css')}">
 </head>
 <body>
 <a class="skip label-14" href="#main">Skip to Content</a>
@@ -194,7 +199,7 @@ ${nav(c, path)}
 ${main}
 </main>
 </div>
-${live ? [...REACT, `${rel}bundle.js`, BABEL].map((s) => `<script src="${s}"></script>`).join('\n') + '\n' : ''}<script src="${rel}site.js"></script>
+${live ? [...REACT, asset(rel, 'bundle.js'), BABEL].map((s) => `<script src="${s}"></script>`).join('\n') + '\n' : ''}<script src="${asset(rel, 'site.js')}"></script>
 </body>
 </html>
 `;
@@ -352,8 +357,8 @@ function guidelinesBody(src, rel) {
 function card(name, rel) {
   const head = `<script>(function(d){var q=new URLSearchParams(location.search).get('theme'),t=q;if(!t){try{t=parent.document.documentElement.getAttribute('data-theme')}catch(e){}}if(t==='light'||t==='dark'){d.setAttribute('data-theme',t)}else{var mq=matchMedia('(prefers-color-scheme: dark)'),pick=function(){var s;try{s=localStorage.getItem(${JSON.stringify(THEME_KEY)})}catch(e){}return s==='light'||s==='dark'?s:mq.matches?'dark':'light'};d.setAttribute('data-theme',pick());if(!q){var f=function(){d.setAttribute('data-theme',pick())};if(mq.addEventListener)mq.addEventListener('change',f);addEventListener('storage',f)}}addEventListener('message',function(e){if(e.data&&(e.data.theme==='light'||e.data.theme==='dark'))d.setAttribute('data-theme',e.data.theme)})})(document.documentElement);` +
     `window.addEventListener("error",function(e){var m=String(e.message);document.documentElement.setAttribute("data-card-error",m);if(parent!==window)parent.postMessage({card:location.pathname,error:m},"*")});</script>` +
-    `<link rel="stylesheet" href="${rel}tokens.css"><link rel="stylesheet" href="${rel}bundle.css">` +
-    REACT.map((s) => `<script src="${s}"></script>`).join('') + `<script src="${rel}bundle.js"></script>`;
+    `<link rel="stylesheet" href="${asset(rel, 'tokens.css')}"><link rel="stylesheet" href="${asset(rel, 'bundle.css')}">` +
+    REACT.map((s) => `<script src="${s}"></script>`).join('') + `<script src="${asset(rel, 'bundle.js')}"></script>`;
   return read(join(COMP, name, 'preview.html')).replace(/^<!-- @dsCard[^\n]*\n/, '').replace('</head>', head + '</head>');
 }
 
@@ -370,6 +375,7 @@ export function buildSite() {
   copyFileSync(join(COMP, 'bundle.js'), join(OUT, 'bundle.js'));
   for (const d of ['fonts', 'brand']) for (const f of readdirSync(join(PROJECT, d))) copyFileSync(join(PROJECT, d, f), join(OUT, d, f));
   for (const f of ['site.css', 'site.js']) copyFileSync(join(ROOT, 'scripts/site', f), join(OUT, f));
+  for (const f of Object.keys(ASSET_HASH)) ASSET_HASH[f] = createHash('sha256').update(readFileSync(join(OUT, f))).digest('hex').slice(0, 10);
   writeFileSync(join(OUT, '.nojekyll'), '');
 
   const comps = componentDocs(r);
