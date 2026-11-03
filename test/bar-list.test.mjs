@@ -12,6 +12,7 @@ const registry = {};
 const warnings = [];
 const slots = [];
 const slot = { i: 0 };
+let injected = null; // measured state the stub useState hands back, as the layout effect would set it
 const mount = () => { slots.length = 0; };
 const render = (props) => { slot.i = 0; return registry.BarList(props); };
 const context = vm.createContext({
@@ -19,14 +20,15 @@ const context = vm.createContext({
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),
   useRef: (init) => (slots[slot.i] || (slots[slot.i] = { current: init }), slots[slot.i++]),
-  useState: (init) => [init, () => {}],
+  useState: (init) => [injected || init, () => {}],
   useLayoutEffect: () => {},
   Intl,
   console: { warn: (m) => warnings.push(m) },
   define: (n, fn) => { registry[n] = fn; },
 });
 vm.runInContext(readFileSync(join(root, 'src/BarList.js'), 'utf8'), context, { filename: 'BarList.js' });
-const hiddenKeys = (columns, width) => Object.keys(context.blHiddenKeys(columns, width));
+// Measured widths: a core of 320px and 88px per extra column (100px with its padding), unless a test passes its own.
+const hiddenKeys = (columns, width, core = 320, colWidths = Object.fromEntries(columns.map((c) => [c.key, 88]))) => Object.keys(context.blHiddenKeys(columns, width, core, colWidths));
 
 const find = (node, pred) => {
   if (!node || typeof node !== 'object') return null;
@@ -182,7 +184,7 @@ describe('BarList files', () => {
 
 describe('BarList.hiddenKeys', () => {
   const col = (key, priority) => ({ key, label: key, ...(priority === undefined ? {} : { priority }) });
-  // The label, bar and value need 320px, and each extra column 100px more.
+  // Here the label, bar and value need 320px, and each extra column 100px more.
   it('hides nothing when everything fits or the width is not measured', () => {
     assert.deepEqual(hiddenKeys([col('a', 1), col('b', 2)], 520), []);
     assert.deepEqual(hiddenKeys([col('a', 1), col('b', 2)], 0), []);
@@ -198,6 +200,34 @@ describe('BarList.hiddenKeys', () => {
   it('hides a column without a priority before any column with one', () => {
     assert.deepEqual(hiddenKeys([col('a'), col('b', 9), col('c')], 420), ['c', 'a']);
     assert.deepEqual(hiddenKeys([col('a', 1), col('b')], 420), ['b']);
+  });
+  it('decides from measured widths: short figures fit where wide ones do not', () => {
+    const cols = [col('a', 1), col('b', 2), col('c', 3)];
+    const need = (valueW, w) => context.blCore(valueW, 48) + w.reduce((n, x) => n + x + 12, 0);
+    const narrow = { a: 30, b: 44, c: 20 };
+    assert.deepEqual(hiddenKeys(cols, need(24, [30, 44, 20]), context.blCore(24, 48), narrow), []);
+    assert.deepEqual(hiddenKeys(cols, need(24, [30, 44, 20]) - 1, context.blCore(24, 48), narrow), ['c']);
+    assert.deepEqual(hiddenKeys(cols, need(24, [30, 44, 20]), context.blCore(24, 48), { a: 30, b: 120, c: 20 }), ['c', 'b']);
+  });
+  it('sizes the core from an 80px label, a 48px bar and the value width', () => {
+    assert.equal(context.blCore(30, 48) - context.blCore(30, 24), 24);
+    assert.equal(context.blCore(40, 48) - context.blCore(30, 48), 10);
+    const pad = context.blCore(0, 0) - 80;
+    assert.ok(pad > 0 && pad < 100);
+  });
+  it('shows three short numeric columns in a 480px list', () => {
+    const cols = [col('hit', 3), col('ans', 2), col('fail', 1)];
+    assert.deepEqual(hiddenKeys(cols, 480, context.blCore(40, 48), { hit: 32, ans: 52, fail: 20 }), []);
+  });
+  it('never hides a column with hideable: false, and hides the others around it by priority', () => {
+    const cols = [{ ...col('hit', 9), hideable: false }, col('ans', 2), col('fail', 1)];
+    const w = { hit: 32, ans: 52, fail: 20 };
+    assert.deepEqual(hiddenKeys(cols, 340, context.blCore(40, 48), w), ['ans']);
+    assert.deepEqual(hiddenKeys(cols, 250, context.blCore(40, 48), w), ['ans', 'fail']);
+    assert.deepEqual(hiddenKeys(cols, 100, context.blCore(40, 48), w), ['ans', 'fail'], 'the kept column stays even when nothing fits');
+  });
+  it('hides nothing before the widths are measured', () => {
+    assert.deepEqual(hiddenKeys([col('a', 1)], 300, 0, {}), []);
   });
   it('never hides the label, bar and value: at the narrowest every extra column is hidden', () => {
     assert.deepEqual(hiddenKeys([col('a', 1), col('b', 2)], 100).sort(), ['a', 'b']);
@@ -244,6 +274,47 @@ describe('BarList columns', () => {
   it('treats an empty columns array as no columns', () => {
     mount();
     assert.equal(render({ ...NAMED, columns: [], items }).type, 'ul');
+  });
+});
+
+describe('BarList hidden figures and fit', () => {
+  const columns = [{ key: 'hit', label: 'Hit', hideable: false }, { key: 'ans', label: 'Answer', priority: 2 }, { key: 'fail', label: 'Failed', priority: 1 }];
+  const items = [
+    { label: 'alpha', value: 9, columns: { hit: '94%', ans: '310 ms', fail: '12' } },
+    { label: 'beta', value: 4, columns: { hit: '80%', ans: '', fail: '0' } },
+    { label: 'gamma', value: 1, columns: { hit: '70%' } }];
+  const kids = (n) => n.children.filter((c) => c && typeof c === 'object');
+  const at = (width, colWidths = { hit: 30, ans: 50, fail: 20 }) => { injected = { width, valueW: 30, colWidths }; mount(); const t = render({ ...NAMED, columns, items }); injected = null; return t; };
+  const subs = (t) => findAll(t, (n) => /hy-bar-list__sub\b/.test(n.props.className || ''));
+  const text = (n) => (n == null || typeof n !== 'object' ? (n == null || typeof n === 'boolean' ? '' : String(n)) : n.children.map(text).join(''));
+  it('shows no second line while every column fits', () => {
+    assert.equal(subs(at(600)).length, 0);
+  });
+  it('puts a row’s hidden figures in column order on a second line, with none for a row without one', () => {
+    const t = at(250);
+    const s = subs(t);
+    assert.deepEqual(s.map(text), ['Answer 310 ms · Failed 12', 'Failed 0']);
+    assert.equal(findAll(t, (n) => n.type === 'tr' && /__tr--sub/.test(n.props.className || '')).length, 2);
+  });
+  it('hides the second line from assistive technology and keeps the hidden cells in the table', () => {
+    const t = at(250);
+    subs(t).forEach((s) => assert.ok(hidden(s)));
+    const row = findAll(t, (n) => n.type === 'tr' && n.props.className.includes('hy-bar-list__item'))[0];
+    assert.equal(name(row), 'alpha994%310 ms12');
+    assert.equal(findAll(row, (n) => n.type === 'td').length, 4);
+  });
+  it('marks the list tight, and warns once in development, when the kept columns do not fit', () => {
+    warnings.length = 0;
+    const before = warnings.length;
+    const t = at(150);
+    assert.match(t.props.className, /is-tight/);
+    assert.equal(warnings.filter((w) => /hideable/.test(w)).length, 1);
+    assert.equal(before, 0);
+    injected = { width: 150, valueW: 30, colWidths: { hit: 30, ans: 50, fail: 20 } };
+    render({ ...NAMED, columns, items }); // the warning is once per mounted list
+    injected = null;
+    assert.equal(warnings.filter((w) => /hideable/.test(w)).length, 1);
+    assert.doesNotMatch(at(600).props.className, /is-tight/);
   });
 });
 
