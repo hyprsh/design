@@ -95,6 +95,14 @@ describe('Pill status', () => {
     }
     assert.equal(byClass(render({ status: 'error', children: 'STD' }), 'hy-sr'), undefined);
   });
+  it('passes statusVariant to the StatusDot, filled unless set', () => {
+    const dot = (props) => walk(render({ status: 'neutral', children: 'A', ...props })).find((n) => n.type === 'StatusDot');
+    assert.equal(dot({}).props.variant, undefined);
+    assert.equal(dot({ statusVariant: 'outline' }).props.variant, 'outline');
+    assert.equal(dot({ statusVariant: 'dashed' }).props.variant, 'dashed');
+    assert.equal(dot({ statusVariant: 'outline' }).props.state, 'neutral');
+    assert.equal(walk(render({ statusVariant: 'outline', children: 'A' })).find((n) => n.type === 'StatusDot'), undefined);
+  });
   it('wins over icon, and draws no slot without status', () => {
     const p = render({ status: 'ready', icon: 'ICON', children: 'A' });
     assert.equal(byClass(p, 'hy-pill__icon'), undefined);

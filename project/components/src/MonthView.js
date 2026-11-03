@@ -1,5 +1,5 @@
 /* MonthView: a month of days that each list their entries, for browsing what happens when (not a date picker: that is Calendar).
-   `entries` is data ({ key, date, label, tone?, href?, onOpen? }); a day shows up to `maxPerDay` and then "+N more".
+   `entries` is data ({ key, date, label, tone?, variant?, href?, onOpen? }); a day shows up to `maxPerDay` and then "+N more".
    The days are a role="grid" with one roving Tab stop on a day cell; Tab from that cell walks its entries. When the component's
    own width is under `sm` (640px) each day shows dots, a day selects instead of opening, and the selected day's entries list
    below the grid. The layout, grouping and names are pure functions at the top so they can be tested without the DOM. */
@@ -22,7 +22,9 @@ function mvParseIso(s) {
   return m ? new Date(+m[1], +m[2] - 1, +m[3]) : null;
 }
 function mvMonthStart(d) { return new Date(d.getFullYear(), d.getMonth(), 1); }
-function mvToneClass(tone) { return 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(tone) >= 0 ? tone : 'none'); }
+function mvToneClass(tone, variant) {
+  return 'hy-month-view__mark hy-month-view__mark--' + (MV_TONES.indexOf(tone) >= 0 ? tone : 'none') + (variant === 'outline' || variant === 'dashed' ? ' hy-month-view__mark--' + variant : '');
+}
 /* Page Up/Down: the shown month moves by n, whatever month the focused day belongs to (a leading or trailing day does not),
    and focus lands on the same day number, clamped to the new month's length. */
 function mvPage(month, focus, n) {
@@ -78,7 +80,7 @@ function mvDayName(fmt, date, count, today) {
 
 function mvEntry(e, tab, onActivate) {
   var cls = 'hy-month-view__entry';
-  var mark = h('span', { className: mvToneClass(e.tone), 'aria-hidden': 'true' });
+  var mark = h('span', { className: mvToneClass(e.tone, e.variant), 'aria-hidden': 'true' });
   var label = h('span', { className: 'hy-month-view__entry-label' }, e.label);
   if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function (ev) { e.onOpen(ev); } : undefined }, mark, label);
   if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function (ev) { e.onOpen(ev); } }, mark, label);
@@ -223,7 +225,7 @@ function MonthView(props) {
             'aria-label': '+' + v.more + ' more, ' + fmt.full.format(d), onClick: function () { if (props.onDayOpen) props.onDayOpen(d); }
           }, '+' + v.more + ' more')) : null) : null,
         list.length ? h('span', { className: 'hy-month-view__dots', 'aria-hidden': 'true' }, list.slice(0, 3).map(function (e) {
-          return h('span', { key: e.key, className: mvToneClass(e.tone) });
+          return h('span', { key: e.key, className: mvToneClass(e.tone, e.variant) });
         })) : null);
     }));
   });

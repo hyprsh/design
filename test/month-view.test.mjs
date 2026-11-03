@@ -129,6 +129,12 @@ describe('small helpers', () => {
     assert.equal(mvToneClass('pink'), 'hy-month-view__mark hy-month-view__mark--none');
     assert.equal(mvToneClass(undefined), 'hy-month-view__mark hy-month-view__mark--none');
   });
+  it('mvToneClass adds the ring modifiers only for outline and dashed', () => {
+    assert.equal(mvToneClass('neutral', 'outline'), 'hy-month-view__mark hy-month-view__mark--neutral hy-month-view__mark--outline');
+    assert.equal(mvToneClass('info', 'dashed'), 'hy-month-view__mark hy-month-view__mark--info hy-month-view__mark--dashed');
+    assert.equal(mvToneClass('error', 'filled'), mvToneClass('error'));
+    assert.equal(mvToneClass('error', 'bogus'), mvToneClass('error'));
+  });
 });
 
 describe('mvDayName', () => {

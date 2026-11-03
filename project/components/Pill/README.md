@@ -2,7 +2,7 @@
 
 A link styled like a Badge: a light, rounded way to point somewhere that doesn't need the weight of a button.
 
-**You provide:** the label as `children` and an `href`. Optional: `size` (`sm` | `md` | `lg`, default `md`; `small` | `medium` | `large` also work), an `icon` node before the label, `status` (a StatusDot state, such as `building`) with `statusLabel` (its meaning in words) for a state dot, `trailing` (a node after the label, such as `54/56`), and any anchor attributes such as `target`. Without `href`, an `onClick` renders a `<button>`. For a toggle in a filter row, pass `pressed` with `onPressedChange(pressed)`, or `defaultPressed` to let the pill keep its own state; a pressed pill is drawn in the pressed style and reports it with `aria-pressed`.
+**You provide:** the label as `children` and an `href`. Optional: `size` (`sm` | `md` | `lg`, default `md`; `small` | `medium` | `large` also work), an `icon` node before the label, `status` (a StatusDot state, such as `building`) with `statusLabel` (its meaning in words) for a state dot, `statusVariant` (`filled` by default, `outline` for a ring or `dashed` for a dashed ring, to tell two states of one colour apart), `trailing` (a node after the label, such as `54/56`), and any anchor attributes such as `target`. Without `href`, an `onClick` renders a `<button>`. For a toggle in a filter row, pass `pressed` with `onPressedChange(pressed)`, or `defaultPressed` to let the pill keep its own state; a pressed pill is drawn in the pressed style and reports it with `aria-pressed`.
 
 **Toggle chip:** `pressed` with `onPressedChange(next)` (or `defaultPressed`) makes the pill a `<button aria-pressed>` for filters, where several chips can be on at once. A pressed chip gets a darker ring, a light tint and a leading check (unless you pass an `icon` or a `status`), so the state doesn't rely on colour. Use it instead of a `Button variant="primary"` for “on”, which breaks the one-primary-per-view rule. For a single choice among a few, use Tabs or a Radio group.
 
@@ -103,6 +103,23 @@ export default function Example() {
         <Button size="small">Pause</Button>
       </div>
     </Popover>
+  );
+}
+```
+
+### Status Rings
+Two grey states told apart by shape: `outline` draws a ring in the state's colour, and `statusLabel` says what each means.
+
+```jsx
+import { Pill } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+      <Pill status="neutral" statusLabel="Not monitored">Alpha</Pill>
+      <Pill status="neutral" statusVariant="outline" statusLabel="Not out yet">Beta</Pill>
+      <Pill status="neutral" statusVariant="dashed" statusLabel="Paused">Gamma</Pill>
+    </div>
   );
 }
 ```
