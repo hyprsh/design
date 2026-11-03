@@ -157,6 +157,13 @@ describe('MonthView', { concurrency: false }, () => {
       assert.deepEqual(await logged(), ['open b']);
     });
 
+    it('logs no React key warning for link, button and plain entries on several days', async () => {
+      await ev(`window.__errors = []; console.error = function (m) { window.__errors.push(String(m)); }`);
+      await mount('mv()');
+      await until(`document.querySelectorAll('.hy-month-view__entry').length === 4`, 'the entries');
+      assert.deepEqual(await ev(`window.__errors.filter(function (m) { return /unique "key"/.test(m); })`), []);
+    });
+
     it('is one Tab stop on a day cell, with arrows, Page Up/Down, Home/End and Enter', async () => {
       await mount('mv()');
       assert.equal(await count('[role=gridcell][tabindex="0"]'), 1);
