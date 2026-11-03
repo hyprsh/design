@@ -79,10 +79,10 @@ function mvDayName(fmt, date, count, today) {
 function mvEntry(e, tab, onActivate) {
   var cls = 'hy-month-view__entry';
   var mark = h('span', { className: mvToneClass(e.tone), 'aria-hidden': 'true' });
-  var body = [mark, h('span', { className: 'hy-month-view__entry-label' }, e.label)];
-  if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function (ev) { e.onOpen(ev); } : undefined }, body);
-  if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function (ev) { e.onOpen(ev); } }, body);
-  return h('span', { className: cls }, body);
+  var label = h('span', { className: 'hy-month-view__entry-label' }, e.label);
+  if (e.href) return h('a', { className: cls + ' is-link', href: e.href, tabIndex: tab ? 0 : -1, onClick: e.onOpen ? function (ev) { e.onOpen(ev); } : undefined }, mark, label);
+  if (e.onOpen) return h('button', { type: 'button', className: cls + ' is-button', tabIndex: tab ? 0 : -1, onClick: function (ev) { e.onOpen(ev); } }, mark, label);
+  return h('span', { className: cls }, mark, label);
 }
 
 function MonthView(props) {
