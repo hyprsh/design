@@ -168,7 +168,21 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
     assert.equal(await ev('location.hash'), '', 'preventDefault stopped the link');
     await ev(`document.querySelector('tbody button').focus()`);
     await press('Tab'); await ev(`document.querySelector('tbody button').focus()`);
-    assert.equal(await ev(`getComputedStyle(document.querySelector('tbody button'), '::after').outlineWidth`), '2px');
+    assert.match(await ev(`getComputedStyle(document.querySelector('tbody td')).boxShadow`), /2px/);
+  });
+
+  it('keeps each row’s target inside its row, so a click outside the list or on another row opens nothing else', async () => {
+    await ev('log.length = 0');
+    await mount(`list({ columns: COLUMNS, onOpen: function (it) { log.push(it.label); } })`);
+    // As in an engine where a table row is not a containing block for what is positioned inside it.
+    await ev(`document.querySelectorAll('tr.hy-bar-list__tr').forEach(function (tr) { tr.style.position = 'static'; })`);
+    for (const type of ['mouseMoved', 'mousePressed', 'mouseReleased']) {
+      await chrome.send('Input.dispatchMouseEvent', { type, x: 10, y: 10, button: 'left', clickCount: 1 }); // the padding outside the list
+    }
+    await click('.hy-bar-list__bar', 0);
+    await until('log.length === 1', 'the first row to open');
+    assert.deepEqual(await ev('log'), ['api-gateway']);
+    assert.equal(await ev(`[...document.querySelectorAll('tbody *')].filter(function (el) { return getComputedStyle(el).position === 'absolute' || getComputedStyle(el, '::after').position === 'absolute'; }).length`), 0);
   });
 
   it('keeps today’s markup for a list without the new props', async () => {
