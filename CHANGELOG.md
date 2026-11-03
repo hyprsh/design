@@ -2,6 +2,18 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.19.0
+
+2026-11-03
+
+### Features
+
+- **components:** add the components and props kestrel's redesign needs
+
+### Docs
+
+- **glossary:** add the terms settled in triage (#93)
+
 ## v0.18.0
 
 2026-11-02
