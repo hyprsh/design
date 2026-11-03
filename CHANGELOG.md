@@ -2,6 +2,14 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.21.1
+
+2026-11-03
+
+### Fixes
+
+- **action-bar:** write its built-in labels in title case (#111)
+
 ## v0.21.0
 
 2026-11-03
