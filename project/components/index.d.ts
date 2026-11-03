@@ -2118,6 +2118,8 @@ export interface BarListColumn {
   label: string;
   /** Which column survives longest when the list is too narrow: the largest number hides first, ties from the right, and a column without a priority before any with one. */
   priority?: number;
+  /** Default true. `false` never hides this column: when the kept columns don't fit, the bar narrows to 24px and then the label truncates further. The list never scrolls sideways, and BarList warns once in development when even that doesn't fit. */
+  hideable?: boolean;
 }
 export interface BarListProps {
   /** One row per item, in the order given. BarList never sorts. */
@@ -2130,7 +2132,7 @@ export interface BarListProps {
   unit?: string;
   /** Sets labels in Geist Mono, for identifiers. */
   mono?: boolean;
-  /** Extra figures per row, shown right-aligned under a header row. The list is then read as a table. Narrow lists hide columns by `priority`; their figures stay available to assistive technology. */
+  /** Extra figures per row, shown right-aligned under a header row. The list is then read as a table. Narrow lists hide columns by `priority`, as many as the measured widths require; a hidden column's figures show on a second line under each label and stay available to assistive technology through their cells. */
   columns?: BarListColumn[];
   /** Header over the labels when `columns` is set. Default 'Label'. */
   labelHeader?: string;

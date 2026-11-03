@@ -26,6 +26,11 @@ var ITEMS = [
   { label: 'api-gateway', value: 318, columns: { p50: '12 ms', p99: '240 ms', errors: '3' } },
   { label: 'edge-cache', value: 204, columns: { p50: '9 ms', p99: '80 ms' } },
   { label: 'build-runner', value: 1, columns: { p50: '4 s', p99: '9 s', errors: '0' } }];
+var KESTREL = [{ key: 'hit', label: 'Hit', hideable: false }, { key: 'ans', label: 'Answer', priority: 2 }, { key: 'fail', label: 'Failed', priority: 1 }];
+var KITEMS = [
+  { label: 'indexer-alpha', value: 318, columns: { hit: '94%', ans: '310 ms', fail: '12' } },
+  { label: 'indexer-beta-with-a-long-name', value: 204, columns: { hit: '81%', ans: '95 ms' } },
+  { label: 'indexer-gamma', value: 12, columns: { hit: '60%' } }];
 function list(props) { return h(H.BarList, Object.assign({ items: ITEMS, 'aria-label': 'Services' }, props)); }
 </script></body></html>`;
 
@@ -109,23 +114,64 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
     assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-bar-list tbody td:nth-child(3)')).fontVariantNumeric`), 'tabular-nums');
   });
 
-  it('hides extra columns by priority as the list narrows, keeps their text for assistive technology, and never hides the label, bar and value', async () => {
+  it('hides extra columns from measured widths, in priority order, keeps their cells for assistive technology, and never hides the label, bar and value', async () => {
     const shown = () => visible('thead th');
     await mount(`list({ columns: COLUMNS })`, 900);
     assert.deepEqual(await shown(), ['Label', 'Value', 'P50', 'P99', 'Errors']);
-    await mount(`list({ columns: COLUMNS })`, 540);
+    await mount(`list({ columns: COLUMNS })`, 440);
+    assert.deepEqual(await shown(), ['Label', 'Value', 'P50', 'P99', 'Errors'], 'short figures fit at 440px, where the old 620px budget hid two');
+    await ev('width(380)'); await until(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length > 3`, 'Errors to hide');
     assert.deepEqual(await shown(), ['Label', 'Value', 'P50', 'P99'], 'Errors has no priority: it hides first');
-    await ev('width(440)'); await until(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length > 3`, 'P50 to hide');
+    await ev('width(320)'); await until(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length > 6`, 'P50 to hide');
     assert.deepEqual(await shown(), ['Label', 'Value', 'P99'], 'then the largest priority number');
-    await ev('width(340)'); await sleep(150);
+    await ev('width(240)'); await sleep(150);
     assert.deepEqual(await shown(), ['Label', 'Value']);
-    assert.deepEqual(await visible('tbody tr:nth-child(1) > *'), ['api-gateway', '318']);
+    assert.deepEqual(await visible('tbody tr:nth-child(1) > *'), ['api-gatewayP50 12 ms · P99 240 ms · Errors 3', '318']);
     assert.ok((await ev(`document.querySelector('.hy-bar-list__fill').getBoundingClientRect().width`)) > 20, 'the bar stays');
-    assert.deepEqual(await texts('tbody tr:nth-child(1) > *'), ['api-gateway', '318', '12 ms', '240 ms', '3'], 'hidden figures are still in the tree');
+    assert.deepEqual(await texts('tbody tr:nth-child(1) > *'), ['api-gatewayP50 12 ms · P99 240 ms · Errors 3', '318', '12 ms', '240 ms', '3'], 'hidden figures are still in the tree');
     assert.equal(await ev(`document.documentElement.scrollWidth <= document.documentElement.clientWidth`), true);
     // The list's own width decides, not the viewport.
     await ev('width(900)'); await sleep(150);
     assert.deepEqual(await shown(), ['Label', 'Value', 'P50', 'P99', 'Errors']);
+  });
+
+  it('keeps three short numeric columns beside the bar in a 480px list', async () => {
+    await mount(`list({ columns: KESTREL, items: KITEMS })`, 480);
+    assert.deepEqual(await visible('thead th'), ['Label', 'Value', 'Hit', 'Answer', 'Failed']);
+    assert.equal(await count('.hy-bar-list__sub'), 0);
+    assert.ok((await ev(`document.querySelector('.hy-bar-list__bar').getBoundingClientRect().width`)) >= 48);
+  });
+
+  it('keeps a hideable: false column at 360px and narrower, hides the others by priority and shows their figures on a second line', async () => {
+    await mount(`list({ columns: KESTREL, items: KITEMS })`, 360);
+    assert.ok((await visible('thead th')).includes('Hit'), 'Hit at 360px');
+    await ev('width(250)');
+    await until(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length > 0`, 'columns to hide');
+    assert.deepEqual(await visible('thead th'), ['Label', 'Value', 'Hit']);
+    assert.deepEqual(await texts('.hy-bar-list__sub'), ['Answer 310 ms · Failed 12', 'Answer 95 ms'], 'no line for the row without a hidden figure');
+    assert.deepEqual(await ev(`Array.from(document.querySelectorAll('.hy-bar-list__sub')).map(function (e) { return e.getAttribute('aria-hidden'); })`), ['true', 'true']);
+    assert.deepEqual(await texts('tbody tr:nth-child(1) > *'), ['indexer-alpha' + 'Answer 310 ms · Failed 12', '318', '94%', '310 ms', '12'], 'the cells stay in the table, once each');
+    assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-bar-list__subfig')).fontVariantNumeric`), 'tabular-nums');
+    assert.equal(await ev(`parseFloat(getComputedStyle(document.querySelector('.hy-bar-list__sub')).fontSize) < parseFloat(getComputedStyle(document.querySelector('.hy-bar-list__label')).fontSize)`), true);
+    const hs = await ev(`Array.from(document.querySelectorAll('tbody tr')).map(function (r) { return Math.round(r.getBoundingClientRect().height); })`);
+    assert.ok(hs[0] > 36 && hs[1] > 36 && hs[2] === 36, 'rows with a second line grow: ' + hs);
+    const rights = await ev(`Array.from(document.querySelectorAll('.hy-bar-list tr')).map(function (r) { return Math.round(r.children[2].getBoundingClientRect().right); })`);
+    assert.ok(rights.every((x) => x === rights[0]), 'Hit lines up under its header');
+    assert.equal(await ev(`document.documentElement.scrollWidth <= document.documentElement.clientWidth`), true);
+  });
+
+  it('narrows the bar to 24px, then truncates the label, warns once and never scrolls sideways when kept columns do not fit', async () => {
+    const kept = `[{ key: 'hit', label: 'Hit Rate Over A Week', hideable: false }, { key: 'ans', label: 'Answer Time In Milliseconds', hideable: false }]`;
+    await ev(`console.warn = function (m) { log.push(String(m)); }; log.length = 0`);
+    await mount(`list({ columns: ${kept}, items: KITEMS.map(function (it) { return Object.assign({}, it, { columns: { hit: '94.2%', ans: '310 ms' } }); }) })`, 300);
+    await sleep(150);
+    assert.equal(await ev(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length`), 0, 'neither hides');
+    assert.ok((await ev(`document.querySelector('.hy-bar-list__bar').getBoundingClientRect().width`)) >= 23.5, 'the floor');
+    assert.ok((await ev(`document.querySelector('.hy-bar-list__bar').getBoundingClientRect().width`)) < 30, 'the bar narrowed');
+    assert.equal(await ev(`document.querySelector('.hy-bar-list').scrollWidth <= document.querySelector('.hy-bar-list').clientWidth + 1`), true);
+    assert.equal(await ev(`document.documentElement.scrollWidth <= document.documentElement.clientWidth`), true);
+    await ev('width(290)'); await sleep(150);
+    assert.equal((await ev('log')).filter((m) => /hideable/.test(m)).length, 1, 'warned once');
   });
 
   it('sizes extra columns to their content instead of clipping wide figures', async () => {

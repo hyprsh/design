@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=900 subtitle="Default, links, extra columns with open, unit with mono labels, empty state" -->
+<!-- @dsCard group="Data" height=1300 subtitle="Default, links, extra columns with open, kept column at 480px and 360px, unit with mono labels, empty state" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BarList</title></head>
@@ -30,6 +30,16 @@ function Open() {
       ] }),
     h('div', { className: 'copy-14', 'aria-live': 'polite' }, 'Opened: ' + text));
 }
+var indexerColumns = [{ key: 'hit', label: 'Hit', hideable: false }, { key: 'answer', label: 'Answer', priority: 2 }, { key: 'failed', label: 'Failed', priority: 1 }];
+var indexers = [
+  { label: 'indexer-alpha', value: 5200, columns: { hit: '94%', answer: '310 ms', failed: '12' } },
+  { label: 'indexer-beta', value: 3100, columns: { hit: '81%', answer: '95 ms', failed: '0' } },
+  { label: 'indexer-gamma', value: 640, columns: { hit: '60%' } }
+];
+function Indexers(p) {
+  return h('div', { style: { width: p.width, maxWidth: '100%' } },
+    h(H.BarList, { 'aria-label': 'Indexers at ' + p.width + ' pixels', labelHeader: 'Indexer', valueHeader: 'Requests', columns: indexerColumns, items: indexers }));
+}
 function Demo() {
   return h(F, null,
     h('div', { className: 'label-13' }, 'Top Projects'),
@@ -41,6 +51,10 @@ function Demo() {
     ] }),
     h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Columns And Open'),
     h(Open),
+    h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Kept Column At 480px'),
+    h(Indexers, { width: 480 }),
+    h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Kept Column At 360px'),
+    h(Indexers, { width: 360 }),
     h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Unit And Mono'),
     h(H.BarList, { 'aria-label': 'Build minutes by service', items: services, unit: 'minutes', mono: true }),
     h('div', { className: 'label-13', style: { marginTop: 16 } }, 'Empty'),

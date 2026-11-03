@@ -41,11 +41,18 @@
 .hy-bar-list__cell--label { width: 33%; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-bar-list__cell--value { width: 67%; }
 .hy-bar-list__valuebox { display: flex; align-items: center; gap: 12px; }
-.hy-bar-list__valuebox .hy-bar-list__bar { flex: 1 1 0; min-width: 80px; }
+.hy-bar-list__valuebox .hy-bar-list__bar { flex: 1 1 0; min-width: var(--bl-bar-min, 48px); }
 .hy-bar-list__valuebox .hy-bar-list__value { flex: none; min-width: 6ch; }
 .hy-bar-list__head .hy-bar-list__cell--value { text-align: right; }
+.hy-bar-list--table.is-tight { --bl-bar-min: 24px; }
+.hy-bar-list__fig { display: inline-block; }
 .hy-bar-list__cell--figure { width: 1%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
 .hy-bar-list--table .hy-bar-list__cell--figure.is-hidden { width: 0; max-width: 0; padding: 0; overflow: hidden; clip-path: inset(50%); }
+/* A row with hidden figures grows to fit a second line under its label: smaller secondary text, figures in tabular numbers. */
+.hy-bar-list--table .hy-bar-list__tr--sub { height: auto; }
+.hy-bar-list--table .hy-bar-list__tr--sub .hy-bar-list__cell { padding-top: 4px; padding-bottom: 4px; }
+.hy-bar-list__sub { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13px; line-height: 16px; color: var(--gray-900); font-weight: 400; }
+.hy-bar-list__subfig { font-variant-numeric: tabular-nums; }
 /* The whole row is the target: a click anywhere on the row is passed to the link or button in its label cell (see BarList.js).
    No overlay is stretched over the row, because a table row is not a containing block in every engine and an overlay that
    escapes it covers the page. The focus ring is drawn on the row's cells. */
