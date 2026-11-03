@@ -2,6 +2,20 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.21.0
+
+2026-11-03
+
+### Features
+
+- **pill, month-view:** pass a ring or dashed variant through to status dots (#108)
+- **action-bar:** redesign the bar as a capsule that hugs its content (#109)
+
+### Fixes
+
+- **bar-list:** keep the label's natural width before fitting optional columns (#106)
+- **month-view:** key the parts of an entry so react stops warning (#107)
+
 ## v0.20.0
 
 2026-11-03
