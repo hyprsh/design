@@ -67,6 +67,17 @@ function BarList(props) {
     return null;
   }
 
+  /* A click on a row outside its link or button (the bar, a figure) is passed on to it, with the same modifier keys. A click
+     inside another control in a cell, or one that ends a text selection, is left alone. */
+  function blOpenRow(e) {
+    var target = e.currentTarget.querySelector('.hy-bar-list__target');
+    if (!target || target.contains(e.target)) return;
+    if (e.target.closest && e.target.closest('a, button, input, select, textarea, [role="button"]')) return;
+    var sel = window.getSelection && window.getSelection();
+    if (sel && !sel.isCollapsed && e.currentTarget.contains(sel.anchorNode)) return;
+    target.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window, button: e.button, ctrlKey: e.ctrlKey, metaKey: e.metaKey, shiftKey: e.shiftKey, altKey: e.altKey }));
+  }
+
   if (cols) {
     var hiddenKeys = blHiddenKeys(cols, width);
     var figure = function (c, tag, content, extra) {
@@ -82,7 +93,7 @@ function BarList(props) {
       h('tbody', null, items.map(function (it) {
         var label = h('span', { className: 'hy-bar-list__label', title: it.label }, it.label);
         var target = opener(it, { className: 'hy-bar-list__target' }, label);
-        return h('tr', { key: it.key || it.label, className: cx('hy-bar-list__item', 'hy-bar-list__tr', target && 'hy-bar-list__tr--open') },
+        return h('tr', { key: it.key || it.label, className: cx('hy-bar-list__item', 'hy-bar-list__tr', target && 'hy-bar-list__tr--open'), onClick: target ? blOpenRow : undefined },
           h('th', { scope: 'row', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, target || label),
           h('td', { className: 'hy-bar-list__cell hy-bar-list__cell--value' }, h('div', { className: 'hy-bar-list__valuebox' },
             h('span', { className: 'hy-bar-list__bar', 'aria-hidden': 'true' }, fillOf(it)),
