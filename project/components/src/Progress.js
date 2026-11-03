@@ -14,9 +14,52 @@ function progressColor(colors, value) {
 /* A segment's tone, as StatusDot's states: success, info, warning, error, neutral. */
 var PROGRESS_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
 
+/* A segment's scale: the amount palette (`--chart-seq-*`, `--chart-series`), an alternative to a tone. */
+var PROGRESS_SCALES = ['seq-1', 'seq-2', 'seq-3', 'seq-4', 'seq-5', 'series'];
+
 /* Segment spacing in px: the gap between neighbours with `gap`, and the narrowest a segment above zero may be. */
 var SEGMENT_GAP = 2;
 var SEGMENT_MIN = 2;
+
+/* A run with focusable segments: one roving Tab stop (←/→, Home/End, skipping segments with no name), a tooltip on hover and focus.
+   A component of its own so the hooks only run for these bars. */
+function ProgressSegments(p) {
+  var runs = p.runs;
+  var activeSt = useState(0), active = activeSt[0], setActive = activeSt[1]; /* position among the focusable segments */
+  var els = useRef([]);
+  var order = [];
+  runs.forEach(function (r, i) { if (r.focusable) order.push(i); });
+  var tab = Math.min(active, order.length - 1);
+  function move(pos) {
+    pos = Math.max(0, Math.min(order.length - 1, pos));
+    setActive(pos);
+    var el = els.current[order[pos]];
+    if (el) el.focus();
+  }
+  function onKeyDown(e) {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    var cur = tab;
+    for (var k = 0; k < order.length; k++) if (els.current[order[k]] === e.target) cur = k;
+    var next = e.key === 'ArrowRight' ? cur + 1 : e.key === 'ArrowLeft' ? cur - 1 : e.key === 'Home' ? 0 : e.key === 'End' ? order.length - 1 : null;
+    if (next === null) return;
+    e.preventDefault();
+    move(next);
+  }
+  return h('div', { className: cx('hy-progress__run', p.gap && 'has-gap'), style: { width: (p.filled / p.max * 100) + '%', minWidth: p.runMin }, onKeyDown: onKeyDown },
+    runs.map(function (r, i) {
+      var cellStyle = { flexBasis: (r.value / p.filled * 100) + '%', minWidth: SEGMENT_MIN, marginLeft: p.gapPx && i > 0 ? p.gapPx : undefined };
+      var cls = cx('hy-progress__segment', 'hy-progress__segment--' + r.tone);
+      if (!r.focusable) return h('span', { key: i, className: cls, style: cellStyle, 'aria-hidden': 'true' });
+      var pos = order.indexOf(i);
+      var seg = h('span', {
+        className: cx(cls, 'is-focusable'), role: 'img', 'aria-label': r.name, tabIndex: pos === tab ? 0 : -1,
+        ref: function (el) { els.current[i] = el; },
+        onFocus: function () { setActive(pos); }
+      });
+      return h('span', { key: i, className: 'hy-progress__cell', style: cellStyle },
+        r.tooltip ? h(HY.Tooltip, { text: r.tooltip, position: 'top' }, seg) : seg);
+    }));
+}
 
 function Progress(props) {
   var max = props.max || 100;
@@ -38,14 +81,24 @@ function Progress(props) {
     var v = Math.min(Math.max(0, Number(s && s.value) || 0), max - filled);
     if (v <= 0) return;
     filled += v;
-    runs.push({ value: v, tone: PROGRESS_TONES.indexOf(s.tone) >= 0 ? s.tone : 'neutral' });
+    /* A tone wins over a scale; with neither (or an unknown value) the segment is neutral. */
+    var color = PROGRESS_TONES.indexOf(s.tone) >= 0 ? s.tone : (PROGRESS_SCALES.indexOf(s.scale) >= 0 ? s.scale : 'neutral');
+    runs.push({
+      value: v, tone: color, focusable: !!(s.tooltip || s.ariaLabel), tooltip: s.tooltip,
+      name: s.ariaLabel || (typeof s.tooltip === 'string' ? s.tooltip : String(v))
+    });
   });
+  var interactive = runs.some(function (r) { return r.focusable; });
   /* Every segment is at least SEGMENT_MIN wide; with gap, neighbours are SEGMENT_GAP apart. Shrinking takes the space from the others. */
   var gapPx = props.gap ? SEGMENT_GAP : 0;
   var runMin = runs.length * SEGMENT_MIN + Math.max(0, runs.length - 1) * gapPx;
 
   var named = { 'aria-labelledby': props.label ? id : undefined, 'aria-label': props.label ? undefined : (props['aria-label'] || 'Progress') };
-  var track = segmented ?
+  var track = segmented && interactive ?
+    /* Focusable segments can't sit inside a role="img", so the bar is a named group and only the segments with a name are exposed. */
+    h('div', Object.assign({ className: 'hy-progress__track', role: 'group' }, named),
+      h(ProgressSegments, { runs: runs, filled: filled, max: max, runMin: runMin, gapPx: gapPx, gap: !!props.gap })) :
+  segmented ?
     h('div', Object.assign({ className: 'hy-progress__track', role: 'img' }, named),
       runs.length ? h('div', { className: cx('hy-progress__run', props.gap && 'has-gap'), style: { width: (filled / max * 100) + '%', minWidth: runMin } },
         runs.map(function (r, i) {

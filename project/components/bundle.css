@@ -1857,6 +1857,18 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-progress__segment--warning { --hy-seg: var(--amber-700); }
 .hy-progress__segment--error { --hy-seg: var(--red-800); }
 .hy-progress__segment--neutral { --hy-seg: var(--gray-700); }
+/* A scale is the amount palette instead of a tone. */
+.hy-progress__segment--seq-1 { --hy-seg: var(--chart-seq-1); }
+.hy-progress__segment--seq-2 { --hy-seg: var(--chart-seq-2); }
+.hy-progress__segment--seq-3 { --hy-seg: var(--chart-seq-3); }
+.hy-progress__segment--seq-4 { --hy-seg: var(--chart-seq-4); }
+.hy-progress__segment--seq-5 { --hy-seg: var(--chart-seq-5); }
+.hy-progress__segment--series { --hy-seg: var(--chart-series); }
+/* A focusable segment sits in a cell that takes its share of the run, with the tooltip trigger inside. The run clips, so the ring is drawn inside. */
+.hy-progress__cell { display: flex; flex: 0 1 auto; height: 100%; }
+.hy-progress__cell .hy-tooltip { flex: 1; min-width: 0; vertical-align: top; }
+.hy-progress__cell .hy-progress__segment { flex: 1; min-width: 0; }
+.hy-progress__segment.is-focusable:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }
 /* A stop: a 2px notch (one dark pixel, one page-coloured) with a focusable marker for its tooltip. */
 .hy-progress__divider {
   position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; pointer-events: none;

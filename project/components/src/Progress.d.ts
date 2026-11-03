@@ -8,8 +8,14 @@ export interface ProgressStop {
 }
 export interface ProgressSegment {
   value: number;
-  /** Colour of StatusDot's state of the same name. */
-  tone: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /** Colour of StatusDot's state of the same name: a semantic status only. Use tone or scale, not both; with neither the segment is neutral. */
+  tone?: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /** Colour from the amount palette (--chart-seq-1 … --chart-seq-5, --chart-series), an alternative to tone for a breakdown that isn't a status. */
+  scale?: 'seq-1' | 'seq-2' | 'seq-3' | 'seq-4' | 'seq-5' | 'series';
+  /** Shown on hover and focus, above the bar. A segment with a tooltip or ariaLabel is focusable. */
+  tooltip?: React.ReactNode;
+  /** Accessible name of the segment; defaults to the tooltip text. */
+  ariaLabel?: string;
 }
 interface ProgressBase {
   /** Default 100. */
@@ -40,7 +46,7 @@ export interface ProgressProps extends ProgressBase {
   gap?: never;
 }
 export interface ProgressSegmentsProps extends ProgressBase {
-  /** One bar split into tones, drawn left to right and cut off at max. Replaces value, colors and type. */
+  /** One bar split into tones or amount-palette steps, drawn left to right and cut off at max. Replaces value, colors and type. */
   segments: ProgressSegment[];
   /** A 2px gap in the page colour between segments. Default false. Every segment above 0 is at least 2px wide either way. */
   gap?: boolean;
