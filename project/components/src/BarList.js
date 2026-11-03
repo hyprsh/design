@@ -7,13 +7,19 @@
 /* How narrow a table list may get, from measured widths. The core (label, bar and value) needs a label of BL_LABEL_MIN px,
    a bar of BL_BAR_MIN px and the value's own width, with their gaps and padding. Each extra column needs its widest cell
    (header or figure) plus its padding. A column with `hideable: false` never hides: when the rest still don't fit, the
-   bar narrows to BL_BAR_FLOOR px and then the label truncates further. */
-var BL_LABEL_MIN = 80, BL_BAR_MIN = 48, BL_BAR_FLOOR = 24;
+   bar narrows to BL_BAR_FLOOR px and then the label truncates further. Hideable columns hide earlier than that: before the
+   label drops below its natural width (the widest label or header), capped at BL_LABEL_CAP px (see blLabelMin). */
+var BL_LABEL_MIN = 80, BL_LABEL_CAP = 160, BL_BAR_MIN = 48, BL_BAR_FLOOR = 24;
 /* Label cell padding (8 + 6), value cell padding (6 + 8), the gap between bar and value, and 2px of rounding slack. */
 var BL_CORE_PAD = 14 + 14 + 12 + 2, BL_COL_PAD = 12;
 
-/* The width the core needs with a bar of `bar` px, given the value's own width `valueW`. */
-function blCore(valueW, bar) { return BL_CORE_PAD + BL_LABEL_MIN + bar + valueW; }
+/* The label width to reserve while deciding which hideable columns fit: the widest label's natural width, at least
+   BL_LABEL_MIN and at most BL_LABEL_CAP. */
+function blLabelMin(natural) { return Math.max(BL_LABEL_MIN, Math.min(BL_LABEL_CAP, Math.ceil(natural) || 0)); }
+
+/* The width the core needs with a label of `label` px (default BL_LABEL_MIN) and a bar of `bar` px, given the value's own
+   width `valueW`. */
+function blCore(valueW, bar, label) { return BL_CORE_PAD + (label > 0 ? label : BL_LABEL_MIN) + bar + valueW; }
 
 /* The width the core and the extra columns not in `hidden` need. `colWidths` maps a column key to its widest cell. */
 function blNeed(columns, hidden, core, colWidths) {
@@ -52,20 +58,21 @@ function BarList(props) {
   var cols = props.columns && props.columns.length ? props.columns : null;
   var listRef = useRef(null);
   var warnedFit = useRef(false);
-  var measureState = useState({ width: 0, valueW: 0, colWidths: {} }), m = measureState[0], setM = measureState[1];
+  var measureState = useState({ width: 0, valueW: 0, labelW: 0, colWidths: {} }), m = measureState[0], setM = measureState[1];
   useLayoutEffect(function () {
     var el = listRef.current;
     if (!el || !cols) return;
-    /* The list's width, the widest value, and for each extra column its widest cell (header or figure): the natural width
+    /* The list's width, the widest value, the widest label (natural width), and for each extra column its widest cell (header or figure): the natural width
        of the cell's content, which a hidden (collapsed) column still has. */
     function measure() {
-      var valueW = 0, colWidths = {};
+      var valueW = 0, labelW = 0, colWidths = {};
+      Array.prototype.forEach.call(el.querySelectorAll('.hy-bar-list__label, .hy-bar-list__labelhead'), function (l) { labelW = Math.max(labelW, l.offsetWidth); });
       Array.prototype.forEach.call(el.querySelectorAll('.hy-bar-list__value'), function (v) { valueW = Math.max(valueW, v.offsetWidth); });
       Array.prototype.forEach.call(el.querySelectorAll('.hy-bar-list__fig'), function (f) {
         var k = f.getAttribute('data-key');
         colWidths[k] = Math.max(colWidths[k] || 0, f.offsetWidth);
       });
-      var next = { width: el.clientWidth, valueW: valueW, colWidths: colWidths };
+      var next = { width: el.clientWidth, valueW: valueW, labelW: labelW, colWidths: colWidths };
       setM(function (prev) { return JSON.stringify(prev) === JSON.stringify(next) ? prev : next; });
     }
     measure();
@@ -106,11 +113,16 @@ function BarList(props) {
   }
 
   if (cols) {
-    var core = m.valueW > 0 ? blCore(m.valueW, BL_BAR_MIN) : 0;
+    var labelMin = blLabelMin(m.labelW);
+    var core = m.valueW > 0 ? blCore(m.valueW, BL_BAR_MIN, labelMin) : 0;
     var hiddenKeys = blHiddenKeys(cols, m.width, core, m.colWidths);
     var hiddenCols = cols.filter(function (c) { return hiddenKeys[c.key]; });
-    /* Even with every hideable column hidden the kept ones don't fit: the bar narrows to its floor, then the label truncates. */
-    var tight = core > 0 && blNeed(cols, hiddenKeys, core, m.colWidths) > m.width;
+    /* With every hideable column hidden the kept ones may not fit beside a natural-width label: the label falls back to its
+       80px minimum. If they still don't fit, the bar narrows to its floor, then the label truncates. */
+    var labelFits = core > 0 && blNeed(cols, hiddenKeys, core, m.colWidths) <= m.width;
+    var labelReserve = labelFits ? labelMin : BL_LABEL_MIN;
+    var core80 = m.valueW > 0 ? blCore(m.valueW, BL_BAR_MIN) : 0;
+    var tight = core80 > 0 && !labelFits && blNeed(cols, hiddenKeys, core80, m.colWidths) > m.width;
     if (tight && !warnedFit.current && blNeed(cols, hiddenKeys, blCore(m.valueW, BL_BAR_FLOOR), m.colWidths) > m.width) {
       warnedFit.current = true;
       var prodFit = false;
@@ -133,10 +145,10 @@ function BarList(props) {
       return parts.length ? h('span', { className: 'hy-bar-list__sub', 'aria-hidden': 'true' }, parts) : null;
     };
     return h('table', Object.assign({}, rest, {
-      ref: listRef, className: cx('hy-bar-list', 'hy-bar-list--table', tight && 'is-tight', props.mono && 'hy-bar-list--mono', props.className)
+      ref: listRef, style: Object.assign({}, props.style, core > 0 ? { '--bl-label': labelReserve + 'px' } : null), className: cx('hy-bar-list', 'hy-bar-list--table', tight && 'is-tight', props.mono && 'hy-bar-list--mono', props.className)
     }),
       h('thead', null, h('tr', { className: 'hy-bar-list__head' },
-        h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, props.labelHeader !== undefined ? props.labelHeader : 'Label'),
+        h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--label' }, h('span', { className: 'hy-bar-list__labelhead' }, props.labelHeader !== undefined ? props.labelHeader : 'Label')),
         h('th', { scope: 'col', className: 'hy-bar-list__cell hy-bar-list__cell--value' }, props.valueHeader !== undefined ? props.valueHeader : 'Value'),
         cols.map(function (c) { return figure(c, 'th', c.label, { scope: 'col' }); }))),
       h('tbody', null, items.map(function (it) {

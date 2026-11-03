@@ -160,6 +160,40 @@ describe('BarList in the browser', { concurrency: false, skip: skipNoChrome }, (
     assert.equal(await ev(`document.documentElement.scrollWidth <= document.documentElement.clientWidth`), true);
   });
 
+  it('keeps a Kestrel-like label at its natural width at 390px and moves optional columns to the second line', async () => {
+    const items = `[{ label: 'indexer-alpha', value: 318, columns: { hit: '94%', ans: '1,310 ms', fail: '1,204,000' } }, { label: 'indexer-beta', value: 204, columns: { hit: '81%', ans: '995 ms', fail: '48' } }]`;
+    await mount(`list({ columns: KESTREL, items: ${items}, labelHeader: 'Indexer' })`, 390);
+    await sleep(100);
+    const hidden = await ev(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length`);
+    assert.ok(hidden > 0, 'optional columns hide');
+    assert.ok((await visible('thead th')).includes('Hit'), 'Hit stays');
+    assert.equal(await ev(`Array.from(document.querySelectorAll('.hy-bar-list__label, .hy-bar-list__labelhead')).every(function (l) { return l.closest('th').getBoundingClientRect().width - 14 >= l.offsetWidth - 0.5; })`), true, 'no label is truncated');
+    assert.deepEqual(await texts('.hy-bar-list__sub'), ['Answer 1,310 ms', 'Answer 995 ms'], 'Answer goes first, by priority');
+    await ev('width(330)'); await sleep(150);
+    assert.deepEqual(await texts('.hy-bar-list__sub'), ['Answer 1,310 ms · Failed 1,204,000', 'Answer 995 ms · Failed 48'], 'then Failed, still before the label shrinks');
+    assert.equal(await ev(`Array.from(document.querySelectorAll('.hy-bar-list__label, .hy-bar-list__labelhead')).every(function (l) { return l.closest('th').getBoundingClientRect().width - 14 >= l.offsetWidth - 0.5; })`), true, 'the labels stay whole at 330px');
+    assert.ok((await ev(`document.querySelector('.hy-bar-list__bar').getBoundingClientRect().width`)) >= 48, 'the bar keeps its 48px minimum');
+  });
+
+  it('caps the reserved label width at 160px for a very long label', async () => {
+    const long = 'a-very-long-indexer-name-that-keeps-going-and-going-forever';
+    await mount(`list({ columns: KESTREL, items: [{ label: '${long}', value: 5, columns: { hit: '9%', ans: '1 ms', fail: '1' } }] })`, 390);
+    await sleep(100);
+    const lw = await ev(`document.querySelector('tbody th').getBoundingClientRect().width`);
+    assert.ok(lw >= 160 && lw < 200, 'the label cell is about 160px plus padding, not the full name: ' + lw);
+    assert.equal(await ev(`document.documentElement.scrollWidth <= document.documentElement.clientWidth`), true);
+  });
+
+  it('keeps the old 80px label and 24px bar fallback when only kept columns are left', async () => {
+    const kept = `[{ key: 'hit', label: 'Hit Rate Over A Week', hideable: false }, { key: 'ans', label: 'Answer Time In Milliseconds', hideable: false }]`;
+    await mount(`list({ columns: ${kept}, items: KITEMS.map(function (it) { return Object.assign({}, it, { columns: { hit: '94.2%', ans: '310 ms' } }); }) })`, 300);
+    await sleep(150);
+    assert.equal(await ev(`document.querySelectorAll('.hy-bar-list__cell.is-hidden').length`), 0);
+    assert.equal(await ev(`document.querySelector('.hy-bar-list').classList.contains('is-tight')`), true);
+    const lw = await ev(`document.querySelector('tbody th').getBoundingClientRect().width`);
+    assert.ok(lw >= 94 && lw < 120, 'the label cell is about 80px plus padding: ' + lw);
+  });
+
   it('narrows the bar to 24px, then truncates the label, warns once and never scrolls sideways when kept columns do not fit', async () => {
     const kept = `[{ key: 'hit', label: 'Hit Rate Over A Week', hideable: false }, { key: 'ans', label: 'Answer Time In Milliseconds', hideable: false }]`;
     await ev(`console.warn = function (m) { log.push(String(m)); }; log.length = 0`);

@@ -2434,7 +2434,7 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-bar-list--table .hy-bar-list__tr:hover .hy-bar-list__cell { background: var(--gray-100); }
 .hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
 .hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
-.hy-bar-list__cell--label { width: 33%; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-bar-list__cell--label { width: 33%; max-width: 0; min-width: var(--bl-label, 0px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .hy-bar-list__cell--value { width: 67%; }
 .hy-bar-list__valuebox { display: flex; align-items: center; gap: 12px; }
 .hy-bar-list__valuebox .hy-bar-list__bar { flex: 1 1 0; min-width: var(--bl-bar-min, 48px); }
@@ -2442,6 +2442,7 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-bar-list__head .hy-bar-list__cell--value { text-align: right; }
 .hy-bar-list--table.is-tight { --bl-bar-min: 24px; }
 .hy-bar-list__fig { display: inline-block; }
+.hy-bar-list__labelhead { display: inline; }
 .hy-bar-list__cell--figure { width: 1%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
 .hy-bar-list--table .hy-bar-list__cell--figure.is-hidden { width: 0; max-width: 0; padding: 0; overflow: hidden; clip-path: inset(50%); }
 /* A row with hidden figures grows to fit a second line under its label: smaller secondary text, figures in tabular numbers. */
