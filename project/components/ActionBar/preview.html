@@ -27,15 +27,15 @@ function Demo() {
     h('p', { className: 'label-13' }, 'Narrow (under 480px): Select all and the secondary actions fold into More'),
     h(Selection, { width: 360 }),
     h('p', { className: 'label-13' }, 'Unsaved changes with a warning dot'),
-    h('div', { style: Object.assign({}, frame, { height: 64 }) },
+    h('div', { style: Object.assign({}, frame, { height: 'auto', minHeight: 64 }) },
       h(H.ActionBar, { open: true, tone: 'warning', label: '2 unsaved changes',
         actions: h(F, null, h(H.Button, { size: 'small', variant: 'tertiary' }, 'Discard'), h(H.Button, { size: 'small', variant: 'primary' }, 'Save')) })),
     h('p', { className: 'label-13' }, 'Busy Save with an error'),
-    h('div', { style: Object.assign({}, frame, { height: 88 }) },
+    h('div', { style: Object.assign({}, frame, { height: 'auto', minHeight: 88 }) },
       h(H.ActionBar, { open: true, tone: 'warning', label: '2 unsaved changes', error: 'Couldn’t save. Check your connection and try again.',
         actions: h(F, null, h(H.Button, { size: 'small', variant: 'tertiary', disabled: true }, 'Discard'), h(H.Button, { size: 'small', variant: 'primary', loading: true }, 'Save')) })),
     h('p', { className: 'label-13' }, 'Close button'),
-    h('div', { style: Object.assign({}, frame, { height: 64 }) },
+    h('div', { style: Object.assign({}, frame, { height: 'auto', minHeight: 64 }) },
       h(H.ActionBar, { open: true, tone: 'success', label: 'Preview ready for review', onClose: function () {}, actions: h(H.Button, { size: 'small', variant: 'secondary' }, 'Open Preview') })));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

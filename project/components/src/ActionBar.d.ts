@@ -30,8 +30,9 @@ export interface ActionBarSecondaryAction {
  * the end of the content, so it never covers the last row and the app adds no padding. It sits above a mounted TabBar
  * and the safe area.
  *
- * When the container is narrower than 480px the capsule spans its width and stays on one line: “Select all {total}” and
- * `secondaryActions` move into a More (…) menu, and the count chip and `actions` stay visible.
+ * When the container is narrower than 480px the capsule spans its width: “Select all {total}” and `secondaryActions`
+ * move into a More (…) menu, and the count chip and `actions` stay visible. The label is never cut short: when it doesn't
+ * fit on one line with the controls, it takes a line of its own and the controls wrap below it, right-aligned.
  *
  * It never takes focus when it appears. Its label (and an error, when one appears) is announced politely, also when the
  * text changes. When it closes with focus inside, focus returns to the element that had it before it entered the bar,
@@ -55,8 +56,8 @@ export interface ActionBarProps {
   /** Selection mode: the count chip with its clear ×, “Select all {total}” (hidden when all are selected), then `actions`. */
   selection?: ActionBarSelection;
   /**
-   * A problem to show as one line of text inside the capsule, above the row; a string's first sentence is bold. The dot
-   * turns to the error tone, and the bar stays open until the app closes it.
+   * A problem to show as text inside the capsule, above the row, wrapped at the row's width and never cut short; a
+   * string's first sentence is bold. The dot turns to the error tone, and the bar stays open until the app closes it.
    */
   error?: React.ReactNode;
   /**

@@ -35,6 +35,13 @@ function actionBarOwnMenu(bar, el) {
   return !!(menu && menu.id && bar.querySelector('[aria-controls="' + menu.id + '"]'));
 }
 
+/* Narrow form only: true when the controls wrapped onto their own line below the lead. Hiding the separator then uses
+   visibility, which keeps its width, so the answer doesn't flip back and forth. */
+function actionBarStacked(bar, lead, controls) {
+  if (!bar || !lead || !controls || bar.className.indexOf('hy-action-bar--narrow') < 0) return false;
+  return controls.getBoundingClientRect().top >= lead.getBoundingClientRect().bottom - 1;
+}
+
 /* A string error gets its first sentence in bold; anything else is shown as given. */
 function actionBarErrorText(error) {
   if (typeof error !== 'string') return error;
@@ -51,6 +58,11 @@ function ActionBar(props) {
   var announced = announcementState[0], setAnnounced = announcementState[1];
   var narrowState = useState(false);
   var narrow = narrowState[0], setNarrow = narrowState[1];
+  /* Narrow only: the controls didn't fit beside the lead and wrapped onto a line of their own. */
+  var stackedState = useState(false);
+  var stacked = stackedState[0], setStacked = stackedState[1];
+  var leadRef = useRef(null);
+  var controlsRef = useRef(null);
   /* prevFocus: the element that had focus before it entered the bar. scroller: the fallback. wasOpen and restoreFocus
      carry the closing from render to effect. */
   var focusMemory = useRef({ prevFocus: null, scroller: null, wasOpen: false, restoreFocus: false });
@@ -64,13 +76,21 @@ function ActionBar(props) {
     if (!open) return;
     var parent = barRef.current && barRef.current.parentElement;
     if (!parent) return;
-    function measure() { setNarrow(parent.clientWidth < ACTION_BAR_NARROW); }
+    function measure() {
+      setNarrow(parent.clientWidth < ACTION_BAR_NARROW);
+      setStacked(actionBarStacked(barRef.current, leadRef.current, controlsRef.current));
+    }
     measure();
     if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure); return function () { window.removeEventListener('resize', measure); }; }
     var ro = new ResizeObserver(measure);
     ro.observe(parent);
     return function () { ro.disconnect(); };
   }, [open]);
+
+  /* After every render (a new label, the narrow form switching on): did the controls wrap below the lead? */
+  useLayoutEffect(function () {
+    if (open) setStacked(actionBarStacked(barRef.current, leadRef.current, controlsRef.current));
+  });
 
   /* Remember the element that had focus before it entered the bar, and the scroll container as the fallback. */
   useEffect(function () {
@@ -113,12 +133,12 @@ function ActionBar(props) {
   /* The lead: the count chip with its clear button, or the tone dot and the label. */
   var lead = null;
   if (sel) {
-    lead = h('span', { key: 'lead', className: 'hy-action-bar__count' },
+    lead = h('span', { key: 'lead', ref: leadRef, className: 'hy-action-bar__count' },
       h('span', { ref: labelRef, className: 'hy-action-bar__count-text' }, sel.count + ' selected'),
       h(HY.Button, { className: 'hy-action-bar__clear', variant: 'tertiary', size: 'tiny', svgOnly: true, 'aria-label': 'Clear selection', onClick: sel.onClear },
         h(Glyph, { name: 'x', size: 14 })));
   } else if (props.label || tone) {
-    lead = h('span', { key: 'lead', className: 'hy-action-bar__label' },
+    lead = h('span', { key: 'lead', ref: leadRef, className: 'hy-action-bar__label' },
       tone ? h('span', { className: 'hy-action-bar__dot hy-action-bar__dot--' + tone, 'aria-hidden': 'true' }) : null,
       props.label ? h('span', { ref: labelRef, className: 'hy-action-bar__label-text' }, props.label) : null);
   }
@@ -150,17 +170,24 @@ function ActionBar(props) {
         h(Glyph, { name: 'x', size: 16 }))
     : null;
 
-  return h(React.Fragment, null, h('div', { key: 'bar', ref: barRef, className: cx('hy-action-bar', narrow && 'hy-action-bar--narrow', props.className) },
+  /* The controls after the lead, in one group: it lays out flat when wide, and when narrow it wraps as a whole onto its
+     own line, right-aligned, if it doesn't fit beside the lead. */
+  var controls = after.length || close
+    ? h('div', { key: 'controls', ref: controlsRef, className: 'hy-action-bar__controls' },
+        before.length && after.length ? h('span', { key: 'sep', className: 'hy-action-bar__sep', 'aria-hidden': 'true' }) : null,
+        after,
+        close)
+    : null;
+
+  return h(React.Fragment, null, h('div', { key: 'bar', ref: barRef, className: cx('hy-action-bar', narrow && 'hy-action-bar--narrow', narrow && stacked && 'hy-action-bar--stacked', props.className) },
     h('div', { className: 'hy-action-bar__surface' },
       hasError
-        ? h('p', { className: 'hy-action-bar__error', title: typeof props.error === 'string' ? props.error : undefined },
+        ? h('p', { className: 'hy-action-bar__error' },
             h('span', { ref: errorRef }, actionBarErrorText(props.error)))
         : null,
       h('div', { className: 'hy-action-bar__row' },
         before,
-        before.length && after.length ? h('span', { key: 'sep', className: 'hy-action-bar__sep', 'aria-hidden': 'true' }) : null,
-        after,
-        close))),
+        controls))),
     liveRegion);
 }
 

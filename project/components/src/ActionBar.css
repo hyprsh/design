@@ -58,22 +58,28 @@
 .hy-action-bar__sep { flex: none; width: 1px; height: 20px; margin: 0 4px; background: var(--hy-ab-line); }
 .hy-action-bar__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
 .hy-action-bar__close, .hy-action-bar__more { flex: none; }
+/* The controls after the lead: laid out flat in the row when wide, one group when narrow. */
+.hy-action-bar__controls { display: contents; }
 
-/* One line of secondary text above the row; a string error's first sentence is bold. */
+/* Secondary text above the row; a string error's first sentence is bold. It wraps at the row's width rather than
+   widening the capsule (width 0 with a 100% minimum), and is never cut short. */
 .hy-action-bar__error {
-  min-width: 0; margin: 0; padding: 8px 12px 0;
-  font-size: 12px; line-height: 16px; color: var(--hy-ab-muted);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  box-sizing: border-box; width: 0; min-width: 100%; margin: 0; padding: 8px 12px 0;
+  font-size: 12px; line-height: 16px; color: var(--hy-ab-muted); overflow-wrap: anywhere;
 }
 .hy-action-bar__error b { font-weight: 600; color: var(--hy-ab-fg); }
 
-/* Narrow: the capsule spans the width and stays on one line; the label gives way first. */
+/* Narrow: the capsule spans the width. The label is never cut short: the label and the controls share one line while
+   they fit, and otherwise the controls wrap as a group onto a second line, right-aligned (stacked). */
 .hy-action-bar--narrow .hy-action-bar__surface { width: 100%; }
-.hy-action-bar--narrow .hy-action-bar__row, .hy-action-bar--narrow .hy-action-bar__actions { flex-wrap: nowrap; }
 .hy-action-bar--narrow .hy-action-bar__label { flex: 0 1 auto; }
-.hy-action-bar--narrow .hy-action-bar__label-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
-.hy-action-bar--narrow .hy-action-bar__sep { margin-left: auto; }
-.hy-action-bar--narrow .hy-action-bar__actions > *, .hy-action-bar--narrow .hy-action-bar__row > .hy-btn { flex: none; }
+.hy-action-bar--narrow .hy-action-bar__controls { display: flex; flex: none; flex-wrap: nowrap; align-items: center; gap: 4px; margin-left: auto; }
+.hy-action-bar--narrow .hy-action-bar__actions { flex-wrap: nowrap; }
+.hy-action-bar--narrow .hy-action-bar__actions > *, .hy-action-bar--narrow .hy-action-bar__controls > .hy-btn { flex: none; }
+/* Stacked: the label gets room above and below, and the separator, now at the start of the controls' line, is hidden.
+   It keeps its width, so hiding it can't let the controls fit back beside the label. */
+.hy-action-bar--stacked .hy-action-bar__label { padding-top: 6px; padding-bottom: 2px; }
+.hy-action-bar--stacked .hy-action-bar__sep { visibility: hidden; }
 
 /* Buttons on the inverted surface. Small and medium are drawn at 32px. Secondary and tertiary are transparent with the
    inverted text and an inverted wash; primary is the surface's own colours swapped back. Error and warning keep their

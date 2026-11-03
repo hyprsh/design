@@ -215,6 +215,53 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
         await ev(`document.querySelector('[role="menu"] [role="menuitem"]').click()`);
         await until(`window.__picked === 'all'`, 'Select all from the menu');
       });
+      const discardSave = `h(F, null, h(H.Button, { size: 'small', variant: 'tertiary' }, 'Discard'), h(H.Button, { id: 'save', size: 'small', variant: 'primary' }, 'Save'))`;
+      /* Whether an element shows all its text: nothing clipped, no ellipsis. */
+      const whole = (sel) => ev(`(function () { var e = document.querySelector(${JSON.stringify(sel)}), cs = getComputedStyle(e); return e.scrollWidth <= e.clientWidth + 0.5 && e.scrollHeight <= e.clientHeight + 0.5 && cs.textOverflow !== 'ellipsis'; })()`);
+      it('keeps the label whole and gives it its own line when it doesn’t fit beside Discard and Save (340px)', async () => {
+        await fresh();
+        const label = '12 unsaved changes in 3 files';
+        await ev(`show(h(Screen, { width: 340, bar: { tone: 'warning', label: ${JSON.stringify(label)}, actions: ${discardSave} } }))`);
+        await until(`document.querySelector('.hy-action-bar--stacked')`, 'the stacked bar');
+        assert.equal(await ev(`document.querySelector('.hy-action-bar__label-text').textContent`), label);
+        assert.ok(await whole('.hy-action-bar__label-text'), 'the label is not cut short');
+        assert.ok(await whole('.hy-action-bar__label'));
+        const lead = await rectOf('.hy-action-bar__label'), controls = await rectOf('.hy-action-bar__controls'), save = await rectOf('#save'), row = await rectOf('.hy-action-bar__row');
+        assert.ok(controls.y >= lead.b - 0.5, `the controls (${controls.y}) sit below the label (${lead.b})`);
+        assert.ok(Math.abs(save.r - (row.r - 6)) < 1, 'right-aligned on the second line');
+        assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-action-bar__sep')).visibility`), 'hidden', 'no separator at the start of the line');
+        assert.ok(row.h > 60, `the capsule grows (${row.h}px)`);
+      });
+      it('keeps one line in the narrow form while the label and the controls fit', async () => {
+        await fresh();
+        await ev(`show(h(Screen, { width: 340, bar: { tone: 'warning', label: '2 changes', actions: ${discardSave} } }))`);
+        await until(`document.querySelector('.hy-action-bar--narrow')`, 'the narrow bar');
+        await sleep(50);
+        assert.equal(await ev(`!!document.querySelector('.hy-action-bar--stacked')`), false);
+        assert.ok(Math.abs((await rectOf('.hy-action-bar__row')).h - 44) < 0.5, 'one line');
+        assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-action-bar__sep')).visibility`), 'visible');
+        assert.ok(await whole('.hy-action-bar__label-text'));
+      });
+      it('unstacks when the container grows and the label fits again', async () => {
+        await fresh();
+        await ev(`show(h(Screen, { width: 340, bar: { tone: 'warning', label: '12 unsaved changes in 3 files', actions: ${discardSave} } }))`);
+        await until(`document.querySelector('.hy-action-bar--stacked')`, 'the stacked bar');
+        await ev(`document.getElementById('scroller').style.width = '470px'`);
+        await until(`!document.querySelector('.hy-action-bar--stacked')`, 'one line again');
+        assert.ok(Math.abs((await rectOf('.hy-action-bar__row')).h - 44) < 0.5);
+      });
+      it('shows a long error in full, wrapped, in the narrow form', async () => {
+        await fresh();
+        const message = 'Couldn’t save. Check your connection and try again, or copy your changes somewhere safe before you leave.';
+        await ev(`show(h(Screen, { width: 340, bar: { tone: 'warning', label: '2 changes', error: ${JSON.stringify(message)}, actions: ${discardSave} } }))`);
+        await until(`document.querySelector('.hy-action-bar--narrow .hy-action-bar__error')`, 'the error');
+        assert.equal(await ev(`document.querySelector('.hy-action-bar__error').textContent`), message);
+        assert.ok(await whole('.hy-action-bar__error'), 'the error is not cut short');
+        assert.ok((await rectOf('.hy-action-bar__error')).h > 30, 'it wraps');
+        assert.equal(await ev(`document.querySelector('.hy-action-bar__error').hasAttribute('title')`), false);
+        const err = await rectOf('.hy-action-bar__error'), cap = await rectOf(s);
+        assert.ok(err.x >= cap.x - 0.5 && err.r <= cap.r + 0.5, 'inside the capsule');
+      });
       it('measures the container, not the viewport, and goes wide again when it grows', async () => {
         await fresh();
         await ev(`show(h(Screen, { width: 400, bar: { label: undefined, selection: ${selection}, secondaryActions: ${secondary} } }))`);
@@ -314,7 +361,8 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
       assert.match(await spoken(), /^3 unsaved changes/);
       const err = await rectOf('.hy-action-bar__error'), row = await rectOf('.hy-action-bar__row');
       assert.ok(err.b <= row.y + 0.5, 'the error line sits above the row');
-      assert.ok(err.h <= 24, `one line (${err.h}px)`);
+      assert.ok(Math.abs((err.r - err.x) - (row.r - row.x)) < 1, 'it wraps at the row’s width rather than widening the capsule');
+      assert.ok(await ev(`(function () { var e = document.querySelector('.hy-action-bar__error'); return e.scrollWidth <= e.clientWidth && e.scrollHeight <= e.clientHeight; })()`), 'the full text shows');
       assert.ok(await ev(`!!document.querySelector('.hy-action-bar__dot--error')`), 'the dot shows the error tone');
     });
 

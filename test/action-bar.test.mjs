@@ -45,8 +45,8 @@ const byLabel = (tree, label) => buttons(tree).find((b) => b.props['aria-label']
 const names = (tree) => buttons(tree).map((b) => b.props['aria-label'] || text(b));
 const barOf = (tree) => byClass(tree, 'hy-action-bar')[0];
 const rowOf = (tree) => byClass(tree, 'hy-action-bar__row')[0];
-/* The row's direct children as short names, in order. */
-const rowParts = (tree) => rowOf(tree).children.map((c) => {
+/* The row's parts as short names, in order, with the controls group flattened. */
+const rowParts = (tree) => rowOf(tree).children.flatMap((c) => (classes(c).includes('hy-action-bar__controls') ? c.children : [c])).map((c) => {
   const cl = classes(c);
   if (cl.includes('hy-action-bar__count')) return 'count';
   if (cl.includes('hy-action-bar__label')) return 'label';
@@ -193,6 +193,13 @@ describe('ActionBar markup', () => {
       assert.equal(menus(renderNarrow({ label: 'x', actions: 'A' })).length, 0);
     });
     it('is not narrow by default', () => assert.ok(!classes(barOf(render({ label: 'x' }))).includes('hy-action-bar--narrow')));
+    it('groups the separator, the controls and the close button after the lead, so they wrap together', () => {
+      const tree = renderNarrow({ label: 'x', actions: 'A', onClose() {} });
+      const row = rowOf(tree);
+      assert.deepEqual(row.children.map((c) => classes(c)[0]), ['hy-action-bar__label', 'hy-action-bar__controls']);
+      const group = byClass(tree, 'hy-action-bar__controls')[0];
+      assert.deepEqual(group.children.map((c) => classes(c)[0]), ['hy-action-bar__sep', 'hy-action-bar__actions', 'hy-action-bar__close']);
+    });
   });
 
   describe('error', () => {
@@ -203,7 +210,7 @@ describe('ActionBar markup', () => {
       const err = byClass(tree, 'hy-action-bar__error')[0];
       assert.equal(surface.children[0], err, 'the error comes before the row');
       assert.equal(text(err), message);
-      assert.equal(err.props.title, message, 'the full text when the line is cut short');
+      assert.equal(err.props.title, undefined, 'no title fallback: the text is never cut short');
       assert.ok(byClass(tree, 'hy-action-bar__label')[0]);
     });
     it('bolds the first sentence of a string error', () => {
@@ -280,6 +287,12 @@ describe('ActionBar CSS', () => {
     assert.match(s, /(?:^|[;\s])color:\s*var\(--hy-ab-fg\)/);
     assert.match(s, /box-shadow:\s*var\(--shadow-menu\)/);
     assert.doesNotMatch(css, /backdrop-filter/);
+  });
+  it('never cuts the label or the error short', () => {
+    assert.doesNotMatch(css, /text-overflow:\s*ellipsis/);
+    assert.doesNotMatch(rule('.hy-action-bar__error'), /white-space:\s*nowrap/);
+    assert.match(rule('.hy-action-bar--narrow .hy-action-bar__controls'), /margin-left:\s*auto/);
+    assert.match(rule('.hy-action-bar--stacked .hy-action-bar__sep'), /visibility:\s*hidden/);
   });
   it('draws the count chip with a dashed hairline in the inverted line colour', () => {
     assert.match(rule('.hy-action-bar__count'), /border:\s*1px dashed var\(--hy-ab-line\)/);
