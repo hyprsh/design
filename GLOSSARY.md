@@ -53,7 +53,7 @@ The colour of a semantic status: success, info, warning, error or neutral. One t
 _Avoid_: state colour, variant, type (those are a component's own look)
 
 **Segment**:
-One tone's share of a total, drawn as part of a bar beside the others.
+One part of a total, drawn as part of a bar beside the others, coloured by a tone or a step of the sequential scale.
 _Avoid_: slice, chunk, stack
 
 **Mark**:
@@ -63,6 +63,10 @@ _Avoid_: shape, glyph
 **Sequential scale**:
 The `chart-seq-*` steps for amounts, from least to most.
 _Avoid_: heatmap colours, gradient
+
+**Pinned tooltip**:
+A chart tooltip that stays open after a column is picked, holding the actions for what it describes.
+_Avoid_: popover, sticky tooltip
 
 **Presence**:
 Whether a person is online, away or offline, shown as a dot on their avatar.
