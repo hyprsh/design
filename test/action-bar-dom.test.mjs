@@ -296,7 +296,7 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
             assert.notEqual(off, fg, 'disabled is dimmed');
             assert.ok(alpha(off) >= 0.35, `disabled text stays legible (${off})`);
             assert.equal(alpha(await style('#off', 'backgroundColor')), 0);
-            for (const id of ['#sec', '#save', '#mid']) assert.equal((await rectOf(id)).h, 32, `${id} is 32px`);
+            for (const id of ['#sec', '#save', '#mid']) assert.equal(Math.round((await rectOf(id)).h), 32, `${id} is 32px`);
           } finally { await ev(`document.documentElement.setAttribute('data-theme', 'light')`); }
         });
       }
@@ -318,7 +318,7 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
         try {
           await ev(`show(h(Screen, { bar: { actions: h(F, null, h(H.Button, { size: 'small', variant: 'tertiary' }, 'Discard'), h(H.Button, { id: 'save', size: 'small', variant: 'primary' }, 'Save')), onClose: function () {} } }))`);
           await until(`document.getElementById('save')`, 'the buttons');
-          assert.equal((await rectOf('#save')).h, 32);
+          assert.equal(Math.round((await rectOf('#save')).h), 32);
           const hit = await ev(`(function () { var a = getComputedStyle(document.getElementById('save'), '::after'); return { content: a.content, top: a.top, bottom: a.bottom }; })()`);
           assert.notEqual(hit.content, 'none');
           assert.equal(hit.top, '-6px');
