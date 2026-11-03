@@ -1671,10 +1671,7 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 
 /* ---------- ActionBar ---------- */
 .hy-action-bar {
-  /* The bar's fill: background-100 at 85%, blurred, like the TabBar. The solid fallbacks below reset both variables.
-     --hy-action-bar-gap is the clear space around the bar. */
-  --hy-action-bar-surface: color-mix(in srgb, var(--background-100) 85%, transparent);
-  --hy-action-bar-filter: blur(20px) saturate(180%);
+  /* --hy-action-bar-gap is the clear space around the capsule. */
   --hy-action-bar-gap: 8px;
   /* In the flow at the end of the content, and held at the foot of the scroll container while there is more above it.
      --tab-bar-height already includes the safe area while a TabBar is mounted; without one the safe area raises the bar. */
@@ -1684,31 +1681,112 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
   /* The bottom margin leaves the same room below the bar in the flow, so at the end of the scroll the bar already sits at
      its sticky offset and doesn't ride up over the last row. */
   margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) var(--hy-action-bar-offset);
+  /* The capsule hugs its content and is centred; the strip around it lets pointer events through. */
+  display: flex; justify-content: center;
   pointer-events: none; font-family: var(--font-sans);
 }
+
+/* The capsule: an inverted surface, so it reads as a mode and flips with the theme. The --hy-ab-* colours are the
+   inverted text, its quieter forms and the hairlines, all mixed from the surface's own text colour. */
 .hy-action-bar__surface {
-  pointer-events: auto; box-sizing: border-box; border-radius: var(--radius-xl);
-  background-color: var(--hy-action-bar-surface); box-shadow: 0 0 0 1px var(--gray-alpha-400), var(--shadow-menu);
-  -webkit-backdrop-filter: var(--hy-action-bar-filter); backdrop-filter: var(--hy-action-bar-filter);
+  --hy-ab-bg: var(--gray-1000);
+  --hy-ab-fg: var(--background-100);
+  --hy-ab-muted: color-mix(in srgb, var(--background-100) 64%, transparent);
+  --hy-ab-disabled: color-mix(in srgb, var(--background-100) 42%, transparent);
+  --hy-ab-line: color-mix(in srgb, var(--background-100) 20%, transparent);
+  --hy-ab-hover: color-mix(in srgb, var(--background-100) 12%, transparent);
+  --hy-ab-press: color-mix(in srgb, var(--background-100) 18%, transparent);
+  pointer-events: auto; box-sizing: border-box; display: grid; grid-template-columns: minmax(0, 1fr);
+  min-width: 0; max-width: 100%; border-radius: var(--radius-2xl);
+  background-color: var(--hy-ab-bg); color: var(--hy-ab-fg); box-shadow: var(--shadow-menu);
   animation: hy-action-bar-in .2s cubic-bezier(.4,0,.2,1);
 }
 @keyframes hy-action-bar-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-.hy-action-bar__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; }
-.hy-action-bar__label { flex: 1 1 6rem; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
-.hy-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
-.hy-action-bar__close { flex: none; }
-.hy-action-bar__error { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 0 16px 10px; font-size: 13px; line-height: 18px; color: var(--red-900); }
-.hy-action-bar__error .hy-glyph { flex: none; margin-top: 2px; }
+.hy-action-bar__row { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; min-width: 0; padding: 6px; }
 
-/* Solid surface: the opaque prop, reduced transparency, and no backdrop-filter support. These are overrides, not a gate on
-   no-preference, because Safari lacks prefers-reduced-transparency and would stay solid. */
-.hy-action-bar--opaque { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
-@media (prefers-reduced-transparency: reduce) {
-  .hy-action-bar { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+/* Selection: the count in a dashed chip with its own clear button. */
+.hy-action-bar__count {
+  display: inline-flex; flex: none; align-items: center; gap: 2px; box-sizing: border-box; height: 32px; padding: 0 4px 0 10px;
+  border: 1px dashed var(--hy-ab-line); border-radius: 10px;
+  font-size: 14px; line-height: 20px; font-weight: 500; white-space: nowrap; font-variant-numeric: tabular-nums;
 }
-@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .hy-action-bar { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+
+/* Label mode: an optional tone dot, then the label. */
+.hy-action-bar__label {
+  display: inline-flex; align-items: center; gap: 8px; min-width: 0; padding: 0 8px 0 10px;
+  font-size: 14px; line-height: 20px; font-weight: 500; font-variant-numeric: tabular-nums;
+}
+.hy-action-bar__label-text { min-width: 0; overflow-wrap: anywhere; }
+/* Tones are StatusDot's and MonthView's mark colours. */
+.hy-action-bar__dot { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--hy-ab-tone, var(--gray-700)); }
+.hy-action-bar__dot--success { --hy-ab-tone: var(--green-700); }
+.hy-action-bar__dot--info { --hy-ab-tone: var(--blue-700); }
+.hy-action-bar__dot--warning { --hy-ab-tone: var(--amber-700); }
+.hy-action-bar__dot--error { --hy-ab-tone: var(--red-800); }
+.hy-action-bar__dot--neutral { --hy-ab-tone: var(--gray-700); }
+
+.hy-action-bar__sep { flex: none; width: 1px; height: 20px; margin: 0 4px; background: var(--hy-ab-line); }
+.hy-action-bar__actions { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+.hy-action-bar__close, .hy-action-bar__more { flex: none; }
+/* The controls after the lead: laid out flat in the row when wide, one group when narrow. */
+.hy-action-bar__controls { display: contents; }
+
+/* Secondary text above the row; a string error's first sentence is bold. It wraps at the row's width rather than
+   widening the capsule (width 0 with a 100% minimum), and is never cut short. */
+.hy-action-bar__error {
+  box-sizing: border-box; width: 0; min-width: 100%; margin: 0; padding: 8px 12px 0;
+  font-size: 12px; line-height: 16px; color: var(--hy-ab-muted); overflow-wrap: anywhere;
+}
+.hy-action-bar__error b { font-weight: 600; color: var(--hy-ab-fg); }
+
+/* Narrow: the capsule spans the width. The label is never cut short: the label and the controls share one line while
+   they fit, and otherwise the controls wrap as a group onto a second line, right-aligned (stacked). */
+.hy-action-bar--narrow .hy-action-bar__surface { width: 100%; }
+.hy-action-bar--narrow .hy-action-bar__label { flex: 0 1 auto; }
+.hy-action-bar--narrow .hy-action-bar__controls { display: flex; flex: none; flex-wrap: nowrap; align-items: center; gap: 4px; margin-left: auto; }
+.hy-action-bar--narrow .hy-action-bar__actions { flex-wrap: nowrap; }
+.hy-action-bar--narrow .hy-action-bar__actions > *, .hy-action-bar--narrow .hy-action-bar__controls > .hy-btn { flex: none; }
+/* Stacked: the label gets room above and below, and the separator, now at the start of the controls' line, is hidden.
+   It keeps its width, so hiding it can't let the controls fit back beside the label. */
+.hy-action-bar--stacked .hy-action-bar__label { padding-top: 6px; padding-bottom: 2px; }
+.hy-action-bar--stacked .hy-action-bar__sep { visibility: hidden; }
+
+/* Buttons on the inverted surface. Small and medium are drawn at 32px. Secondary and tertiary are transparent with the
+   inverted text and an inverted wash; primary is the surface's own colours swapped back. Error and warning keep their
+   fills. The doubled class outranks Button's own rules whatever the bundle order. */
+.hy-action-bar__surface .hy-btn.hy-btn--small, .hy-action-bar__surface .hy-btn.hy-btn--medium { height: 32px; padding: 0 6px; font-size: 14px; }
+.hy-action-bar__surface .hy-btn.hy-btn--icon.hy-btn--small, .hy-action-bar__surface .hy-btn.hy-btn--icon.hy-btn--medium { width: 32px; padding: 0; }
+.hy-action-bar__surface .hy-btn.hy-btn--secondary, .hy-action-bar__surface .hy-btn.hy-btn--tertiary { background: transparent; color: var(--hy-ab-fg); box-shadow: none; }
+.hy-action-bar__surface .hy-btn.hy-btn--secondary:hover, .hy-action-bar__surface .hy-btn.hy-btn--tertiary:hover { background: var(--hy-ab-hover); }
+.hy-action-bar__surface .hy-btn.hy-btn--secondary:active, .hy-action-bar__surface .hy-btn.hy-btn--tertiary:active { background: var(--hy-ab-press); }
+.hy-action-bar__surface .hy-btn.hy-btn--primary { background: var(--hy-ab-fg); color: var(--hy-ab-bg); box-shadow: none; }
+.hy-action-bar__surface .hy-btn.hy-btn--primary:hover { background: color-mix(in srgb, var(--hy-ab-fg) 86%, var(--hy-ab-bg)); }
+.hy-action-bar__surface .hy-btn.hy-btn--tertiary.hy-action-bar__quiet, .hy-action-bar__surface .hy-btn.hy-btn--tertiary.hy-action-bar__clear { color: var(--hy-ab-muted); }
+.hy-action-bar__surface .hy-btn.hy-btn--tertiary.hy-action-bar__quiet:hover, .hy-action-bar__surface .hy-btn.hy-btn--tertiary.hy-action-bar__clear:hover { color: var(--hy-ab-fg); }
+/* Disabled: no fill, the text dimmed; a disabled primary keeps a faint wash so it still reads as the main action. */
+.hy-action-bar__surface .hy-btn.hy-btn:disabled, .hy-action-bar__surface .hy-btn.hy-btn:disabled:hover,
+.hy-action-bar__surface .hy-btn.hy-btn[aria-disabled="true"], .hy-action-bar__surface .hy-btn.hy-btn[aria-disabled="true"]:hover {
+  background: transparent; color: var(--hy-ab-disabled); box-shadow: none;
+}
+.hy-action-bar__surface .hy-btn.hy-btn--primary:disabled, .hy-action-bar__surface .hy-btn.hy-btn--primary:disabled:hover,
+.hy-action-bar__surface .hy-btn.hy-btn--primary[aria-disabled="true"], .hy-action-bar__surface .hy-btn.hy-btn--primary[aria-disabled="true"]:hover {
+  background: var(--hy-ab-hover);
+}
+/* Loading: the Button is disabled while busy, but keeps its full colours so its spinner and label stay legible. */
+.hy-action-bar__surface .hy-btn.hy-btn--primary[aria-busy="true"], .hy-action-bar__surface .hy-btn.hy-btn--primary[aria-busy="true"]:hover { background: var(--hy-ab-fg); color: var(--hy-ab-bg); }
+.hy-action-bar__surface .hy-btn.hy-btn--secondary[aria-busy="true"], .hy-action-bar__surface .hy-btn.hy-btn--tertiary[aria-busy="true"] { color: var(--hy-ab-fg); }
+
+/* Touch sizing: buttons keep their 32px drawing and grow their hit area to the touch target, which the 6px padding of
+   the capsule holds. Icon-only buttons are drawn at the touch target's width. The chip's clear button is a tiny Button
+   and already gets its hit area from Button. */
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-action-bar__surface .hy-btn.hy-btn--small, .hy-action-bar__surface .hy-btn.hy-btn--medium { height: 32px; }
+  .hy-action-bar__surface .hy-btn.hy-btn--small::after, .hy-action-bar__surface .hy-btn.hy-btn--medium::after {
+    content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)) 0;
+  }
+  .hy-action-bar__surface .hy-btn.hy-btn--icon.hy-btn--small, .hy-action-bar__surface .hy-btn.hy-btn--icon.hy-btn--medium { width: var(--touch-target); }
+  .hy-action-bar__count { padding-right: 6px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
