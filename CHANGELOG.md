@@ -2,6 +2,20 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.20.0
+
+2026-11-03
+
+### Features
+
+- **progress:** let segments use the amount palette and carry their own tooltip (#103)
+- **column-chart:** fit openable columns with pick-then-open and show the latest first (#104)
+- **bar-list:** fit extra columns by measured width and show hidden figures on a second line (#105)
+
+### Docs
+
+- **glossary:** widen segment and add pinned tooltip (#102)
+
 ## v0.19.1
 
 2026-11-03
