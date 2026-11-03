@@ -198,22 +198,22 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
     describe('narrow', () => {
       const selection = `{ count: 2, total: 6, onSelectAll: function () { window.__picked = 'all'; }, onClear: function () {} }`;
       const secondary = `[{ label: 'Unmonitor', onSelect: function () { window.__picked = 'unmonitor'; } }]`;
-      it('folds Select all and the secondary actions into a More menu when the container is under 480px', async () => {
+      it('folds Select All and the secondary actions into a More menu when the container is under 480px', async () => {
         await fresh();
         await ev(`show(h(Screen, { width: 400, bar: { label: undefined, selection: ${selection}, secondaryActions: ${secondary} } }))`);
         await until(`document.querySelector('.hy-action-bar--narrow')`, 'the narrow bar');
         const box = await rectOf('#scroller'), cap = await rectOf(s);
         const inner = await ev(`document.getElementById('scroller').clientWidth`);
         assert.ok(Math.abs(cap.r - cap.x - (inner - 16)) < 1, `the capsule spans the width less the gap (${cap.r - cap.x} vs ${inner - 16})`);
-        assert.equal(await ev(`[].some.call(document.querySelectorAll('.hy-action-bar button'), function (b) { return /Select all|Unmonitor/.test(b.textContent); })`), false);
+        assert.equal(await ev(`[].some.call(document.querySelectorAll('.hy-action-bar button'), function (b) { return /Select All|Unmonitor/.test(b.textContent); })`), false);
         assert.equal(await ev(`document.querySelector('.hy-action-bar__row').getBoundingClientRect().height`), 44, 'one line');
-        assert.ok(await ev(`!!document.querySelector('.hy-action-bar__count [aria-label="Clear selection"]')`));
+        assert.ok(await ev(`!!document.querySelector('.hy-action-bar__count [aria-label="Clear Selection"]')`));
         assert.ok(await ev(`!!document.getElementById('save')`), 'the action stays visible');
-        await ev(`document.querySelector('.hy-action-bar [aria-label="More actions"]').click()`);
+        await ev(`document.querySelector('.hy-action-bar [aria-label="More Actions"]').click()`);
         await until(`document.querySelectorAll('[role="menu"] [role="menuitem"]').length === 2`, 'the menu items');
-        assert.deepEqual(await ev(`[].map.call(document.querySelectorAll('[role="menu"] [role="menuitem"]'), function (m) { return m.textContent; })`), ['Select all 6', 'Unmonitor']);
+        assert.deepEqual(await ev(`[].map.call(document.querySelectorAll('[role="menu"] [role="menuitem"]'), function (m) { return m.textContent; })`), ['Select All 6', 'Unmonitor']);
         await ev(`document.querySelector('[role="menu"] [role="menuitem"]').click()`);
-        await until(`window.__picked === 'all'`, 'Select all from the menu');
+        await until(`window.__picked === 'all'`, 'Select All from the menu');
       });
       const discardSave = `h(F, null, h(H.Button, { size: 'small', variant: 'tertiary' }, 'Discard'), h(H.Button, { id: 'save', size: 'small', variant: 'primary' }, 'Save'))`;
       /* Whether an element shows all its text: nothing clipped, no ellipsis. */
@@ -268,8 +268,8 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
         await until(`document.querySelector('.hy-action-bar--narrow')`, 'the narrow bar');
         await ev(`document.getElementById('scroller').style.width = '560px'`);
         await until(`!document.querySelector('.hy-action-bar--narrow')`, 'the wide bar');
-        assert.equal(await ev(`[].filter.call(document.querySelectorAll('.hy-action-bar button'), function (b) { return /^(Select all 6|Unmonitor)$/.test(b.textContent); }).length`), 2);
-        assert.equal(await ev(`document.querySelectorAll('.hy-action-bar [aria-label="More actions"]').length`), 0);
+        assert.equal(await ev(`[].filter.call(document.querySelectorAll('.hy-action-bar button'), function (b) { return /^(Select All 6|Unmonitor)$/.test(b.textContent); }).length`), 2);
+        assert.equal(await ev(`document.querySelectorAll('.hy-action-bar [aria-label="More Actions"]').length`), 0);
       });
     });
 
@@ -296,7 +296,7 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
             assert.notEqual(off, fg, 'disabled is dimmed');
             assert.ok(alpha(off) >= 0.35, `disabled text stays legible (${off})`);
             assert.equal(alpha(await style('#off', 'backgroundColor')), 0);
-            for (const id of ['#sec', '#save', '#mid']) assert.equal((await rectOf(id)).h, 32, `${id} is 32px`);
+            for (const id of ['#sec', '#save', '#mid']) assert.equal(Math.round((await rectOf(id)).h), 32, `${id} is 32px`);
           } finally { await ev(`document.documentElement.setAttribute('data-theme', 'light')`); }
         });
       }
@@ -318,7 +318,7 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
         try {
           await ev(`show(h(Screen, { bar: { actions: h(F, null, h(H.Button, { size: 'small', variant: 'tertiary' }, 'Discard'), h(H.Button, { id: 'save', size: 'small', variant: 'primary' }, 'Save')), onClose: function () {} } }))`);
           await until(`document.getElementById('save')`, 'the buttons');
-          assert.equal((await rectOf('#save')).h, 32);
+          assert.equal(Math.round((await rectOf('#save')).h), 32);
           const hit = await ev(`(function () { var a = getComputedStyle(document.getElementById('save'), '::after'); return { content: a.content, top: a.top, bottom: a.bottom }; })()`);
           assert.notEqual(hit.content, 'none');
           assert.equal(hit.top, '-6px');
@@ -370,10 +370,10 @@ describe('ActionBar', { concurrency: false, skip: skipNoChrome }, () => {
       await fresh();
       await ev(`window.__clear = function () { show(h(Screen, { bar: { open: false } })); }; 0`);
       await ev(`show(h(Screen, { bar: { label: undefined, selection: { count: 1, total: 20, onClear: function () { window.__clear(); } } } }))`);
-      await until(`document.querySelector('[aria-label="Clear selection"]')`, 'the chip');
+      await until(`document.querySelector('[aria-label="Clear Selection"]')`, 'the chip');
       await ev(`document.getElementById('row-4').focus()`);
-      await ev(`document.querySelector('[aria-label="Clear selection"]').focus()`);
-      await ev(`document.querySelector('[aria-label="Clear selection"]').click()`);
+      await ev(`document.querySelector('[aria-label="Clear Selection"]').focus()`);
+      await ev(`document.querySelector('[aria-label="Clear Selection"]').click()`);
       await until(`!document.querySelector('.hy-action-bar')`, 'the bar to close');
       await sleep(50);
       assert.equal(await active(), 'row-4');

@@ -7,10 +7,10 @@ The bar at the foot of a scrolling area while there is something to act on: tick
 - **Placement:** make it the last child of the scroll container. It is sticky at the bottom of that container and sits in the flow at the end of the content, so it never covers the last row or field (it keeps its own clearance below it, also on a phone with a safe area) and you add no padding for it. It sits above a mounted TabBar (raised by `--tab-bar-height`) and the safe area. In a Pane, put it at the end of the body and it stays at the pane's foot.
 - **Surface:** a capsule that hugs its content and is centred in the scroll container, never wider than the container less 8px on each side. It is inverted (`gray-1000` with `background-100` text), so it reads as a mode and flips with the theme. It appears with a short transform and opacity entrance, and without motion under `prefers-reduced-motion`.
 - **Open and closed:** it renders nothing while `open` is false. Close it when the work is done: after Save succeeds, or when the selection is empty.
-- **Selection:** `selection` renders a count chip, “{count} selected”, with its own × (“Clear selection”) that calls `onClear`. Then a quiet “Select all {total}”, hidden when `count === total` and when there is no `onSelectAll`, a separator and your `actions`.
+- **Selection:** `selection` renders a count chip, “{count} selected”, with its own × (“Clear Selection”) that calls `onClear`. Then a quiet “Select All {total}”, hidden when `count === total` and when there is no `onSelectAll`, a separator and your `actions`.
 - **Unsaved changes:** label it with the count (“3 unsaved changes”) and `tone="warning"`, then Discard and Save. A busy Save is the Button's own `loading`, so the bar has no busy prop.
 - **Buttons:** pass ordinary Buttons; the bar restyles them for its surface. Secondary and tertiary are transparent with the inverted text, and `primary` takes the page's colours, so use one `primary` for the main action. Small and medium Buttons are drawn at 32px; under touch sizing they keep that drawing and grow their hit area to the touch target. Keep `actions` to one or two Buttons and put the rest in `secondaryActions`, which show as quiet text buttons before `actions`.
-- **Narrow:** when the scroll container is narrower than 480px (measured, not a viewport query), the capsule spans its width. “Select all {total}” and `secondaryActions` fold into a More (…) menu; the count chip and `actions` stay visible. The label is never cut short: while it fits beside the controls the bar is one line, and otherwise the label takes its own line and the controls wrap below it, right-aligned.
+- **Narrow:** when the scroll container is narrower than 480px (measured, not a viewport query), the capsule spans its width. “Select All {total}” and `secondaryActions` fold into a More (…) menu; the count chip and `actions` stay visible. The label is never cut short: while it fits beside the controls the bar is one line, and otherwise the label takes its own line and the controls wrap below it, right-aligned.
 - **Errors:** `error` shows its text inside the capsule, above the row, wrapped at the row's width and never cut short (a string's first sentence in bold), turns the dot to the error tone and keeps the bar open, so the user can retry. Clear it to dismiss it.
 - **Focus:** the bar never takes focus when it appears. If it closes while focus is inside it (the user pressed the chip's ×), focus goes back to the element that had it before it entered the bar, or to the scroll container if that element is gone.
 - **Announcements:** the label, and an error when it appears, are announced in a polite live region, both when the bar appears and when the text changes (“3 selected” to “4 selected”).
@@ -67,7 +67,7 @@ export default function Example() {
 ```
 
 ### Selected Rows
-Tick rows in an Entity.List. The bar shows the count chip with its clear button, Select all, a secondary action and the main one, and closes when nothing is ticked.
+Tick rows in an Entity.List. The bar shows the count chip with its clear button, Select All, a secondary action and the main one, and closes when nothing is ticked.
 
 ```jsx
 import { useState } from 'react';
@@ -128,7 +128,7 @@ export default function Example() {
 ```
 
 ### Narrow
-In a container under 480px wide the capsule spans the width: Select all and the secondary actions move into the More menu.
+In a container under 480px wide the capsule spans the width: Select All and the secondary actions move into the More menu.
 
 ```jsx
 import { useState } from 'react';

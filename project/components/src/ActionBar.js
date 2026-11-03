@@ -135,7 +135,7 @@ function ActionBar(props) {
   if (sel) {
     lead = h('span', { key: 'lead', ref: leadRef, className: 'hy-action-bar__count' },
       h('span', { ref: labelRef, className: 'hy-action-bar__count-text' }, sel.count + ' selected'),
-      h(HY.Button, { className: 'hy-action-bar__clear', variant: 'tertiary', size: 'tiny', svgOnly: true, 'aria-label': 'Clear selection', onClick: sel.onClear },
+      h(HY.Button, { className: 'hy-action-bar__clear', variant: 'tertiary', size: 'tiny', svgOnly: true, 'aria-label': 'Clear Selection', onClick: sel.onClear },
         h(Glyph, { name: 'x', size: 14 })));
   } else if (props.label || tone) {
     lead = h('span', { key: 'lead', ref: leadRef, className: 'hy-action-bar__label' },
@@ -144,7 +144,7 @@ function ActionBar(props) {
   }
 
   /* Select All and the secondary actions: quiet buttons when wide, items of the More menu when narrow. */
-  var selectAll = sel && sel.onSelectAll && sel.count < sel.total ? { label: 'Select all ' + sel.total, onSelect: sel.onSelectAll } : null;
+  var selectAll = sel && sel.onSelectAll && sel.count < sel.total ? { label: 'Select All ' + sel.total, onSelect: sel.onSelectAll } : null;
   var secondary = (props.secondaryActions || []).filter(Boolean);
   function quiet(item, key) {
     return h(HY.Button, { key: key, className: 'hy-action-bar__quiet', variant: 'tertiary', size: 'small', disabled: item.disabled, onClick: function () { item.onSelect(); } }, item.label);
@@ -152,7 +152,7 @@ function ActionBar(props) {
   var folded = narrow ? (selectAll ? [selectAll] : []).concat(secondary) : [];
   var more = folded.length
     ? h(HY.MenuContainer, { key: 'more', position: 'top-end' },
-        h(HY.MenuButton, { className: 'hy-action-bar__more', variant: 'tertiary', size: 'small', svgOnly: true, 'aria-label': 'More actions' },
+        h(HY.MenuButton, { className: 'hy-action-bar__more', variant: 'tertiary', size: 'small', svgOnly: true, 'aria-label': 'More Actions' },
           h(HY.Icon, { name: 'ellipsis', size: 16 })),
         h(HY.Menu, null, folded.map(function (item, i) {
           return h(HY.MenuItem, { key: i, disabled: item.disabled, onSelect: function () { item.onSelect(); } }, item.label);
