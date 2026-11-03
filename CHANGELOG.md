@@ -8,7 +8,15 @@ What changed in each version, newest first; the same notes are on the [GitHub re
 
 ### Features
 
-- **components:** add the components and props kestrel's redesign needs
+- **components:** add ActionBar, Pane, SplitView, Rail, TitleBar, SettingRow and MonthView
+- **column-chart:** open a column or a mark with onOpen or href, and move into a column's marks with Up and Down
+- **bar-list:** add extra columns as a native table, and open a row with onOpen
+- **query-input:** add a clear button with clearable
+- **pill:** forward refs, and add status, statusLabel and trailing
+- **entity:** add an expandable detail row, and reorder Entity.List rows by drag or keyboard
+- **table:** add Wider, Narrower and Reset Width to the Columns menu
+- **menu:** keep the menu open after an item with keepOpen
+- **tooltip:** add describe={false} for a tooltip that is only visual
 
 ### Docs
 
