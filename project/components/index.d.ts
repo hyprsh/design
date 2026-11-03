@@ -1353,6 +1353,11 @@ export interface PillProps extends Omit<React.AnchorHTMLAttributes<HTMLAnchorEle
    * The dot is always hidden from assistive tech, so `statusLabel` is the only way the state is spoken.
    */
   status?: StatusDotState;
+  /**
+   * How the status dot is drawn: `filled` (default), `outline` (a ring in the state's colour with a transparent centre) or `dashed` (the same ring, dashed). Same size; visual only.
+   * It carries no meaning to assistive tech, so say what it means in `statusLabel`.
+   */
+  statusVariant?: 'filled' | 'outline' | 'dashed';
   /** What the dot means in words, such as `Downloading`. It is part of the pill's accessible name after the label ("STD, Downloading"); the dot itself is always hidden from it. */
   statusLabel?: string;
   /** A figure after the label, in tabular numbers and a quieter colour: `54/56`, `40%`. It is part of the accessible name as text. */
@@ -2335,6 +2340,11 @@ export interface MonthViewEntry {
   label: React.ReactNode;
   /** A small leading mark, coloured as StatusDot and Progress segments of the same name. The label carries the meaning. */
   tone?: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /**
+   * How the mark is drawn: `filled` (default), `outline` (a ring in the tone's colour with a transparent centre) or `dashed` (the same ring, dashed). Same size; visual only, so the label carries the meaning.
+   * Use it to tell two states of one tone apart, such as a waiting and an ignored `neutral`.
+   */
+  variant?: 'filled' | 'outline' | 'dashed';
   /** Makes the entry a link. */
   href?: string;
   /** Makes the entry a button, or runs on a link's click as well. */

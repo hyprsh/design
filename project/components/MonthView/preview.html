@@ -21,7 +21,10 @@ var entries = [
   e(18, 'j', 'Release v2.5', 'success', { onOpen: function () {} }),
   e(21, 'k', 'Maintenance window', 'warning'),
   e(21, 'l', 'Deploy api', 'success', { href: '#deploy-api' }),
-  e(26, 'm', 'Release v2.6 RC', 'info', { onOpen: function () {} })
+  e(26, 'm', 'Release v2.6 RC', 'info', { onOpen: function () {} }),
+  e(15, 'n', 'Not monitored', 'neutral'),
+  e(15, 'o', 'Not out yet', 'neutral', { variant: 'outline' }),
+  e(15, 'p', 'Release pending', 'info', { variant: 'dashed' })
 ];
 function Wide() {
   var s = React.useState('Nothing opened yet'), msg = s[0], set = s[1];

@@ -1,4 +1,4 @@
-<!-- @dsCard group="Status" height=230 subtitle="Badge-styled link; sm, md, lg; with icon; toggle chips; state dot, trailing figure, popover trigger" -->
+<!-- @dsCard group="Status" height=270 subtitle="Badge-styled link; sm, md, lg; with icon; toggle chips; state dot and ring, trailing figure, popover trigger" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pill</title></head>
@@ -25,6 +25,11 @@ function Demo() {
         h('span', { className: 'copy-14' }, '54 of 56 files downloaded.')),
       h(H.Pill, { key: 2, size: 'sm', status: 'ready', statusLabel: 'Ready', trailing: '40%', onClick: function () {} }, 'Disk'),
       h(H.Pill, { key: 3, size: 'lg', status: 'error', statusLabel: 'Failed', trailing: '3', onClick: function () {} }, 'Builds')
+    ]),
+    row([
+      h(H.Pill, { key: 1, status: 'neutral', statusLabel: 'Not monitored' }, 'Alpha'),
+      h(H.Pill, { key: 2, status: 'neutral', statusVariant: 'outline', statusLabel: 'Not out yet' }, 'Beta'),
+      h(H.Pill, { key: 3, status: 'neutral', statusVariant: 'dashed', statusLabel: 'Paused' }, 'Gamma')
     ]));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));

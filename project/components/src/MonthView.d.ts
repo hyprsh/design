@@ -6,6 +6,11 @@ export interface MonthViewEntry {
   label: React.ReactNode;
   /** A small leading mark, coloured as StatusDot and Progress segments of the same name. The label carries the meaning. */
   tone?: 'success' | 'info' | 'warning' | 'error' | 'neutral';
+  /**
+   * How the mark is drawn: `filled` (default), `outline` (a ring in the tone's colour with a transparent centre) or `dashed` (the same ring, dashed). Same size; visual only, so the label carries the meaning.
+   * Use it to tell two states of one tone apart, such as a waiting and an ignored `neutral`.
+   */
+  variant?: 'filled' | 'outline' | 'dashed';
   /** Makes the entry a link. */
   href?: string;
   /** Makes the entry a button, or runs on a link's click as well. */

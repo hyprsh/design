@@ -132,6 +132,22 @@ describe('MonthView', { concurrency: false }, () => {
       assert.equal(await ev(`getComputedStyle(document.querySelector('.is-today .hy-month-view__num')).fontWeight`), '700');
     });
 
+    it('draws a ring or dashed ring mark with a transparent centre at the filled size, and filled entries are unchanged', async () => {
+      await mount(`mv({ entries: [
+        { key: 'f', date: on(4), label: 'Filled', tone: 'neutral' },
+        { key: 'o', date: on(4), label: 'Outline', tone: 'neutral', variant: 'outline' },
+        { key: 'd', date: on(4), label: 'Dashed', tone: 'info', variant: 'dashed' }] })`);
+      const M = `${DAY(4)} .hy-month-view__entry .hy-month-view__mark`;
+      const cls = await ev(`Array.from(document.querySelectorAll(${q(M)})).map(function (e) { return e.className; })`);
+      assert.deepEqual(cls, ['hy-month-view__mark hy-month-view__mark--neutral', 'hy-month-view__mark hy-month-view__mark--neutral hy-month-view__mark--outline', 'hy-month-view__mark hy-month-view__mark--info hy-month-view__mark--dashed']);
+      const bg = (n) => ev(`getComputedStyle(document.querySelectorAll(${q(M)})[${n}]).backgroundColor`);
+      assert.notEqual(await bg(0), 'rgba(0, 0, 0, 0)');
+      assert.equal(await bg(1), 'rgba(0, 0, 0, 0)');
+      assert.notEqual(await ev(`getComputedStyle(document.querySelectorAll(${q(M)})[1]).boxShadow`), 'none');
+      assert.match(await ev(`getComputedStyle(document.querySelectorAll(${q(M)})[2]).backgroundImage`), /conic-gradient/);
+      for (const n of [0, 1, 2]) { const r = await rectOf(M, n); assert.equal(r.w, 8); assert.equal(r.h, 8); }
+    });
+
     it('shows maxPerDay entries then +N more, and activating a day or +N more calls onDayOpen', async () => {
       await mount('mv()');
       assert.equal(await count(`${DAY(4)} .hy-month-view__entry`), 3);

@@ -2778,6 +2778,14 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 
 /* Tones are Progress's segment colours. */
 .hy-month-view__mark { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--hy-mark, var(--gray-700)); }
+/* Outline and dashed keep the 8px box and draw a 1.5px ring in the tone's colour, as StatusDot does at 10px; the dashed ring has 8 dashes and 8 gaps, a dash on each axis. */
+.hy-month-view__mark--outline, .hy-month-view__mark--dashed { background: transparent; box-shadow: inset 0 0 0 1.5px var(--hy-mark, var(--gray-700)); }
+.hy-month-view__mark--dashed {
+  box-shadow: none;
+  background: repeating-conic-gradient(from -11.25deg, var(--hy-mark, var(--gray-700)) 0deg 22.5deg, transparent 22.5deg 45deg);
+  -webkit-mask: radial-gradient(circle closest-side, transparent 2.4px, #000 2.6px);
+  mask: radial-gradient(circle closest-side, transparent 2.4px, #000 2.6px);
+}
 .hy-month-view__mark--none { display: none; }
 .hy-month-view__mark--success { --hy-mark: var(--green-700); }
 .hy-month-view__mark--info { --hy-mark: var(--blue-700); }

@@ -2,12 +2,12 @@
 
 A month of days that each list their entries, for browsing what happens when.
 
-**You provide:** `entries` (each `{ key, date, label, tone?, href?, onOpen? }`). Optional: `month` / `defaultMonth` / `onMonthChange` (any date in the month shown, today by default; the callback gets the first of the new month), `maxPerDay` (entries a day shows before “+N more”, default 3), `onDayOpen(date)`, `selectedDate` / `defaultSelectedDate` / `onSelectedDateChange` (the selected day in the narrow form), `firstDayOfWeek` (0 = Sunday, the default, to 6) and `locale` (month and weekday names; the user's by default, the same props as Calendar) and `label` (names the grid).
+**You provide:** `entries` (each `{ key, date, label, tone?, variant?, href?, onOpen? }`). Optional: `month` / `defaultMonth` / `onMonthChange` (any date in the month shown, today by default; the callback gets the first of the new month), `maxPerDay` (entries a day shows before “+N more”, default 3), `onDayOpen(date)`, `selectedDate` / `defaultSelectedDate` / `onSelectedDateChange` (the selected day in the narrow form), `firstDayOfWeek` (0 = Sunday, the default, to 6) and `locale` (month and weekday names; the user's by default, the same props as Calendar) and `label` (names the grid).
 
 - Use it to browse app entries by day: deployments, releases, maintenance windows. To pick a date, use Calendar.
 - The grid fills out whole weeks, so the leading and trailing days of the neighbouring months show quieter. Today has a ring and heavier digits.
 - The header has the month and year, then Previous Month, Next Month and Today buttons.
-- Entries show in the order given. An entry with `href` is a link, one with `onOpen` is a button (`onOpen` receives the click event, on a link too) and one with neither is text. A `tone` adds a small leading mark in the tone's colour; the label carries the meaning, so write it to stand alone.
+- Entries show in the order given. An entry with `href` is a link, one with `onOpen` is a button (`onOpen` receives the click event, on a link too) and one with neither is text. A `tone` adds a small leading mark in the tone's colour; the label carries the meaning, so write it to stand alone. `variant` (`filled` by default, `outline` for a ring or `dashed` for a dashed ring, in the same colour and size) tells two states of one tone apart, such as a waiting and an ignored `neutral`; it is visual only.
 - Activating a day or its “+N more” calls `onDayOpen(date)`, so the app can show the day's full list.
 - The days are a grid with one Tab stop. Arrows move by day, Page Up and Page Down by month (the same day number, or the last day of a shorter month), Home and End to the start and end of the week, and Enter opens the day. Tab from the focused day walks its entries and “+N more”; the next Tab leaves the grid. Each day is named like “Tuesday 4 November, 3 entries”.
 - Narrow: when the component itself is under 640px (the `sm` width) each day shows a number and up to three dots, one per entry. A day selects instead of opening, and that day's entries list below the grid with their links and buttons. Place it in a container, not the viewport, to decide: a wide viewport with a narrow column gets the narrow form.
@@ -56,6 +56,25 @@ const entries = ['Deploy web', 'Deploy api', 'Deploy docs', 'Cache purge', 'Data
 
 export default function Example() {
   return <MonthView entries={entries} maxPerDay={3} label="Busy Day" />;
+}
+```
+
+### Ring Marks
+A legend of two neutral states: filled for the ignored one, a ring for the one still waiting.
+
+```jsx
+import { MonthView } from '@hyprsh/design';
+
+const now = new Date();
+const on = (day) => new Date(now.getFullYear(), now.getMonth(), day, 10);
+const entries = [
+  { key: 'a', date: on(5), label: 'Not monitored', tone: 'neutral' },
+  { key: 'b', date: on(5), label: 'Not out yet', tone: 'neutral', variant: 'outline' },
+  { key: 'c', date: on(14), label: 'Release pending', tone: 'info', variant: 'dashed' },
+];
+
+export default function Example() {
+  return <MonthView entries={entries} label="Release Calendar" />;
 }
 ```
 
