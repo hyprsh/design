@@ -136,12 +136,17 @@ export async function openChrome() {
       }
       writeFileSync(path, Buffer.from((await send('Page.captureScreenshot', params)).data, 'base64'));
     },
+    // Waits for Chrome to exit (SIGKILL after 3s), then removes the profile. Never throws: a throw here skipped the
+    // caller's own teardown, and a test server left listening kept Node alive until the deadline. Chrome's helpers can
+    // still be writing to the profile just after it exits, so a profile that won't go yet is left to the exit handler.
     async close() {
-      unregister();
       ws.close();
-      chrome.kill();
-      await sleep(300);
-      rmSync(profile, { recursive: true, force: true });
+      if (chrome.exitCode === null && chrome.signalCode === null) {
+        const exited = new Promise((ok) => chrome.once('exit', ok));
+        chrome.kill();
+        if (!(await Promise.race([exited.then(() => true), sleep(3000).then(() => false)]))) { chrome.kill('SIGKILL'); await exited; }
+      }
+      try { rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 }); unregister(); } catch {}
     },
   };
   return api;
