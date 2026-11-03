@@ -22,9 +22,9 @@ function Selection(props) {
 }
 function Demo() {
   return h(F, null,
-    h('p', { className: 'label-13' }, 'Selection: the count chip clears, Select all ticks every row'),
+    h('p', { className: 'label-13' }, 'Selection: the count chip clears, Select All ticks every row'),
     h(Selection, {}),
-    h('p', { className: 'label-13' }, 'Narrow (under 480px): Select all and the secondary actions fold into More'),
+    h('p', { className: 'label-13' }, 'Narrow (under 480px): Select All and the secondary actions fold into More'),
     h(Selection, { width: 360 }),
     h('p', { className: 'label-13' }, 'Unsaved changes with a warning dot'),
     h('div', { style: Object.assign({}, frame, { height: 'auto', minHeight: 64 }) },

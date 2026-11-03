@@ -126,30 +126,30 @@ describe('ActionBar markup', () => {
   describe('selection', () => {
     const calls = [];
     const selection = { count: 3, total: 8, onSelectAll: () => calls.push('all'), onClear: () => calls.push('clear') };
-    it('renders the count chip with its clear button, Select all, a separator, then the actions', () => {
+    it('renders the count chip with its clear button, Select All, a separator, then the actions', () => {
       const tree = render({ selection, label: 'ignored', actions: 'ACTIONS' });
       const chip = byClass(tree, 'hy-action-bar__count')[0];
       assert.equal(text(byClass(chip, 'hy-action-bar__count-text')[0]), '3 selected');
       assert.equal(byClass(tree, 'hy-action-bar__label').length, 0, 'the chip replaces the label');
-      const clear = byLabel(chip, 'Clear selection');
+      const clear = byLabel(chip, 'Clear Selection');
       assert.ok(clear, 'the × is inside the chip');
       assert.equal(clear.props.size, 'tiny');
-      assert.deepEqual(rowParts(tree), ['count', 'Select all 8', 'sep', 'actions']);
+      assert.deepEqual(rowParts(tree), ['count', 'Select All 8', 'sep', 'actions']);
       assert.ok(!names(tree).includes('Clear'), 'no separate Clear button');
-      buttons(tree).find((b) => text(b) === 'Select all 8').props.onClick();
+      buttons(tree).find((b) => text(b) === 'Select All 8').props.onClick();
       clear.props.onClick();
       assert.deepEqual(calls, ['all', 'clear']);
     });
-    it('draws Select all as a quiet button', () => {
-      const all = buttons(render({ selection })).find((b) => text(b) === 'Select all 8');
+    it('draws Select All as a quiet button', () => {
+      const all = buttons(render({ selection })).find((b) => text(b) === 'Select All 8');
       assert.ok(classes(all).includes('hy-action-bar__quiet'));
       assert.equal(all.props.variant, 'tertiary');
     });
-    it('hides Select all when every row is selected', () => {
-      assert.deepEqual(names(render({ selection: { ...selection, count: 8 } })), ['Clear selection']);
+    it('hides Select All when every row is selected', () => {
+      assert.deepEqual(names(render({ selection: { ...selection, count: 8 } })), ['Clear Selection']);
     });
-    it('hides Select all without onSelectAll', () => {
-      assert.deepEqual(names(render({ selection: { count: 1, total: 8, onClear() {} } })), ['Clear selection']);
+    it('hides Select All without onSelectAll', () => {
+      assert.deepEqual(names(render({ selection: { count: 1, total: 8, onClear() {} } })), ['Clear Selection']);
     });
   });
 
@@ -170,23 +170,23 @@ describe('ActionBar markup', () => {
 
   describe('narrow', () => {
     const selection = { count: 3, total: 8, onSelectAll() {}, onClear() {} };
-    it('marks the bar narrow and folds Select all and the secondary actions into a More menu', () => {
+    it('marks the bar narrow and folds Select All and the secondary actions into a More menu', () => {
       const calls = [];
       const tree = renderNarrow({ selection: { ...selection, onSelectAll: () => calls.push('all') }, actions: 'ACTIONS',
         secondaryActions: [{ label: 'Unmonitor', onSelect: () => calls.push('u') }, { label: 'Export', onSelect() {}, disabled: true }] });
       assert.ok(classes(barOf(tree)).includes('hy-action-bar--narrow'));
       assert.deepEqual(rowParts(tree), ['count', 'sep', 'more', 'actions']);
       const trigger = walk(tree).find((n) => n.type === 'MenuButton');
-      assert.equal(trigger.props['aria-label'], 'More actions');
+      assert.equal(trigger.props['aria-label'], 'More Actions');
       const items = walk(tree).filter((n) => n.type === 'MenuItem');
-      assert.deepEqual(items.map(text), ['Select all 8', 'Unmonitor', 'Export']);
+      assert.deepEqual(items.map(text), ['Select All 8', 'Unmonitor', 'Export']);
       assert.equal(items[2].props.disabled, true);
       items[0].props.onSelect(); items[1].props.onSelect();
       assert.deepEqual(calls, ['all', 'u']);
-      assert.ok(!buttons(tree).some((b) => text(b) === 'Select all 8'), 'no Select all button beside the menu');
+      assert.ok(!buttons(tree).some((b) => text(b) === 'Select All 8'), 'no Select All button beside the menu');
     });
     it('keeps the count chip with its clear button visible', () => {
-      assert.ok(byLabel(byClass(renderNarrow({ selection }), 'hy-action-bar__count')[0], 'Clear selection'));
+      assert.ok(byLabel(byClass(renderNarrow({ selection }), 'hy-action-bar__count')[0], 'Clear Selection'));
     });
     it('has no More menu when there is nothing to fold', () => {
       assert.equal(menus(renderNarrow({ selection: { ...selection, count: 8 }, actions: 'A' })).length, 0);

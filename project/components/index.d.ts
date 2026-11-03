@@ -1410,11 +1410,11 @@ export declare function StatusDot(props: StatusDotProps): React.ReactElement;
 export interface ActionBarSelection {
   /** How many rows are ticked. The count chip reads “{count} selected”. */
   count: number;
-  /** How many rows there are. “Select all {total}” is hidden when `count === total`. */
+  /** How many rows there are. “Select All {total}” is hidden when `count === total`. */
   total: number;
-  /** Ticks every row. Without it there is no “Select all {total}”. */
+  /** Ticks every row. Without it there is no “Select All {total}”. */
   onSelectAll?: () => void;
-  /** Called by the × inside the count chip (accessible name “Clear selection”). */
+  /** Called by the × inside the count chip (accessible name “Clear Selection”). */
   onClear: () => void;
 }
 
@@ -1439,7 +1439,7 @@ export interface ActionBarSecondaryAction {
  * the end of the content, so it never covers the last row and the app adds no padding. It sits above a mounted TabBar
  * and the safe area.
  *
- * When the container is narrower than 480px the capsule spans its width: “Select all {total}” and `secondaryActions`
+ * When the container is narrower than 480px the capsule spans its width: “Select All {total}” and `secondaryActions`
  * move into a More (…) menu, and the count chip and `actions` stay visible. The label is never cut short: when it doesn't
  * fit on one line with the controls, it takes a line of its own and the controls wrap below it, right-aligned.
  *
@@ -1462,7 +1462,7 @@ export interface ActionBarProps {
   onClose?: () => void;
   /** The close button's accessible name. @default 'Close' */
   closeLabel?: string;
-  /** Selection mode: the count chip with its clear ×, “Select all {total}” (hidden when all are selected), then `actions`. */
+  /** Selection mode: the count chip with its clear ×, “Select All {total}” (hidden when all are selected), then `actions`. */
   selection?: ActionBarSelection;
   /**
    * A problem to show as text inside the capsule, above the row, wrapped at the row's width and never cut short; a
