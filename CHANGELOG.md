@@ -2,6 +2,20 @@
 
 What changed in each version, newest first; the same notes are on the [GitHub releases](https://github.com/hyprsh/design/releases). To use a version, install its tag: `npm install github:hyprsh/design#<tag>`.
 
+## v0.19.1
+
+2026-11-03
+
+### Fixes
+
+- **site:** link the bundle and styles by content hash
+- **chrome:** wait for chrome to exit before removing its profile
+- **bar-list:** open a table row by passing its clicks to the target, not an overlay (#101)
+
+### Docs
+
+- **changelog:** list the v0.19.0 additions by area
+
 ## v0.19.0
 
 2026-11-03
