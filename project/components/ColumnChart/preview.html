@@ -1,4 +1,4 @@
-<!-- @dsCard group="Data" height=1370 subtitle="Deployments by outcome with legend and tooltip, an openable chart, a single series, a controlled table view, empty" -->
+<!-- @dsCard group="Data" height=1720 subtitle="Deployments by outcome with legend and tooltip, an openable chart, 30 openable days picked then opened in a 360px card, a single series, a controlled table view, empty" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ColumnChart</title></head>
@@ -20,6 +20,14 @@ function Openable() {
       onOpen: function (d, k) { set(k ? d.label + ', ' + k : d.label); } }),
     h('div', { className: 'copy-14', 'aria-live': 'polite' }, 'Opened: ' + text));
 }
+var october = Array.from({ length: 30 }, function (_, i) { return { label: 'Oct ' + (i + 1), values: { ready: 12 + (i * 7) % 19, error: i % 4 === 0 ? 2 : 0 } }; });
+function Fitted() {
+  var s = React.useState('Nothing opened'), text = s[0], set = s[1];
+  return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 } },
+    h(H.ColumnChart, { series: [outcomes[0], outcomes[2]], data: october, 'aria-label': 'Deployments per day in October, by outcome, pick then open',
+      onOpen: function (d, k) { set(k ? d.label + ', ' + k : d.label); } }),
+    h('div', { className: 'copy-14', 'aria-live': 'polite' }, 'Opened: ' + text));
+}
 function Table() {
   var s = React.useState('table'), view = s[0], set = s[1];
   return h(H.ColumnChart, { series: outcomes, data: deployments.slice(0, 5), view: view, onViewChange: set, 'aria-label': 'Deployments per day, by outcome' });
@@ -28,6 +36,7 @@ function Demo() {
   return h(F, null,
     h(H.ColumnChart, { series: outcomes, data: deployments, 'aria-label': 'Deployments per day, by outcome' }),
     h(Openable),
+    h(Fitted),
     h(H.ColumnChart, { series: [{ key: 'requests', label: 'Requests' }], data: requests, height: 140, 'aria-label': 'Requests per day' }),
     h(Table),
     h(H.ColumnChart, { series: outcomes, data: [], 'aria-label': 'Deployments per day, by outcome', empty: 'No Deployments Yet' }));

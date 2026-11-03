@@ -2474,8 +2474,11 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-column-chart__swatch--neutral, .hy-column-chart__seg--neutral { --hy-seg: var(--gray-700); }
 .hy-column-chart__swatch--series, .hy-column-chart__seg--series { --hy-seg: var(--chart-series); }
 
-/* Plot: y labels | plot, then the x labels under the plot. */
-.hy-column-chart__body { display: grid; grid-template-rows: auto auto; column-gap: 8px; padding-top: 8px; }
+/* Plot: y labels | the scroll area holding the plot and the x labels under it. Only an openable chart with more columns
+   than fit at 4px each scrolls (.is-scroll); the y labels stay outside it, in view. */
+.hy-column-chart__body { display: grid; align-items: start; column-gap: 8px; padding-top: 8px; }
+.hy-column-chart__scroll { min-width: 0; }
+.hy-column-chart__body.is-scroll .hy-column-chart__scroll { overflow-x: auto; overscroll-behavior-x: contain; }
 .hy-column-chart__yaxis { position: relative; }
 .hy-column-chart__tick {
   position: absolute; right: 0; transform: translateY(50%); font-size: 12px; line-height: 16px; color: var(--gray-900);
@@ -2495,13 +2498,16 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-column-chart__seg { position: absolute; left: 0; right: 0; background: var(--hy-seg); }
 .hy-column-chart__seg.is-top { border-radius: 4px 4px 0 0; }
 
-.hy-column-chart__xaxis { grid-column: 2; display: flex; margin-top: 8px; }
+.hy-column-chart__xaxis { display: flex; margin-top: 8px; }
 .hy-column-chart__xslot { position: relative; flex: 1 1 0; min-width: 0; height: 16px; }
 .hy-column-chart__xlabel {
   position: absolute; top: 0; left: 50%; transform: translateX(-50%); white-space: nowrap;
   font-size: 12px; line-height: 16px; color: var(--gray-900); font-variant-numeric: tabular-nums;
 }
-.hy-column-chart__body > :nth-child(3) { grid-column: 2; }
+/* Centred, unless that reaches past an edge of the plot: the chart sets how far the label's centre is from each edge. */
+.hy-column-chart__xaxis .hy-column-chart__xlabel {
+  transform: translateX(max(calc(-1 * var(--hy-to-start, 50%)), min(-50%, calc(var(--hy-to-end, 50%) - 100%))));
+}
 
 /* Tooltip: the tooltip material (the .hy-tooltip__box classes), placed by the chart inside its own bounds. */
 .hy-column-chart__tip { position: absolute; z-index: var(--z-tooltip); min-width: 140px; padding: 8px 10px; text-align: left; }
@@ -2513,10 +2519,9 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-column-chart__tip-total { margin-top: 4px; padding-top: 4px; border-top: 1px solid color-mix(in srgb, var(--tip-fg) 30%, transparent); font-weight: 600; }
 .hy-column-chart__tip-total .hy-column-chart__tip-label { padding-left: 16px; }
 
-/* Opening: a column is a full-slot link or button over the picture (at least 24px wide), and each mark a link or button
-   over its segment. A mark under 8px takes no pointer (the column gets the click) but stays in the keyboard path. */
-.hy-column-chart__body--open { overflow-x: auto; }
-.hy-column-chart__slot--open { min-width: 24px; }
+/* Opening: a column is a full-slot link or button over the picture, and each mark a link or button over its segment,
+   while a slot is at least the target size (24px, or the touch target under touch sizing). A mark under 8px takes no
+   pointer (the column gets the click) but stays in the keyboard path. */
 .hy-column-chart__open { position: absolute; inset: 0; z-index: 1; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
 .hy-column-chart__open.is-static { cursor: default; }
 .hy-column-chart__open:focus { outline: none; }
@@ -2525,6 +2530,30 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 .hy-column-chart__mark { position: absolute; left: 0; right: 0; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; transition: background-color .15s; }
 .hy-column-chart__mark:hover { background: var(--gray-alpha-200); }
 .hy-column-chart__mark.is-thin { pointer-events: none; }
+/* Pick, then open: on narrower slots the plot is the one pointer target. Columns and marks stay in the keyboard path but
+   take no pointer, and each column leaves a 2px gap. A drag across the plot moves the pick, so it doesn't pan sideways
+   unless the plot scrolls. */
+.hy-column-chart__body.is-pick .hy-column-chart__plot {
+  cursor: pointer; touch-action: pan-y; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.hy-column-chart__body.is-pick.is-scroll .hy-column-chart__plot { touch-action: manipulation; }
+.hy-column-chart__body.is-pick .hy-column-chart__open, .hy-column-chart__body.is-pick .hy-column-chart__mark { pointer-events: none; }
+.hy-column-chart__body.is-pick .hy-column-chart__col, .hy-column-chart__body.is-pick .hy-column-chart__marks { max-width: calc(100% - 2px); }
+
+/* The pinned tooltip takes the pointer and holds the actions: a row per openable mark and Open, at the touch target. */
+.hy-column-chart__tip.is-pinned { pointer-events: auto; }
+.hy-column-chart__tip-action {
+  box-sizing: border-box; width: calc(100% + 12px); min-height: 24px; margin: 0 -6px; padding: 0 6px; border: 0; border-radius: var(--radius-md);
+  background: transparent; font: inherit; color: inherit; text-align: left; text-decoration: none; cursor: pointer; transition: background-color .15s;
+}
+.hy-column-chart__tip-action .hy-column-chart__tip-label { text-decoration: underline; text-underline-offset: 2px; text-decoration-color: color-mix(in srgb, var(--tip-fg) 50%, transparent); }
+.hy-column-chart__tip-action:hover, .hy-column-chart__tip-open:hover { background: color-mix(in srgb, var(--tip-fg) 14%, transparent); }
+.hy-column-chart__tip-open {
+  box-sizing: border-box; display: flex; align-items: center; justify-content: center; width: 100%; min-height: var(--touch-target); margin: 8px 0 0; padding: 0 12px;
+  border: 0; border-radius: var(--radius-md); background: color-mix(in srgb, var(--tip-fg) 8%, transparent);
+  font: inherit; font-weight: 500; color: inherit; text-decoration: none; cursor: pointer; transition: background-color .15s;
+}
+.hy-column-chart__tip-action:focus-visible, .hy-column-chart__tip-open:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 .hy-column-chart__tablelink { display: inline; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
 .hy-column-chart__tablelink:hover { text-decoration-thickness: 2px; }
 
@@ -2538,9 +2567,10 @@ a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hove
 
 @media (pointer: coarse), (max-width: 639px) {
   .hy-column-chart__toolbar { min-height: var(--touch-target); }
+  .hy-column-chart__tip-action { min-height: var(--touch-target); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hy-column-chart__slot, .hy-column-chart__mark { transition: none; }
+  .hy-column-chart__slot, .hy-column-chart__mark, .hy-column-chart__tip-action, .hy-column-chart__tip-open { transition: none; }
   .hy-column-chart__tip { animation: none; }
 }
 

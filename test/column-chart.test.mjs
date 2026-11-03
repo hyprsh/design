@@ -28,6 +28,7 @@ const C = {
   thinStep: context.ccThinStep, columnName: context.ccColumnName, tooltipRows: context.ccTooltipRows,
   totalText: context.ccTotalText, value: context.ccValue,
   target: context.ccTarget, openColumnName: context.ccOpenColumnName, openMarkName: context.ccOpenMarkName, markPointer: context.ccMarkPointer, stepTo: context.ccStepTo, openMarks: context.ccOpenMarks,
+  labelShown: context.ccLabelShown, targetSize: context.ccTargetSize, slotWidth: context.ccSlotWidth, fit: context.ccFit, pickIndex: context.ccPickIndex, xLabels: context.ccXLabels,
 };
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
@@ -225,5 +226,105 @@ describe('ColumnChart.openMarks', () => {
   });
   it('has none for a single series', () => {
     assert.deepEqual(plain(C.openMarks({ onOpen() {} }, series.slice(0, 1), d)), []);
+  });
+});
+
+describe('ColumnChart.labelShown', () => {
+  const shown = (n, step) => Array.from({ length: n }, (_, i) => i).filter((i) => C.labelShown(i, n, step));
+  it('counts back from the last column, so the last one is always labelled', () => {
+    assert.deepEqual(shown(10, 3), [0, 3, 6, 9]);
+    assert.deepEqual(shown(11, 3), [1, 4, 7, 10]);
+    assert.deepEqual(shown(30, 7), [1, 8, 15, 22, 29]);
+    for (const [n, step] of [[1, 1], [2, 5], [30, 4], [90, 13]]) assert.equal(C.labelShown(n - 1, n, step), true, `${n} columns, every ${step}th`);
+  });
+  it('shows every label with a step of 1, and treats a bad step as 1', () => {
+    assert.deepEqual(shown(4, 1), [0, 1, 2, 3]);
+    assert.deepEqual(shown(3, 0), [0, 1, 2]);
+  });
+});
+
+describe('ColumnChart.xLabels', () => {
+  const xl = (...a) => plain(C.xLabels(...a));
+  const every = (from, to, by) => Array.from({ length: Math.floor((to - from) / by) + 1 }, (_, k) => from + k * by);
+  it('labels every column that fits, and thins from the end so the last one is labelled', () => {
+    assert.deepEqual(xl(4, 200, 6), [0, 1, 2, 3]);
+    // "Oct 28" in 60px slots: all of them; "D30" in 12px slots: every 3rd, back from D30.
+    assert.deepEqual(xl(5, 60, 6), [0, 1, 2, 3, 4]);
+    assert.deepEqual(xl(30, 12, 3), every(2, 29, 3));
+    // In 10px slots D30 shifts left to stay inside the plot, so D27 would touch it and goes.
+    assert.deepEqual(xl(30, 10, 3), every(2, 23, 3).concat([29]));
+  });
+  it('drops a label that, kept inside the plot at an edge, would touch its neighbour, but never the last', () => {
+    // 4px slots, every 8th: D2 would have to shift right into D10, and D90 shifts left into D82.
+    assert.deepEqual(xl(90, 4, 3), every(9, 73, 8).concat([89]));
+  });
+  it('always labels a lone column, and falls back to plain thinning for odd input', () => {
+    assert.deepEqual(xl(1, 300, 6), [0]);
+    assert.deepEqual(xl(3, 0, 6), [0, 1, 2]);
+  });
+});
+
+describe('ColumnChart.targetSize', () => {
+  it('is 24px, or the touch target under touch sizing', () => {
+    assert.equal(C.targetSize(false, 44), 24);
+    assert.equal(C.targetSize(true, 44), 44);
+    assert.equal(C.targetSize(true, 48), 48);
+  });
+  it('falls back to 44px when the token cannot be read', () => {
+    assert.equal(C.targetSize(true, NaN), 44);
+    assert.equal(C.targetSize(true, 0), 44);
+  });
+});
+
+describe('ColumnChart.slotWidth', () => {
+  it('divides the room between the columns, and is 0 for nothing to measure', () => {
+    assert.equal(C.slotWidth(300, 30), 10);
+    assert.equal(C.slotWidth(0, 30), 0);
+    assert.equal(C.slotWidth(300, 0), 0);
+  });
+});
+
+describe('ColumnChart.fit', () => {
+  const fit = (...a) => plain(C.fit(...a));
+  const DIRECT = { pick: false, scroll: false, minWidth: 0 };
+  it('keeps direct targets while a slot is at least the target size', () => {
+    assert.deepEqual(fit(240, 10, true, 24), DIRECT);
+    assert.deepEqual(fit(440, 10, true, 44), DIRECT);
+  });
+  it('picks, then opens below the target size, fitting the width', () => {
+    // 30 columns in about 320px of plot: 10.7px a slot.
+    assert.deepEqual(fit(320, 30, true, 24), { pick: true, scroll: false, minWidth: 0 });
+    assert.deepEqual(fit(239, 10, true, 24), { pick: true, scroll: false, minWidth: 0 });
+  });
+  it('needs 44px slots for direct targets under touch sizing', () => {
+    assert.deepEqual(fit(320, 8, true, 24), DIRECT, '40px slots are direct at 24px');
+    assert.deepEqual(fit(320, 8, true, 44), { pick: true, scroll: false, minWidth: 0 }, 'and picked at 44px');
+  });
+  it('fits down to 4px a slot, then scrolls at 4px a slot', () => {
+    assert.deepEqual(fit(120, 30, true, 24), { pick: true, scroll: false, minWidth: 0 });
+    // 90 columns in about 280px: 3.1px a slot.
+    assert.deepEqual(fit(280, 90, true, 24), { pick: true, scroll: true, minWidth: 360 });
+  });
+  it('never picks or scrolls a chart that opens nothing', () => {
+    assert.deepEqual(fit(280, 90, false, 24), DIRECT);
+    assert.deepEqual(fit(320, 30, false, 44), DIRECT);
+  });
+  it('stays as it is until the width is measured', () => {
+    assert.deepEqual(fit(0, 30, true, 24), DIRECT);
+  });
+});
+
+describe('ColumnChart.pickIndex', () => {
+  it('picks the column under the pointer, clamped to the ends', () => {
+    assert.equal(C.pickIndex(0, 300, 30), 0);
+    assert.equal(C.pickIndex(9.9, 300, 30), 0);
+    assert.equal(C.pickIndex(10, 300, 30), 1);
+    assert.equal(C.pickIndex(295, 300, 30), 29);
+    assert.equal(C.pickIndex(-20, 300, 30), 0);
+    assert.equal(C.pickIndex(400, 300, 30), 29);
+  });
+  it('is 0 for nothing to measure', () => {
+    assert.equal(C.pickIndex(10, 0, 30), 0);
+    assert.equal(C.pickIndex(10, 300, 0), 0);
   });
 });

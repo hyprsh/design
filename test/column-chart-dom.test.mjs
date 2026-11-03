@@ -27,6 +27,15 @@ var DATA = [
   { label: 'Oct 28', values: { ready: 25, canceled: 1 } },
   { label: 'Oct 29', values: { ready: 33, canceled: 3, error: 1 } }];
 function chart(props) { return h(H.ColumnChart, Object.assign({ series: SERIES, data: DATA, 'aria-label': 'Deployments' }, props)); }
+// n days labelled D1 to Dn, with ready and (for two series) error values; a chart of them in a box w px wide, after a
+// button outside it.
+var TWO = [SERIES[0], SERIES[2]];
+function days(n) { return Array.from({ length: n }, function (_, i) { return { label: 'D' + (i + 1), values: { ready: 5 + i % 7, error: 1 + i % 3 } }; }); }
+function boxed(w, props) {
+  return h('div', null, h('button', { id: 'outside', type: 'button' }, 'Outside'),
+    h('div', { id: 'box', style: { width: w + 'px' } }, chart(Object.assign({ series: TWO }, props))));
+}
+function onOpenLog(d, k) { log.push(k ? d.label + '/' + k : d.label); }
 </script></body></html>`;
 
 let server, chrome, port;
@@ -87,6 +96,41 @@ const SLOT = '.hy-column-chart__slot';
 const focusedIndex = () => ev(`document.activeElement.getAttribute('data-index')`);
 const tipText = () => ev(`(document.querySelector('.hy-column-chart__tip') || {}).textContent`);
 async function mount(js) { await ev('show(null)'); await sleep(30); await ev(`show(${js})`); await until(`document.querySelector('.hy-column-chart')`, 'the chart'); }
+
+// Pick, then open (#99): pick column i of n on the plot with a mouse click or a tap.
+async function plotPoint(i, n) {
+  const p = await rectOf('.hy-column-chart__plot');
+  return { x: p.x + (i + 0.5) * p.w / n, y: p.y + p.h / 2 };
+}
+async function tap(x, y) {
+  await chrome.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+  await chrome.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+}
+async function pressAt(x, y) {
+  await chrome.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
+  await chrome.send('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+  await chrome.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+}
+async function pickCol(i, n, touch) {
+  const { x, y } = await plotPoint(i, n);
+  if (touch) await tap(x, y); else await pressAt(x, y);
+}
+const PINNED = '.hy-column-chart__tip.is-pinned';
+const pinnedTitle = () => ev(`(document.querySelector(${q(PINNED + ' .hy-column-chart__tip-title')}) || {}).textContent`);
+const untilPinned = (label) => until(`(document.querySelector(${q(PINNED + ' .hy-column-chart__tip-title')}) || {}).textContent === ${q(label)}`, 'the pinned tooltip of ' + label);
+const noHScroll = () => ev(`(function () { var s = document.querySelector('.hy-column-chart__scroll'), b = document.getElementById('box') || document.querySelector('.hy-column-chart'); return s.scrollWidth <= s.clientWidth + 0.5 && b.scrollWidth <= b.clientWidth + 0.5; })()`);
+// Every x label's box against the plot's, and whether the last column has one.
+const xLabels = () => ev(`(function () {
+  var p = document.querySelector('.hy-column-chart__plot').getBoundingClientRect();
+  return { left: p.left, right: p.right, last: !!document.querySelector('.hy-column-chart__xslot:last-child .hy-column-chart__xlabel'),
+    labels: Array.from(document.querySelectorAll('.hy-column-chart__xlabel')).map(function (e) { var r = e.getBoundingClientRect(); return [r.left, r.right, e.textContent]; }) };
+})()`);
+async function assertLabels(what) {
+  const x = await xLabels();
+  assert.ok(x.last, `${what}: the last column has a label`);
+  for (const [l, r, t] of x.labels) assert.ok(l >= x.left - 0.5 && r <= x.right + 0.5, `${what}: label ${t} [${l}, ${r}] is outside the plot [${x.left}, ${x.right}]`);
+  for (let i = 1; i < x.labels.length; i++) assert.ok(x.labels[i][0] >= x.labels[i - 1][1], `${what}: label ${x.labels[i][2]} overlaps`);
+}
 
 describe('ColumnChart', { concurrency: false }, () => {
   describe('on desktop', { skip: skipNoChrome }, () => {
@@ -457,9 +501,11 @@ describe('ColumnChart', { concurrency: false }, () => {
         await press('ArrowUp');
         assert.equal(await ev('getComputedStyle(document.activeElement).outlineWidth'), '2px');
         assert.ok((await rectOf(COL(0))).w >= 24);
+        // Narrower than 24px a slot, the columns stop being direct targets: the chart picks, then opens (#99).
         const many = `Array.from({ length: 60 }, function (_, i) { return { label: 'D' + i, values: { ready: i + 1, canceled: 1 } }; })`;
         await mount(`chart({ data: ${many}, onOpen: function () {} })`);
-        assert.ok((await rectOf(COL(0))).w >= 24, 'still 24px with many columns');
+        assert.ok((await rectOf(COL(0))).w < 24, 'many columns fit the width');
+        assert.equal(await count('.hy-column-chart__body.is-pick'), 1, 'and the plot is the target');
       });
 
       it('opens the same targets from the table view, with the same names, and only in table view', async () => {
@@ -482,6 +528,191 @@ describe('ColumnChart', { concurrency: false }, () => {
         assert.equal(await count('.hy-column-chart__table tbody td a'), 8);
       });
     });
+    describe('pick, then open', () => {
+      const OPEN30 = `boxed(360, { data: days(30), onOpen: onOpenLog })`;
+      const COL = (i) => `.hy-column-chart__open[data-index="${i}"]`;
+
+      it('fits 30 openable columns in 360px with no horizontal scroll, and makes the plot the target', async () => {
+        await mount(OPEN30);
+        assert.equal(await count('.hy-column-chart__body.is-pick'), 1);
+        assert.equal(await count('.hy-column-chart__body.is-scroll'), 0);
+        assert.ok(await noHScroll(), 'no horizontal scroll');
+        assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-column-chart__open')).pointerEvents`), 'none');
+        assert.equal(await ev(`getComputedStyle(document.querySelector('.hy-column-chart__mark')).pointerEvents`), 'none');
+        assert.equal(await count('.hy-column-chart__open[tabindex="0"]'), 1, 'still one Tab stop');
+        assert.match(await ev(`document.querySelector('.hy-column-chart__open').getAttribute('aria-label')`), /^Open D1: \d+ ready, \d+ error$/, 'each column still names its values');
+      });
+
+      it('pins the tooltip of the picked column, moves it to another, and opens it from Open, at least the touch target', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN30);
+        await pickCol(4, 30);
+        await untilPinned('D5');
+        assert.equal(await count(`${SLOT}.is-active`), 1);
+        await pickCol(20, 30);
+        await untilPinned('D21');
+        const open = await rectOf('.hy-column-chart__tip-open');
+        const target = await ev(`parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--touch-target'))`);
+        assert.ok(target >= 44, 'the token reads');
+        assert.ok(open.h >= target && open.w >= target, `Open is ${open.w}x${open.h}`);
+        assert.equal(await ev(`document.querySelector('.hy-column-chart__tip-open').tagName`), 'BUTTON');
+        await click('.hy-column-chart__tip-open');
+        await until('log.length === 1', 'Open to open the column');
+        assert.deepEqual(await ev('log'), ['D21']);
+        assert.equal(await count(PINNED), 0, 'opening closes the pinned tooltip');
+      });
+
+      it('opens each series\' mark from its tooltip row with its seriesKey', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN30);
+        await pickCol(28, 30);
+        await untilPinned('D29');
+        assert.deepEqual(await ev(`Array.from(document.querySelectorAll('.hy-column-chart__tip-action')).map(function (e) { return e.tagName + ' ' + e.getAttribute('data-mark') + ' ' + e.getAttribute('aria-label'); })`),
+          ['BUTTON error Open D29 error: 2', 'BUTTON ready Open D29 ready: 5']);
+        await click('.hy-column-chart__tip-action[data-mark="error"]');
+        await until('log.length === 1', 'the error row to open');
+        await pickCol(28, 30);
+        await untilPinned('D29');
+        await click('.hy-column-chart__tip-action[data-mark="ready"]');
+        await until('log.length === 2', 'the ready row to open');
+        assert.deepEqual(await ev('log'), ['D29/error', 'D29/ready']);
+      });
+
+      it('makes the rows and Open links with href only, and a link still calls onOpen with the event', async () => {
+        await mount(`boxed(360, { data: days(30), href: function (d, k) { return '/d/' + d.label + (k ? '/' + k : ''); } })`);
+        await pickCol(9, 30);
+        await untilPinned('D10');
+        assert.equal(await ev(`document.querySelector('.hy-column-chart__tip-open').getAttribute('href')`), '/d/D10');
+        assert.deepEqual(await ev(`Array.from(document.querySelectorAll('.hy-column-chart__tip-action')).map(function (e) { return e.tagName + ' ' + e.getAttribute('href'); })`), ['A /d/D10/error', 'A /d/D10/ready']);
+        await ev('log.length = 0');
+        await mount(`boxed(360, { data: days(30), href: function (d) { return '#' + d.label; }, onOpen: function (d, k, e) { e.preventDefault(); log.push(d.label + '|' + k + '|' + typeof e.preventDefault); } })`);
+        await pickCol(2, 30);
+        await untilPinned('D3');
+        assert.equal(await count('a.hy-column-chart__tip-open'), 1);
+        await click('.hy-column-chart__tip-open');
+        await until('log.length === 1', 'the link to call onOpen');
+        assert.deepEqual(await ev('log'), ['D3|undefined|function']);
+        assert.equal(await ev('location.hash'), '', 'preventDefault stopped the navigation');
+      });
+
+      it('keeps the keyboard: one Tab stop, the arrows, Home and End with the tooltip following, and Enter opens', async () => {
+        await ev('log.length = 0');
+        await mount(OPEN30);
+        await chrome.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 2, y: 2 }); // hover would outrank focus
+        await ev(`document.querySelector('.hy-column-chart__open[tabindex="0"]').focus()`);
+        await press('End');
+        assert.equal(await focusedIndex(), '29');
+        await until(`(document.querySelector('.hy-column-chart__tip-title') || {}).textContent === 'D30'`, 'the tooltip to follow');
+        await press('Home'); await press('ArrowRight');
+        assert.equal(await focusedIndex(), '1');
+        assert.equal(await count('.hy-column-chart__open[tabindex="0"]'), 1);
+        await press('Enter');
+        await until('log.length === 1', 'Enter to open');
+        await press('ArrowUp');
+        assert.equal(await ev(`document.activeElement.getAttribute('data-mark')`), 'ready', 'Up still reaches the marks');
+        assert.deepEqual(await ev('log'), ['D2']);
+      });
+
+      it('moves a pinned tooltip with keyboard focus', async () => {
+        await mount(OPEN30);
+        await pickCol(10, 30);
+        await untilPinned('D11');
+        assert.equal(await focusedIndex(), '10', 'focus is on the picked column');
+        await press('ArrowRight');
+        await untilPinned('D12');
+      });
+
+      it('closes the pinned tooltip on Escape, a press outside and focus leaving the chart', async () => {
+        await mount(OPEN30);
+        await pickCol(5, 30);
+        await untilPinned('D6');
+        await press('Escape');
+        await until(`!document.querySelector(${q(PINNED)})`, 'Escape to close it');
+        await pickCol(5, 30);
+        await untilPinned('D6');
+        await pressAt(600, 650);
+        await until(`!document.querySelector(${q(PINNED)})`, 'a press outside to close it');
+        await pickCol(5, 30);
+        await untilPinned('D6');
+        await ev(`document.getElementById('outside').focus()`);
+        await until(`!document.querySelector(${q(PINNED)})`, 'focus leaving to close it');
+      });
+
+      it('keeps direct column and mark targets when slots are at least 24px: 8 columns in 360px', async () => {
+        await ev('log.length = 0');
+        await mount(`boxed(360, { data: days(8), onOpen: onOpenLog })`);
+        assert.equal(await count('.hy-column-chart__body.is-pick'), 0);
+        assert.ok((await rectOf(COL(0))).w >= 24);
+        const c = await rectOf(COL(3));
+        await pressAt(c.x + c.w / 2, c.y + 4);
+        await until('log.length === 1', 'the column to open directly');
+        const m = await rectOf('.hy-column-chart__mark[data-col="3"][data-mark="ready"]');
+        await pressAt(m.x + m.w / 2, m.y + m.h / 2);
+        await until('log.length === 2', 'the mark to open directly');
+        assert.deepEqual(await ev('log'), ['D4', 'D4/ready']);
+        assert.equal(await count(PINNED), 0);
+      });
+
+      it('scrolls 90 openable columns in 320px, opens at the last column and keeps the y axis in view', async () => {
+        await mount(`boxed(320, { data: days(90), onOpen: onOpenLog })`);
+        await until(`document.querySelector('.hy-column-chart__body.is-scroll')`, 'the scrolling plot');
+        const at = () => ev(`(function () { var s = document.querySelector('.hy-column-chart__scroll'); return { left: s.scrollLeft, max: s.scrollWidth - s.clientWidth }; })()`);
+        let s = await at();
+        assert.ok(s.max > 0, 'it scrolls');
+        assert.ok(Math.abs(s.left - s.max) <= 1, `opens at the end (${s.left} of ${s.max})`);
+        assert.equal(await ev(`document.querySelector('.hy-column-chart__scroll').contains(document.querySelector('.hy-column-chart__yaxis'))`), false);
+        const y = await rectOf('.hy-column-chart__yaxis'), box = await rectOf('#box'), sc = await rectOf('.hy-column-chart__scroll');
+        assert.ok(y.x >= box.x - 0.5 && y.r <= sc.x + 0.5, 'the y axis sits beside the scroll area');
+        assert.ok((await rectOf(`${SLOT}:last-child`)).r <= sc.r + 1, 'the last column is in view');
+        assert.ok(await ev(`document.getElementById('box').scrollWidth <= document.getElementById('box').clientWidth`), 'only the plot scrolls');
+        // At the end, new data keeps it at the end.
+        await ev(`show(boxed(320, { data: days(95), onOpen: onOpenLog }))`);
+        await sleep(100);
+        s = await at();
+        assert.ok(Math.abs(s.left - s.max) <= 1, `stays at the end (${s.left} of ${s.max})`);
+        // Scrolled away, new data keeps the position.
+        await ev(`document.querySelector('.hy-column-chart__scroll').scrollLeft = 10`);
+        await sleep(100);
+        await ev(`show(boxed(320, { data: days(100), onOpen: onOpenLog }))`);
+        await sleep(100);
+        assert.equal((await at()).left, 10);
+        assert.equal((await rectOf('.hy-column-chart__yaxis')).x, y.x, 'the y axis did not move');
+      });
+
+      it('picks in a scrolling plot too', async () => {
+        await mount(`boxed(320, { data: days(90), onOpen: onOpenLog })`);
+        await until(`document.querySelector('.hy-column-chart__body.is-scroll')`, 'the scrolling plot');
+        const sc = await rectOf('.hy-column-chart__scroll');
+        await pressAt(sc.r - 2, sc.y + 100);
+        await untilPinned('D90');
+      });
+
+      it('leaves a chart that opens nothing unchanged: no pick mode and no minimum width, even with 90 columns', async () => {
+        await mount(`boxed(320, { data: days(90) })`);
+        assert.equal(await count('.hy-column-chart__body.is-pick, .hy-column-chart__body.is-scroll'), 0);
+        assert.ok(await noHScroll(), 'no horizontal scroll');
+        await pickCol(5, 90);
+        await sleep(100);
+        assert.equal(await count(PINNED), 0, 'nothing pins');
+      });
+
+      it('labels the last column and keeps every x label inside the plot', async () => {
+        const many = `Array.from({ length: 30 }, function (_, i) { return { label: 'Oct ' + (i + 1), values: { ready: i + 1 } }; })`;
+        for (const [what, js] of [
+          ['4 columns', 'chart()'],
+          ['30 plain columns', `chart({ data: ${many} })`],
+          ['31 plain columns in 360px', `boxed(360, { data: days(31) })`],
+          ['8 openable columns in 360px', `boxed(360, { data: days(8), onOpen: onOpenLog })`],
+          ['30 openable columns in 360px', OPEN30],
+          ['90 openable columns in 320px', `boxed(320, { data: days(90), onOpen: onOpenLog })`],
+          ['one column', `chart({ data: DATA.slice(0, 1) })`],
+        ]) {
+          await mount(js);
+          await sleep(50);
+          await assertLabels(what);
+        }
+      });
+    });
   });
 
   describe('under touch sizing', { skip: skipNoChrome }, () => {
@@ -496,6 +727,57 @@ describe('ColumnChart', { concurrency: false }, () => {
       const tip = await rectOf('.hy-column-chart__tip'), root = await rectOf('.hy-column-chart');
       assert.ok(tip.x >= root.x - 0.5 && tip.r <= root.r + 0.5, 'inside the chart horizontally');
       assert.match(await tipText(), /^Oct 29/);
+    });
+  });
+  describe('pick, then open under touch sizing', { skip: skipNoChrome }, () => {
+    before(() => fresh(420, true));
+    const OPEN30 = `boxed(360, { data: days(30), onOpen: onOpenLog })`;
+
+    it('fits 30 columns in 360px and picks one with a tap, with Open and the rows at least the touch target', async () => {
+      await ev('log.length = 0');
+      await mount(OPEN30);
+      assert.equal(await count('.hy-column-chart__body.is-pick'), 1);
+      assert.ok(await noHScroll(), 'no horizontal scroll');
+      await pickCol(12, 30, true);
+      await untilPinned('D13');
+      await sleep(150);
+      assert.deepEqual(await ev('log'), [], 'the tap only picks, even with the tooltip under the finger');
+      assert.equal(await count(PINNED), 1);
+      const open = await rectOf('.hy-column-chart__tip-open');
+      assert.ok(open.h >= 44 && open.w >= 44, `Open is ${open.w}x${open.h}`);
+      for (let i = 0; i < 2; i++) assert.ok((await rectOf('.hy-column-chart__tip-action', i)).h >= 44, 'each row is at least the touch target');
+      await tap(open.x + open.w / 2, open.y + open.h / 2);
+      await until('log.length === 1', 'Open to open the column');
+      assert.deepEqual(await ev('log'), ['D13']);
+    });
+
+    it('moves the pick with a press and drag across the plot', async () => {
+      await mount(OPEN30);
+      const a = await plotPoint(2, 30), b = await plotPoint(20, 30);
+      await chrome.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: a.x, y: a.y }] });
+      for (let k = 1; k <= 6; k++) {
+        await chrome.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: a.x + (b.x - a.x) * k / 6, y: a.y }] });
+        await sleep(16);
+      }
+      await chrome.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await untilPinned('D21');
+      assert.ok(await noHScroll(), 'the drag did not scroll');
+    });
+
+    it('closes the pinned tooltip on a tap outside the chart', async () => {
+      await mount(OPEN30);
+      await pickCol(3, 30, true);
+      await untilPinned('D4');
+      await tap(410, 690);
+      await until(`!document.querySelector(${q(PINNED)})`, 'a tap outside to close it');
+    });
+
+    it('needs 44px slots for direct targets: 6 columns in 360px open directly, 8 pick', async () => {
+      await mount(`boxed(360, { data: days(6), onOpen: onOpenLog })`);
+      assert.equal(await count('.hy-column-chart__body.is-pick'), 0);
+      assert.ok((await rectOf('.hy-column-chart__open')).w >= 44);
+      await mount(`boxed(360, { data: days(8), onOpen: onOpenLog })`);
+      assert.equal(await count('.hy-column-chart__body.is-pick'), 1, '40px slots are below the touch target');
     });
   });
 });

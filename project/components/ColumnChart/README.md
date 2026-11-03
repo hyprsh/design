@@ -10,9 +10,11 @@ A stacked column chart with a legend, tooltips, a keyboard path and a table view
 - Two or more series get a legend above the plot; one series has none.
 - Hovering or focusing a column tints its slot and opens a tooltip with each series from the top of the stack down and a Total.
 - The plot is one Tab stop. ←/→ move between columns, Home and End jump to the ends, and each column is named like “Oct 28: 25 Ready, 1 Canceled, 0 Error”. Under touch sizing a tap opens the tooltip.
-- X labels thin out to every nth label on a narrow chart. For dense data, “View as Table” swaps the plot for a table with a row per column, a column per series and a Total. A visually hidden copy of the table is always there for screen readers in chart view.
+- X labels thin out to every nth label on a narrow chart, counted back from the last column, so the latest one is always labelled. Labels at the edges shift inward and are never clipped. For dense data, “View as Table” swaps the plot for a table with a row per column, a column per series and a Total. A visually hidden copy of the table is always there for screen readers in chart view.
 - Set `onOpen` or `href` to make columns openable. A column or mark with a URL from `href` is a link, and any other is a button when `onOpen` is set. A link calls `onOpen` too, with the click event last, so an app can `preventDefault` and route in-app. A series with a value of 0 has no mark. With a single series only the column opens.
 - An openable column is named “Open Oct 28: 25 Ready, 1 Canceled, 0 Error” and a mark “Open Oct 28 Canceled: 1”. The plot stays one Tab stop: ←/→ move between columns, ↑ moves into the column's marks from the bottom up, ↓ moves back, and Enter (or Space on a button) opens the focused target. A click opens the mark under the pointer, or else the column. A mark drawn under 8px isn't a pointer target, but the keyboard and “View as Table” still reach it. In the table, row labels and non-zero figures open the same targets.
+- Columns are direct targets only while each column's slot is at least the target size: 24px, or the 44px touch target under touch sizing. With narrower slots an openable chart fits its width and switches to **pick, then open**: the whole plot is the target, and a tap, or a press and drag, picks the nearest column and pins its tooltip. The pinned tooltip has an Open control at least the touch target in size, and with two or more series each series row opens that series' mark. Tapping another column moves the pick; Escape, a tap outside or focus leaving the chart closes it. The keyboard works the same in both modes.
+- An openable chart fits down to 4px a column, then scrolls. A scrolling chart opens at the last column, stays there when `data` changes unless the reader scrolled away, and keeps its y axis in view. A chart that opens nothing never scrolls. To show fewer, wider columns, aggregate the data (by week, say) before passing it.
 - Do put a name on every chart. Don't use more than the five tones as series colours, or reach for it for grouped columns, lines or areas.
 
 ## Examples
@@ -117,6 +119,38 @@ export default function Example() {
       aria-label="Deployments per day, by outcome"
       href={(datum, seriesKey) => `/deployments?day=${datum.label}${seriesKey ? `&state=${seriesKey}` : ''}`}
     />
+  );
+}
+```
+
+### Pick, Then Open
+Thirty openable days in a phone-width card. Tap or drag across the plot to pick a day, then open it, or one outcome, from the pinned tooltip.
+
+```jsx
+import { useState } from 'react';
+import { ColumnChart } from '@hyprsh/design';
+
+const series = [
+  { key: 'ready', label: 'Ready', tone: 'success' },
+  { key: 'error', label: 'Error', tone: 'error' },
+];
+const data = Array.from({ length: 30 }, (_, i) => ({
+  label: `Oct ${i + 1}`,
+  values: { ready: 12 + ((i * 7) % 19), error: i % 4 === 0 ? 2 : 0 },
+}));
+
+export default function Example() {
+  const [opened, setOpened] = useState('Nothing opened');
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxWidth: 360 }}>
+      <ColumnChart
+        series={series}
+        data={data}
+        aria-label="Deployments per day in October, by outcome"
+        onOpen={(datum, seriesKey) => setOpened(seriesKey ? `${datum.label}, ${seriesKey}` : datum.label)}
+      />
+      <span className="copy-14">{opened}</span>
+    </div>
   );
 }
 ```

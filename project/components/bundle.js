@@ -6400,7 +6400,7 @@
   (function () {
     /* ColumnChart: stacked columns on one y scale, with a legend, hover and focus tooltips, one Tab stop with roving keys,
        and a table view. Drawn from plain elements and tokens (ADR 0004). The pure parts (ticks, segment geometry, label
-       thinning, names) are module-private functions: tests read them from the vm context. */
+       thinning, fitting, names) are module-private functions: tests read them from the vm context. */
     var CC_TONES = ['success', 'info', 'warning', 'error', 'neutral'];
     var CC_GAP = 2, CC_MIN = 2, CC_MAX_TICKS = 5;
 
@@ -6456,6 +6456,42 @@
     function ccThinStep(slotWidth, chars) {
       if (!(slotWidth > 0) || !(chars > 0)) return 1;
       return Math.max(1, Math.ceil((chars * 7 + 8) / slotWidth));
+    }
+    /* Thinning counts back from the last column, so the latest one is always labelled. */
+    function ccLabelShown(i, n, step) { return (n - 1 - i) % Math.max(1, step) === 0; }
+    /* The columns that get an x label. Every label is kept inside the plot, shifted inward at an edge, so one near the start
+       can come to touch its neighbour: walking back from the last label (always kept), a label that would is dropped. */
+    function ccXLabels(n, slotWidth, chars) {
+      var step = ccThinStep(slotWidth, chars), out = [];
+      for (var i = n - 1; i >= 0; i--) if (ccLabelShown(i, n, step)) out.unshift(i);
+      if (!(slotWidth > 0) || !(chars > 0) || out.length < 2) return out;
+      var w = chars * 7, total = n * slotWidth;
+      function lo(j) { return Math.max(0, Math.min((j + 0.5) * slotWidth - w / 2, total - w)); }
+      var kept = [out[out.length - 1]], edge = lo(out[out.length - 1]);
+      for (var k = out.length - 2; k >= 0; k--) {
+        if (lo(out[k]) + w + 8 <= edge) { kept.unshift(out[k]); edge = lo(out[k]); }
+      }
+      return kept;
+    }
+
+    /* Fitting. A column is a direct target only when its slot is at least the target size: 24px, or the touch target under
+       touch sizing. An openable chart with narrower slots fits its width and switches to pick, then open: the plot is the
+       target and the pinned tooltip opens. It fits down to 4px a slot (a 2px mark and a 2px gap) and scrolls below that.
+       A chart that opens nothing never scrolls. Until the width is measured the chart stays as it is. */
+    var CC_TARGET = 24, CC_PICK_MIN = 4, CC_TOUCH_QUERY = '(pointer: coarse), (max-width: 639px)';
+    function ccTargetSize(touch, touchTarget) { return touch ? (touchTarget > 0 ? touchTarget : 44) : CC_TARGET; }
+    function ccSlotWidth(width, n) { return n > 0 && width > 0 ? width / n : 0; }
+    /* { pick, scroll, minWidth } for `n` columns in `width` px. */
+    function ccFit(width, n, openable, target) {
+      var slot = ccSlotWidth(width, n);
+      if (!openable || !slot || slot >= target) return { pick: false, scroll: false, minWidth: 0 };
+      var scroll = slot < CC_PICK_MIN;
+      return { pick: true, scroll: scroll, minWidth: scroll ? n * CC_PICK_MIN : 0 };
+    }
+    /* The column under a pointer `x` px from the plot's left edge, clamped to the ends. */
+    function ccPickIndex(x, width, n) {
+      if (!(n > 0) || !(width > 0)) return 0;
+      return Math.max(0, Math.min(n - 1, Math.floor(x / width * n)));
     }
 
     /* "Oct 28: 25 ready, 1 canceled, 0 error" */
@@ -6520,31 +6556,57 @@
       var rovingState = useState(0), rovingIndex = rovingState[0], setRovingIndex = rovingState[1];
       var widthState = useState(0), plotWidth = widthState[0], setPlotWidth = widthState[1];
       var tipState = useState(null), tipPos = tipState[0], setTipPos = tipState[1];
-      var rootRef = useRef(null), plotRef = useRef(null), tipRef = useRef(null);
+      /* The room the plot has (the scroll area's width) and the target size, measured together. */
+      var roomState = useState({ width: 0, target: CC_TARGET }), room = roomState[0], setRoom = roomState[1];
+      var pickState = useState(null), picked = pickState[0], setPicked = pickState[1];
+      var scrollState = useState(0), scrollTick = scrollState[0], setScrollTick = scrollState[1];
+      var rootRef = useRef(null), plotRef = useRef(null), tipRef = useRef(null), scrollRef = useRef(null);
+      var atEnd = useRef(true), drag = useRef(null), pickedRef = useRef(null), ghost = useRef(null);
       var named = { 'aria-label': props['aria-label'], 'aria-labelledby': props['aria-labelledby'] };
 
       var n = data.length;
       /* Marks are only separate targets when there is more than one series to tell apart. */
       var marksOn = series.length >= 2;
       var anyOpen = data.some(function (d) { return ccTarget(props, d) || ccOpenMarks(props, series, d).length; });
+      var fit = ccFit(room.width, n, anyOpen, room.target);
       var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d); }))));
       var max = ticks[ticks.length - 1];
-      var active = hovered !== null ? hovered : focused;
+      /* A pick holds only in pick mode and on a column that exists. */
+      var pinned = fit.pick && view === 'chart' && picked !== null && picked < n ? picked : null;
+      pickedRef.current = pinned;
+      var active = pinned !== null ? pinned : hovered !== null ? hovered : focused;
       /* The Tab stop stays on a column that exists when `data` shrinks. */
       var tabStop = Math.min(rovingIndex, n - 1);
       if (active !== null && active >= n) active = null;
       var showLegend = props.legend !== false && series.length >= 2;
 
       useLayoutEffect(function () {
-        var el = plotRef.current;
-        if (!el || view !== 'chart') return;
-        function measure() { setPlotWidth(el.clientWidth); }
+        var el = scrollRef.current, plot = plotRef.current;
+        if (!el || !plot || view !== 'chart') return;
+        var mql = typeof window !== 'undefined' && window.matchMedia ? window.matchMedia(CC_TOUCH_QUERY) : null;
+        function measure() {
+          var touch = !!(mql && mql.matches), token = 0;
+          if (touch && rootRef.current) token = parseFloat(getComputedStyle(rootRef.current).getPropertyValue('--touch-target'));
+          var next = { width: el.clientWidth, target: ccTargetSize(touch, token) };
+          setRoom(function (p) { return p.width === next.width && p.target === next.target ? p : next; });
+          setPlotWidth(plot.clientWidth);
+        }
         measure();
-        if (typeof ResizeObserver === 'undefined') { window.addEventListener('resize', measure); return function () { window.removeEventListener('resize', measure); }; }
-        var ro = new ResizeObserver(measure);
-        ro.observe(el);
-        return function () { ro.disconnect(); };
+        if (mql) { if (mql.addEventListener) mql.addEventListener('change', measure); else if (mql.addListener) mql.addListener(measure); }
+        var ro = typeof ResizeObserver === 'undefined' ? null : new ResizeObserver(measure);
+        if (ro) { ro.observe(el); ro.observe(plot); } else window.addEventListener('resize', measure);
+        return function () {
+          if (ro) ro.disconnect(); else window.removeEventListener('resize', measure);
+          if (mql) { if (mql.removeEventListener) mql.removeEventListener('change', measure); else if (mql.removeListener) mql.removeListener(measure); }
+        };
       }, [view, n]);
+
+      /* A scrolling plot opens at the last column, and stays at the end when `data` changes unless the reader scrolled away. */
+      useLayoutEffect(function () { atEnd.current = true; }, [view]);
+      useLayoutEffect(function () {
+        var el = scrollRef.current;
+        if (el && fit.scroll && atEnd.current) el.scrollLeft = el.scrollWidth;
+      }, [fit.scroll, fit.minWidth, data, view]);
 
       /* The tooltip sits above the column, clamped inside the chart's bounds. */
       useLayoutEffect(function () {
@@ -6555,15 +6617,31 @@
         var colTop = pr.top - cr.top + height - ccTotal(series, data[active]) / max * height;
         var next = { left: Math.round(Math.max(0, Math.min(center - tw / 2, cr.width - tw))), top: Math.round(Math.max(0, colTop - 8 - th)) };
         setTipPos(function (p) { return p && p.left === next.left && p.top === next.top ? p : next; });
-      }, [active, plotWidth, height, n, view, data]);
+      }, [active, pinned, plotWidth, height, n, view, data, scrollTick]);
 
-      function focusColumn(i) {
+      function closePin() { setPicked(null); setHovered(null); }
+      /* Escape or a pointer down outside the chart closes the pinned tooltip. Escape from inside it returns focus to its column. */
+      useDismiss(pinned !== null, [rootRef], function (reason) {
+        var at = pickedRef.current, inTip = tipRef.current && tipRef.current.contains(document.activeElement);
+        closePin();
+        if (reason === 'escape' && inTip && at !== null) focusColumn(at, true);
+      });
+      /* Focus moving to anything outside the chart closes it too. (A tap can drop focus to the page for a moment, so focus
+         merely leaving the chart doesn't count: a tap outside is caught as a pointer down.) */
+      useEffect(function () {
+        if (pinned === null) return;
+        function onFocusIn(e) { if (rootRef.current && !rootRef.current.contains(e.target)) closePin(); }
+        document.addEventListener('focusin', onFocusIn);
+        return function () { document.removeEventListener('focusin', onFocusIn); };
+      }, [pinned === null]);
+
+      function focusColumn(i, quiet) {
         var el = plotRef.current && plotRef.current.querySelector('[data-index="' + i + '"]');
-        if (el) el.focus();
+        if (el) el.focus(quiet ? { preventScroll: true } : undefined);
       }
       /* A link or button for a target: a link calls onOpen too, so an app can preventDefault and route in-app. */
-      function openEl(target, attrs, children, datum, key) {
-        var onClick = function (e) { if (props.onOpen) props.onOpen(datum, key, e); };
+      function openEl(target, attrs, children, datum, key, after) {
+        var onClick = function (e) { if (props.onOpen) props.onOpen(datum, key, e); if (after) after(); };
         return target.href !== undefined
           ? h('a', Object.assign({ href: target.href, onClick: onClick }, attrs), children)
           : h('button', Object.assign({ type: 'button', onClick: onClick }, attrs), children);
@@ -6588,6 +6666,37 @@
         if (to === null) return;
         e.preventDefault();
         focusColumn(to);
+      }
+
+      /* Pick, then open: a press on the plot picks the nearest column, a drag moves the pick, and focus goes to the picked
+         column so the keyboard carries on from there. */
+      function pickAt(e) {
+        var r = plotRef.current.getBoundingClientRect(), i = ccPickIndex(e.clientX - r.left, r.width, n);
+        setPicked(i); setRovingIndex(i); focusColumn(i, true);
+      }
+      function onPointerDown(e) {
+        if (!fit.pick || (e.pointerType === 'mouse' && e.button !== 0)) return;
+        e.preventDefault();
+        drag.current = e.pointerId;
+        try { e.currentTarget.setPointerCapture(e.pointerId); } catch (x) { /* capture is a nicety */ }
+        pickAt(e);
+      }
+      function onPointerMove(e) { if (drag.current === e.pointerId) pickAt(e); }
+      function onPointerEnd(e) {
+        if (drag.current !== e.pointerId) return;
+        drag.current = null;
+        /* A tap's click lands on whatever is under the finger once it lifts, which can be the tooltip it just pinned. */
+        if (e.type === 'pointerup' && e.pointerType !== 'mouse') ghost.current = { t: Date.now(), x: e.clientX, y: e.clientY };
+      }
+      function onTipClick(e) {
+        var g = ghost.current;
+        ghost.current = null;
+        if (g && Date.now() - g.t < 800 && Math.abs(e.clientX - g.x) < 12 && Math.abs(e.clientY - g.y) < 12) { e.preventDefault(); e.stopPropagation(); }
+      }
+      function onScroll(e) {
+        var el = e.currentTarget;
+        atEnd.current = el.scrollLeft + el.clientWidth >= el.scrollWidth - 2;
+        if (active !== null) setScrollTick(function (t) { return t + 1; });
       }
 
       if (!n) return h('div', { className: cx('hy-column-chart', props.className), style: props.style }, h('div', { className: 'hy-column-chart__empty' }, props.empty !== undefined ? props.empty : 'No Data'));
@@ -6620,73 +6729,105 @@
 
       var tickChars = Math.max.apply(null, ticks.map(function (t) { return ccTickLabel(t).length; }));
       var labelChars = Math.max.apply(null, data.map(function (d) { return String(d.label).length; }));
-      var step = ccThinStep(plotWidth / n, labelChars);
+      var slotW = plotWidth / n, shown = ccXLabels(n, slotW, labelChars);
 
-      var plot = h('div', { className: cx('hy-column-chart__body', anyOpen && 'hy-column-chart__body--open'), style: { gridTemplateColumns: (tickChars * 7 + 12) + 'px minmax(' + (anyOpen ? n * 24 : 0) + 'px, 1fr)' } },
+      var cols = h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
+        var target = ccTarget(props, d), markKeys = ccOpenMarks(props, series, d);
+        var segs = ccSegments(series, d, max, height);
+        var visual = h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, segs.map(function (g) {
+          return h('span', {
+            key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', g), g.top && 'is-top'),
+            style: { bottom: g.bottom, height: g.height }
+          });
+        }));
+        var enter = function () { setHovered(i); }, leave = function () { setHovered(null); };
+        /* While a tooltip is pinned, the pick follows keyboard focus. */
+        var focusIn = function () { setFocused(i); setRovingIndex(i); setPicked(function (p) { return p === null ? p : i; }); };
+        var focusOut = function () { setFocused(null); };
+        if (!target && !markKeys.length) {
+          return h('div', {
+            key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
+            'aria-label': ccColumnName(d, series, fmt),
+            className: cx('hy-column-chart__slot', active === i && 'is-active'),
+            onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
+          }, visual);
+        }
+        /* An openable column or mark: the slot wraps the picture, a full-slot link or button (a plain image when only marks
+           open) and a layer of mark targets. In pick mode they stay in the keyboard path but take no pointer. */
+        var marks = markKeys.length ? segs.map(function (g) {
+          var s = series.filter(function (x) { return x.key === g.key; })[0], t = markKeys.indexOf(g.key) >= 0 ? ccTarget(props, d, g.key) : null;
+          if (!t) return null;
+          return openEl(t, {
+            key: g.key, 'data-col': i, 'data-mark': g.key, tabIndex: -1, 'aria-label': ccOpenMarkName(d, s, fmt),
+            className: cx('hy-column-chart__mark', !ccMarkPointer(g.height) && 'is-thin'), style: { bottom: g.bottom, height: g.height }
+          }, null, d, g.key);
+        }) : null;
+        return h('div', {
+          key: i, className: cx('hy-column-chart__slot', 'hy-column-chart__slot--open', active === i && 'is-active'),
+          onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
+        },
+          visual,
+          target
+            ? openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d)
+            : h('div', { role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccColumnName(d, series, fmt), className: 'hy-column-chart__open is-static' }),
+          marks ? h('div', { className: 'hy-column-chart__marks' }, marks) : null);
+      }));
+
+      /* Each label is centred under its column but never reaches past the plot: it knows how far its centre is from each edge. */
+      var xaxis = h('div', { className: 'hy-column-chart__xaxis', 'aria-hidden': 'true' }, data.map(function (d, i) {
+        var label = shown.indexOf(i) >= 0 ? h('span', {
+          className: 'hy-column-chart__xlabel', style: { '--hy-to-start': ((i + 0.5) * slotW) + 'px', '--hy-to-end': ((n - i - 0.5) * slotW) + 'px' }
+        }, d.label) : null;
+        return h('span', { key: i, className: 'hy-column-chart__xslot' }, label);
+      }));
+
+      /* The y axis sits outside the scroll area, so it stays in view when the plot scrolls. */
+      var plot = h('div', { className: cx('hy-column-chart__body', fit.pick && 'is-pick', fit.scroll && 'is-scroll'), style: { gridTemplateColumns: (tickChars * 7 + 12) + 'px minmax(0, 1fr)' } },
         h('div', { className: 'hy-column-chart__yaxis', style: { height: height }, 'aria-hidden': 'true' }, ticks.map(function (t) {
           return h('span', { key: t, className: 'hy-column-chart__tick', style: { bottom: (t / max * 100) + '%' } }, ccTickLabel(t));
         })),
-        h('div', Object.assign({ ref: plotRef, className: 'hy-column-chart__plot', role: 'group', style: { height: height }, onKeyDown: onKeyDown }, named),
-          ticks.map(function (t, i) {
-            return h('span', { key: 'g' + t, className: cx('hy-column-chart__grid', i === 0 && 'is-baseline'), style: { bottom: (t / max * 100) + '%' }, 'aria-hidden': 'true' });
-          }),
-          h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
-            var target = ccTarget(props, d), markKeys = ccOpenMarks(props, series, d);
-            var segs = ccSegments(series, d, max, height);
-            var visual = h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, segs.map(function (g) {
-              return h('span', {
-                key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', g), g.top && 'is-top'),
-                style: { bottom: g.bottom, height: g.height }
-              });
-            }));
-            var enter = function () { setHovered(i); }, leave = function () { setHovered(null); };
-            var focusIn = function () { setFocused(i); setRovingIndex(i); }, focusOut = function () { setFocused(null); };
-            if (!target && !markKeys.length) {
-              return h('div', {
-                key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
-                'aria-label': ccColumnName(d, series, fmt),
-                className: cx('hy-column-chart__slot', active === i && 'is-active'),
-                onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
-              }, visual);
-            }
-            /* An openable column or mark: the slot wraps the picture, a full-slot link or button (a plain image when only marks
-               open) and a layer of mark targets. */
-            var marks = markKeys.length ? segs.map(function (g) {
-              var s = series.filter(function (x) { return x.key === g.key; })[0], t = markKeys.indexOf(g.key) >= 0 ? ccTarget(props, d, g.key) : null;
-              if (!t) return null;
-              return openEl(t, {
-                key: g.key, 'data-col': i, 'data-mark': g.key, tabIndex: -1, 'aria-label': ccOpenMarkName(d, s, fmt),
-                className: cx('hy-column-chart__mark', !ccMarkPointer(g.height) && 'is-thin'), style: { bottom: g.bottom, height: g.height }
-              }, null, d, g.key);
-            }) : null;
-            return h('div', {
-              key: i, className: cx('hy-column-chart__slot', 'hy-column-chart__slot--open', active === i && 'is-active'),
-              onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
-            },
-              visual,
-              target
-                ? openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d)
-                : h('div', { role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccColumnName(d, series, fmt), className: 'hy-column-chart__open is-static' }),
-              marks ? h('div', { className: 'hy-column-chart__marks' }, marks) : null);
-          }))),
-        h('div', { className: 'hy-column-chart__xaxis', 'aria-hidden': 'true' }, data.map(function (d, i) {
-          return h('span', { key: i, className: 'hy-column-chart__xslot' }, i % step === 0 ? h('span', { className: 'hy-column-chart__xlabel' }, d.label) : null);
-        })));
+        h('div', { ref: scrollRef, className: 'hy-column-chart__scroll', onScroll: onScroll },
+          h('div', { className: 'hy-column-chart__inner', style: fit.minWidth ? { minWidth: fit.minWidth } : undefined },
+            h('div', Object.assign({
+              ref: plotRef, className: 'hy-column-chart__plot', role: 'group', style: { height: height }, onKeyDown: onKeyDown,
+              onPointerDown: fit.pick ? onPointerDown : undefined, onPointerMove: fit.pick ? onPointerMove : undefined,
+              onPointerUp: fit.pick ? onPointerEnd : undefined, onPointerCancel: fit.pick ? onPointerEnd : undefined
+            }, named),
+              ticks.map(function (t, i) {
+                return h('span', { key: 'g' + t, className: cx('hy-column-chart__grid', i === 0 && 'is-baseline'), style: { bottom: (t / max * 100) + '%' }, 'aria-hidden': 'true' });
+              }),
+              cols),
+            xaxis)));
 
-      var tip = view === 'chart' && active !== null ? h('div', {
-        ref: tipRef, className: 'hy-tooltip__box hy-tooltip__box--start hy-column-chart__tip', 'aria-hidden': 'true',
-        style: { left: tipPos ? tipPos.left : 0, top: tipPos ? tipPos.top : 0, visibility: tipPos ? 'visible' : 'hidden' }
-      },
-        h('div', { className: 'hy-column-chart__tip-title' }, data[active].label),
-        ccTooltipRows(data[active], series, fmt).map(function (r) {
-          return h('div', { key: r.key, className: 'hy-column-chart__tip-row' },
-            h('span', { className: cx('hy-column-chart__swatch', ccToneClass('hy-column-chart__swatch', r)) }),
-            h('span', { className: 'hy-column-chart__tip-label' }, r.label),
-            h('span', { className: 'hy-column-chart__tip-value' }, r.value));
-        }),
-        h('div', { className: 'hy-column-chart__tip-row hy-column-chart__tip-total' },
-          h('span', { className: 'hy-column-chart__tip-label' }, 'Total'),
-          h('span', { className: 'hy-column-chart__tip-value' }, ccTotalText(data[active], series, fmt)))) : null;
+      /* The tooltip. Picked in pick mode, it is pinned and holds Open and, with two or more series, a control per mark. */
+      var tip = null;
+      if (view === 'chart' && active !== null) {
+        var td = data[active], isPinned = pinned !== null;
+        var colTarget = isPinned ? ccTarget(props, td) : null, tipMarks = isPinned ? ccOpenMarks(props, series, td) : [];
+        var after = function () { var at = pickedRef.current; closePin(); if (at !== null) focusColumn(at, true); };
+        tip = h('div', {
+          ref: tipRef, className: cx('hy-tooltip__box hy-tooltip__box--start hy-column-chart__tip', isPinned && 'is-pinned'),
+          'aria-hidden': isPinned ? undefined : 'true', role: isPinned ? 'group' : undefined, 'aria-label': isPinned ? td.label : undefined,
+          /* A press inside keeps focus where it is, so it doesn't count as focus leaving the chart; the click still lands. */
+          onPointerDown: isPinned ? function (e) { e.preventDefault(); } : undefined, onClickCapture: isPinned ? onTipClick : undefined,
+          style: { left: tipPos ? tipPos.left : 0, top: tipPos ? tipPos.top : 0, visibility: tipPos ? 'visible' : 'hidden' }
+        },
+          h('div', { className: 'hy-column-chart__tip-title' }, td.label),
+          ccTooltipRows(td, series, fmt).map(function (r) {
+            var cells = [
+              h('span', { key: 's', className: cx('hy-column-chart__swatch', ccToneClass('hy-column-chart__swatch', r)) }),
+              h('span', { key: 'l', className: 'hy-column-chart__tip-label' }, r.label),
+              h('span', { key: 'v', className: 'hy-column-chart__tip-value' }, r.value)];
+            var t = tipMarks.indexOf(r.key) >= 0 ? ccTarget(props, td, r.key) : null;
+            if (!t) return h('div', { key: r.key, className: 'hy-column-chart__tip-row' }, cells);
+            var s = series.filter(function (x) { return x.key === r.key; })[0];
+            return openEl(t, { key: r.key, 'data-mark': r.key, className: 'hy-column-chart__tip-row hy-column-chart__tip-action', 'aria-label': ccOpenMarkName(td, s, fmt) }, cells, td, r.key, after);
+          }),
+          h('div', { className: 'hy-column-chart__tip-row hy-column-chart__tip-total' },
+            h('span', { className: 'hy-column-chart__tip-label' }, 'Total'),
+            h('span', { className: 'hy-column-chart__tip-value' }, ccTotalText(td, series, fmt))),
+          colTarget ? openEl(colTarget, { className: 'hy-column-chart__tip-open', 'aria-label': ccOpenColumnName(td, series, fmt) }, 'Open', td, undefined, after) : null);
+      }
 
       return h('div', { ref: rootRef, className: cx('hy-column-chart', props.className), style: props.style },
         h('div', { className: 'hy-column-chart__toolbar' }, legend, toggle),

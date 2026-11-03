@@ -2184,7 +2184,7 @@ export interface ColumnChartProps {
   defaultView?: 'chart' | 'table';
   /** The "View as Table" / "View as Chart" toggle was used. */
   onViewChange?: (view: 'chart' | 'table') => void;
-  /** Opens a column (`onOpen(datum)`) or, with two or more series, one series' mark in it (`onOpen(datum, seriesKey)`). Setting it makes every column and mark a button, or a link where `href` returns a URL. A link calls it too, with the click event as the third argument, so an app can `preventDefault` and route in-app. */
+  /** Opens a column (`onOpen(datum)`) or, with two or more series, one series' mark in it (`onOpen(datum, seriesKey)`). Setting it makes every column and mark a button, or a link where `href` returns a URL. A link calls it too, with the click event as the third argument, so an app can `preventDefault` and route in-app. When a column's slot is narrower than the target size (24px, or the touch target under touch sizing), the chart fits its width and picks, then opens: a tap or drag pins a column's tooltip, whose Open control and series rows are those buttons or links. Below 4px a slot it scrolls, opening at the last column. */
   onOpen?: (datum: ColumnChartDatum, seriesKey?: string, event?: React.MouseEvent) => void;
   /** The URL a column (`href(datum)`) or mark (`href(datum, seriesKey)`) opens, or `undefined` for none. A column or mark with a URL is a link. Without `onOpen`, one without a URL is not a target. */
   href?: (datum: ColumnChartDatum, seriesKey?: string) => string | undefined;
