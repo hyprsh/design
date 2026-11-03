@@ -1,4 +1,4 @@
-<!-- @dsCard group="Feedback" height=344 subtitle="Default, success, warning, error, secondary; colour thresholds; stops; label; segments" -->
+<!-- @dsCard group="Feedback" height=392 subtitle="Default, success, warning, error, secondary; colour thresholds; stops; label; segments; breakdown" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Progress</title></head>
@@ -18,6 +18,7 @@ function Demo() {
     h(H.Progress, { label: 'Build Minutes', value: 72, stops: [{ value: 25, tooltip: 'Hobby limit' }, { value: 75, tooltip: 'Pro limit' }] }),
     h(H.Progress, { label: 'Library Health', max: 40, 'aria-label': '21 of 40 filled, 2 downloading, 1 wanted, 1 long missing, 15 not counted', segments: [{ value: 21, tone: 'success' }, { value: 2, tone: 'info' }, { value: 1, tone: 'warning' }, { value: 1, tone: 'error' }, { value: 15, tone: 'neutral' }] }),
     h(H.Progress, { max: 500, gap: true, 'aria-label': '1 of 500 failed, 200 done', segments: [{ value: 200, tone: 'success' }, { value: 1, tone: 'error' }] }),
+    h(H.Progress, { label: 'Library by Format', max: 1084, gap: true, segments: [{ value: 412, scale: 'seq-1', tooltip: 'Remux: 412 Titles, 38 %' }, { value: 356, scale: 'seq-3', tooltip: 'Web-DL: 356 Titles, 33 %' }, { value: 316, scale: 'seq-5', tooltip: 'Encode: 316 Titles, 29 %' }] }),
     h('div', { className: 'hy-row', style: { padding: 0, gap: 12 } },
       h(H.Progress, { value: value, colors: colors, 'aria-label': 'Usage', style: { flex: 1 } }),
       h(H.Button, { size: 'small', onClick: function () { set(value >= 100 ? 10 : value + 15); } }, 'Increase')));
