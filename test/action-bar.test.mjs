@@ -1,5 +1,6 @@
 // Tests for ActionBar's markup and CSS (hyprsh/design#87). ActionBar.js is plain script that runs in the bundle's scope,
-// so it runs here in a vm context with stubs. Focus, sticky layout and live-region behaviour are in action-bar-dom.test.mjs.
+// so it runs here in a vm context with stubs. Focus, sticky layout, narrow measuring, the restyled Buttons and
+// live-region behaviour are in action-bar-dom.test.mjs.
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
@@ -9,33 +10,53 @@ import vm from 'node:vm';
 
 const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components/src');
 const registry = {};
+/* `narrow` stands in for the measured width: the bar's only boolean state is its narrow form. */
+let narrow = false;
 const context = vm.createContext({
   React: { Fragment: 'Fragment' },
-  HY: { Button: 'Button' },
+  HY: { Button: 'Button', MenuContainer: 'MenuContainer', MenuButton: 'MenuButton', Menu: 'Menu', MenuItem: 'MenuItem', Icon: 'Icon' },
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat(Infinity).filter((c) => c != null && c !== false) }),
   Glyph: 'Glyph',
   cx: (...a) => a.filter(Boolean).join(' '),
-  useState: (v) => [v, () => {}],
+  useState: (v) => [v === false ? narrow : v, () => {}],
   useEffect: () => {},
+  useLayoutEffect: () => {},
   useRef: (v) => ({ current: v === undefined ? null : v }),
   define: (name, fn) => { registry[name] = fn; },
 });
 vm.runInContext(readFileSync(join(src, 'ActionBar.js'), 'utf8'), context, { filename: 'ActionBar.js' });
 const render = (props) => registry.ActionBar({ open: true, ...props });
+const renderNarrow = (props) => { narrow = true; try { return render(props); } finally { narrow = false; } };
 
 /* Every element in the rendered tree, depth first. */
 const walk = (node, out = []) => {
   if (!node || typeof node !== 'object') return out;
+  if (Array.isArray(node)) { node.forEach((c) => walk(c, out)); return out; }
   out.push(node);
   (node.children || []).forEach((c) => walk(c, out));
   return out;
 };
-const text = (node) => (typeof node === 'string' || typeof node === 'number' ? String(node) : node && node.children ? node.children.map(text).join('') : '');
+const text = (node) => (typeof node === 'string' || typeof node === 'number' ? String(node)
+  : Array.isArray(node) ? node.map(text).join('') : node && node.children ? node.children.map(text).join('') : '');
 const classes = (node) => String((node.props && node.props.className) || '').split(' ');
 const byClass = (tree, cls) => walk(tree).filter((n) => classes(n).includes(cls));
 const buttons = (tree) => walk(tree).filter((n) => n.type === 'Button');
-const names = (tree) => buttons(tree).map((b) => text(b));
+const byLabel = (tree, label) => buttons(tree).find((b) => b.props['aria-label'] === label);
+const names = (tree) => buttons(tree).map((b) => b.props['aria-label'] || text(b));
 const barOf = (tree) => byClass(tree, 'hy-action-bar')[0];
+const rowOf = (tree) => byClass(tree, 'hy-action-bar__row')[0];
+/* The row's direct children as short names, in order. */
+const rowParts = (tree) => rowOf(tree).children.map((c) => {
+  const cl = classes(c);
+  if (cl.includes('hy-action-bar__count')) return 'count';
+  if (cl.includes('hy-action-bar__label')) return 'label';
+  if (cl.includes('hy-action-bar__sep')) return 'sep';
+  if (cl.includes('hy-action-bar__actions')) return 'actions';
+  if (cl.includes('hy-action-bar__close')) return 'close';
+  if (c.type === 'MenuContainer') return 'more';
+  return text(c);
+});
+const menus = (tree) => walk(tree).filter((n) => n.type === 'MenuContainer');
 
 describe('ActionBar markup', () => {
   it('renders no bar while closed, only the empty live region, so opening just changes its text', () => {
@@ -55,52 +76,140 @@ describe('ActionBar markup', () => {
     assert.ok(classes(last(render({ label: 'x' }))).includes('hy-sr'));
     assert.equal(last(registry.ActionBar({ open: false })).props.key, last(render({ label: 'x' })).props.key);
   });
-  it('shows the label and the actions slot while open', () => {
+  it('shows the label, a separator and the actions slot while open', () => {
     const tree = render({ label: '3 unsaved changes', actions: 'ACTIONS', className: 'mine' });
     assert.ok(classes(barOf(tree)).includes('mine'));
     assert.equal(text(byClass(tree, 'hy-action-bar__label')[0]), '3 unsaved changes');
     assert.equal(text(byClass(tree, 'hy-action-bar__actions')[0]), 'ACTIONS');
+    assert.deepEqual(rowParts(tree), ['label', 'sep', 'actions']);
+    assert.equal(byClass(tree, 'hy-action-bar__sep')[0].props['aria-hidden'], 'true');
   });
-  it('has no close button without onClose, and names it Close or closeLabel with it', () => {
+  it('has no separator when there is nothing on one side of it', () => {
+    assert.deepEqual(rowParts(render({ label: 'x' })), ['label']);
+    assert.deepEqual(rowParts(render({ actions: 'ACTIONS' })), ['actions']);
+  });
+  it('has no close button without onClose, and puts one named Close or closeLabel at the end with it', () => {
     assert.equal(buttons(render({ label: 'x' })).length, 0);
-    const close = buttons(render({ label: 'x', onClose: () => {} }))[0];
-    assert.equal(close.props['aria-label'], 'Close');
-    assert.equal(buttons(render({ label: 'x', onClose: () => {}, closeLabel: 'Dismiss' }))[0].props['aria-label'], 'Dismiss');
+    const tree = render({ label: 'x', actions: 'A', onClose: () => {} });
+    assert.equal(byLabel(tree, 'Close').props.variant, 'tertiary');
+    assert.equal(rowParts(tree).at(-1), 'close');
+    assert.ok(byLabel(render({ label: 'x', onClose: () => {}, closeLabel: 'Dismiss' }), 'Dismiss'));
   });
   it('calls onClose from the close button', () => {
     let n = 0;
-    buttons(render({ onClose: () => { n++; } }))[0].props.onClick();
+    byLabel(render({ onClose: () => { n++; } }), 'Close').props.onClick();
     assert.equal(n, 1);
+  });
+
+  describe('tone', () => {
+    for (const tone of ['success', 'info', 'warning', 'error', 'neutral']) {
+      it(`draws a ${tone} dot before the label`, () => {
+        const label = byClass(render({ label: 'x', tone }), 'hy-action-bar__label')[0];
+        const dot = label.children[0];
+        assert.ok(classes(dot).includes('hy-action-bar__dot'));
+        assert.ok(classes(dot).includes('hy-action-bar__dot--' + tone));
+        assert.equal(dot.props['aria-hidden'], 'true');
+      });
+    }
+    it('has no dot without a tone, or with an unknown one', () => {
+      assert.equal(byClass(render({ label: 'x' }), 'hy-action-bar__dot').length, 0);
+      assert.equal(byClass(render({ label: 'x', tone: 'loud' }), 'hy-action-bar__dot').length, 0);
+    });
+    it('shows the error tone while there is an error, whatever the tone', () => {
+      for (const tone of [undefined, 'warning']) {
+        const dot = byClass(render({ label: 'x', tone, error: 'Oops.' }), 'hy-action-bar__dot')[0];
+        assert.ok(classes(dot).includes('hy-action-bar__dot--error'));
+      }
+    });
   });
 
   describe('selection', () => {
     const calls = [];
     const selection = { count: 3, total: 8, onSelectAll: () => calls.push('all'), onClear: () => calls.push('clear') };
-    it('renders the count as the label, Select All, Clear, then the actions', () => {
+    it('renders the count chip with its clear button, Select all, a separator, then the actions', () => {
       const tree = render({ selection, label: 'ignored', actions: 'ACTIONS' });
-      assert.equal(text(byClass(tree, 'hy-action-bar__label')[0]), '3 selected');
-      assert.deepEqual(names(tree), ['Select All', 'Clear']);
-      const actions = byClass(tree, 'hy-action-bar__actions')[0];
-      assert.equal(text(actions.children.at(-1)), 'ACTIONS');
-      buttons(tree)[0].props.onClick(); buttons(tree)[1].props.onClick();
+      const chip = byClass(tree, 'hy-action-bar__count')[0];
+      assert.equal(text(byClass(chip, 'hy-action-bar__count-text')[0]), '3 selected');
+      assert.equal(byClass(tree, 'hy-action-bar__label').length, 0, 'the chip replaces the label');
+      const clear = byLabel(chip, 'Clear selection');
+      assert.ok(clear, 'the × is inside the chip');
+      assert.equal(clear.props.size, 'tiny');
+      assert.deepEqual(rowParts(tree), ['count', 'Select all 8', 'sep', 'actions']);
+      assert.ok(!names(tree).includes('Clear'), 'no separate Clear button');
+      buttons(tree).find((b) => text(b) === 'Select all 8').props.onClick();
+      clear.props.onClick();
       assert.deepEqual(calls, ['all', 'clear']);
     });
-    it('hides Select All when every row is selected', () => {
-      assert.deepEqual(names(render({ selection: { ...selection, count: 8 } })), ['Clear']);
+    it('draws Select all as a quiet button', () => {
+      const all = buttons(render({ selection })).find((b) => text(b) === 'Select all 8');
+      assert.ok(classes(all).includes('hy-action-bar__quiet'));
+      assert.equal(all.props.variant, 'tertiary');
     });
-    it('hides Select All without onSelectAll', () => {
-      assert.deepEqual(names(render({ selection: { count: 1, total: 8, onClear() {} } })), ['Clear']);
+    it('hides Select all when every row is selected', () => {
+      assert.deepEqual(names(render({ selection: { ...selection, count: 8 } })), ['Clear selection']);
+    });
+    it('hides Select all without onSelectAll', () => {
+      assert.deepEqual(names(render({ selection: { count: 1, total: 8, onClear() {} } })), ['Clear selection']);
     });
   });
 
+  describe('secondaryActions', () => {
+    it('shows quiet text buttons after the separator and before the actions', () => {
+      const calls = [];
+      const tree = render({ label: 'x', actions: 'ACTIONS',
+        secondaryActions: [{ label: 'Unmonitor', onSelect: () => calls.push('u') }, { label: 'Export', onSelect() {}, disabled: true }] });
+      assert.deepEqual(rowParts(tree), ['label', 'sep', 'Unmonitor', 'Export', 'actions']);
+      const [u, e] = buttons(tree);
+      assert.ok(classes(u).includes('hy-action-bar__quiet'));
+      assert.equal(e.props.disabled, true);
+      u.props.onClick();
+      assert.deepEqual(calls, ['u']);
+      assert.equal(menus(tree).length, 0, 'no More menu while wide');
+    });
+  });
+
+  describe('narrow', () => {
+    const selection = { count: 3, total: 8, onSelectAll() {}, onClear() {} };
+    it('marks the bar narrow and folds Select all and the secondary actions into a More menu', () => {
+      const calls = [];
+      const tree = renderNarrow({ selection: { ...selection, onSelectAll: () => calls.push('all') }, actions: 'ACTIONS',
+        secondaryActions: [{ label: 'Unmonitor', onSelect: () => calls.push('u') }, { label: 'Export', onSelect() {}, disabled: true }] });
+      assert.ok(classes(barOf(tree)).includes('hy-action-bar--narrow'));
+      assert.deepEqual(rowParts(tree), ['count', 'sep', 'more', 'actions']);
+      const trigger = walk(tree).find((n) => n.type === 'MenuButton');
+      assert.equal(trigger.props['aria-label'], 'More actions');
+      const items = walk(tree).filter((n) => n.type === 'MenuItem');
+      assert.deepEqual(items.map(text), ['Select all 8', 'Unmonitor', 'Export']);
+      assert.equal(items[2].props.disabled, true);
+      items[0].props.onSelect(); items[1].props.onSelect();
+      assert.deepEqual(calls, ['all', 'u']);
+      assert.ok(!buttons(tree).some((b) => text(b) === 'Select all 8'), 'no Select all button beside the menu');
+    });
+    it('keeps the count chip with its clear button visible', () => {
+      assert.ok(byLabel(byClass(renderNarrow({ selection }), 'hy-action-bar__count')[0], 'Clear selection'));
+    });
+    it('has no More menu when there is nothing to fold', () => {
+      assert.equal(menus(renderNarrow({ selection: { ...selection, count: 8 }, actions: 'A' })).length, 0);
+      assert.equal(menus(renderNarrow({ label: 'x', actions: 'A' })).length, 0);
+    });
+    it('is not narrow by default', () => assert.ok(!classes(barOf(render({ label: 'x' }))).includes('hy-action-bar--narrow')));
+  });
+
   describe('error', () => {
-    it('shows the error with an icon and keeps the bar open', () => {
-      const tree = render({ label: '3 unsaved changes', error: 'Couldn’t Save: Check Your Connection' });
+    const message = 'Couldn’t save. Check your connection and try again.';
+    it('shows the error as a line above the row and keeps the bar open', () => {
+      const tree = render({ label: '3 unsaved changes', error: message });
+      const surface = byClass(tree, 'hy-action-bar__surface')[0];
       const err = byClass(tree, 'hy-action-bar__error')[0];
-      assert.ok(err, 'an error row');
-      assert.match(text(err), /Couldn’t Save/);
-      assert.ok(walk(err).some((n) => n.type === 'Glyph' && n.props.name === 'error'), 'an error glyph, not colour alone');
+      assert.equal(surface.children[0], err, 'the error comes before the row');
+      assert.equal(text(err), message);
+      assert.equal(err.props.title, message, 'the full text when the line is cut short');
       assert.ok(byClass(tree, 'hy-action-bar__label')[0]);
+    });
+    it('bolds the first sentence of a string error', () => {
+      const b = walk(render({ label: 'x', error: message })).find((n) => n.type === 'b');
+      assert.equal(text(b), 'Couldn’t save.');
+      assert.equal(walk(render({ label: 'x', error: 'One sentence only' })).filter((n) => n.type === 'b').length, 0);
     });
     it('has no error row without an error', () => assert.equal(byClass(render({ label: 'x' }), 'hy-action-bar__error').length, 0));
   });
@@ -115,11 +224,10 @@ describe('ActionBar markup', () => {
   });
 
   describe('opaque', () => {
-    it('has no opaque class by default', () => assert.ok(!classes(barOf(render({}))).includes('hy-action-bar--opaque')));
-    it('adds hy-action-bar--opaque and does not leak the prop', () => {
-      const tree = render({ opaque: true });
-      assert.ok(classes(barOf(tree)).includes('hy-action-bar--opaque'));
-      assert.equal(barOf(tree).props.opaque, undefined);
+    it('is accepted and does nothing: no class, and the prop does not leak', () => {
+      const plain = barOf(render({ label: 'x' })), opaque = barOf(render({ label: 'x', opaque: true }));
+      assert.deepEqual(classes(opaque), classes(plain));
+      assert.equal(opaque.props.opaque, undefined);
     });
   });
 });
@@ -156,31 +264,40 @@ describe('ActionBar CSS', () => {
     const offset = (prop) => bar.match(new RegExp('(?:^|[;\\s])' + prop + ':\\s*([^;]+);'))[1].trim();
     assert.equal(offset('bottom'), 'var(--hy-action-bar-offset)');
     assert.match(bar, /margin:[^;]*var\(--hy-action-bar-offset\);/);
-    assert.match(bar, /--hy-action-bar-offset:[^;]*var\(--tab-bar-height[^;]*env\(safe-area-inset-bottom/);
   });
-  it('defines a translucent surface and the blur, and applies both backdrop-filter forms', () => {
-    const bar = rule('.hy-action-bar');
-    assert.match(bar, /--hy-action-bar-surface:\s*color-mix\(in srgb,\s*var\(--background-100\)\s*\d+%,\s*transparent\)/);
-    assert.match(bar, /--hy-action-bar-filter:\s*blur\([^)]+\)\s*saturate\([^)]+\)/);
+  it('centres a capsule that hugs its content and never outgrows the container', () => {
+    assert.match(rule('.hy-action-bar'), /justify-content:\s*center/);
     const s = rule('.hy-action-bar__surface');
-    assert.match(s, /background-color:\s*var\(--hy-action-bar-surface\)/);
-    assert.match(s, /-webkit-backdrop-filter:\s*var\(--hy-action-bar-filter\)/);
-    assert.match(s, /(?<!-)backdrop-filter:\s*var\(--hy-action-bar-filter\)/);
+    assert.match(s, /max-width:\s*100%/);
+    assert.match(s, /border-radius:\s*var\(--radius-2xl\)/);
+    assert.match(rule('.hy-action-bar--narrow .hy-action-bar__surface'), /width:\s*100%/);
   });
-  const fallbacks = [
-    { name: '.hy-action-bar--opaque', scope: css, selector: '.hy-action-bar--opaque' },
-    { name: 'prefers-reduced-transparency: reduce', scope: atRule('@media (prefers-reduced-transparency: reduce)'), selector: '.hy-action-bar' },
-    { name: '@supports not backdrop-filter', scope: atRule('@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)))'), selector: '.hy-action-bar' },
-  ];
-  for (const { name, scope, selector } of fallbacks) {
-    it(`restores the solid surface and no filter: ${name}`, () => {
-      assert.ok(scope, 'the rule exists');
-      const resets = rule(selector, scope);
-      assert.match(resets, /--hy-action-bar-surface:\s*var\(--background-100\)/);
-      assert.match(resets, /--hy-action-bar-filter:\s*none/);
-    });
-  }
-  it('does not gate the translucent look on no-preference', () => assert.doesNotMatch(css, /prefers-reduced-transparency:\s*no-preference/));
+  it('is a solid inverted surface, with no blur', () => {
+    const s = rule('.hy-action-bar__surface');
+    assert.match(s, /--hy-ab-bg:\s*var\(--gray-1000\)/);
+    assert.match(s, /--hy-ab-fg:\s*var\(--background-100\)/);
+    assert.match(s, /background-color:\s*var\(--hy-ab-bg\)/);
+    assert.match(s, /(?:^|[;\s])color:\s*var\(--hy-ab-fg\)/);
+    assert.match(s, /box-shadow:\s*var\(--shadow-menu\)/);
+    assert.doesNotMatch(css, /backdrop-filter/);
+  });
+  it('draws the count chip with a dashed hairline in the inverted line colour', () => {
+    assert.match(rule('.hy-action-bar__count'), /border:\s*1px dashed var\(--hy-ab-line\)/);
+  });
+  it('colours the dots with the StatusDot tones', () => {
+    assert.match(rule('.hy-action-bar__dot--success'), /var\(--green-700\)/);
+    assert.match(rule('.hy-action-bar__dot--info'), /var\(--blue-700\)/);
+    assert.match(rule('.hy-action-bar__dot--warning'), /var\(--amber-700\)/);
+    assert.match(rule('.hy-action-bar__dot--error'), /var\(--red-800\)/);
+    assert.match(rule('.hy-action-bar__dot--neutral'), /var\(--gray-700\)/);
+  });
+  it('keeps 32px buttons and grows their hit area to the touch target under touch sizing', () => {
+    const touch = atRule('@media (pointer: coarse), (max-width: 639px)');
+    assert.ok(touch, 'a touch sizing block');
+    assert.match(touch, /height:\s*32px/);
+    assert.match(touch, /::after\s*\{[^}]*inset:\s*min\(0px,\s*calc\(\(100% - var\(--touch-target\)\) \/ 2\)\)/);
+    assert.match(touch, /width:\s*var\(--touch-target\)/);
+  });
   it('enters with transform and opacity only, and not under reduced motion', () => {
     const kf = css.match(/@keyframes hy-action-bar-in\s*\{[\s\S]*?\}\s*\}/);
     assert.ok(kf, 'a keyframes block');
