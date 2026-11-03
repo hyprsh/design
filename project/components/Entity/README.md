@@ -2,13 +2,15 @@
 
 A row that represents one thing (a member, token, domain or integration), with a leading visual, a title and description, and controls on the right.
 
-**You provide:** `left` (an Avatar, icon, Checkbox or Skeleton), children (usually `Entity.Content` with `title` and `description`, plus `fill` to take the free width), `right` (controls or meta text) and optionally `as` (`'div'`, `'li'` or `'button'`) with `onClick`, and `current` for a keyboard cursor. Wrap several rows in `Entity.List` (or `EntityList`), which draws the card and dividers and renders rows as list items.
+**You provide:** `left` (an Avatar, icon, Checkbox or Skeleton), children (usually `Entity.Content` with `title` and `description`, plus `fill` to take the free width), `right` (controls or meta text) and optionally `as` (`'div'`, `'li'` or `'button'`) with `onClick`, `current` for a keyboard cursor, and `detail` to make the row expandable. Wrap several rows in `Entity.List` (or `EntityList`), which draws the card and dividers and renders rows as list items; give the list `onReorder` to let people reorder its rows.
 
 - Keep the right side to one or two controls. For more, use a single menu button.
 - Name buttons Verb + Noun in Title Case (Revoke Token, Remove Member), not just “Remove”.
 - Give a row checkbox a label such as `aria-label="Select ci-bot"`.
 - Use `as="button"` when the whole row opens something. It stays reachable by keyboard; when the row also has its own controls, those take focus instead and the stretched button is hidden from assistive tech.
 - **Current rows:** `current` sets `aria-current="true"` and draws the same tint and 2px marker at the row's start as `current` on `TableRow` (see Table's “Selected and current rows”), so the state isn't shown by colour alone. Use it for the row that holds the keyboard cursor of a j/k list, in or out of `Entity.List`, with any `as`. You move the cursor and focus yourself.
+- **Expandable rows:** pass `detail` and the row becomes a disclosure button (a stretched cover button with `aria-expanded` and `aria-controls`, named by the left and content text) that opens the detail under the row, inside the same list item. Control it with `expanded`/`onExpandedChange`, or start it with `defaultExpanded`. The detail is out of sight and out of the Tab order while collapsed, and opens with a short fade and slide that reduced motion removes. The button covers the whole row, so `left` and `right` hold content only, such as an icon or a timestamp; put controls (buttons, links, inputs) in the detail. `current` still marks the row, not its detail. Several rows can be open at once; for one at a time, control `expanded` yourself. `as="button"` is ignored.
+- **Reordering:** pass `onReorder(from, to)` to `Entity.List` and every row gets a leading drag handle (see GLOSSARY: Drag handle). The list never reorders itself: move the item in your own data and re-render the rows; indexes count rows only. The handle is a button named “Move {row name}”, from the `Entity.Content` title (or the row's left and content text when there is no title) or the row's `reorderLabel`, and it is also a menu button, so there is a way to move without dragging: Move Up, Move Down, Move to Top and Move to Bottom, with the ones that don't apply disabled. Alt+↑ and Alt+↓ on the handle move the row one step, and plain arrows and Enter or Space open the menu. Focus stays on the moved row's handle, and each move is announced (“4K moved to position 1 of 3”). Pointer drags start after a few pixels, show the edge the row will land at, and cancel with Escape; the motion is a transform, and reduced motion removes it. Give each row a stable `key`, and keep other controls (a Toggle, a DotsMenu) in `right`. A disabled row's handle is disabled too. A Fragment of rows counts as its rows. Not for pinned rows, moving rows between lists or several rows at once.
 - While loading, keep the row shape and put Skeletons in `left` and `Entity.Content`.
 
 ## Examples
@@ -142,6 +144,81 @@ export default function Example() {
         ))}
       </EntityList>
       <span className="copy-14" role="status">Selected {picked}.</span>
+    </div>
+  );
+}
+```
+
+### Expandable Row
+`detail` makes the whole row a disclosure button. The first row starts open, and the right side holds a timestamp, not a control.
+
+```jsx
+import { Entity, EntityContent, EntityList } from '@hyprsh/design';
+import { Rocket } from 'lucide-react';
+
+const deployments = [
+  { id: 'a1', name: 'Production Deploy', note: 'main · 3 files changed', time: '2m ago', log: 'Build completed in 41s. 12 routes, 3 functions.' },
+  { id: 'b2', name: 'Preview Deploy', note: 'feat/billing · 9 files changed', time: '1h ago', log: 'Build completed in 38s. 12 routes, 2 functions.' },
+  { id: 'c3', name: 'Preview Deploy', note: 'fix/redirects · 1 file changed', time: 'Yesterday', log: 'Build failed at step 3 of 5: type check.' },
+];
+
+export default function Example() {
+  return (
+    <div style={{ width: '100%', maxWidth: 480 }}>
+      <EntityList aria-label="Deployments">
+        {deployments.map((d, i) => (
+          <Entity key={d.id} left={<Rocket />} right={d.time} defaultExpanded={i === 0} detail={d.log}>
+            <EntityContent title={d.name} description={d.note} fill />
+          </Entity>
+        ))}
+      </EntityList>
+    </div>
+  );
+}
+```
+
+### Reorderable List
+`onReorder` adds a drag handle to each row. Drag it, open its menu, or focus it and press Alt+↑ or Alt+↓. The app moves the item and re-renders.
+
+```jsx
+import { useState } from 'react';
+import { DotsMenu, Entity, EntityContent, EntityList, MenuItem, Toggle } from '@hyprsh/design';
+
+const initial = [
+  { id: 'edge', name: 'Edge Cache', note: 'Serves from the closest region', on: true },
+  { id: 'shield', name: 'Origin Shield', note: 'One request to the origin per region', on: true },
+  { id: 'static', name: 'Static Assets', note: 'Immutable files under /assets', on: false },
+];
+
+export default function Example() {
+  const [items, setItems] = useState(initial);
+  const move = (from, to) => setItems((list) => {
+    const next = list.slice();
+    next.splice(to, 0, next.splice(from, 1)[0]);
+    return next;
+  });
+  const setOn = (id, on) => setItems((list) => list.map((x) => (x.id === id ? { ...x, on } : x)));
+
+  return (
+    <div style={{ width: '100%', maxWidth: 480 }}>
+      <EntityList aria-label="Cache priority" onReorder={move}>
+        {items.map((x) => (
+          <Entity
+            key={x.id}
+            right={
+              <>
+                <Toggle aria-label={`Enable ${x.name}`} checked={x.on} onChange={(on) => setOn(x.id, on)} />
+                <DotsMenu aria-label={`${x.name} Actions`}>
+                  <MenuItem>Rename Rule</MenuItem>
+                  <MenuItem>Duplicate Rule</MenuItem>
+                </DotsMenu>
+              </>
+            }
+          >
+            <EntityContent title={x.name} description={x.note} fill />
+          </Entity>
+        ))}
+      </EntityList>
     </div>
   );
 }

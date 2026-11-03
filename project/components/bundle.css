@@ -890,9 +890,20 @@ body {
 @keyframes hy-query-in { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
 @keyframes hy-query-fade { from { opacity: 0; } to { opacity: 1; } }
 
+/* The clear button: 24px hit target inside the field's suffix slot, so the field keeps its height. */
+.hy-query__field .hy-input__suffix--plain:has(.hy-query__clear) { padding-right: 4px; }
+.hy-query__clear {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 24px; height: 24px; padding: 0; margin: 0; border: 0; border-radius: var(--radius-sm);
+  background: transparent; color: var(--gray-900); cursor: pointer; touch-action: manipulation;
+  transition: color .15s cubic-bezier(.4,0,.2,1), background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-query__clear:hover { color: var(--gray-1000); background: var(--gray-alpha-100); }
+.hy-query__clear:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
 /* Touch sizing: suggestion rows are drawn at the touch target. */
 @media (pointer: coarse), (max-width: 639px) {
   .hy-query__option { min-height: var(--touch-target); }
+  .hy-query__clear::after { content: ''; position: absolute; inset: min(0px, calc((100% - var(--touch-target)) / 2)); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -962,6 +973,33 @@ body {
 }
 @media (pointer: coarse), (max-width: 639px) {
   .hy-select--small, .hy-select--medium, .hy-select--large { height: var(--touch-target); }
+}
+
+/* ---------- SettingRow ---------- */
+.hy-setting-row {
+  position: relative; display: flex; flex-direction: column; align-items: stretch; gap: 12px;
+  padding: 16px 0 16px 12px; font-family: var(--font-sans); color: var(--gray-1000);
+}
+/* Rows divide like Entity.List rows: a hairline between neighbours, none above the first. */
+.hy-setting-row + .hy-setting-row { border-top: 1px solid var(--gray-alpha-400); }
+/* The edge mark is always drawn and only fades in, so the changed state never moves layout. */
+.hy-setting-row::before {
+  content: ""; position: absolute; top: 12px; bottom: 12px; left: 0; width: 2px; border-radius: var(--radius-full);
+  background: var(--accent-900); opacity: 0; transition: opacity .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-setting-row.is-changed::before { opacity: 1; }
+.hy-setting-row__text { min-width: 0; }
+.hy-setting-row__label { display: block; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); }
+.hy-setting-row__help { margin-top: 2px; font-size: 13px; line-height: 20px; color: var(--gray-900); }
+.hy-setting-row__control { position: relative; display: flex; justify-content: flex-start; min-width: 0; }
+.hy-setting-row__control > .hy-field { flex: 1 1 auto; min-width: 0; }
+@media (min-width: 640px) {
+  .hy-setting-row { flex-direction: row; align-items: flex-start; justify-content: space-between; gap: 24px; }
+  .hy-setting-row__text { flex: 1 1 0; }
+  .hy-setting-row__control { flex: 0 1 280px; justify-content: flex-end; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hy-setting-row::before { transition-duration: 0s; }
 }
 
 /* ---------- Slider ---------- */
@@ -1315,6 +1353,45 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
   .hy-pagination__link--prev:hover .hy-pagination__icon, .hy-pagination__link--next:hover .hy-pagination__icon { transform: translateY(-50%); }
 }
 
+/* ---------- Rail ---------- */
+/* In the page flow, full height and sticky, so the app's layout places it. Hidden below sm unless showFrom is false. */
+.hy-rail {
+  position: sticky; top: 0; display: flex; flex: none; flex-direction: column; align-items: center; gap: 4px;
+  box-sizing: border-box; width: 64px; height: 100vh; height: 100dvh; padding: 12px 0; overflow-y: auto;
+  background: var(--background-200); border-inline-end: 1px solid var(--gray-alpha-400);
+  font-family: var(--font-sans); color: var(--gray-900);
+}
+.hy-rail--show-sm { display: none; }
+@media (min-width: 640px) { .hy-rail--show-sm { display: flex; } }
+/* Pushes everything after it to the bottom: the top group and the bottom group. */
+.hy-rail__spacer { flex: 1 1 auto; min-height: 8px; }
+
+.hy-rail__item {
+  position: relative; display: inline-flex; flex: none; align-items: center; justify-content: center; box-sizing: border-box;
+  min-width: var(--touch-target); min-height: var(--touch-target); margin: 0; padding: 0; border: 0; border-radius: var(--radius-md);
+  background: none; color: var(--gray-900); font: inherit; text-decoration: none; cursor: pointer;
+  touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+  transition: color .15s cubic-bezier(.4,0,.2,1), background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-rail__item:hover { background: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-rail__item.is-selected, .hy-rail__item.is-selected:hover { background: var(--gray-alpha-200); color: var(--gray-1000); }
+.hy-rail__item:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-rail__icon { position: relative; display: inline-flex; width: 20px; height: 20px; }
+
+/* Badges sit on the icon's top-right corner, ringed in the rail's own surface. */
+.hy-rail__badge { position: absolute; top: -4px; left: 11px; }
+.hy-rail__badge--dot, .hy-rail__badge--count {
+  background: var(--accent-900); color: var(--background-100); box-shadow: 0 0 0 2px var(--background-200); border-radius: var(--radius-full);
+}
+.hy-rail__badge--dot.hy-rail__badge--error, .hy-rail__badge--count.hy-rail__badge--error { background: var(--red-800); color: var(--white); }
+.hy-rail__badge--dot.hy-rail__badge--warning, .hy-rail__badge--count.hy-rail__badge--warning { background: var(--amber-700); color: var(--black); }
+.hy-rail__badge--dot { top: -2px; left: 14px; width: 8px; height: 8px; }
+.hy-rail__badge--count { box-sizing: border-box; min-width: 16px; height: 16px; padding: 0 4px; font-size: 11px; line-height: 16px; font-weight: 500; text-align: center; font-variant-numeric: tabular-nums; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-rail__item { transition-duration: 0s; }
+}
+
 /* ---------- TabBar ---------- */
 @property --hy-tabbar-tint { syntax: "<color>"; inherits: false; initial-value: transparent; }
 /* --tab-bar-height is public API: the bar's height with its gap and the safe area, while a visible TabBar is mounted. */
@@ -1442,6 +1519,48 @@ a.hy-breadcrumbs__item:focus-visible { outline: 2px solid var(--focus-color); ou
 .hy-tabs--secondary .hy-tabs__tab[aria-selected="true"]:disabled { background: var(--gray-100); }
 .hy-tabs--secondary .hy-tabs__tab:focus-visible { outline-offset: 0; border-radius: var(--radius-md); }
 
+/* ---------- TitleBar ---------- */
+.hy-titlebar {
+  position: sticky; top: 0; z-index: calc(var(--z-drawer) - 1); box-sizing: border-box;
+  padding: 0 8px; padding-top: env(safe-area-inset-top, 0px); font-family: var(--font-sans);
+  /* The bar's fill: background-100 at 85% so content scrolling under it shows through, blurred. The solid fallbacks below reset both variables. */
+  --hy-titlebar-surface: color-mix(in srgb, var(--background-100) 85%, transparent);
+  --hy-titlebar-filter: blur(20px) saturate(180%);
+  background-color: var(--hy-titlebar-surface);
+  -webkit-backdrop-filter: var(--hy-titlebar-filter); backdrop-filter: var(--hy-titlebar-filter);
+  border-bottom: 1px solid var(--gray-alpha-400);
+}
+@media (min-width: 640px) { .hy-titlebar--hide-sm { display: none; } }
+/* The side columns are equal (each slot holds a hidden mirror of the other), so the title is centred whichever side has content, and truncates symmetrically. */
+.hy-titlebar__bar { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 8px; min-height: 52px; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) { display: grid; align-items: center; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) > * { grid-area: 1 / 1; display: flex; align-items: center; gap: 4px; }
+.hy-titlebar__mirror { visibility: hidden; pointer-events: none; }
+.hy-titlebar__leading { justify-self: start; }
+.hy-titlebar__leading > * { justify-self: start; }
+.hy-titlebar__trailing { justify-self: end; }
+.hy-titlebar__trailing > * { justify-self: end; }
+.hy-titlebar__title {
+  min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
+  color: var(--gray-1000); font-size: 16px; line-height: 24px; font-weight: 600;
+}
+
+/* The back button and icon actions are at least the touch target at every width, not only under touch sizing. */
+.hy-titlebar .hy-titlebar__back, .hy-titlebar__actions .hy-btn--icon { min-width: var(--touch-target); min-height: var(--touch-target); }
+.hy-titlebar__actions .hy-btn { min-height: var(--touch-target); }
+/* The chevron is drawn pointing down; turn it to point back. */
+.hy-titlebar__chevron { transform: rotate(90deg); }
+
+/* Solid surface: the opaque prop, reduced transparency, and no backdrop-filter support.
+   These are overrides, not a gate on no-preference, because Safari lacks prefers-reduced-transparency and would stay solid. */
+.hy-titlebar--opaque { --hy-titlebar-surface: var(--background-100); --hy-titlebar-filter: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .hy-titlebar { --hy-titlebar-surface: var(--background-100); --hy-titlebar-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hy-titlebar { --hy-titlebar-surface: var(--background-100); --hy-titlebar-filter: none; }
+}
+
 /* ---------- Badge ---------- */
 .hy-badge {
   display: inline-flex; align-items: center; justify-content: center; gap: 4px; flex: none;
@@ -1511,6 +1630,19 @@ a.hy-pill:active, button.hy-pill:active { background: var(--gray-300); }
 /* Toggle chip: pressed has a heavier ring, a tint and a check, so it never relies on colour alone. */
 .hy-pill--toggle.is-pressed { background: var(--gray-alpha-100); box-shadow: inset 0 0 0 1px var(--gray-1000); }
 button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
+/* State dot: StatusDot has no size prop, so Pill sizes its dot from outside, through `.hy-status__dot` and `.hy-status__ring`.
+   A change to StatusDot's dot classes needs these rules updated. StatusDot draws 10px, so the slot scales it to the pill (8 / 10 / 12px) and centres it on the label. */
+.hy-pill__status { display: inline-flex; flex: none; align-items: center; margin-left: -2px; line-height: 0; --hy-pill-dot: 10px; }
+.hy-pill__status .hy-status { display: inline-flex; gap: 0; line-height: 0; }
+.hy-pill__status .hy-status__dot { width: var(--hy-pill-dot); height: var(--hy-pill-dot); }
+.hy-pill__status .hy-status__ring { width: 100%; height: 100%; }
+.hy-pill--small .hy-pill__status { --hy-pill-dot: 8px; margin-left: -1px; }
+.hy-pill--large .hy-pill__status { --hy-pill-dot: 12px; margin-left: 0; }
+/* Trailing figure: after the label, quieter, in tabular numbers so a changing count doesn't shift the pill. */
+.hy-pill__trailing { flex: none; font-variant-numeric: tabular-nums; color: var(--gray-900); font-weight: 400; }
+/* Expanded (a Popover trigger that is open): the pressed style, without the check. */
+.hy-pill[aria-expanded="true"] { background: var(--gray-alpha-100); box-shadow: inset 0 0 0 1px var(--gray-1000); }
+a.hy-pill[aria-expanded="true"]:hover, button.hy-pill[aria-expanded="true"]:hover { background: var(--gray-alpha-200); }
 
 /* ---------- StatusDot ---------- */
 .hy-status { display: inline-flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; line-height: 16px; color: var(--gray-1000); }
@@ -1535,6 +1667,52 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 @keyframes hy-status-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 @media (prefers-reduced-motion: reduce) {
   .hy-status__dot { animation: none !important; }
+}
+
+/* ---------- ActionBar ---------- */
+.hy-action-bar {
+  /* The bar's fill: background-100 at 85%, blurred, like the TabBar. The solid fallbacks below reset both variables.
+     --hy-action-bar-gap is the clear space around the bar. */
+  --hy-action-bar-surface: color-mix(in srgb, var(--background-100) 85%, transparent);
+  --hy-action-bar-filter: blur(20px) saturate(180%);
+  --hy-action-bar-gap: 8px;
+  /* In the flow at the end of the content, and held at the foot of the scroll container while there is more above it.
+     --tab-bar-height already includes the safe area while a TabBar is mounted; without one the safe area raises the bar. */
+  position: sticky; z-index: 1; box-sizing: border-box;
+  --hy-action-bar-offset: calc(max(var(--tab-bar-height, 0px), env(safe-area-inset-bottom, 0px)) + var(--hy-action-bar-gap));
+  bottom: var(--hy-action-bar-offset);
+  /* The bottom margin leaves the same room below the bar in the flow, so at the end of the scroll the bar already sits at
+     its sticky offset and doesn't ride up over the last row. */
+  margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) var(--hy-action-bar-offset);
+  pointer-events: none; font-family: var(--font-sans);
+}
+.hy-action-bar__surface {
+  pointer-events: auto; box-sizing: border-box; border-radius: var(--radius-xl);
+  background-color: var(--hy-action-bar-surface); box-shadow: 0 0 0 1px var(--gray-alpha-400), var(--shadow-menu);
+  -webkit-backdrop-filter: var(--hy-action-bar-filter); backdrop-filter: var(--hy-action-bar-filter);
+  animation: hy-action-bar-in .2s cubic-bezier(.4,0,.2,1);
+}
+@keyframes hy-action-bar-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.hy-action-bar__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; }
+.hy-action-bar__label { flex: 1 1 6rem; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.hy-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
+.hy-action-bar__close { flex: none; }
+.hy-action-bar__error { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 0 16px 10px; font-size: 13px; line-height: 18px; color: var(--red-900); }
+.hy-action-bar__error .hy-glyph { flex: none; margin-top: 2px; }
+
+/* Solid surface: the opaque prop, reduced transparency, and no backdrop-filter support. These are overrides, not a gate on
+   no-preference, because Safari lacks prefers-reduced-transparency and would stay solid. */
+.hy-action-bar--opaque { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .hy-action-bar { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hy-action-bar { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-action-bar__surface { animation: none; }
 }
 
 /* ---------- Banner ---------- */
@@ -1990,6 +2168,45 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-entity.is-current { background-color: var(--gray-alpha-100); box-shadow: inset 2px 0 0 var(--gray-1000); }
 .hy-entity-list > .hy-entity + .hy-entity.is-current { box-shadow: inset 2px 0 0 var(--gray-1000), inset 0 1px 0 var(--gray-alpha-400); }
 
+/* detail: an expandable row. The row has a stretched cover button, as as="button" does; the detail region sits under it inside the same item. */
+.hy-entity-item { position: relative; min-width: 0; list-style: none; color: var(--gray-1000); }
+.hy-entity-list > .hy-entity + .hy-entity-item::before, .hy-entity-list > .hy-entity-item + .hy-entity::before, .hy-entity-list > .hy-entity-item + .hy-entity-item::before {
+  content: ''; position: absolute; z-index: 1; top: 0; left: 0; right: 0; height: 1px; background: var(--gray-alpha-400); pointer-events: none;
+}
+.hy-entity--expandable > .hy-entity__right { pointer-events: none; }
+.hy-entity__chev { display: grid; position: relative; pointer-events: none; flex: none; color: var(--gray-900); transform: rotate(-90deg); transition: transform .2s cubic-bezier(.4,0,.2,1); }
+.hy-entity-item.is-open .hy-entity__chev { transform: none; }
+/* Opening and closing move only transform and opacity. display flips at the end of the close (allow-discrete); a browser without it just snaps. */
+.hy-entity__detail {
+  padding: 0 16px 16px; opacity: 1; transform: none;
+  transition: opacity .2s cubic-bezier(.4,0,.2,1), transform .2s cubic-bezier(.4,0,.2,1), display .2s allow-discrete;
+}
+.hy-entity__detail[hidden] { display: none; opacity: 0; transform: translateY(-4px); }
+@starting-style { .hy-entity__detail { opacity: 0; transform: translateY(-4px); } }
+.hy-entity__detail-body { font-size: 14px; line-height: 20px; color: var(--gray-900); }
+
+/* onReorder on the list: a leading drag handle that is also a menu button. Dragging moves the row by transform only. */
+.hy-entity__reorder { position: relative; z-index: 1; flex: none; display: flex; margin: 0 -8px 0 -4px; }
+.hy-entity__handle {
+  width: 24px; height: 24px; color: var(--gray-900); cursor: grab; touch-action: none; border-radius: var(--radius-sm);
+  transition: background-color .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-entity__handle:hover { background-color: var(--gray-alpha-100); color: var(--gray-1000); }
+.hy-entity__handle:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+@media (pointer: coarse), (max-width: 639px) { .hy-entity__handle { width: var(--touch-target); height: var(--touch-target); } }
+.hy-entity-list.is-reordering { cursor: grabbing; user-select: none; -webkit-user-select: none; }
+.hy-entity.is-dragging, .hy-entity-item.is-dragging {
+  z-index: 2; pointer-events: none; will-change: transform; background-color: var(--background-100);
+  box-shadow: var(--shadow-border), var(--shadow-medium); transition: box-shadow .15s cubic-bezier(.4,0,.2,1);
+}
+.hy-entity.is-drop-before::after, .hy-entity-item.is-drop-before::after, .hy-entity.is-drop-after::after, .hy-entity-item.is-drop-after::after {
+  content: ''; position: absolute; z-index: 2; left: 0; right: 0; top: 0; height: 2px; background: var(--accent-900); pointer-events: none;
+}
+.hy-entity.is-drop-after::after, .hy-entity-item.is-drop-after::after { top: auto; bottom: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .hy-entity__chev, .hy-entity__cover, .hy-entity__detail, .hy-entity__handle, .hy-entity.is-dragging, .hy-entity-item.is-dragging { transition: none; }
+}
+
 /* ---------- Icon ---------- */
 .hy-icon { flex: none; display: inline-block; vertical-align: middle; }
 
@@ -2187,6 +2404,41 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
   .hy-bar-list__row { transition: none; }
 }
 
+/* Opening a row without a link: a button that looks like the link row. */
+.hy-bar-list__row--button { width: 100%; margin: 0; border: 0; background: transparent; font: inherit; text-align: left; cursor: pointer; }
+.hy-bar-list__row--button:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-bar-list__row--link { cursor: pointer; }
+
+/* Columns: a native table. Extra columns size to their content and right-align in tabular numbers, so figures line up under
+   their headers. The label column takes a third of the width and truncates, the bar and value the rest. A hidden column
+   collapses to nothing but keeps its cells in the table, so assistive tech still reads them. */
+.hy-bar-list--table { display: table; width: 100%; border-collapse: collapse; table-layout: auto; font-size: 14px; line-height: 20px; color: var(--gray-1000); }
+.hy-bar-list__head { height: 32px; font-size: 13px; color: var(--gray-900); font-weight: 500; }
+.hy-bar-list--table th { font-weight: inherit; text-align: left; }
+.hy-bar-list__cell { padding: 0 6px; min-width: 0; }
+.hy-bar-list__cell:first-child { padding-left: 8px; }
+.hy-bar-list__cell:last-child { padding-right: 8px; }
+.hy-bar-list--table .hy-bar-list__tr { position: relative; height: 36px; }
+.hy-bar-list--table .hy-bar-list__tr:hover .hy-bar-list__cell { background: var(--gray-100); }
+.hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:first-child { border-radius: var(--radius-md) 0 0 var(--radius-md); }
+.hy-bar-list--table .hy-bar-list__tr .hy-bar-list__cell:last-child { border-radius: 0 var(--radius-md) var(--radius-md) 0; }
+.hy-bar-list__cell--label { width: 33%; max-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-bar-list__cell--value { width: 67%; }
+.hy-bar-list__valuebox { display: flex; align-items: center; gap: 12px; }
+.hy-bar-list__valuebox .hy-bar-list__bar { flex: 1 1 0; min-width: 80px; }
+.hy-bar-list__valuebox .hy-bar-list__value { flex: none; min-width: 6ch; }
+.hy-bar-list__head .hy-bar-list__cell--value { text-align: right; }
+.hy-bar-list__cell--figure { width: 1%; text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--gray-900); }
+.hy-bar-list--table .hy-bar-list__cell--figure.is-hidden { width: 0; max-width: 0; padding: 0; overflow: hidden; clip-path: inset(50%); }
+/* The whole row is the target: the link or button in the label cell stretches over the row. */
+.hy-bar-list__target { display: block; min-width: 0; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; text-decoration: none; cursor: pointer; overflow: hidden; text-overflow: ellipsis; }
+.hy-bar-list__target::after { content: ''; position: absolute; inset: 0; border-radius: var(--radius-md); }
+.hy-bar-list__target:focus { outline: none; }
+.hy-bar-list__target:focus-visible::after { outline: 2px solid var(--focus-color); outline-offset: 0; }
+@media (pointer: coarse), (max-width: 639px) {
+  .hy-bar-list--table .hy-bar-list__tr { height: var(--touch-target); }
+}
+
 /* ---------- ColumnChart ---------- */
 .hy-column-chart { position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; width: 100%; font-family: var(--font-sans); }
 .hy-column-chart__toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; min-height: 32px; }
@@ -2245,6 +2497,21 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
 .hy-column-chart__tip-total { margin-top: 4px; padding-top: 4px; border-top: 1px solid color-mix(in srgb, var(--tip-fg) 30%, transparent); font-weight: 600; }
 .hy-column-chart__tip-total .hy-column-chart__tip-label { padding-left: 16px; }
 
+/* Opening: a column is a full-slot link or button over the picture (at least 24px wide), and each mark a link or button
+   over its segment. A mark under 8px takes no pointer (the column gets the click) but stays in the keyboard path. */
+.hy-column-chart__body--open { overflow-x: auto; }
+.hy-column-chart__slot--open { min-width: 24px; }
+.hy-column-chart__open { position: absolute; inset: 0; z-index: 1; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.hy-column-chart__open.is-static { cursor: default; }
+.hy-column-chart__open:focus { outline: none; }
+.hy-column-chart__open:focus-visible, .hy-column-chart__mark:focus-visible, .hy-column-chart__tablelink:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-column-chart__marks { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 2; margin: 0 auto; width: 24px; max-width: 100%; pointer-events: none; }
+.hy-column-chart__mark { position: absolute; left: 0; right: 0; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; transition: background-color .15s; }
+.hy-column-chart__mark:hover { background: var(--gray-alpha-200); }
+.hy-column-chart__mark.is-thin { pointer-events: none; }
+.hy-column-chart__tablelink { display: inline; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.hy-column-chart__tablelink:hover { text-decoration-thickness: 2px; }
+
 /* Table view. In chart view the same table is visually hidden with core's .hy-sr. */
 .hy-column-chart__table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; color: var(--gray-1000); font-variant-numeric: tabular-nums; }
 .hy-column-chart__table th, .hy-column-chart__table td { padding: 6px 12px; border-bottom: 1px solid var(--gray-alpha-200); text-align: right; white-space: nowrap; }
@@ -2257,7 +2524,7 @@ button.hy-pill--toggle.is-pressed:hover { background: var(--gray-alpha-200); }
   .hy-column-chart__toolbar { min-height: var(--touch-target); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hy-column-chart__slot { transition: none; }
+  .hy-column-chart__slot, .hy-column-chart__mark { transition: none; }
   .hy-column-chart__tip { animation: none; }
 }
 
@@ -2409,6 +2676,76 @@ button.hy-ft__row:hover, a.hy-ft__row:hover { background: var(--gray-alpha-100);
 .hy-jv__mark { background: var(--amber-400); color: var(--gray-1000); border-radius: 2px; }
 @media (prefers-reduced-motion: reduce) {
   .hy-jv__toggle { transition: none; }
+}
+
+/* ---------- MonthView ---------- */
+/* The narrow form follows the component's own content width, not the viewport's: the component sets .is-narrow below 640px (sm). */
+.hy-month-view { width: 100%; min-width: 0; font-family: var(--font-sans); color: var(--gray-1000); }
+.hy-month-view__inner { display: flex; flex-direction: column; gap: 12px; }
+.hy-month-view__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hy-month-view__title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
+.hy-month-view__nav { display: flex; align-items: center; gap: 4px; }
+
+.hy-month-view__grid { border: 1px solid var(--gray-alpha-400); border-radius: var(--radius-lg); overflow: hidden; background: var(--background-100); }
+.hy-month-view__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.hy-month-view__week + .hy-month-view__week { border-top: 1px solid var(--gray-alpha-200); }
+.hy-month-view__head { padding: 6px 8px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); background: var(--gray-100); }
+
+.hy-month-view__day {
+  position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 112px; padding: 6px;
+  border-left: 1px solid var(--gray-alpha-200); cursor: default;
+}
+.hy-month-view__day:first-child { border-left: 0; }
+.hy-month-view__day:focus { outline: none; }
+.hy-month-view__day:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; z-index: 1; }
+.hy-month-view__day.is-outside { background: var(--gray-100); color: var(--gray-700); }
+.hy-month-view__day.is-outside .hy-month-view__entry, .hy-month-view__day.is-outside .hy-month-view__more { color: var(--gray-900); }
+.hy-month-view__num {
+  align-self: flex-start; min-width: 24px; height: 24px; padding: 0 4px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums; border-radius: var(--radius-full);
+}
+/* Today: a ring and heavier digits, so the mark doesn't depend on colour. */
+.hy-month-view__day.is-today .hy-month-view__num { font-weight: 700; box-shadow: inset 0 0 0 2px var(--gray-1000); }
+.hy-month-view__day.is-selected { background: var(--gray-alpha-100); }
+.hy-month-view__day.is-selected .hy-month-view__num { background: var(--gray-1000); color: var(--background-100); box-shadow: none; }
+
+.hy-month-view__entries, .hy-month-view__list-entries { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.hy-month-view__entries li, .hy-month-view__list-entries li { min-width: 0; }
+.hy-month-view__entry, .hy-month-view__more {
+  display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; min-height: 24px; box-sizing: border-box; padding: 0 4px; margin: 0;
+  border: 0; border-radius: var(--radius-sm); background: transparent; font: inherit; font-size: 13px; line-height: 20px; color: var(--gray-1000); text-align: left; text-decoration: none;
+}
+.hy-month-view__entry.is-link, .hy-month-view__entry.is-button, .hy-month-view__more { cursor: pointer; transition: background-color .15s; }
+.hy-month-view__entry.is-link:hover, .hy-month-view__entry.is-button:hover, .hy-month-view__more:hover { background: var(--gray-alpha-200); }
+.hy-month-view__entry.is-link .hy-month-view__entry-label { text-decoration: underline; text-decoration-color: var(--gray-alpha-400); text-underline-offset: 2px; }
+.hy-month-view__entry:focus-visible, .hy-month-view__more:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-month-view__entry-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-month-view__more { color: var(--gray-900); font-weight: 500; }
+
+/* Tones are Progress's segment colours. */
+.hy-month-view__mark { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--hy-mark, var(--gray-700)); }
+.hy-month-view__mark--none { display: none; }
+.hy-month-view__mark--success { --hy-mark: var(--green-700); }
+.hy-month-view__mark--info { --hy-mark: var(--blue-700); }
+.hy-month-view__mark--warning { --hy-mark: var(--amber-700); }
+.hy-month-view__mark--error { --hy-mark: var(--red-800); }
+.hy-month-view__mark--neutral { --hy-mark: var(--gray-700); }
+.hy-month-view__dots { display: none; }
+.hy-month-view__dots .hy-month-view__mark--none { display: block; }
+
+.hy-month-view__list { display: flex; flex-direction: column; gap: 8px; }
+.hy-month-view__list-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+.hy-month-view__list-empty { margin: 0; font-size: 14px; line-height: 20px; color: var(--gray-900); }
+.hy-month-view__list .hy-month-view__entry { min-height: var(--touch-target); padding: 0 8px; font-size: 14px; }
+
+/* Narrow (the sm width): days shrink to a number and up to three dots; the entries go to the list below the grid. */
+.is-narrow .hy-month-view__head { padding: 6px 2px; text-align: center; }
+.is-narrow .hy-month-view__day { align-items: center; min-height: var(--touch-target); padding: 4px 2px; gap: 2px; }
+.is-narrow .hy-month-view__num { align-self: center; }
+.is-narrow .hy-month-view__entries { display: none; }
+.is-narrow .hy-month-view__dots { display: flex; gap: 3px; height: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .hy-month-view__entry, .hy-month-view__more { transition-duration: 0s; }
 }
 
 /* ---------- Sparkbars ---------- */
@@ -2990,6 +3327,21 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
   .hy-grid__cell { grid-column: var(--hy-c-lg); grid-row: var(--hy-r-lg); }
 }
 
+/* ---------- Pane ---------- */
+/* The surface is a variable so an app can set the list pane to background-200 (app chrome) with its own class or `style`:
+   --hy-pane-background: var(--background-200). The detail stays background-100. */
+.hy-pane {
+  display: flex; flex-direction: column; box-sizing: border-box; height: 100%; min-width: 0; min-height: 0;
+  background-color: var(--hy-pane-background, var(--background-100)); font-family: var(--font-sans);
+}
+.hy-pane__header, .hy-pane__footer { flex: none; box-sizing: border-box; min-width: 0; padding: 8px 16px; }
+.hy-pane__header { display: flex; align-items: center; gap: 8px; min-height: 48px; border-bottom: 1px solid var(--gray-alpha-400); }
+.hy-pane__footer { border-top: 1px solid var(--gray-alpha-400); }
+/* The body is the scroll container: a sticky child (an ActionBar) holds at its foot. */
+.hy-pane__body { flex: 1 1 0; min-height: 0; min-width: 0; overflow-y: auto; overscroll-behavior: contain; }
+/* The ring sits inside the body so the hairlines and the neighbouring pane don't clip it. */
+.hy-pane__body:focus-visible { outline: 2px solid var(--focus-color); outline-offset: -2px; }
+
 /* ---------- Scroller ---------- */
 .hy-scroller { display: flex; flex-direction: column; gap: var(--space-3); min-width: 0; max-width: 100%; }
 .hy-scroller__frame { position: relative; flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; }
@@ -3062,6 +3414,27 @@ a.hy-ctx__trigger { display: inline-flex; align-items: center; min-height: 24px;
 .hy-showmore__chev.is-up { transform: rotate(180deg); }
 @media (prefers-reduced-motion: reduce) {
   .hy-showmore__chev { transition: none; }
+}
+
+/* ---------- SplitView ---------- */
+/* From sm up: the list at a fixed width, the detail filling the rest, a hairline between them. */
+.hy-split-view {
+  display: grid; box-sizing: border-box; height: 100%; min-width: 0; min-height: 0;
+  grid-template-columns: var(--hy-split-list-width, 320px) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr);
+}
+.hy-split-view__list, .hy-split-view__detail { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.hy-split-view__detail { border-left: 1px solid var(--gray-alpha-400); }
+/* A pane (or anything else) fills its half; each Pane scrolls its own body. */
+.hy-split-view__list > *, .hy-split-view__detail > * { flex: 1 1 0; min-height: 0; }
+
+/* Below sm: both panes share one cell and `show` picks which is visible. visibility: hidden takes the other out of the
+   accessibility tree and the Tab order, but keeps its layout, so it keeps its scroll position when it comes back. */
+@media (max-width: 639px) {
+  .hy-split-view { grid-template-columns: minmax(0, 1fr); }
+  .hy-split-view__list, .hy-split-view__detail { grid-area: 1 / 1; }
+  .hy-split-view__detail { border-left: 0; }
+  .hy-split-view--show-list > .hy-split-view__detail { visibility: hidden; }
+  .hy-split-view--show-detail > .hy-split-view__list { visibility: hidden; }
 }
 
 /* ---------- Avatar ---------- */

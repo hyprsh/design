@@ -1,0 +1,39 @@
+<!-- @dsCard group="Data" height=1440 subtitle="A month of deployments and releases with a full day and “+N more”, and the narrow form with dots and a day list" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>MonthView</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:none;gap:32px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var now = new Date(), Y = now.getFullYear(), M = now.getMonth();
+function e(day, key, label, tone, extra) { return Object.assign({ key: key, date: new Date(Y, M, day, 10), label: label, tone: tone }, extra); }
+var entries = [
+  e(3, 'a', 'Deploy web', 'success', { href: '#deploy-web' }),
+  e(3, 'b', 'Deploy api', 'success', { href: '#deploy-api' }),
+  e(6, 'c', 'Release v2.4', 'info', { onOpen: function () {} }),
+  e(9, 'd', 'Maintenance window', 'warning'),
+  e(12, 'e', 'Deploy web', 'error', { href: '#deploy-web' }),
+  e(12, 'f', 'Rollback web', 'neutral', { onOpen: function () {} }),
+  e(12, 'g', 'Release v2.5 RC', 'info', { onOpen: function () {} }),
+  e(12, 'h', 'Database upgrade', 'warning'),
+  e(12, 'i', 'Cache purge', 'neutral'),
+  e(18, 'j', 'Release v2.5', 'success', { onOpen: function () {} }),
+  e(21, 'k', 'Maintenance window', 'warning'),
+  e(21, 'l', 'Deploy api', 'success', { href: '#deploy-api' }),
+  e(26, 'm', 'Release v2.6 RC', 'info', { onOpen: function () {} })
+];
+function Wide() {
+  var s = React.useState('Nothing opened yet'), msg = s[0], set = s[1];
+  return h('div', { style: { display: 'flex', flexDirection: 'column', gap: 8 } },
+    h(H.MonthView, { entries: entries, label: 'Deployments and releases', onDayOpen: function (d) { set('Opened ' + d.toDateString()); } }),
+    h('span', { className: 'copy-13', 'aria-live': 'polite' }, msg));
+}
+function Narrow() {
+  return h('div', { style: { width: 360, maxWidth: '100%' } }, h(H.MonthView, { entries: entries, label: 'Deployments and releases', defaultSelectedDate: new Date(Y, M, 12) }));
+}
+function Demo() { return h(F, null, h(Wide), h(Narrow)); }
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

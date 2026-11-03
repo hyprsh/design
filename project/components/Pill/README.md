@@ -2,9 +2,11 @@
 
 A link styled like a Badge: a light, rounded way to point somewhere that doesn't need the weight of a button.
 
-**You provide:** the label as `children` and an `href`. Optional: `size` (`sm` | `md` | `lg`, default `md`; `small` | `medium` | `large` also work), an `icon` node before the label, and any anchor attributes such as `target`. Without `href`, an `onClick` renders a `<button>`. For a toggle in a filter row, pass `pressed` with `onPressedChange(pressed)`, or `defaultPressed` to let the pill keep its own state; a pressed pill is drawn in the pressed style and reports it with `aria-pressed`.
+**You provide:** the label as `children` and an `href`. Optional: `size` (`sm` | `md` | `lg`, default `md`; `small` | `medium` | `large` also work), an `icon` node before the label, `status` (a StatusDot state, such as `building`) with `statusLabel` (its meaning in words) for a state dot, `trailing` (a node after the label, such as `54/56`), and any anchor attributes such as `target`. Without `href`, an `onClick` renders a `<button>`. For a toggle in a filter row, pass `pressed` with `onPressedChange(pressed)`, or `defaultPressed` to let the pill keep its own state; a pressed pill is drawn in the pressed style and reports it with `aria-pressed`.
 
-**Toggle chip:** `pressed` with `onPressedChange(next)` (or `defaultPressed`) makes the pill a `<button aria-pressed>` for filters, where several chips can be on at once. A pressed chip gets a darker ring, a light tint and a leading check (unless you pass an `icon`), so the state doesn't rely on colour. Use it instead of a `Button variant="primary"` for “on”, which breaks the one-primary-per-view rule. For a single choice among a few, use Tabs or a Radio group.
+**Toggle chip:** `pressed` with `onPressedChange(next)` (or `defaultPressed`) makes the pill a `<button aria-pressed>` for filters, where several chips can be on at once. A pressed chip gets a darker ring, a light tint and a leading check (unless you pass an `icon` or a `status`), so the state doesn't rely on colour. Use it instead of a `Button variant="primary"` for “on”, which breaks the one-primary-per-view rule. For a single choice among a few, use Tabs or a Radio group.
+
+**Popover trigger:** a Pill forwards its ref to the element it renders, so it works as the `trigger` of a `Popover`: it opens the popover, carries `aria-expanded`, and gets focus back when the popover closes. While it is open it is drawn in the pressed style, without the check. `status` draws a StatusDot before the label, scaled to the pill (8, 10 or 12px) and it wins over `icon`. `statusLabel` is read as part of the name after the label (“STD, Downloading”) and the dot is always hidden from assistive tech, so `statusLabel` is the only way the state is spoken: give it whenever the dot carries meaning. `trailing` is drawn in tabular numbers in a quieter colour and is read as text.
 
 - Use a Pill for secondary destinations: a changelog entry, a filter shortcut, a “Join the Discussion” link. Use a Button for actions that change something.
 - Keep the label to one to three words in Title Case, and make it name the destination.
@@ -80,6 +82,27 @@ export default function Example() {
         <Pill key={name} pressed={on.includes(name)} onPressedChange={toggle(name)}>{name}</Pill>
       ))}
     </div>
+  );
+}
+```
+
+### Popover Trigger
+A pill with a state dot and a trailing figure that opens a Popover.
+
+```jsx
+import { Button, Pill, Popover } from '@hyprsh/design';
+
+export default function Example() {
+  return (
+    <Popover
+      label="Downloads"
+      trigger={<Pill status="building" statusLabel="Downloading" trailing="54/56">STD</Pill>}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 12, alignItems: 'flex-start' }}>
+        <span className="copy-14">54 of 56 files downloaded.</span>
+        <Button size="small">Pause</Button>
+      </div>
+    </Popover>
   );
 }
 ```

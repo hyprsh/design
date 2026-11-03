@@ -130,9 +130,13 @@ export interface TableProps<R = Record<string, unknown>> extends Omit<React.Tabl
 }
 export interface TableColumnsMenuProps<R = Record<string, unknown>> {
   columns: TableColumn<R>[];
-  /** The current order, as given to the table: the menu is controlled and keeps no order of its own. */
-  columnOrder: string[];
-  onColumnOrderChange: TableProps<R>['onColumnOrderChange'];
+  /** The current order, as given to the table: the menu is controlled and keeps no order of its own. With `onColumnOrderChange` it adds Move Left, Move Right and Reset Order. Optional when the width props are given. */
+  columnOrder?: string[];
+  onColumnOrderChange?: TableProps<R>['onColumnOrderChange'];
+  /** The current widths, as given to the table. With `onColumnWidthsChange` they add Wider, Narrower and Reset Width for each resizable column (32px a step, within the handle's limits); the items are hidden on touch-only devices, and a menu left with none doesn't render. Wider and Narrower keep the menu open. */
+  columnWidths?: TableColumnWidths;
+  /** A width item was chosen. Fires with `phase: 'end'`, like a keyboard resize on the handle. */
+  onColumnWidthsChange?: TableProps<R>['onColumnWidthsChange'];
   /** The menu button's text. Default “Columns”. */
   label?: React.ReactNode;
 }

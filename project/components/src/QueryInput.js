@@ -25,6 +25,9 @@ function QueryInput(props) {
   var shortcut = typeof props.shortcut === 'string' && props.shortcut ? props.shortcut : null;
   /* Where the caret goes once a picked suggestion is in the field. */
   var placeCaret = useRef(null);
+  /* Set while the clear button hands focus back, so that focus does not reopen the list it just closed. */
+  var refocusing = useRef(false);
+  var clearable = props.clearable === true && !props.disabled && !props.readOnly;
 
   var suggestions = caret === null || dismissed || props.disabled ? []
     : props.suggestions ? props.suggestions(value, caret)
@@ -76,6 +79,12 @@ function QueryInput(props) {
     edit(s.text, s.caret, !s.keepOpen);
     if (input.current) input.current.focus();
   }
+  function clear() {
+    edit('', 0, true);
+    refocusing.current = true;
+    if (input.current) input.current.focus();
+    refocusing.current = false;
+  }
   function onKeyDown(e) {
     var n = suggestions.length;
     if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
@@ -97,21 +106,23 @@ function QueryInput(props) {
   }) : [];
   var problemsId = id + '-problems';
   var showHelp = props.help !== false && qualifiers && qualifiers.length > 0;
-  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style', 'shortcut']);
+  var rest = omit(props, ['value', 'defaultValue', 'onChange', 'suggestions', 'qualifiers', 'help', 'size', 'className', 'id', 'onKeyDown', 'style', 'shortcut', 'clearable', 'clearLabel']);
 
   return h('div', { className: cx('hy-query', props.className), style: props.style },
     h('div', { className: 'hy-query__row' },
       h('div', { ref: field, className: 'hy-query__field' },
         h(HY.Input, Object.assign({}, rest, {
           'aria-keyshortcuts': props['aria-keyshortcuts'] || shortcut || undefined,
-          suffix: shortcut && value === '' ? h(HY.KeyboardInput, { small: true, 'aria-hidden': 'true' }, shortcut) : undefined, suffixStyling: shortcut ? false : undefined,
+          suffix: clearable && value !== '' ? h('button', { type: 'button', className: 'hy-query__clear', 'aria-label': props.clearLabel || 'Clear', onMouseDown: function (e) { e.preventDefault(); }, onClick: clear }, h(Glyph, { name: 'x', size: 14 }))
+            : shortcut && value === '' ? h(HY.KeyboardInput, { small: true, 'aria-hidden': 'true' }, shortcut) : undefined,
+          suffixStyling: shortcut || clearable ? false : undefined,
           ref: input, id: id, size: size, value: value, role: 'combobox', autoComplete: 'off', spellCheck: false,
           'aria-autocomplete': 'list', 'aria-expanded': open, 'aria-controls': open ? listId : undefined,
           'aria-activedescendant': open ? id + '-opt-' + current : undefined,
           'aria-describedby': cx(props['aria-describedby'], problems.length ? problemsId : null) || undefined,
           onChange: function (e) { edit(e.target.value, e.target.selectionStart == null ? e.target.value.length : e.target.selectionStart, false); },
           onSelect: function (e) { if (document.activeElement === e.currentTarget) setCaret(e.currentTarget.selectionStart); },
-          onFocus: function (e) { setCaret(e.currentTarget.selectionStart); setDismissed(false); },
+          onFocus: function (e) { setCaret(e.currentTarget.selectionStart); if (!refocusing.current) setDismissed(false); },
           onBlur: function () { setCaret(null); },
           onKeyDown: onKeyDown
         }))),

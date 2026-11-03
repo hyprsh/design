@@ -21,7 +21,7 @@ A floating pill tab bar for the main screens of an app at phone width. It follow
 - Tab moves through every item, then the accessory. Left/Right and Home/End move between the items only.
 - The accessory is for an action that isn't a screen, such as Search. It is an icon-only button, so its `label` is its accessible name.
 - Every item and the accessory are at least `--touch-target` in both directions.
-- Don't put a desktop navigation in it: from `sm` up use a rail or sidebar.
+- Don't put a desktop navigation in it: from `sm` up use a [Rail](../Rail/README.md), which takes the same items, or a sidebar.
 - TabBar has no inline or contained mode: it is always fixed to the viewport. The Examples sit it in a frame by passing `style={{ position: 'relative', inset: 'auto', padding: 0 }}` and `hideFrom={false}`. In an app, leave both off.
 
 ## Examples

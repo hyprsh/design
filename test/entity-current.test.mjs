@@ -10,8 +10,9 @@ import vm from 'node:vm';
 const src = join(dirname(fileURLToPath(import.meta.url)), '../project/components/src');
 const registry = {};
 let inList = false;
+let nextCtx = 0;
 const context = vm.createContext({
-  React: { createContext: () => ({ Provider: 'Provider' }), useContext: () => inList },
+  React: { createContext: () => ({ Provider: 'Provider', n: nextCtx++ }), useContext: (c) => (c.n === 0 ? inList : null) },
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),
@@ -22,7 +23,8 @@ const context = vm.createContext({
   define: (name, fn) => { registry[name] = fn; },
 });
 vm.runInContext(readFileSync(join(src, 'Entity.js'), 'utf8'), context, { filename: 'Entity.js' });
-const row = (props, list = false) => { inList = list; return registry.Entity(props); };
+// Entity hands its row to a component of its own, which holds the hooks.
+const row = (props, list = false) => { inList = list; const r = registry.Entity(props); return typeof r.type === 'function' ? r.type(r.props) : r; };
 
 describe('Entity current', () => {
   for (const [name, props, list, tag] of [['as="li"', { as: 'li' }, false, 'li'], ['as="div"', { as: 'div' }, false, 'div'], ['as="button"', { as: 'button' }, false, 'div'], ['inside Entity.List', {}, true, 'li']]) {

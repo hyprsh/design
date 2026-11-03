@@ -21,6 +21,7 @@ const context = vm.createContext({
   },
   useId: () => 'id-1',
   useState: (v) => [v, () => {}],
+  useEffect: () => {},
   h: (type, props, ...children) => ({ type, props: props || {}, children: children.flat() }),
   cx: (...a) => a.filter(Boolean).join(' '),
   omit: (o, keys) => Object.fromEntries(Object.entries(o).filter(([k]) => !keys.includes(k))),

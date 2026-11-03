@@ -1,0 +1,45 @@
+/* ---------- ActionBar ---------- */
+.hy-action-bar {
+  /* The bar's fill: background-100 at 85%, blurred, like the TabBar. The solid fallbacks below reset both variables.
+     --hy-action-bar-gap is the clear space around the bar. */
+  --hy-action-bar-surface: color-mix(in srgb, var(--background-100) 85%, transparent);
+  --hy-action-bar-filter: blur(20px) saturate(180%);
+  --hy-action-bar-gap: 8px;
+  /* In the flow at the end of the content, and held at the foot of the scroll container while there is more above it.
+     --tab-bar-height already includes the safe area while a TabBar is mounted; without one the safe area raises the bar. */
+  position: sticky; z-index: 1; box-sizing: border-box;
+  --hy-action-bar-offset: calc(max(var(--tab-bar-height, 0px), env(safe-area-inset-bottom, 0px)) + var(--hy-action-bar-gap));
+  bottom: var(--hy-action-bar-offset);
+  /* The bottom margin leaves the same room below the bar in the flow, so at the end of the scroll the bar already sits at
+     its sticky offset and doesn't ride up over the last row. */
+  margin: var(--hy-action-bar-gap) var(--hy-action-bar-gap) var(--hy-action-bar-offset);
+  pointer-events: none; font-family: var(--font-sans);
+}
+.hy-action-bar__surface {
+  pointer-events: auto; box-sizing: border-box; border-radius: var(--radius-xl);
+  background-color: var(--hy-action-bar-surface); box-shadow: 0 0 0 1px var(--gray-alpha-400), var(--shadow-menu);
+  -webkit-backdrop-filter: var(--hy-action-bar-filter); backdrop-filter: var(--hy-action-bar-filter);
+  animation: hy-action-bar-in .2s cubic-bezier(.4,0,.2,1);
+}
+@keyframes hy-action-bar-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.hy-action-bar__row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; }
+.hy-action-bar__label { flex: 1 1 6rem; min-width: 0; font-size: 14px; line-height: 20px; font-weight: 500; color: var(--gray-1000); overflow-wrap: anywhere; font-variant-numeric: tabular-nums; }
+.hy-action-bar__actions { display: flex; flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; margin-left: auto; }
+.hy-action-bar__close { flex: none; }
+.hy-action-bar__error { display: flex; align-items: flex-start; gap: 6px; margin: 0; padding: 0 16px 10px; font-size: 13px; line-height: 18px; color: var(--red-900); }
+.hy-action-bar__error .hy-glyph { flex: none; margin-top: 2px; }
+
+/* Solid surface: the opaque prop, reduced transparency, and no backdrop-filter support. These are overrides, not a gate on
+   no-preference, because Safari lacks prefers-reduced-transparency and would stay solid. */
+.hy-action-bar--opaque { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .hy-action-bar { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hy-action-bar { --hy-action-bar-surface: var(--background-100); --hy-action-bar-filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hy-action-bar__surface { animation: none; }
+}

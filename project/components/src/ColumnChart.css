@@ -56,6 +56,21 @@
 .hy-column-chart__tip-total { margin-top: 4px; padding-top: 4px; border-top: 1px solid color-mix(in srgb, var(--tip-fg) 30%, transparent); font-weight: 600; }
 .hy-column-chart__tip-total .hy-column-chart__tip-label { padding-left: 16px; }
 
+/* Opening: a column is a full-slot link or button over the picture (at least 24px wide), and each mark a link or button
+   over its segment. A mark under 8px takes no pointer (the column gets the click) but stays in the keyboard path. */
+.hy-column-chart__body--open { overflow-x: auto; }
+.hy-column-chart__slot--open { min-width: 24px; }
+.hy-column-chart__open { position: absolute; inset: 0; z-index: 1; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; }
+.hy-column-chart__open.is-static { cursor: default; }
+.hy-column-chart__open:focus { outline: none; }
+.hy-column-chart__open:focus-visible, .hy-column-chart__mark:focus-visible, .hy-column-chart__tablelink:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-column-chart__marks { position: absolute; top: 0; bottom: 0; left: 0; right: 0; z-index: 2; margin: 0 auto; width: 24px; max-width: 100%; pointer-events: none; }
+.hy-column-chart__mark { position: absolute; left: 0; right: 0; display: block; box-sizing: border-box; margin: 0; padding: 0; border: 0; background: transparent; cursor: pointer; pointer-events: auto; transition: background-color .15s; }
+.hy-column-chart__mark:hover { background: var(--gray-alpha-200); }
+.hy-column-chart__mark.is-thin { pointer-events: none; }
+.hy-column-chart__tablelink { display: inline; margin: 0; padding: 0; border: 0; background: transparent; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+.hy-column-chart__tablelink:hover { text-decoration-thickness: 2px; }
+
 /* Table view. In chart view the same table is visually hidden with core's .hy-sr. */
 .hy-column-chart__table { width: 100%; border-collapse: collapse; font-size: 13px; line-height: 20px; color: var(--gray-1000); font-variant-numeric: tabular-nums; }
 .hy-column-chart__table th, .hy-column-chart__table td { padding: 6px 12px; border-bottom: 1px solid var(--gray-alpha-200); text-align: right; white-space: nowrap; }
@@ -68,6 +83,6 @@
   .hy-column-chart__toolbar { min-height: var(--touch-target); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .hy-column-chart__slot { transition: none; }
+  .hy-column-chart__slot, .hy-column-chart__mark { transition: none; }
   .hy-column-chart__tip { animation: none; }
 }

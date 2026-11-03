@@ -1,0 +1,57 @@
+<!-- @dsCard group="Navigation" height=1380 subtitle="Phone screen header: top-level and pushed screens over scrolling content, translucent and opaque surfaces, long title, back link" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>TitleBar</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:375px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+function icon(name) { return h(H.Icon, { name: name, size: 16 }); }
+function action(label, name) { return h(H.Button, { svgOnly: true, variant: 'tertiary', 'aria-label': label }, icon(name)); }
+/* Busy, high-contrast tiles drawn from tokens, to test the bar's surface against. */
+var posters = [
+  'repeating-linear-gradient(45deg, var(--gray-1000) 0 6px, var(--background-100) 6px 12px)',
+  'conic-gradient(from 90deg, var(--accent-900), var(--red-800), var(--amber-700), var(--gray-1000), var(--accent-900))',
+  'linear-gradient(135deg, var(--gray-1000) 0 50%, var(--background-100) 50% 100%)',
+  'repeating-conic-gradient(var(--gray-1000) 0 25%, var(--background-100) 0 50%) 0 0 / 16px 16px'
+];
+var rows = ['Deployed main to production', 'Preview ready for docs', 'Domain verified', 'Build failed on feat/title-bar', 'Branch merged'];
+/* A phone screen: the bar is sticky at the top of the scroll area, with content scrolled under it and a TabBar floating below. */
+function Screen(props) {
+  var scroller = React.useRef(null);
+  React.useLayoutEffect(function () { scroller.current.scrollTop = 90; }, []);
+  return h('div', { style: { position: 'relative', height: 300, overflow: 'hidden', border: '1px solid var(--gray-alpha-400)', borderRadius: 16, background: 'var(--background-100)' } },
+    h('div', { ref: scroller, tabIndex: 0, role: 'region', 'aria-label': props.name, className: 'copy-14',
+      style: { height: '100%', overflowY: 'auto', paddingBottom: 'var(--tab-bar-height)', boxSizing: 'border-box' } },
+      h(H.TitleBar, { hideFrom: false, opaque: props.opaque, title: props.title, back: props.back, actions: props.actions, headingLevel: 2 }),
+      h('div', { style: { padding: '0 12px' } },
+        h('div', { style: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8, margin: '0 0 12px' } },
+          posters.map(function (bg, i) { return h('div', { key: i, 'aria-hidden': 'true', style: { height: 100, borderRadius: 8, background: bg } }); })),
+        rows.map(function (t) { return h('p', { key: t, style: { margin: '0 0 12px' } }, t); }),
+        h('div', { 'aria-hidden': 'true', style: { height: 72, borderRadius: 8, background: 'var(--black)', margin: '0 0 12px' } }),
+        h('div', { 'aria-hidden': 'true', style: { height: 72, borderRadius: 8, background: 'var(--white)', boxShadow: '0 0 0 1px var(--gray-alpha-400)', margin: '0 0 12px' } }))),
+    h(H.TabBar, { label: props.name + ' tabs', hideFrom: false, style: { position: 'absolute' }, defaultValue: 'projects' },
+      h(H.TabBar.Item, { value: 'projects', label: 'Projects', icon: icon('layers') }),
+      h(H.TabBar.Item, { value: 'domains', label: 'Domains', icon: icon('globe') }),
+      h(H.TabBar.Item, { value: 'activity', label: 'Activity', icon: icon('activity') })));
+}
+function flat(title, props) {
+  return h('div', { style: { border: '1px solid var(--gray-alpha-400)', borderRadius: 16, overflow: 'hidden' } },
+    h(H.TitleBar, Object.assign({ hideFrom: false, title: title }, props)));
+}
+function Demo() {
+  return h(F, null,
+    h('p', { className: 'label-13' }, 'Top-level screen: title and an action, over scrolling content with a floating TabBar'),
+    h(Screen, { name: 'Projects', title: 'Projects', actions: action('New Project', 'plus') }),
+    h('p', { className: 'label-13' }, 'Pushed screen: back, title and one action'),
+    h(Screen, { name: 'Pushed screen', title: 'docs-site', back: { label: 'Projects', onClick: function () {} }, actions: action('Share', 'share') }),
+    h('p', { className: 'label-13' }, 'opaque: the solid surface'),
+    h(Screen, { name: 'Opaque', title: 'docs-site', opaque: true, back: { onClick: function () {} }, actions: action('Share', 'share') }),
+    h('p', { className: 'label-13' }, 'Back as a link; a long title is truncated and stays centred'),
+    flat('Domains', { back: { href: '#', label: 'Projects' } }),
+    flat('Preview deployment for feat/title-bar in the docs site', { back: { onClick: function () {} }, actions: h(F, null, action('Share', 'share'), action('More', 'ellipsis')) }));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

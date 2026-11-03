@@ -1,0 +1,33 @@
+<!-- @dsCard group="Layout" height=880 subtitle="A column with a fixed header and footer and a body that scrolls on its own, an ActionBar at its foot, and the app chrome surface" -->
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pane</title></head>
+<body>
+<div id="root" class="hy-col" style="max-width:420px"></div>
+<script>
+var H = window.Hyprsh, h = React.createElement, F = React.Fragment;
+var box = { height: 240, border: '1px solid var(--gray-alpha-400)', borderRadius: 8, overflow: 'hidden' };
+var names = ['Production', 'Preview for docs', 'Preview for api', 'Preview for billing', 'Production', 'Preview for teams', 'Preview for edge', 'Production'];
+function rows(list) {
+  return list.map(function (n, i) { return h('p', { key: i, className: 'copy-14', style: { margin: 0, padding: '12px 16px', borderBottom: '1px solid var(--gray-alpha-400)' } }, n); });
+}
+function Demo() {
+  return h(F, null,
+    h('p', { className: 'label-13' }, 'Header and footer stay while the body scrolls'),
+    h('div', { style: box },
+      h(H.Pane, { label: 'Deployments', header: h('strong', { className: 'label-14' }, 'Deployments'), footer: h(H.Button, { size: 'small', variant: 'secondary' }, 'Load More') }, rows(names))),
+    h('p', { className: 'label-13' }, 'An ActionBar at the end of the body stays at the pane’s foot'),
+    h('div', { style: box },
+      h(H.Pane, { label: 'Domains', header: h('strong', { className: 'label-14' }, 'Domains'), footer: h('span', { className: 'copy-13' }, '8 domains') },
+        rows(names),
+        h(H.ActionBar, { open: true, label: '2 unsaved changes',
+          actions: h(F, null, h(H.Button, { size: 'small', variant: 'tertiary' }, 'Discard'), h(H.Button, { size: 'small', variant: 'primary' }, 'Save')) }))),
+    h('p', { className: 'label-13' }, 'App chrome surface: --hy-pane-background'),
+    h('div', { style: Object.assign({}, box, { height: 120 }) },
+      h(H.Pane, { label: 'Projects', header: h('strong', { className: 'label-14' }, 'Projects'), style: { '--hy-pane-background': 'var(--background-200)' } },
+        h('p', { className: 'copy-14', style: { margin: 0, padding: 16 } }, 'hyprsh-docs'))));
+}
+ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
+</script>
+</body>
+</html>

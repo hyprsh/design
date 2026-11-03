@@ -1,0 +1,41 @@
+/* ---------- TitleBar ---------- */
+.hy-titlebar {
+  position: sticky; top: 0; z-index: calc(var(--z-drawer) - 1); box-sizing: border-box;
+  padding: 0 8px; padding-top: env(safe-area-inset-top, 0px); font-family: var(--font-sans);
+  /* The bar's fill: background-100 at 85% so content scrolling under it shows through, blurred. The solid fallbacks below reset both variables. */
+  --hy-titlebar-surface: color-mix(in srgb, var(--background-100) 85%, transparent);
+  --hy-titlebar-filter: blur(20px) saturate(180%);
+  background-color: var(--hy-titlebar-surface);
+  -webkit-backdrop-filter: var(--hy-titlebar-filter); backdrop-filter: var(--hy-titlebar-filter);
+  border-bottom: 1px solid var(--gray-alpha-400);
+}
+@media (min-width: 640px) { .hy-titlebar--hide-sm { display: none; } }
+/* The side columns are equal (each slot holds a hidden mirror of the other), so the title is centred whichever side has content, and truncates symmetrically. */
+.hy-titlebar__bar { display: grid; grid-template-columns: max-content minmax(0, 1fr) max-content; align-items: center; gap: 8px; min-height: 52px; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) { display: grid; align-items: center; }
+.hy-titlebar__bar > :not(.hy-titlebar__title) > * { grid-area: 1 / 1; display: flex; align-items: center; gap: 4px; }
+.hy-titlebar__mirror { visibility: hidden; pointer-events: none; }
+.hy-titlebar__leading { justify-self: start; }
+.hy-titlebar__leading > * { justify-self: start; }
+.hy-titlebar__trailing { justify-self: end; }
+.hy-titlebar__trailing > * { justify-self: end; }
+.hy-titlebar__title {
+  min-width: 0; margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center;
+  color: var(--gray-1000); font-size: 16px; line-height: 24px; font-weight: 600;
+}
+
+/* The back button and icon actions are at least the touch target at every width, not only under touch sizing. */
+.hy-titlebar .hy-titlebar__back, .hy-titlebar__actions .hy-btn--icon { min-width: var(--touch-target); min-height: var(--touch-target); }
+.hy-titlebar__actions .hy-btn { min-height: var(--touch-target); }
+/* The chevron is drawn pointing down; turn it to point back. */
+.hy-titlebar__chevron { transform: rotate(90deg); }
+
+/* Solid surface: the opaque prop, reduced transparency, and no backdrop-filter support.
+   These are overrides, not a gate on no-preference, because Safari lacks prefers-reduced-transparency and would stay solid. */
+.hy-titlebar--opaque { --hy-titlebar-surface: var(--background-100); --hy-titlebar-filter: none; }
+@media (prefers-reduced-transparency: reduce) {
+  .hy-titlebar { --hy-titlebar-surface: var(--background-100); --hy-titlebar-filter: none; }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .hy-titlebar { --hy-titlebar-surface: var(--background-100); --hy-titlebar-filter: none; }
+}

@@ -13,6 +13,8 @@ export interface TooltipProps {
   tip?: boolean;
   /** Centre the text. Default true. */
   center?: boolean;
+  /** Set `false` when the trigger's own accessible name already says what the tooltip says (an icon-only item named by `aria-label`): the tooltip is then visual only and the trigger gets no `aria-describedby`. Default true. */
+  describe?: boolean;
   /** hyprsh: start open (until the pointer leaves); for docs and previews. */
   defaultOpen?: boolean;
   /** The trigger. A single element gets aria-describedby; plain text is wrapped in a focusable span. */

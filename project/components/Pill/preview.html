@@ -1,4 +1,4 @@
-<!-- @dsCard group="Status" height=190 subtitle="Badge-styled link; sm, md, lg; with icon; toggle chips" -->
+<!-- @dsCard group="Status" height=230 subtitle="Badge-styled link; sm, md, lg; with icon; toggle chips; state dot, trailing figure, popover trigger" -->
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Pill</title></head>
@@ -19,7 +19,13 @@ function Demo() {
   return h(F, null,
     row([h(H.Pill, { key: 1, href: '#changelog', size: 'sm' }, 'Changelog'), h(H.Pill, { key: 2, href: '#changelog', size: 'md' }, 'Changelog'), h(H.Pill, { key: 3, href: '#changelog', size: 'lg' }, 'Changelog')]),
     row([h(H.Pill, { key: 1, href: '#feedback', size: 'sm', icon: icon }, 'Feedback'), h(H.Pill, { key: 2, href: '#feedback', size: 'md', icon: icon }, 'Feedback'), h(H.Pill, { key: 3, href: '#feedback', size: 'lg', icon: icon }, 'Feedback')]),
-    h(Chips));
+    h(Chips),
+    row([
+      h(H.Popover, { key: 1, label: 'Downloads', trigger: h(H.Pill, { status: 'building', statusLabel: 'Downloading', trailing: '54/56' }, 'STD') },
+        h('span', { className: 'copy-14' }, '54 of 56 files downloaded.')),
+      h(H.Pill, { key: 2, size: 'sm', status: 'ready', statusLabel: 'Ready', trailing: '40%', onClick: function () {} }, 'Disk'),
+      h(H.Pill, { key: 3, size: 'lg', status: 'error', statusLabel: 'Failed', trailing: '3', onClick: function () {} }, 'Builds')
+    ]));
 }
 ReactDOM.createRoot(document.getElementById('root')).render(h(Demo));
 </script>

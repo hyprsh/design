@@ -95,6 +95,13 @@ export interface QueryInputProps extends Omit<React.InputHTMLAttributes<HTMLInpu
    * `aria-keyshortcuts`, which an `aria-keyshortcuts` prop overrides. Not for modifier combinations.
    */
   shortcut?: string;
+  /**
+   * Shows an × button at the end of the field while it has text. It empties the field (`onChange('')` when controlled), closes the suggestions and keeps focus in the field.
+   * While the field is empty the slot shows the `shortcut` key cap, or nothing. Not drawn when the field is `disabled` or `readOnly`. Default false.
+   */
+  clearable?: boolean;
+  /** The clear button's accessible name. Default `'Clear'`. */
+  clearLabel?: string;
   /** Keys the field leaves alone: Enter, Escape and Tab whenever the list is closed, and every other key. While the list is open it owns Up, Down, Enter, Tab and Escape. */
   onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   /** Class for the outer element. */

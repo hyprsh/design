@@ -72,6 +72,30 @@ function ccTooltipRows(datum, series, fmt) {
 /* The total, formatted: the tooltip's last row and the table's Total column. */
 function ccTotalText(datum, series, fmt) { return fmt(ccTotal(series, datum)); }
 
+/* Opening. A column or a mark is a target when `onOpen` is set or `href` returns a URL for it: a link with a URL, else a
+   button. Returns null when it is no target, else { href } (href undefined for a button). `key` is the series key of a mark. */
+function ccTarget(props, datum, key) {
+  var url = typeof props.href !== 'function' ? undefined : key === undefined ? props.href(datum) : props.href(datum, key);
+  if (typeof url === 'string' && url) return { href: url };
+  return typeof props.onOpen === 'function' ? { href: undefined } : null;
+}
+/* "Open Oct 28: 25 ready, 1 canceled, 0 error" */
+function ccOpenColumnName(datum, series, fmt) { return 'Open ' + ccColumnName(datum, series, fmt); }
+/* "Open Oct 28 canceled: 1" */
+function ccOpenMarkName(datum, s, fmt) { return 'Open ' + datum.label + ' ' + s.label + ': ' + fmt(ccValue(datum, s)); }
+/* The column that Right, Left, Home and End lead to from column `i` of `n`, or null for any other key. */
+function ccStepTo(key, i, n) {
+  return key === 'ArrowRight' ? Math.min(n - 1, i + 1) : key === 'ArrowLeft' ? Math.max(0, i - 1) : key === 'Home' ? 0 : key === 'End' ? n - 1 : null;
+}
+/* The series keys of a column's marks that can open: a non-zero value whose own target exists, with two or more series. */
+function ccOpenMarks(props, series, datum) {
+  if (series.length < 2) return [];
+  return series.filter(function (s) { return ccValue(datum, s) && ccTarget(props, datum, s.key); }).map(function (s) { return s.key; });
+}
+/* A mark drawn under 8px isn't a separate pointer target: a click there opens the column. */
+var CC_MIN_MARK = 8;
+function ccMarkPointer(height) { return height >= CC_MIN_MARK; }
+
 /* A tone's colour, as Progress segments map it; a series without one is the single-series colour. */
 function ccToneClass(prefix, s) { return prefix + '--' + (CC_TONES.indexOf(s.tone) >= 0 ? s.tone : 'series'); }
 
@@ -100,6 +124,9 @@ function ColumnChart(props) {
   var named = { 'aria-label': props['aria-label'], 'aria-labelledby': props['aria-labelledby'] };
 
   var n = data.length;
+  /* Marks are only separate targets when there is more than one series to tell apart. */
+  var marksOn = series.length >= 2;
+  var anyOpen = data.some(function (d) { return ccTarget(props, d) || ccOpenMarks(props, series, d).length; });
   var ticks = ccTicks(Math.max.apply(null, [0].concat(data.map(function (d) { return ccTotal(series, d); }))));
   var max = ticks[ticks.length - 1];
   var active = hovered !== null ? hovered : focused;
@@ -134,11 +161,30 @@ function ColumnChart(props) {
     var el = plotRef.current && plotRef.current.querySelector('[data-index="' + i + '"]');
     if (el) el.focus();
   }
+  /* A link or button for a target: a link calls onOpen too, so an app can preventDefault and route in-app. */
+  function openEl(target, attrs, children, datum, key) {
+    var onClick = function (e) { if (props.onOpen) props.onOpen(datum, key, e); };
+    return target.href !== undefined
+      ? h('a', Object.assign({ href: target.href, onClick: onClick }, attrs), children)
+      : h('button', Object.assign({ type: 'button', onClick: onClick }, attrs), children);
+  }
   function onKeyDown(e) {
-    var raw = e.target.getAttribute && e.target.getAttribute('data-index');
+    var attr = function (name) { return e.target.getAttribute && e.target.getAttribute(name); };
+    var mark = attr('data-mark'), raw = mark !== null && mark !== undefined ? attr('data-col') : attr('data-index');
     if (raw === null || raw === undefined) return;
     var i = Number(raw);
-    var to = e.key === 'ArrowRight' ? Math.min(n - 1, i + 1) : e.key === 'ArrowLeft' ? Math.max(0, i - 1) : e.key === 'Home' ? 0 : e.key === 'End' ? n - 1 : null;
+    var slot = e.target.closest('.hy-column-chart__slot');
+    var marks = slot ? Array.prototype.slice.call(slot.querySelectorAll('[data-mark]')) : [];
+    if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+      /* Up goes from a column into its marks, bottom to top, and Down comes back down to the column. */
+      var at = mark !== null && mark !== undefined ? marks.indexOf(e.target) : -1;
+      var next = e.key === 'ArrowUp' ? marks[at + 1] : at > 0 ? marks[at - 1] : null;
+      if (next) { e.preventDefault(); next.focus(); }
+      else if (e.key === 'ArrowDown' && at === 0) { e.preventDefault(); focusColumn(i); }
+      else if (e.key === 'ArrowUp' && at >= 0) e.preventDefault();
+      return;
+    }
+    var to = ccStepTo(e.key, i, n);
     if (to === null) return;
     e.preventDefault();
     focusColumn(to);
@@ -153,6 +199,8 @@ function ColumnChart(props) {
       h('span', { className: cx('hy-column-chart__swatch', ccToneClass('hy-column-chart__swatch', s)), 'aria-hidden': 'true' }), s.label);
   })) : null;
 
+  /* Chart view keeps its hidden table plain, so its links and buttons are not a second set of Tab stops. */
+  var tableOpen = view === 'table';
   var table = h('div', { className: view === 'table' ? 'hy-column-chart__tablewrap' : 'hy-sr' }, h('table', Object.assign({ className: 'hy-column-chart__table' }, named),
     h('thead', null, h('tr', null,
       h('th', { scope: 'col' }, 'Label'),
@@ -160,8 +208,13 @@ function ColumnChart(props) {
       h('th', { scope: 'col' }, 'Total'))),
     h('tbody', null, data.map(function (d, i) {
       return h('tr', { key: i },
-        h('th', { scope: 'row' }, d.label),
-        series.map(function (s) { return h('td', { key: s.key }, fmt(ccValue(d, s))); }),
+        h('th', { scope: 'row' }, tableOpen && ccTarget(props, d)
+          ? openEl(ccTarget(props, d), { className: 'hy-column-chart__tablelink', 'aria-label': ccOpenColumnName(d, series, fmt) }, d.label, d)
+          : d.label),
+        series.map(function (s) {
+          var v = ccValue(d, s), t = tableOpen && marksOn && v ? ccTarget(props, d, s.key) : null;
+          return h('td', { key: s.key }, t ? openEl(t, { className: 'hy-column-chart__tablelink', 'aria-label': ccOpenMarkName(d, s, fmt) }, fmt(v), d, s.key) : fmt(v));
+        }),
         h('td', null, ccTotalText(d, series, fmt)));
     }))));
 
@@ -169,7 +222,7 @@ function ColumnChart(props) {
   var labelChars = Math.max.apply(null, data.map(function (d) { return String(d.label).length; }));
   var step = ccThinStep(plotWidth / n, labelChars);
 
-  var plot = h('div', { className: 'hy-column-chart__body', style: { gridTemplateColumns: (tickChars * 7 + 12) + 'px minmax(0, 1fr)' } },
+  var plot = h('div', { className: cx('hy-column-chart__body', anyOpen && 'hy-column-chart__body--open'), style: { gridTemplateColumns: (tickChars * 7 + 12) + 'px minmax(' + (anyOpen ? n * 24 : 0) + 'px, 1fr)' } },
     h('div', { className: 'hy-column-chart__yaxis', style: { height: height }, 'aria-hidden': 'true' }, ticks.map(function (t) {
       return h('span', { key: t, className: 'hy-column-chart__tick', style: { bottom: (t / max * 100) + '%' } }, ccTickLabel(t));
     })),
@@ -178,19 +231,43 @@ function ColumnChart(props) {
         return h('span', { key: 'g' + t, className: cx('hy-column-chart__grid', i === 0 && 'is-baseline'), style: { bottom: (t / max * 100) + '%' }, 'aria-hidden': 'true' });
       }),
       h('div', { className: 'hy-column-chart__cols' }, data.map(function (d, i) {
+        var target = ccTarget(props, d), markKeys = ccOpenMarks(props, series, d);
+        var segs = ccSegments(series, d, max, height);
+        var visual = h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, segs.map(function (g) {
+          return h('span', {
+            key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', g), g.top && 'is-top'),
+            style: { bottom: g.bottom, height: g.height }
+          });
+        }));
+        var enter = function () { setHovered(i); }, leave = function () { setHovered(null); };
+        var focusIn = function () { setFocused(i); setRovingIndex(i); }, focusOut = function () { setFocused(null); };
+        if (!target && !markKeys.length) {
+          return h('div', {
+            key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
+            'aria-label': ccColumnName(d, series, fmt),
+            className: cx('hy-column-chart__slot', active === i && 'is-active'),
+            onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
+          }, visual);
+        }
+        /* An openable column or mark: the slot wraps the picture, a full-slot link or button (a plain image when only marks
+           open) and a layer of mark targets. */
+        var marks = markKeys.length ? segs.map(function (g) {
+          var s = series.filter(function (x) { return x.key === g.key; })[0], t = markKeys.indexOf(g.key) >= 0 ? ccTarget(props, d, g.key) : null;
+          if (!t) return null;
+          return openEl(t, {
+            key: g.key, 'data-col': i, 'data-mark': g.key, tabIndex: -1, 'aria-label': ccOpenMarkName(d, s, fmt),
+            className: cx('hy-column-chart__mark', !ccMarkPointer(g.height) && 'is-thin'), style: { bottom: g.bottom, height: g.height }
+          }, null, d, g.key);
+        }) : null;
         return h('div', {
-          key: i, role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1,
-          'aria-label': ccColumnName(d, series, fmt),
-          className: cx('hy-column-chart__slot', active === i && 'is-active'),
-          onMouseEnter: function () { setHovered(i); }, onMouseLeave: function () { setHovered(null); },
-          onFocus: function () { setFocused(i); setRovingIndex(i); }, onBlur: function () { setFocused(null); }
+          key: i, className: cx('hy-column-chart__slot', 'hy-column-chart__slot--open', active === i && 'is-active'),
+          onMouseEnter: enter, onMouseLeave: leave, onFocus: focusIn, onBlur: focusOut
         },
-          h('div', { className: 'hy-column-chart__col', 'aria-hidden': 'true' }, ccSegments(series, d, max, height).map(function (g) {
-            return h('span', {
-              key: g.key, className: cx('hy-column-chart__seg', ccToneClass('hy-column-chart__seg', g), g.top && 'is-top'),
-              style: { bottom: g.bottom, height: g.height }
-            });
-          })));
+          visual,
+          target
+            ? openEl(target, { 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccOpenColumnName(d, series, fmt), className: 'hy-column-chart__open' }, null, d)
+            : h('div', { role: 'img', 'data-index': i, tabIndex: tabStop === i ? 0 : -1, 'aria-label': ccColumnName(d, series, fmt), className: 'hy-column-chart__open is-static' }),
+          marks ? h('div', { className: 'hy-column-chart__marks' }, marks) : null);
       }))),
     h('div', { className: 'hy-column-chart__xaxis', 'aria-hidden': 'true' }, data.map(function (d, i) {
       return h('span', { key: i, className: 'hy-column-chart__xslot' }, i % step === 0 ? h('span', { className: 'hy-column-chart__xlabel' }, d.label) : null);

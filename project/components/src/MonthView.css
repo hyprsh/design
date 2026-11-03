@@ -1,0 +1,69 @@
+/* ---------- MonthView ---------- */
+/* The narrow form follows the component's own content width, not the viewport's: the component sets .is-narrow below 640px (sm). */
+.hy-month-view { width: 100%; min-width: 0; font-family: var(--font-sans); color: var(--gray-1000); }
+.hy-month-view__inner { display: flex; flex-direction: column; gap: 12px; }
+.hy-month-view__bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.hy-month-view__title { margin: 0; font-size: 20px; line-height: 28px; font-weight: 600; letter-spacing: -.01em; }
+.hy-month-view__nav { display: flex; align-items: center; gap: 4px; }
+
+.hy-month-view__grid { border: 1px solid var(--gray-alpha-400); border-radius: var(--radius-lg); overflow: hidden; background: var(--background-100); }
+.hy-month-view__week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.hy-month-view__week + .hy-month-view__week { border-top: 1px solid var(--gray-alpha-200); }
+.hy-month-view__head { padding: 6px 8px; font-size: 12px; line-height: 16px; font-weight: 500; color: var(--gray-900); background: var(--gray-100); }
+
+.hy-month-view__day {
+  position: relative; display: flex; flex-direction: column; gap: 4px; min-width: 0; min-height: 112px; padding: 6px;
+  border-left: 1px solid var(--gray-alpha-200); cursor: default;
+}
+.hy-month-view__day:first-child { border-left: 0; }
+.hy-month-view__day:focus { outline: none; }
+.hy-month-view__day:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; z-index: 1; }
+.hy-month-view__day.is-outside { background: var(--gray-100); color: var(--gray-700); }
+.hy-month-view__day.is-outside .hy-month-view__entry, .hy-month-view__day.is-outside .hy-month-view__more { color: var(--gray-900); }
+.hy-month-view__num {
+  align-self: flex-start; min-width: 24px; height: 24px; padding: 0 4px; box-sizing: border-box; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 13px; line-height: 20px; font-variant-numeric: tabular-nums; border-radius: var(--radius-full);
+}
+/* Today: a ring and heavier digits, so the mark doesn't depend on colour. */
+.hy-month-view__day.is-today .hy-month-view__num { font-weight: 700; box-shadow: inset 0 0 0 2px var(--gray-1000); }
+.hy-month-view__day.is-selected { background: var(--gray-alpha-100); }
+.hy-month-view__day.is-selected .hy-month-view__num { background: var(--gray-1000); color: var(--background-100); box-shadow: none; }
+
+.hy-month-view__entries, .hy-month-view__list-entries { display: flex; flex-direction: column; gap: 2px; margin: 0; padding: 0; list-style: none; min-width: 0; }
+.hy-month-view__entries li, .hy-month-view__list-entries li { min-width: 0; }
+.hy-month-view__entry, .hy-month-view__more {
+  display: flex; align-items: center; gap: 6px; width: 100%; min-width: 0; min-height: 24px; box-sizing: border-box; padding: 0 4px; margin: 0;
+  border: 0; border-radius: var(--radius-sm); background: transparent; font: inherit; font-size: 13px; line-height: 20px; color: var(--gray-1000); text-align: left; text-decoration: none;
+}
+.hy-month-view__entry.is-link, .hy-month-view__entry.is-button, .hy-month-view__more { cursor: pointer; transition: background-color .15s; }
+.hy-month-view__entry.is-link:hover, .hy-month-view__entry.is-button:hover, .hy-month-view__more:hover { background: var(--gray-alpha-200); }
+.hy-month-view__entry.is-link .hy-month-view__entry-label { text-decoration: underline; text-decoration-color: var(--gray-alpha-400); text-underline-offset: 2px; }
+.hy-month-view__entry:focus-visible, .hy-month-view__more:focus-visible { outline: 2px solid var(--focus-color); outline-offset: 0; }
+.hy-month-view__entry-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hy-month-view__more { color: var(--gray-900); font-weight: 500; }
+
+/* Tones are Progress's segment colours. */
+.hy-month-view__mark { flex: none; width: 8px; height: 8px; border-radius: var(--radius-full); background: var(--hy-mark, var(--gray-700)); }
+.hy-month-view__mark--none { display: none; }
+.hy-month-view__mark--success { --hy-mark: var(--green-700); }
+.hy-month-view__mark--info { --hy-mark: var(--blue-700); }
+.hy-month-view__mark--warning { --hy-mark: var(--amber-700); }
+.hy-month-view__mark--error { --hy-mark: var(--red-800); }
+.hy-month-view__mark--neutral { --hy-mark: var(--gray-700); }
+.hy-month-view__dots { display: none; }
+.hy-month-view__dots .hy-month-view__mark--none { display: block; }
+
+.hy-month-view__list { display: flex; flex-direction: column; gap: 8px; }
+.hy-month-view__list-title { margin: 0; font-size: 14px; line-height: 20px; font-weight: 600; }
+.hy-month-view__list-empty { margin: 0; font-size: 14px; line-height: 20px; color: var(--gray-900); }
+.hy-month-view__list .hy-month-view__entry { min-height: var(--touch-target); padding: 0 8px; font-size: 14px; }
+
+/* Narrow (the sm width): days shrink to a number and up to three dots; the entries go to the list below the grid. */
+.is-narrow .hy-month-view__head { padding: 6px 2px; text-align: center; }
+.is-narrow .hy-month-view__day { align-items: center; min-height: var(--touch-target); padding: 4px 2px; gap: 2px; }
+.is-narrow .hy-month-view__num { align-self: center; }
+.is-narrow .hy-month-view__entries { display: none; }
+.is-narrow .hy-month-view__dots { display: flex; gap: 3px; height: 8px; }
+@media (prefers-reduced-motion: reduce) {
+  .hy-month-view__entry, .hy-month-view__more { transition-duration: 0s; }
+}

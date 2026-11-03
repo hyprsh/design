@@ -27,6 +27,7 @@ const C = {
   ticks: context.ccTicks, tickLabel: context.ccTickLabel, segments: context.ccSegments, total: context.ccTotal,
   thinStep: context.ccThinStep, columnName: context.ccColumnName, tooltipRows: context.ccTooltipRows,
   totalText: context.ccTotalText, value: context.ccValue,
+  target: context.ccTarget, openColumnName: context.ccOpenColumnName, openMarkName: context.ccOpenMarkName, markPointer: context.ccMarkPointer, stepTo: context.ccStepTo, openMarks: context.ccOpenMarks,
 };
 const plain = (x) => JSON.parse(JSON.stringify(x));
 
@@ -156,5 +157,73 @@ describe('ColumnChart.tooltipRows', () => {
     const rows = plain(C.tooltipRows({ label: 'x', values: { a: 3, b: 1 } }, series, String));
     assert.deepEqual(rows.map((r) => [r.key, r.value]), [['b', '1'], ['a', '3']]);
     assert.equal(C.totalText({ label: 'x', values: { a: 3, b: 1 } }, series, String), '4');
+  });
+});
+
+describe('ColumnChart.target', () => {
+  const d = { label: 'Oct 28', values: { ready: 25 } };
+  it('is no target without onOpen or a URL', () => {
+    assert.equal(C.target({}, d), null);
+    assert.equal(C.target({ href: () => undefined }, d), null);
+    assert.equal(C.target({ href: () => '' }, d), null);
+  });
+  it('is a button with onOpen and no URL', () => {
+    assert.deepEqual(plain(C.target({ onOpen() {} }, d)), {});
+    assert.deepEqual(plain(C.target({ onOpen() {}, href: () => undefined }, d)), {});
+  });
+  it('is a link when href returns a URL, with or without onOpen', () => {
+    assert.deepEqual(plain(C.target({ href: () => '/d/1' }, d)), { href: '/d/1' });
+    assert.deepEqual(plain(C.target({ onOpen() {}, href: () => '/d/1' }, d)), { href: '/d/1' });
+  });
+  it('asks href for the column with the datum alone and for a mark with the series key', () => {
+    const calls = [];
+    const props = { href: (...a) => { calls.push(a.length === 1 ? [a[0].label] : [a[0].label, a[1]]); return '/x'; } };
+    C.target(props, d); C.target(props, d, 'ready');
+    assert.deepEqual(calls, [['Oct 28'], ['Oct 28', 'ready']]);
+  });
+});
+
+describe('ColumnChart open names', () => {
+  const series = [{ key: 'ready', label: 'ready' }, { key: 'canceled', label: 'canceled' }, { key: 'error', label: 'error' }];
+  const d = { label: 'Oct 28', values: { ready: 25, canceled: 1 } };
+  it('names a column "Open " plus its current name', () => {
+    assert.equal(C.openColumnName(d, series, String), 'Open Oct 28: 25 ready, 1 canceled, 0 error');
+  });
+  it('names a mark with the column label, the series and the formatted value', () => {
+    assert.equal(C.openMarkName(d, series[1], String), 'Open Oct 28 canceled: 1');
+    assert.equal(C.openMarkName({ label: 'Oct 29', values: { ready: 1200 } }, series[0], (v) => v.toLocaleString('en-US')), 'Open Oct 29 ready: 1,200');
+  });
+});
+
+describe('ColumnChart.markPointer', () => {
+  it('makes a mark a pointer target from 8px', () => {
+    assert.equal(C.markPointer(8), true);
+    assert.equal(C.markPointer(7.9), false);
+    assert.equal(C.markPointer(2), false);
+  });
+});
+
+describe('ColumnChart.stepTo', () => {
+  it('maps Right, Left, Home and End to a column, clamped, and other keys to null', () => {
+    assert.equal(C.stepTo('ArrowRight', 1, 4), 2);
+    assert.equal(C.stepTo('ArrowRight', 3, 4), 3);
+    assert.equal(C.stepTo('ArrowLeft', 0, 4), 0);
+    assert.equal(C.stepTo('ArrowLeft', 2, 4), 1);
+    assert.equal(C.stepTo('Home', 2, 4), 0);
+    assert.equal(C.stepTo('End', 0, 4), 3);
+    assert.equal(C.stepTo('ArrowUp', 0, 4), null);
+  });
+});
+
+describe('ColumnChart.openMarks', () => {
+  const series = [{ key: 'a', label: 'A' }, { key: 'b', label: 'B' }, { key: 'c', label: 'C' }];
+  const d = { label: 'x', values: { a: 3, c: 1 } };
+  it('lists the non-zero series with a target of their own, whatever the column does', () => {
+    assert.deepEqual(plain(C.openMarks({ href: (_d, k) => (k === 'c' ? '/c' : undefined) }, series, d)), ['c']);
+    assert.deepEqual(plain(C.openMarks({ onOpen() {} }, series, d)), ['a', 'c']);
+    assert.deepEqual(plain(C.openMarks({}, series, d)), []);
+  });
+  it('has none for a single series', () => {
+    assert.deepEqual(plain(C.openMarks({ onOpen() {} }, series.slice(0, 1), d)), []);
   });
 });
